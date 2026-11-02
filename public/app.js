@@ -2717,7 +2717,8 @@ async function executeM5AutoRefresh(isUserClick = false) {
     await Promise.all([
       loadGoldBiasData(),
       loadWeeklyNews(),
-      loadTrades('real')
+      loadTrades('real'),
+      loadPythonEngineSignal(false)
     ]);
 
     if (m5Dot) m5Dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
@@ -2785,6 +2786,141 @@ function setupGoldBiasDashboard() {
         : "text-[9px] uppercase tracking-wider text-gray-400 hover:text-white font-bold leading-none cursor-pointer transition";
       showToast(newOffset === 120 ? "Sincronizado con Tickmill (+2 min desfase)" : "Sincronizado con Estándar (:00, :05...)");
     });
+  }
+
+  // Botón Escaneo Inmediato del Motor Python M5
+  const btnScan = document.getElementById("btnRunPythonScan");
+  if (btnScan) {
+    btnScan.addEventListener("click", () => loadPythonEngineSignal(true));
+  }
+
+  // Carga inicial y sondeo periódico cada 8 segundos
+  loadPythonEngineSignal(false);
+  setInterval(() => loadPythonEngineSignal(false), 8000);
+}
+
+// -------------------------------------------------------------
+// Motor Python Nativo: Adaptive Supertrend M5 (Creative Quant)
+// -------------------------------------------------------------
+let lastProcessedPythonEngineSignalId = null;
+
+async function loadPythonEngineSignal(isUserClick = false) {
+  try {
+    const btnScan = document.getElementById("btnRunPythonScan");
+    if (btnScan && isUserClick) {
+      btnScan.innerHTML = '<i data-lucide="loader" class="w-3 h-3 animate-spin text-yellow-400"></i><span>Escaneando...</span>';
+      initIcons();
+    }
+
+    const res = await fetch("/api/adaptive-supertrend");
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || !data.analysis) return;
+
+    renderPythonEngineCard(data.analysis, isUserClick);
+
+    if (btnScan && isUserClick) {
+      setTimeout(() => {
+        btnScan.innerHTML = '<i data-lucide="refresh-cw" class="w-3 h-3 text-yellow-400"></i><span>Escanear M5 Ahora</span>';
+        initIcons();
+      }, 700);
+    }
+  } catch (err) {
+    console.warn("Could not load Python engine analysis:", err);
+  }
+}
+
+function renderPythonEngineCard(analysis, isUserClick = false) {
+  if (!analysis) return;
+
+  const titleEl = document.getElementById("pythonSignalTitle");
+  const iconWrap = document.getElementById("pythonSignalIconWrap");
+  const iconEl = document.getElementById("pythonSignalIcon");
+  const timingEl = document.getElementById("pythonSignalTiming");
+  const priceEl = document.getElementById("pythonSigPrice");
+  const slEl = document.getElementById("pythonSigSl");
+  const slPtsEl = document.getElementById("pythonSigSlPts");
+  const tp1El = document.getElementById("pythonSigTp1");
+  const tp2El = document.getElementById("pythonSigTp2");
+  const rsiEl = document.getElementById("pythonSigRsi");
+  const macdEl = document.getElementById("pythonSigMacd");
+  const regimeEl = document.getElementById("pythonSigRegime");
+  const confPill = document.getElementById("pythonSigConfluencePill");
+  const card = document.getElementById("pythonEngineSignalCard");
+
+  const isBuy = analysis.indicator_signal === "BUY";
+  const isSell = analysis.indicator_signal === "SELL";
+  const hasConfluence = analysis.has_confluence === true;
+
+  if (priceEl && analysis.current_price) priceEl.textContent = `$${Number(analysis.current_price).toFixed(2)}`;
+  if (slEl && analysis.sl_price) slEl.textContent = `$${Number(analysis.sl_price).toFixed(2)}`;
+  if (slPtsEl && analysis.sl_points) slPtsEl.textContent = `${analysis.sl_points} pts`;
+  if (tp1El && analysis.target_1_price) tp1El.textContent = `$${Number(analysis.target_1_price).toFixed(2)}`;
+  if (tp2El && analysis.target_2_price) tp2El.textContent = `$${Number(analysis.target_2_price).toFixed(2)}`;
+  if (rsiEl && analysis.rsi !== undefined) rsiEl.textContent = analysis.rsi;
+  if (macdEl && analysis.macd_hist !== undefined) {
+    macdEl.textContent = analysis.macd_hist <= 0 ? "Bajista" : "Alcista";
+    macdEl.className = analysis.macd_hist <= 0 ? "text-rose-400" : "text-emerald-400";
+  }
+  if (regimeEl && analysis.multiplier_used) {
+    const regLabel = analysis.regime === 'HIGH_VOLATILITY' ? 'Alta' : (analysis.regime === 'LOW_VOLATILITY' ? 'Baja' : 'Normal');
+    regimeEl.textContent = `${regLabel} (${analysis.multiplier_used})`;
+  }
+
+  if (titleEl) {
+    if (isBuy) {
+      titleEl.textContent = "COMPRA CONFIRMADA (BUY M5)";
+      titleEl.className = "font-mono font-black text-xs text-emerald-400";
+      if (iconWrap) iconWrap.className = "w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold";
+      if (iconEl) iconEl.setAttribute("data-lucide", "arrow-up-circle");
+    } else if (isSell) {
+      titleEl.textContent = "VENTA CONFIRMADA (SELL M5)";
+      titleEl.className = "font-mono font-black text-xs text-rose-400";
+      if (iconWrap) iconWrap.className = "w-5 h-5 rounded-md bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold";
+      if (iconEl) iconEl.setAttribute("data-lucide", "arrow-down-circle");
+    } else {
+      titleEl.textContent = "ESPERANDO CIERRE DE VELA M5";
+      titleEl.className = "font-mono font-bold text-xs text-yellow-400";
+      if (iconWrap) iconWrap.className = "w-5 h-5 rounded-md bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-bold";
+      if (iconEl) iconEl.setAttribute("data-lucide", "clock");
+    }
+  }
+
+  if (card) {
+    if (hasConfluence) {
+      card.className = "p-2.5 rounded-xl bg-gray-900/90 border border-emerald-500/60 shadow-lg shadow-emerald-950/20 space-y-2";
+      if (confPill) {
+        confPill.innerHTML = '<i data-lucide="check-check" class="w-3 h-3 text-emerald-400"></i><span>4/4 CONFLUENCIA A+</span>';
+        confPill.className = "text-emerald-400 font-bold flex items-center gap-1";
+      }
+    } else {
+      card.className = "p-2.5 rounded-xl bg-gray-900/80 border border-gray-800 space-y-2";
+      if (confPill) {
+        confPill.innerHTML = '<i data-lucide="shield-alert" class="w-3 h-3 text-gray-500"></i><span>SIN CONFLUENCIA</span>';
+        confPill.className = "text-gray-500 font-bold flex items-center gap-1";
+      }
+    }
+  }
+
+  // Actualizar Item 4 del Radar de Confluencia
+  const confDot4 = document.getElementById("confluenceDot4");
+  const confCheck4 = document.getElementById("confluenceCheck4");
+  if (confCheck4) {
+    if (hasConfluence) {
+      confCheck4.textContent = `✓ GATILLO: ${analysis.indicator_signal} M5 @ $${analysis.current_price}`;
+      confCheck4.className = isBuy ? "font-mono text-emerald-400 font-bold text-[10px]" : "font-mono text-rose-400 font-bold text-[10px]";
+      if (confDot4) confDot4.className = isBuy ? "w-2 h-2 rounded-full bg-emerald-400 animate-pulse" : "w-2 h-2 rounded-full bg-rose-400 animate-pulse";
+    } else {
+      confCheck4.textContent = isBuy || isSell ? `⚠️ ${analysis.indicator_signal} (FILTRADO)` : "⏳ ESPERANDO VELA";
+      confCheck4.className = "font-mono text-yellow-400 font-bold text-[10px]";
+      if (confDot4) confDot4.className = "w-2 h-2 rounded-full bg-yellow-400";
+    }
+  }
+
+  initIcons();
+
+  if (isUserClick) {
+    showToast(`⚡ <strong>Motor Python M5:</strong> Análisis completado. Señal actual: <strong>${analysis.indicator_signal}</strong> @ $${analysis.current_price}`, hasConfluence ? "success" : "info", 4000);
   }
 }
 

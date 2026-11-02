@@ -523,21 +523,76 @@
                 Esperando cierre de vela en M5 para confirmación de ejecución de máxima probabilidad.
               </div>
 
-              <!-- Controles Webhook TradingView en Tiempo Real -->
-              <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-800 text-[10px]">
-                <button type="button" id="btnOpenTvWebhookModal" class="px-2 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 rounded-lg font-bold flex items-center gap-1 transition cursor-pointer" title="Configurar Webhook / Guía de Conexión TradingView">
-                  <i data-lucide="radio" class="w-3 h-3 text-blue-400"></i>
-                  <span>Conectar TV</span>
-                </button>
-                <div class="flex items-center gap-1.5 ml-auto">
-                  <button type="button" id="btnSimulateTvSignal" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400/50 rounded-lg font-bold flex items-center gap-1 transition cursor-pointer shadow-md shadow-emerald-950/50" title="Disparar gatillo M5 a favor del sesgo macro institucional (Setup A+)">
-                    <i data-lucide="target" class="w-3 h-3"></i>
-                    <span id="btnSimulateTvSignalText">🎯 Gatillo M5 (Setup A+)</span>
+              <!-- Monitor del Motor Python M5 en Vivo (Creative Quant) -->
+              <div class="pt-2.5 border-t border-gray-800 space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="relative flex h-2.5 w-2.5">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-xs font-bold text-white flex items-center gap-1.5 font-mono">
+                      <span>Motor Python M5</span>
+                      <span id="pythonEngineLiveStatus" class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700/80 font-bold">
+                        ESCANEANDO EN VIVO
+                      </span>
+                    </span>
+                  </div>
+                  <button type="button" id="btnRunPythonScan" class="px-2.5 py-1 bg-yellow-500/15 hover:bg-yellow-500/25 border border-yellow-500/30 text-yellow-300 rounded-lg text-[10px] font-bold font-mono transition flex items-center gap-1 cursor-pointer" title="Forzar re-cálculo inmediato del motor Python en velas M5 de Tickmill">
+                    <i data-lucide="refresh-cw" class="w-3 h-3 text-yellow-400"></i>
+                    <span>Escanear M5 Ahora</span>
                   </button>
-                  <button type="button" id="btnSimulateCounterSignal" class="px-2 py-1 bg-gray-800 hover:bg-rose-950/80 text-gray-400 hover:text-rose-300 border border-gray-700 hover:border-rose-600/50 rounded-lg font-medium flex items-center gap-1 transition cursor-pointer" title="Probar qué pasa si entra una señal en contratendencia (Filtro de Descarte)">
-                    <i data-lucide="shield-alert" class="w-3 h-3 text-rose-400"></i>
-                    <span>Test Filtro</span>
-                  </button>
+                </div>
+
+                <!-- Tarjeta de Señal Emitida por el Motor Python -->
+                <div id="pythonEngineSignalCard" class="p-2.5 rounded-xl bg-gray-900/90 border border-emerald-500/40 space-y-2 shadow-inner">
+                  <div class="flex flex-wrap items-center justify-between gap-1.5">
+                    <div class="flex items-center gap-1.5">
+                      <span id="pythonSignalIconWrap" class="w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                        <i data-lucide="arrow-down-circle" class="w-3.5 h-3.5" id="pythonSignalIcon"></i>
+                      </span>
+                      <span id="pythonSignalTitle" class="font-mono font-black text-xs text-emerald-400">
+                        VENTA CONFIRMADA (SELL M5)
+                      </span>
+                    </div>
+                    <span id="pythonSignalTiming" class="text-[9px] font-mono text-gray-400">
+                      Cierre Vela :02 Tickmill
+                    </span>
+                  </div>
+
+                  <!-- Grid de Niveles Institucionales Calculados por el Motor -->
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-center font-mono text-[10px]">
+                    <div class="bg-gray-950/80 p-1.5 rounded-lg border border-gray-800">
+                      <span class="text-gray-500 block text-[8px] uppercase tracking-wider font-sans">Precio Entrada</span>
+                      <span id="pythonSigPrice" class="text-white font-bold">$3,907.80</span>
+                    </div>
+                    <div class="bg-gray-950/80 p-1.5 rounded-lg border border-gray-800">
+                      <span class="text-gray-500 block text-[8px] uppercase tracking-wider font-sans">Stop Loss</span>
+                      <span id="pythonSigSl" class="text-rose-400 font-bold">$3,925.00</span>
+                      <span id="pythonSigSlPts" class="text-[8px] text-gray-400 block">250 pts</span>
+                    </div>
+                    <div class="bg-gray-950/80 p-1.5 rounded-lg border border-gray-800">
+                      <span class="text-gray-500 block text-[8px] uppercase tracking-wider font-sans">Target 1 (1.5 R:R)</span>
+                      <span id="pythonSigTp1" class="text-cyan-400 font-bold">$3,870.30</span>
+                      <span class="text-[8px] text-emerald-400 block">+375 pts (BE)</span>
+                    </div>
+                    <div class="bg-gray-950/80 p-1.5 rounded-lg border border-gray-800">
+                      <span class="text-gray-500 block text-[8px] uppercase tracking-wider font-sans">Target 2 (3.0 R:R)</span>
+                      <span id="pythonSigTp2" class="text-cyan-400 font-bold">$3,832.80</span>
+                      <span class="text-[8px] text-emerald-400 block">+750 pts</span>
+                    </div>
+                  </div>
+
+                  <!-- Métricas Algorítmicas de Confluencia -->
+                  <div class="flex flex-wrap items-center justify-between text-[9px] font-mono text-gray-400 pt-1 border-t border-gray-800/80">
+                    <span id="pythonSigMetrics">
+                      RSI(14): <strong class="text-emerald-400" id="pythonSigRsi">41.2</strong> (&lt;45 ✓) · MACD: <strong class="text-emerald-400" id="pythonSigMacd">Bajista</strong> · Régimen: <strong class="text-yellow-400" id="pythonSigRegime">Normal (2.7)</strong>
+                    </span>
+                    <span id="pythonSigConfluencePill" class="text-emerald-400 font-bold flex items-center gap-1">
+                      <i data-lucide="check-check" class="w-3 h-3 text-emerald-400"></i>
+                      <span>4/4 CONFLUENCIA A+</span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
