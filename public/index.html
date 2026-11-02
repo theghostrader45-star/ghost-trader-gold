@@ -164,6 +164,10 @@
       <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0">
+            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#realKpiCardsContainer" title="Contraer / Expandir métricas">
+              <span class="btn-collapse-label">Contraer</span>
+              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
+            </button>
             <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
               <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
             </div>
@@ -180,11 +184,6 @@
               <span class="text-gray-400">Total Ops:</span>
               <span class="font-bold text-emerald-400" id="realStatTotalOpsBadge">0</span>
             </div>
-
-            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#realKpiCardsContainer" title="Contraer / Expandir métricas">
-              <span class="btn-collapse-label">Contraer</span>
-              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
-            </button>
           </div>
         </div>
 
@@ -271,6 +270,10 @@
         
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0">
+            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#realTradeForm" title="Contraer / Expandir formulario">
+              <span class="btn-collapse-label">Contraer</span>
+              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
+            </button>
             <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
               <i data-lucide="plus-circle" class="w-5 h-5"></i>
             </div>
@@ -287,11 +290,6 @@
               <span class="text-gray-400">Balance actual:</span>
               <span class="font-mono font-bold text-emerald-400" id="realFormCurrentBalDisplay">$110.00</span>
             </div>
-
-            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#realTradeForm" title="Contraer / Expandir formulario">
-              <span class="btn-collapse-label">Contraer</span>
-              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
-            </button>
           </div>
         </div>
 
@@ -450,6 +448,10 @@
         
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0">
+            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#realTradesTableContainer" title="Contraer / Expandir tabla">
+              <span class="btn-collapse-label">Contraer</span>
+              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
+            </button>
             <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
               <i data-lucide="book-marked" class="w-5 h-5"></i>
             </div>
@@ -465,11 +467,6 @@
             <button id="btnExportRealCsv" class="h-8 px-3 bg-gray-950/80 hover:bg-gray-800 rounded-xl border border-gray-700/80 text-gray-300 hover:text-white font-semibold transition flex items-center gap-1.5 shadow-sm text-xs cursor-pointer" title="Exportar Bitácora">
               <i data-lucide="download" class="w-3.5 h-3.5"></i>
               <span>Exportar Bitácora CSV</span>
-            </button>
-
-            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#realTradesTableContainer" title="Contraer / Expandir tabla">
-              <span class="btn-collapse-label">Contraer</span>
-              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
             </button>
           </div>
         </div>
@@ -543,6 +540,10 @@
         <div class="lg:col-span-5 bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
+              <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#calcInputsBody" title="Contraer / Expandir parámetros">
+                <span class="btn-collapse-label">Contraer</span>
+                <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
+              </button>
               <div class="w-9 h-9 rounded-xl bg-gold-500/15 border border-gold-500/30 flex items-center justify-center text-gold-400 shrink-0">
                 <i data-lucide="sliders" class="w-5 h-5"></i>
               </div>
@@ -552,13 +553,6 @@
                 </h3>
                 <p class="text-xs text-gray-400 mt-0.5">1 Lote estándar = 100 onzas troy de oro (XAU/USD)</p>
               </div>
-            </div>
-
-            <div class="flex items-center gap-2.5 shrink-0">
-              <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#calcInputsBody" title="Contraer / Expandir parámetros">
-                <span class="btn-collapse-label">Contraer</span>
-                <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
-              </button>
             </div>
           </div>
 
@@ -620,6 +614,10 @@
         <div class="lg:col-span-7 bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
+              <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#calcResultsBody" title="Contraer / Expandir resultados">
+                <span class="btn-collapse-label">Contraer</span>
+                <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
+              </button>
               <div class="w-9 h-9 rounded-xl bg-gold-500/15 border border-gold-500/30 flex items-center justify-center text-gold-400 shrink-0">
                 <i data-lucide="shield-check" class="w-5 h-5"></i>
               </div>
@@ -629,13 +627,6 @@
                 </h3>
                 <p class="text-xs text-gray-400 mt-0.5">Cálculo de lotaje exacto, riesgo monetario y margen requerido</p>
               </div>
-            </div>
-
-            <div class="flex items-center gap-2.5 shrink-0">
-              <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#calcResultsBody" title="Contraer / Expandir resultados">
-                <span class="btn-collapse-label">Contraer</span>
-                <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
-              </button>
             </div>
           </div>
 
@@ -727,6 +718,10 @@
         <!-- Top Title & Live Clocks -->
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0">
+            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#goldBiasHeroContainer" title="Contraer / Expandir Sesgo">
+              <span class="btn-collapse-label">Contraer</span>
+              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
+            </button>
             <div class="w-9 h-9 rounded-xl bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center text-yellow-400 shrink-0">
               <i data-lucide="compass" class="w-5 h-5"></i>
             </div>
@@ -783,11 +778,6 @@
             <button id="btnOpenMacroGuideModal" class="h-8 px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Manual Operativo & Guía de la Macro Sesión">
               <i data-lucide="book-open" class="w-3.5 h-3.5 text-amber-400"></i>
               <span>Guía Macro (PDF)</span>
-            </button>
-
-            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#goldBiasHeroContainer" title="Contraer / Expandir Sesgo">
-              <span class="btn-collapse-label">Contraer</span>
-              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
             </button>
           </div>
         </div>
@@ -1200,6 +1190,10 @@
         <!-- Header -->
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0">
+            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#weeklyNewsBodyWrapper" title="Contraer / Expandir Calendario">
+              <span class="btn-collapse-label">Contraer</span>
+              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
+            </button>
             <div class="w-9 h-9 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400 shrink-0">
               <i data-lucide="calendar-days" class="w-5 h-5"></i>
             </div>
@@ -1226,10 +1220,6 @@
               <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-yellow-400"></i>
               <span>Bloqueo ±15 min</span>
             </span>
-            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#weeklyNewsBodyWrapper" title="Contraer / Expandir Calendario">
-              <span class="btn-collapse-label">Contraer</span>
-              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
-            </button>
           </div>
         </div>
 
@@ -1291,6 +1281,10 @@
       <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0">
+            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#macroDriversBodyWrapper" title="Contraer / Expandir Matriz Macro">
+              <span class="btn-collapse-label">Contraer</span>
+              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
+            </button>
             <div class="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
               <i data-lucide="landmark" class="w-5 h-5"></i>
             </div>
@@ -1307,10 +1301,6 @@
               <i data-lucide="activity" class="w-3.5 h-3.5 text-blue-400"></i>
               <span>Correlaciones Cuantitativas</span>
             </span>
-            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#macroDriversBodyWrapper" title="Contraer / Expandir Matriz Macro">
-              <span class="btn-collapse-label">Contraer</span>
-              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
-            </button>
           </div>
         </div>
 
@@ -1328,6 +1318,10 @@
       <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0">
+            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#macroQuickGuideContent" title="Contraer / Expandir Guía">
+              <span class="btn-collapse-label">Contraer</span>
+              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
+            </button>
             <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
               <i data-lucide="book-open-check" class="w-5 h-5"></i>
             </div>
@@ -1344,10 +1338,6 @@
             <button type="button" id="btnOpenMacroGuideFromSection" class="h-8 px-3.5 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-black font-bold rounded-xl flex items-center gap-1.5 transition cursor-pointer shadow-sm">
               <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
               <span>Abrir Manual Completo (PDF)</span>
-            </button>
-            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#macroQuickGuideContent" title="Contraer / Expandir Guía">
-              <span class="btn-collapse-label">Contraer</span>
-              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
             </button>
           </div>
         </div>
@@ -2003,6 +1993,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261102_08"></script>
+<script src="app.js?v=20261102_09"></script>
 </body>
 </html>
