@@ -598,8 +598,13 @@ function recalculateRealJournalPreview() {
 
   const rawInput = document.getElementById('realTradeTvPoints')?.value || '250';
   const { points, price } = parseTradingViewInput(rawInput);
-  const riskPct = parseFloat(document.getElementById('realTradeRiskPct')?.value) || 5.0;
-  const rr = parseFloat(document.getElementById('realTradeRR')?.value) || 1.0;
+  
+  const riskPctStr = document.getElementById('realTradeRiskPct')?.value || '5.0';
+  const riskPct = parseFloat(String(riskPctStr).replace(',', '.').trim()) || 5.0;
+  
+  const rrStr = document.getElementById('realTradeRR')?.value || '1.0';
+  const rr = parseFloat(String(rrStr).replace(',', '.').trim()) || 1.0;
+  
   const leverage = parseFloat(appState.config.leverage) || 300;
 
   const dollarRiskBudget = roundNum(curBal * (riskPct / 100.0), 2);
@@ -612,14 +617,22 @@ function recalculateRealJournalPreview() {
 
   // Manejo de lote manual ingresado por el usuario
   const manualLotInput = document.getElementById('realTradeManualLot');
-  const manualLotVal = manualLotInput && manualLotInput.value ? parseFloat(manualLotInput.value) : null;
+  const manualLotVal = manualLotInput && manualLotInput.value ? parseFloat(String(manualLotInput.value).replace(',', '.').trim()) : null;
   const effectiveLot = (manualLotVal && manualLotVal > 0) ? roundNum(manualLotVal, 2) : suggestedLot;
+
+  // Manejo de comisión (permite negativos -0.06 o -0,06 o positivos 0.06)
+  const commInput = document.getElementById('realTradeCommission');
+  let commVal = 0.0;
+  if (commInput && commInput.value) {
+    const rawComm = parseFloat(String(commInput.value).replace(',', '.').trim());
+    if (!isNaN(rawComm)) commVal = Math.abs(rawComm);
+  }
 
   const effectiveMargin = roundNum((2720.0 * 100 * effectiveLot) / leverage, 2);
   const effectiveRiskDollar = roundNum(points * effectiveLot, 2);
   const effectiveRewardDollar = roundNum(points * effectiveLot * rr, 2);
-  const effectiveRiskPct = curBal > 0 ? roundNum((effectiveRiskDollar / curBal) * 100, 1) : riskPct;
-  const effectiveRewardPct = curBal > 0 ? roundNum((effectiveRewardDollar / curBal) * 100, 1) : (riskPct * rr);
+  const effectiveRiskPct = curBal > 0 ? roundNum(((effectiveRiskDollar + commVal) / curBal) * 100, 2) : riskPct;
+  const effectiveRewardPct = curBal > 0 ? roundNum(((effectiveRewardDollar - commVal) / curBal) * 100, 2) : (riskPct * rr);
 
   const slExplain = document.getElementById('realSlExplain');
   if (slExplain) slExplain.textContent = `${points} pts ($${price})`;
@@ -628,10 +641,16 @@ function recalculateRealJournalPreview() {
   if (curBalDisplay) curBalDisplay.textContent = `$${curBal.toFixed(2)}`;
 
   const previewRisk = document.getElementById('realPreviewRiskDollar');
-  if (previewRisk) previewRisk.textContent = `-$${effectiveRiskDollar.toFixed(2)} (-${effectiveRiskPct.toFixed(1)}%)`;
+  if (previewRisk) {
+    const totalRiskDol = roundNum(effectiveRiskDollar + commVal, 2);
+    previewRisk.textContent = `-$${totalRiskDol.toFixed(2)} (-${effectiveRiskPct.toFixed(2)}%)`;
+  }
 
   const previewReward = document.getElementById('realPreviewRewardDollar');
-  if (previewReward) previewReward.textContent = `+$${effectiveRewardDollar.toFixed(2)} (+${effectiveRewardPct.toFixed(1)}%)`;
+  if (previewReward) {
+    const totalRewardDol = roundNum(effectiveRewardDollar - commVal, 2);
+    previewReward.textContent = `+$${totalRewardDol.toFixed(2)} (+${effectiveRewardPct.toFixed(2)}%)`;
+  }
 
   const previewLot = document.getElementById('realPreviewLot');
   if (previewLot) previewLot.textContent = effectiveLot.toFixed(2);
@@ -939,11 +958,11 @@ function renderBacktestTradesTable() {
         <td class="py-2.5 px-3 text-rose-300 font-bold">${tvLabel}</td>
         <td class="py-2.5 px-3 text-emerald-300 font-bold">${tvTpLabel}</td>
         <td class="py-2.5 px-3 text-blue-300 font-bold font-mono">1:${tradeRR.toFixed(1)}</td>
-        <td class="py-2.5 px-3 text-amber-300 font-mono">${riskBudget}</td>
+        <td class="py-2.5 px-3 text-amber-300 font-mono">${riskBudget} <span class="text-[10px] text-amber-400/90 font-bold">(${Number(t.risk_pct || t.risk_pct_custom || 5.0).toFixed(2)}%)</span></td>
         <td class="py-2.5 px-3 text-gold-400 font-bold">${Number(t.lot_size || 0.01).toFixed(2)}</td>
         <td class="py-2.5 px-3 text-purple-300 font-mono">$${Number(t.margin_used || 0).toFixed(2)}</td>
         <td class="py-2.5 px-3">${badgeOutcome}</td>
-        <td class="py-2.5 px-3 text-rose-400 font-mono">${t.commission ? '-$' + Number(t.commission).toFixed(2) : '$0.00'}</td>
+        <td class="py-2.5 px-3 text-rose-400 font-mono font-bold">${t.commission ? '-$' + Number(Math.abs(t.commission)).toFixed(2) : '$0.00'}</td>
         <td class="py-2.5 px-3 ${pnlColor}">${pnlSign}$${Number(t.pnl).toFixed(2)}</td>
         <td class="py-2.5 px-3 text-white font-bold">$${Number(t.balance_after || 0).toFixed(2)}</td>
         <td class="py-2.5 px-3 text-gray-300 font-sans text-xs truncate max-w-[120px]" title="${t.notes || ''}">${t.strategy || 'General'}</td>
@@ -1080,10 +1099,10 @@ function renderRealTradesTable() {
         <td class="py-2.5 px-3">${dirBadge}</td>
         <td class="py-2.5 px-3 text-rose-300 font-bold">${pts} pts ($${priceVal})</td>
         <td class="py-2.5 px-3 text-blue-300 font-bold font-mono">1:${tradeRR.toFixed(1)}</td>
-        <td class="py-2.5 px-3 text-amber-300 font-mono">$${Number(t.dollar_risk || t.risk_budget || 0).toFixed(2)}</td>
+        <td class="py-2.5 px-3 text-amber-300 font-mono">$${Number(t.dollar_risk || t.risk_budget || 0).toFixed(2)} <span class="text-[10px] text-amber-400/90 font-bold">(${Number(t.risk_pct || t.risk_pct_custom || 0).toFixed(2)}%)</span></td>
         <td class="py-2.5 px-3 text-gold-400 font-bold font-mono">${Number(t.lot_size || t.suggested_lot || 0.01).toFixed(2)}</td>
         <td class="py-2.5 px-3">${badgeOutcome}</td>
-        <td class="py-2.5 px-3 text-rose-400 font-mono">${t.commission ? '-$' + Number(t.commission).toFixed(2) : '$0.00'}</td>
+        <td class="py-2.5 px-3 text-rose-400 font-mono font-bold">${t.commission ? '-$' + Number(Math.abs(t.commission)).toFixed(2) : '$0.00'}</td>
         <td class="py-2.5 px-3 ${pnlColor}">${pnlSign}$${Number(t.pnl).toFixed(2)}</td>
         <td class="py-2.5 px-3 text-white font-bold">$${Number(t.balance_after || 0).toFixed(2)}</td>
         <td class="py-2.5 px-3">${chartBtn}</td>
@@ -1471,6 +1490,8 @@ function setupEventListeners() {
     if (rRR) rRR.addEventListener('input', recalculateRealJournalPreview);
     const rLot = document.getElementById('realTradeManualLot');
     if (rLot) rLot.addEventListener('input', recalculateRealJournalPreview);
+    const rComm = document.getElementById('realTradeCommission');
+    if (rComm) rComm.addEventListener('input', recalculateRealJournalPreview);
   }
 
   // Clear Button
@@ -1671,8 +1692,10 @@ async function handleAddRealTrade(e) {
   const rawInput = document.getElementById('realTradeTvPoints')?.value || '250';
   const { points, price } = parseTradingViewInput(rawInput);
 
-  const riskPct = parseFloat(document.getElementById('realTradeRiskPct')?.value) || 5.0;
-  const rr = parseFloat(document.getElementById('realTradeRR')?.value) || 1.0;
+  const riskPctRaw = document.getElementById('realTradeRiskPct')?.value || '5.0';
+  const riskPct = roundNum(parseFloat(String(riskPctRaw).replace(',', '.').trim()) || 5.0, 2);
+  const rrRaw = document.getElementById('realTradeRR')?.value || '1.0';
+  const rr = roundNum(parseFloat(String(rrRaw).replace(',', '.').trim()) || 1.0, 2);
   const strategy = 'Adaptive Supertrend M5';
   const emotion = '';
   const tvChartUrl = document.getElementById('realTradeChartUrl')?.value || '';
@@ -1686,11 +1709,17 @@ async function handleAddRealTrade(e) {
 
   // Opción de lote manual
   const manualLotInput = document.getElementById('realTradeManualLot');
-  const manualLotVal = manualLotInput && manualLotInput.value ? parseFloat(manualLotInput.value) : null;
+  const manualLotVal = manualLotInput && manualLotInput.value ? parseFloat(String(manualLotInput.value).replace(',', '.').trim()) : null;
   const lot_size = (manualLotVal && manualLotVal > 0) ? roundNum(manualLotVal, 2) : suggested_lot;
 
   const commissionInput = document.getElementById('realTradeCommission');
-  const commission = commissionInput && commissionInput.value ? Math.abs(parseFloat(commissionInput.value)) : 0.0;
+  let commission = 0.0;
+  if (commissionInput && commissionInput.value) {
+    const rawComm = parseFloat(String(commissionInput.value).replace(',', '.').trim());
+    if (!isNaN(rawComm)) {
+      commission = roundNum(Math.abs(rawComm), 2);
+    }
+  }
 
   const actualDollarRisk = roundNum(points * lot_size, 2);
   let pnl = 0.0;
@@ -1805,6 +1834,10 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
   document.getElementById('editTradeStatus').value = trade.status || 'win';
   const lotEl = document.getElementById('editTradeLot');
   if (lotEl) lotEl.value = Number(trade.lot_size || trade.suggested_lot || 0.01).toFixed(2);
+  const riskEl = document.getElementById('editTradeRiskPct');
+  if (riskEl) riskEl.value = Number(trade.risk_pct || trade.risk_pct_custom || 5.0).toFixed(2);
+  const commEl = document.getElementById('editTradeCommission');
+  if (commEl) commEl.value = trade.commission ? `-${Math.abs(trade.commission).toFixed(2)}` : '-0.00';
   const stratEl = document.getElementById('editTradeStrategy');
   if (stratEl) stratEl.value = trade.strategy || 'Adaptive Supertrend M5';
   const emoEl = document.getElementById('editTradeEmotion');
@@ -1831,6 +1864,20 @@ async function handleSaveEditedTrade() {
   const emotion = document.getElementById('editTradeEmotion')?.value || '';
   const tvChartUrl = document.getElementById('editTradeChartUrl')?.value || '';
 
+  const riskEl = document.getElementById('editTradeRiskPct');
+  let riskVal = null;
+  if (riskEl && riskEl.value) {
+    const parsedRisk = parseFloat(String(riskEl.value).replace(',', '.').trim());
+    if (!isNaN(parsedRisk)) riskVal = roundNum(parsedRisk, 2);
+  }
+
+  const commEl = document.getElementById('editTradeCommission');
+  let commVal = null;
+  if (commEl && commEl.value) {
+    const parsedComm = parseFloat(String(commEl.value).replace(',', '.').trim());
+    if (!isNaN(parsedComm)) commVal = roundNum(Math.abs(parsedComm), 2);
+  }
+
   const payload = {
     mode,
     tv_points: points,
@@ -1848,6 +1895,14 @@ async function handleSaveEditedTrade() {
     emotion,
     tv_chart_url: tvChartUrl
   };
+
+  if (riskVal !== null) {
+    payload.risk_pct = riskVal;
+    payload.risk_pct_custom = riskVal;
+  }
+  if (commVal !== null) {
+    payload.commission = commVal;
+  }
 
   try {
     const res = await fetch(`/api/trades/${id}?mode=${mode}`, {

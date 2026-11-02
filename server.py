@@ -277,10 +277,12 @@ def recalculate_trade_history(trades, config):
                 tv_points = round(raw_val * 100.0)
                 price_dist = round(raw_val, 2)
             
-        trade_risk = float(t.get("risk_pct_custom") or risk_pct)
-        trade_rr = float(t.get("rr_custom") or global_rr)
+        raw_risk = t.get("risk_pct_custom") or t.get("risk_pct") or risk_pct
+        trade_risk = round(float(str(raw_risk).replace(",", ".")), 2)
+        trade_rr = float(str(t.get("rr_custom") or t.get("rr") or global_rr).replace(",", "."))
         status = t.get("status", "win").lower()
-        commission = float(t.get("commission", 0.0))
+        raw_comm = t.get("commission", 0.0)
+        commission = round(abs(float(str(raw_comm).replace(",", "."))), 2)
         
         # Pure percentage compounding:
         if status == "win":
@@ -311,6 +313,7 @@ def recalculate_trade_history(trades, config):
         t_new["tp_points"] = round(tv_points * trade_rr)
         t_new["sl_distance"] = price_dist
         t_new["risk_pct"] = trade_risk
+        t_new["risk_pct_custom"] = trade_risk
         t_new["ret_pct"] = round(ret_pct, 2)
         t_new["rr"] = trade_rr
         t_new["dollar_risk"] = round(dollar_risk, 2)
@@ -366,8 +369,9 @@ def calculate_analytics(trades, config):
 
     for idx, t in enumerate(trades, start=1):
         status = t.get("status", "win").lower()
-        trade_risk = float(t.get("risk_pct_custom") or global_risk)
-        trade_rr = float(t.get("rr_custom") or global_rr)
+        raw_risk = t.get("risk_pct_custom") or t.get("risk_pct") or global_risk
+        trade_risk = round(float(str(raw_risk).replace(",", ".")), 2)
+        trade_rr = float(str(t.get("rr_custom") or t.get("rr") or global_rr).replace(",", "."))
 
         # Pure percentage dynamic compounding
         if status == "win":
@@ -377,7 +381,8 @@ def calculate_analytics(trades, config):
         else:
             ret_pct = 0.0
 
-        commission = float(t.get("commission", 0.0))
+        raw_comm = t.get("commission", 0.0)
+        commission = round(abs(float(str(raw_comm).replace(",", "."))), 2)
         if "pnl" in t and (t.get("manual_lot") is not None or commission > 0):
             pnl = round(float(t["pnl"]), 2)
         else:
@@ -1035,8 +1040,9 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 tv_points = round(raw_val * 100.0)
                 price_dist = round(raw_val, 2)
 
-            trade_risk_pct = float(payload.get("risk_pct") or config.get("risk_pct", 5.0))
-            trade_rr = float(payload.get("rr") or config.get("rr_ratio", 1.0))
+            raw_risk = payload.get("risk_pct") or payload.get("risk_pct_custom") or config.get("risk_pct", 5.0)
+            trade_risk_pct = round(float(str(raw_risk).replace(",", ".")), 2)
+            trade_rr = float(str(payload.get("rr") or config.get("rr_ratio", 1.0)).replace(",", "."))
             status = payload.get("status", "win").lower()
             
             # Pure percentage calculation
@@ -1056,15 +1062,19 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             if suggested_lot < 0.01:
                 suggested_lot = 0.01
 
-            manual_lot = float(payload.get("manual_lot") or payload.get("lot_size") or 0.0)
+            manual_lot_raw = payload.get("manual_lot") or payload.get("lot_size") or 0.0
+            manual_lot = float(str(manual_lot_raw).replace(",", ".")) if manual_lot_raw else 0.0
             lot_size = round(manual_lot, 2) if manual_lot > 0 else suggested_lot
             margin_used = round((2700.0 * 100 * lot_size) / float(config.get("leverage", 300)), 2)
 
-            commission = round(float(payload.get("commission", 0.0)), 2)
+            raw_comm = payload.get("commission", 0.0)
+            commission = round(abs(float(str(raw_comm).replace(",", "."))), 2)
             # If client computed PnL with manual lot size or commission, respect it:
             if "pnl" in payload and (manual_lot > 0 or commission > 0):
-                pnl = round(float(payload["pnl"]), 2)
-                dollar_risk = round(float(payload.get("dollar_risk", dollar_risk)), 2)
+                pnl = round(float(str(payload["pnl"]).replace(",", ".")), 2)
+                dollar_risk = round(float(str(payload.get("dollar_risk", dollar_risk)).replace(",", ".")), 2)
+            else:
+                pnl = round(cur_bal * (ret_pct / 100.0) - commission, 2)
 
             trade = {
                 "id": str(uuid.uuid4()),
@@ -1076,6 +1086,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 "tp_points": round(tv_points * trade_rr),
                 "sl_distance": price_dist,
                 "risk_pct": trade_risk_pct,
+                "risk_pct_custom": trade_risk_pct,
                 "ret_pct": round(ret_pct, 2),
                 "dollar_risk": dollar_risk,
                 "suggested_lot": suggested_lot,

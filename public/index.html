@@ -1962,11 +1962,11 @@
             <div class="lg:col-span-2 grid grid-cols-2 gap-2">
               <div>
                 <label class="block text-gray-400 mb-1.5 font-semibold">Riesgo %</label>
-                <input type="number" id="realTradeRiskPct" step="0.1" min="0.5" max="20" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-2 py-2 text-amber-400 font-mono font-bold text-center focus:border-emerald-500 focus:outline-none" value="5.0">
+                <input type="text" inputmode="decimal" id="realTradeRiskPct" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-2 py-2 text-amber-400 font-mono font-bold text-center focus:border-emerald-500 focus:outline-none" value="5.00" placeholder="12.19">
               </div>
               <div>
                 <label class="block text-gray-400 mb-1.5 font-semibold">R:R</label>
-                <input type="number" id="realTradeRR" step="0.1" min="0.5" max="10" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-2 py-2 text-blue-400 font-mono font-bold text-center focus:border-emerald-500 focus:outline-none" value="1.0">
+                <input type="text" inputmode="decimal" id="realTradeRR" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-2 py-2 text-blue-400 font-mono font-bold text-center focus:border-emerald-500 focus:outline-none" value="1.0" placeholder="1.5">
               </div>
             </div>
 
@@ -1985,7 +1985,7 @@
                 <span class="text-[10px] text-gray-400 font-mono">Sugerido: <b id="realTradeSuggestedLotBadge" class="text-gold-400">0.01</b></span>
               </label>
               <div class="relative">
-                <input type="number" id="realTradeManualLot" step="0.01" min="0.01" max="100" class="w-full bg-gray-950 border-2 border-gold-500/50 focus:border-gold-400 rounded-xl px-3.5 py-2 text-gold-300 font-mono font-black text-sm focus:outline-none" placeholder="0.01">
+                <input type="text" inputmode="decimal" id="realTradeManualLot" class="w-full bg-gray-950 border-2 border-gold-500/50 focus:border-gold-400 rounded-xl px-3.5 py-2 text-gold-300 font-mono font-black text-sm focus:outline-none" placeholder="0.01">
                 <span class="absolute right-3 top-2 text-xs text-gray-500 font-mono font-bold uppercase">Lotes</span>
               </div>
             </div>
@@ -1997,10 +1997,10 @@
                   <i data-lucide="receipt" class="w-3.5 h-3.5 text-rose-400"></i>
                   <span>Comisión Broker ($)</span>
                 </span>
-                <span class="text-[10px] text-gray-500 font-mono">ej. 0.06</span>
+                <span class="text-[10px] text-gray-500 font-mono">ej. -0.06 o -0,06</span>
               </label>
               <div class="relative">
-                <input type="number" id="realTradeCommission" step="0.01" min="0" class="w-full bg-gray-950 border border-gray-800 focus:border-rose-500 rounded-xl px-3.5 py-2 text-rose-300 font-mono font-bold text-sm focus:outline-none" placeholder="0.06" value="0.00">
+                <input type="text" inputmode="decimal" id="realTradeCommission" class="w-full bg-gray-950 border border-gray-800 focus:border-rose-500 rounded-xl px-3.5 py-2 text-rose-300 font-mono font-bold text-sm focus:outline-none" placeholder="-0.06" value="-0.00">
                 <span class="absolute right-3 top-2 text-xs text-gray-500 font-mono font-bold uppercase">USD</span>
               </div>
             </div>
@@ -2187,7 +2187,17 @@
         </div>
         <div>
           <label class="block text-gray-400 mb-1">Lote MT4 / MT5</label>
-          <input type="number" id="editTradeLot" min="0.01" step="0.01" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-gold-400 font-mono font-bold" placeholder="0.02">
+          <input type="text" inputmode="decimal" id="editTradeLot" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-gold-400 font-mono font-bold" placeholder="0.02">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-gray-400 mb-1">Riesgo % (ej. 12.19)</label>
+            <input type="text" inputmode="decimal" id="editTradeRiskPct" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-amber-400 font-mono font-bold text-center" placeholder="12.19">
+          </div>
+          <div>
+            <label class="block text-gray-400 mb-1">Comisión ($ ej. -0.06)</label>
+            <input type="text" inputmode="decimal" id="editTradeCommission" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-rose-400 font-mono font-bold text-center" placeholder="-0.06">
+          </div>
         </div>
         <input type="hidden" id="editTradeStrategy" value="Adaptive Supertrend M5">
         <input type="hidden" id="editTradeEmotion" value="Plan Seguido 100%">
