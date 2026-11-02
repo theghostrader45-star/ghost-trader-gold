@@ -1180,43 +1180,94 @@
         </div>
       </section>
 
-      <!-- CARD 4: CALIBRACIÓN DEL ADAPTIVE SUPERTREND & PINE SCRIPT PARA TRADINGVIEW -->
+      <!-- CARD 4: CALIBRACIÓN DEL INDICADOR OFICIAL CREATIVE QUANT EN TRADINGVIEW -->
       <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-2">
             <i data-lucide="sliders" class="w-5 h-5 text-emerald-400"></i>
-            <h3 class="text-sm sm:text-base font-bold text-white">Calibración de Parámetros & Código Pine Script TradingView</h3>
+            <h3 class="text-sm sm:text-base font-bold text-white">Calibración en TradingView: "Adaptive Supertrend Multimethod (Creative Quant)"</h3>
           </div>
-          <button type="button" id="btnCopyPineScript" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
-            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-            <span>Copiar Pine Script Calibrado</span>
-          </button>
+          <span class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-600/70">
+            Ajustar en la Tuerca ⚙️ de tu Indicador Oficial
+          </span>
         </div>
 
-        <!-- Explanation Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div class="p-3.5 rounded-xl bg-gray-900/80 border border-gray-800 space-y-1.5">
-            <span class="font-bold text-yellow-400 block font-mono">¿Por qué el Multiplicador 2.9 tardó 5 horas?</span>
-            <p class="text-gray-400 leading-relaxed">
-              En un rally vertical de $70, el ATR saltó de 2.5 a 8.5. Con un multiplicador de 2.9, la banda exigía una corrección de casi $25 dólares antes de rotar. Además, el filtro de RSI exigía bajar de 45 (sobreventa extrema tras un rally).
-            </p>
-          </div>
-          <div class="p-3.5 rounded-xl bg-gray-900/80 border border-emerald-500/30 space-y-1.5">
-            <span class="font-bold text-emerald-400 block font-mono">Solución Calibrada (Modo Precisión 2.2):</span>
-            <p class="text-gray-400 leading-relaxed">
-              1. <strong>Multiplicador 2.2</strong> y <strong>ATR Period 10</strong>: Reacciona 3 veces más rápido a cambios de estructura intradía.<br>
-              2. <strong>Umbral RSI en 50</strong>: Detecta el cruce neutral-bajista sin esperar que el precio caiga $30 dólares tarde.
-            </p>
+        <div class="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/40 text-amber-200 text-xs leading-relaxed flex items-start gap-2.5">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+          <div>
+            <strong>¡Atención! No uses scripts simplificados de terceros:</strong> El indicador oficial <strong>Adaptive Supertrend Multimethod</strong> de <em>Creative Quant</em> tiene cientos de líneas con algoritmos de régimen de volatilidad y trailing institucional. Para que tu gráfico se vea limpio y sin flechas repetitivas, <strong>usa tu indicador oficial de Creative Quant</strong> y modifica únicamente estos 3 parámetros en su ventana de configuración (⚙️):
           </div>
         </div>
 
-        <!-- Pine Script Pre Box -->
-        <div class="relative rounded-xl overflow-hidden border border-gray-800 bg-gray-950">
-          <div class="bg-gray-900 px-4 py-2 border-b border-gray-800 flex items-center justify-between text-[11px] font-mono text-gray-400">
-            <span>TradingView Pine Editor (v5) · Adaptive Supertrend Calibrado NY M5</span>
-            <span class="text-emerald-400 font-bold">100% Sincronizado</span>
+        <!-- 3-Column Settings Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          <div class="p-4 rounded-xl bg-gray-900/90 border border-emerald-500/50 space-y-2">
+            <span class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider block">1. Multiplicador Base</span>
+            <div class="text-xl font-black font-mono text-white flex items-center justify-between">
+              <span>2.2</span>
+              <span class="text-xs text-gray-500 line-through">2.9</span>
+            </div>
+            <div class="text-[11px] text-gray-300 font-medium">En la sección <strong>"Basic Settings"</strong>:</div>
+            <p class="text-[11px] text-gray-400 leading-relaxed">
+              Cambia <em>Multiplier</em> de <strong>2.9</strong> a <strong>2.2</strong>. Esto hace que la banda no quede a $25 dólares de distancia tras una subida de $70 y rote 3 veces más rápido.
+            </p>
           </div>
-          <pre id="pineScriptDisplay" class="p-4 text-[11px] font-mono text-gray-300 overflow-x-auto max-h-60 leading-relaxed"></pre>
+
+          <div class="p-4 rounded-xl bg-gray-900/90 border border-emerald-500/50 space-y-2">
+            <span class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider block">2. Periodo ATR</span>
+            <div class="text-xl font-black font-mono text-white flex items-center justify-between">
+              <span>10</span>
+              <span class="text-xs text-gray-500 line-through">13</span>
+            </div>
+            <div class="text-[11px] text-gray-300 font-medium">En la sección <strong>"Basic Settings"</strong>:</div>
+            <p class="text-[11px] text-gray-400 leading-relaxed">
+              Cambia <em>ATR Period</em> de <strong>13</strong> a <strong>10</strong> para que se adapte con mayor fidelidad a las velas M5 en la sesión New York.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-gray-900/90 border border-emerald-500/50 space-y-2">
+            <span class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider block">3. Umbrales de RSI</span>
+            <div class="text-xl font-black font-mono text-white flex items-center justify-between">
+              <span>50 / 50</span>
+              <span class="text-xs text-gray-500 line-through">45 / 55</span>
+            </div>
+            <div class="text-[11px] text-gray-300 font-medium">En la sección <strong>"Momentum Filters"</strong>:</div>
+            <p class="text-[11px] text-gray-400 leading-relaxed">
+              Pon <em>RSI Sell Threshold</em> en <strong>50</strong> (en vez de 45). Así valida el quiebre bajista cuando el RSI pasa a la mitad inferior sin exigir una sobreventa tardía.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Visual Table comparison -->
+        <div class="rounded-xl overflow-hidden border border-gray-800 bg-gray-950">
+          <div class="bg-gray-900 px-4 py-2 border-b border-gray-800 text-xs font-mono font-bold text-gray-300 flex items-center justify-between">
+            <span>Resumen de Parámetros Calibrados (Creative Quant)</span>
+            <span class="text-emerald-400">100% Sincronizado con este Dashboard</span>
+          </div>
+          <div class="p-4 text-xs font-mono space-y-2 text-gray-300">
+            <div class="flex items-center justify-between border-b border-gray-800/60 pb-1.5">
+              <span class="text-gray-400">• Multiplicador Base (Basic Multiplier):</span>
+              <span class="text-emerald-400 font-bold">2.2 (Intradía) | 2.9 (Macro)</span>
+            </div>
+            <div class="flex items-center justify-between border-b border-gray-800/60 pb-1.5">
+              <span class="text-gray-400">• Periodo ATR (ATR Period):</span>
+              <span class="text-emerald-400 font-bold">10 (Intradía) | 13 (Macro)</span>
+            </div>
+            <div class="flex items-center justify-between border-b border-gray-800/60 pb-1.5">
+              <span class="text-gray-400">• Filtro RSI Venta (RSI Sell Threshold):</span>
+              <span class="text-emerald-400 font-bold">&lt;= 50</span>
+            </div>
+            <div class="flex items-center justify-between border-b border-gray-800/60 pb-1.5">
+              <span class="text-gray-400">• Filtro RSI Compra (RSI Buy Threshold):</span>
+              <span class="text-emerald-400 font-bold">&gt;= 50</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-gray-400">• Modo de Señal (Signal Mode):</span>
+              <span class="text-amber-400 font-bold">On Candle Close (Al Cierre)</span>
+            </div>
+          </div>
         </div>
       </section>
 
