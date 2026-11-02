@@ -5,7 +5,7 @@
 
 // Global State
 let appState = {
-  activeTab: 'real', // 'real' | 'calculator' | 'gold_bias'
+  activeTab: 'gold_bias', // 'gold_bias' | 'calculator' | 'real'
   config: {
     initial_balance: 110.0,
     risk_pct: 5.0,
@@ -116,45 +116,48 @@ function roundNum(val, decimals = 2) {
 }
 
 // ----------------------------------------------------
-// TAB NAVIGATION
+// TAB NAVIGATION: 1. Macro Sesión | 2. Calculadora | 3. Bitácora
 // ----------------------------------------------------
 function setupTabNavigation() {
-  const btnReal = document.getElementById('tabBtnRealJournal');
-  const btnCalc = document.getElementById('tabBtnCalculator');
   const btnGoldBias = document.getElementById('tabBtnGoldBias');
+  const btnCalc = document.getElementById('tabBtnCalculator');
+  const btnReal = document.getElementById('tabBtnRealJournal');
 
-  const viewReal = document.getElementById('viewRealJournal');
-  const viewCalc = document.getElementById('viewCalculator');
   const viewGoldBias = document.getElementById('viewGoldBias');
+  const viewCalc = document.getElementById('viewCalculator');
+  const viewReal = document.getElementById('viewRealJournal');
 
   function switchTab(tab) {
     if (tab === 'backtest') tab = 'real';
     appState.activeTab = tab;
-    try { localStorage.setItem('activeTab', tab); } catch (e) {}
+    try {
+      localStorage.setItem('activeTab', tab);
+      localStorage.setItem('activeTab_v3', tab);
+    } catch (e) {}
 
     // Reset tab button styles
-    const activeClasses = ['bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-bold'];
+    const activeClasses = ['bg-emerald-600', 'bg-gold-500', 'bg-yellow-500', 'text-white', 'text-black', 'shadow-lg', 'shadow-emerald-600/30', 'shadow-gold-500/30', 'shadow-yellow-500/30', 'font-bold', 'font-black'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnReal, btnCalc, btnGoldBias].forEach(btn => {
+    [btnGoldBias, btnCalc, btnReal].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
-        btn.classList.remove('bg-emerald-600', 'bg-gold-500', 'bg-yellow-500', 'text-black');
         btn.classList.add(...inactiveClasses);
       }
     });
 
-    if (viewReal) viewReal.classList.add('hidden');
-    if (viewCalc) viewCalc.classList.add('hidden');
     if (viewGoldBias) viewGoldBias.classList.add('hidden');
+    if (viewCalc) viewCalc.classList.add('hidden');
+    if (viewReal) viewReal.classList.add('hidden');
 
-    if (tab === 'real') {
-      if (btnReal) {
-        btnReal.classList.remove(...inactiveClasses);
-        btnReal.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-bold');
+    if (tab === 'gold_bias') {
+      if (btnGoldBias) {
+        btnGoldBias.classList.remove(...inactiveClasses);
+        btnGoldBias.classList.add('bg-yellow-500', 'text-black', 'shadow-lg', 'shadow-yellow-500/30', 'font-black');
       }
-      if (viewReal) viewReal.classList.remove('hidden');
-      renderRealJournalDashboard();
+      if (viewGoldBias) viewGoldBias.classList.remove('hidden');
+      loadGoldBiasData();
+      loadWeeklyNews();
     } else if (tab === 'calculator') {
       if (btnCalc) {
         btnCalc.classList.remove(...inactiveClasses);
@@ -163,25 +166,24 @@ function setupTabNavigation() {
       if (viewCalc) viewCalc.classList.remove('hidden');
       syncRealBalanceToCalculator();
       runMyfxbookCalculator();
-    } else if (tab === 'gold_bias') {
-      if (btnGoldBias) {
-        btnGoldBias.classList.remove(...inactiveClasses);
-        btnGoldBias.classList.add('bg-yellow-500', 'text-black', 'shadow-lg', 'shadow-yellow-500/30', 'font-black');
+    } else if (tab === 'real') {
+      if (btnReal) {
+        btnReal.classList.remove(...inactiveClasses);
+        btnReal.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-bold');
       }
-      if (viewGoldBias) viewGoldBias.classList.remove('hidden');
-      loadGoldBiasData();
-      loadWeeklyNews();
+      if (viewReal) viewReal.classList.remove('hidden');
+      renderRealJournalDashboard();
     }
 
     initIcons();
   }
 
-  if (btnReal) btnReal.addEventListener('click', () => switchTab('real'));
-  if (btnCalc) btnCalc.addEventListener('click', () => switchTab('calculator'));
   if (btnGoldBias) btnGoldBias.addEventListener('click', () => switchTab('gold_bias'));
+  if (btnCalc) btnCalc.addEventListener('click', () => switchTab('calculator'));
+  if (btnReal) btnReal.addEventListener('click', () => switchTab('real'));
 
-  // Restore saved tab or default to real
-  const savedTab = localStorage.getItem('activeTab') || 'real';
+  // Default to gold_bias (Macro Sesión) or saved tab
+  const savedTab = localStorage.getItem('activeTab_v3') || 'gold_bias';
   switchTab(savedTab);
 }
 
