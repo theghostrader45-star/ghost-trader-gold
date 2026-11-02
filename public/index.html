@@ -785,6 +785,58 @@
 
         <div id="goldBiasHeroContainer" class="mt-4 pt-4 border-t border-gray-800/80 space-y-4">
 
+        <!-- ============================================================== -->
+        <!-- GUARDIA DE SESIÓN NY: ESTADO EN VIVO & HORA ÓPTIMA DE OPERATIVA-->
+        <!-- ============================================================== -->
+        <div id="sessionGuardBanner" class="p-4 sm:p-5 rounded-2xl border-2 transition-all duration-300 shadow-xl bg-rose-950/40 border-rose-600/60 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div class="flex items-start sm:items-center gap-3.5 min-w-0">
+            <div id="sessionGuardIconBox" class="w-11 h-11 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0 shadow-lg">
+              <i data-lucide="moon" class="w-6 h-6"></i>
+            </div>
+            <div class="space-y-1.5 min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <span id="sessionGuardStatusBadge" class="px-3 py-1 rounded-lg bg-rose-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse">
+                  <i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i>
+                  <span>NO OPERAR · FUERA DE SESIÓN NY</span>
+                </span>
+                <span id="sessionGuardCountdownBadge" class="px-2.5 py-1 rounded-lg bg-gray-950/90 border border-gray-800 text-amber-300 font-mono text-xs font-bold flex items-center gap-1.5">
+                  <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
+                  <span id="sessionGuardCountdownText">⏳ Faltan: Calculando...</span>
+                </span>
+              </div>
+              <p id="sessionGuardHeadline" class="text-xs text-gray-200 font-medium leading-relaxed">
+                El mercado Spot de Oro se encuentra fuera de la <strong>Ventana Dorada de New York</strong> (08:00 AM – 11:30 AM NY). En horas asiáticas o madrugada el volumen interbancario cae un 80% y los spreads se ensanchan. <strong>Disciplina: No regales tu dinero operando fuera de sesión.</strong>
+              </p>
+            </div>
+          </div>
+
+          <!-- Caja de Hora Óptima de Operativa según Noticias -->
+          <div class="shrink-0 w-full lg:w-auto bg-gray-950/90 border border-amber-500/40 rounded-xl p-3.5 flex flex-col justify-between space-y-1.5 shadow-inner min-w-[280px]">
+            <div class="flex items-center justify-between gap-2 border-b border-gray-800 pb-1.5">
+              <span class="text-[10px] uppercase font-mono font-bold text-amber-400 flex items-center gap-1">
+                <i data-lucide="target" class="w-3 h-3 text-amber-400"></i>
+                <span>Hora Óptima de Operativa (<span id="optimalDayLabel">Hoy</span>)</span>
+              </span>
+              <span id="optimalPurityBadge" class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono font-bold">SETUP A+</span>
+            </div>
+            
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="text-xs text-gray-400 font-medium">Ventana NY:</span>
+              <span id="optimalNyWindowDisplay" class="text-sm font-black text-white font-mono">08:15 AM – 09:45 AM NY</span>
+            </div>
+
+            <div class="flex items-baseline justify-between gap-2 text-[11px]">
+              <span class="text-gray-400">🎯 Tu hora local:</span>
+              <span id="optimalLocalWindowDisplay" class="font-bold text-emerald-400 font-mono">--:-- – --:--</span>
+            </div>
+
+            <div id="optimalNewsReasonContainer" class="p-1.5 rounded-lg bg-amber-950/40 border border-amber-500/30 text-[10px] text-amber-300/90 leading-tight font-mono flex items-center gap-1">
+              <i data-lucide="info" class="w-3 h-3 shrink-0 text-amber-400"></i>
+              <span id="optimalNewsReasonDisplay">Pausa táctica por noticias de alto impacto</span>
+            </div>
+          </div>
+        </div>
+
         <!-- HERO BANNER: EL SESGO DEL DÍA -->
         <div id="biasHeroBanner" class="p-4 sm:p-5 rounded-xl bg-red-950/40 border border-red-500/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div class="space-y-1.5">
@@ -1002,21 +1054,21 @@
               <div class="space-y-1.5 text-[11px]">
                 <div class="flex items-center justify-between">
                   <span class="text-gray-300 flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span id="confluenceDot1" class="w-2 h-2 rounded-full bg-emerald-400"></span>
                     <span>1. Sesgo Macro (>70% Convicción)</span>
                   </span>
                   <span id="confluenceCheck1" class="font-mono text-emerald-400 font-bold text-[10px]">✓ ALINEADO</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-gray-300 flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    <span>2. Ubicación en Zona Institucional</span>
+                    <span id="confluenceDot2" class="w-2 h-2 rounded-full bg-rose-500"></span>
+                    <span>2. Horario Sesión NY (08:00–11:30)</span>
                   </span>
-                  <span id="confluenceCheck2" class="font-mono text-emerald-400 font-bold text-[10px]">✓ EN ZONA</span>
+                  <span id="confluenceCheck2" class="font-mono text-rose-400 font-bold text-[10px]">✗ FUERA DE SESIÓN</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-gray-300 flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span id="confluenceDot3" class="w-2 h-2 rounded-full bg-emerald-400"></span>
                     <span>3. Semáforo de Noticias (News Shield)</span>
                   </span>
                   <span id="confluenceCheck3" class="font-mono text-emerald-400 font-bold text-[10px]">✓ VÍA LIBRE</span>
@@ -1942,6 +1994,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261102_06"></script>
+<script src="app.js?v=20261102_07"></script>
 </body>
 </html>

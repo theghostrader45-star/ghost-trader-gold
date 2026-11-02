@@ -2362,38 +2362,196 @@ function updateMacroQuantIntelligence(data) {
 }
 
 // -------------------------------------------------------------
-// Reloj Institucional y Detección en Tiempo Real de Sesión
+// Reloj Institucional, Guardia de Sesión NY & Horarios Óptimos
 // -------------------------------------------------------------
 let marketClockInterval = null;
+let lastCalculatedSessionStatus = { isInSession: false, countdownFormatted: "--", optimalInfo: null };
+
+function convertNyTimeToLocal(nyHour, nyMin) {
+  try {
+    const now = new Date();
+    const nyStr = now.toLocaleString("en-US", { timeZone: "America/New_York" });
+    const nyDate = new Date(nyStr);
+    const diffMs = now.getTime() - nyDate.getTime();
+
+    const targetDate = new Date(nyDate);
+    targetDate.setHours(nyHour, nyMin, 0, 0);
+    const localDate = new Date(targetDate.getTime() + diffMs);
+
+    return localDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+  } catch (e) {
+    const period = nyHour >= 12 ? "PM" : "AM";
+    const h12 = nyHour % 12 || 12;
+    return `${String(h12).padStart(2, "0")}:${String(nyMin).padStart(2, "0")} ${period}`;
+  }
+}
+
+function calculateOptimalTradingWindow(weekday, year, month, day, weeklyNews) {
+  const dayNamesMap = {
+    Mon: "Lunes",
+    Tue: "Martes",
+    Wed: "Miércoles",
+    Thu: "Jueves",
+    Fri: "Viernes",
+    Sat: "Sábado",
+    Sun: "Domingo"
+  };
+  const dayName = dayNamesMap[weekday] || weekday;
+  const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+  let targetDayData = null;
+  if (weeklyNews && Array.isArray(weeklyNews.days)) {
+    targetDayData = weeklyNews.days.find(d => d.date === dateStr);
+  }
+
+  if (!targetDayData && weeklyNews && Array.isArray(weeklyNews.days)) {
+    targetDayData = weeklyNews.days.find(d => d.day_name && d.day_name.toLowerCase().startsWith(dayName.toLowerCase().slice(0, 3)));
+  }
+
+  let hasEvent830 = false;
+  let hasEvent815 = false;
+  let hasEvent1000 = false;
+  let hasEventFomc = false;
+  let mainEventTitle = "";
+
+  if (targetDayData && Array.isArray(targetDayData.events)) {
+    for (const ev of targetDayData.events) {
+      const timeStr = String(ev.time || "");
+      const isHigh = ev.impact === "HIGH" || ev.impact === "CRITICAL";
+
+      if (isHigh && timeStr.includes("08:30")) {
+        hasEvent830 = true;
+        mainEventTitle = ev.title;
+      } else if (isHigh && timeStr.includes("08:15")) {
+        hasEvent815 = true;
+        mainEventTitle = ev.title;
+      } else if (isHigh && timeStr.includes("10:00")) {
+        hasEvent1000 = true;
+        mainEventTitle = ev.title;
+      } else if (isHigh && (timeStr.includes("02:00 PM") || timeStr.includes("14:00"))) {
+        hasEventFomc = true;
+        mainEventTitle = ev.title;
+      }
+    }
+  }
+
+  let nyWindow = "08:15 AM – 11:30 AM NY";
+  let localWindow = `${convertNyTimeToLocal(8, 15)} – ${convertNyTimeToLocal(11, 30)}`;
+  let newsReason = "Día limpio sin noticias rojas matutinas. Spreads estables y vía libre.";
+
+  if (hasEvent830) {
+    nyWindow = "08:45 AM – 11:30 AM NY";
+    localWindow = `${convertNyTimeToLocal(8, 45)} – ${convertNyTimeToLocal(11, 30)}`;
+    newsReason = `⚠️ Noticia a las 08:30 AM (${mainEventTitle}). Iniciar tras 15 min de absorción.`;
+  } else if (hasEvent815) {
+    nyWindow = "08:30 AM – 11:30 AM NY";
+    localWindow = `${convertNyTimeToLocal(8, 30)} – ${convertNyTimeToLocal(11, 30)}`;
+    newsReason = `⚠️ Noticia ADP a las 08:15 AM (${mainEventTitle}). Operativa tras vela 08:30.`;
+  } else if (hasEvent1000) {
+    nyWindow = "08:15 AM – 09:45 AM NY & 10:15 AM – 11:30 AM NY";
+    localWindow = `${convertNyTimeToLocal(8, 15)} – ${convertNyTimeToLocal(9, 45)} & ${convertNyTimeToLocal(10, 15)} – ${convertNyTimeToLocal(11, 30)}`;
+    newsReason = `⚠️ Pausa táctica obligatoria de 09:45 a 10:15 NY por ${mainEventTitle} (10:00 AM NY).`;
+  } else if (hasEventFomc) {
+    nyWindow = "08:30 AM – 10:30 AM NY (Scalping breve)";
+    localWindow = `${convertNyTimeToLocal(8, 30)} – ${convertNyTimeToLocal(10, 30)}`;
+    newsReason = `🔥 Decisión de Tasas FOMC (14:00 NY). Todo trade cerrado antes de las 11:00 NY.`;
+  }
+
+  if (weekday === "Sat" || (weekday === "Sun" && new Date().getHours() < 18)) {
+    nyWindow = "Lunes 08:15 AM – 11:30 AM NY";
+    localWindow = `Lunes ${convertNyTimeToLocal(8, 15)} – ${convertNyTimeToLocal(11, 30)}`;
+    newsReason = "Mercado Spot cerrado por fin de semana. Reapertura de sesión el lunes.";
+  }
+
+  return { dayName, nyWindow, localWindow, newsReason };
+}
+
+function getNySessionStatus(now) {
+  const nyFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    weekday: "short",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: false
+  });
+
+  const parts = nyFormatter.formatToParts(now);
+  const getPart = type => (parts.find(x => x.type === type) || {}).value;
+
+  const weekday = getPart("weekday");
+  const year = parseInt(getPart("year"), 10) || 2026;
+  const month = parseInt(getPart("month"), 10) || 11;
+  const day = parseInt(getPart("day"), 10) || 2;
+  const hour = parseInt(getPart("hour"), 10) || 0;
+  const min = parseInt(getPart("minute"), 10) || 0;
+  const sec = parseInt(getPart("second"), 10) || 0;
+
+  const currentSecsOfDay = hour * 3600 + min * 60 + sec;
+  const sessionStartSecs = 8 * 3600; // 08:00:00 NY
+  const sessionEndSecs = 11 * 3600 + 30 * 60; // 11:30:00 NY
+
+  const isWeekday = ["Mon", "Tue", "Wed", "Thu", "Fri"].includes(weekday);
+  const isInSession = isWeekday && currentSecsOfDay >= sessionStartSecs && currentSecsOfDay < sessionEndSecs;
+
+  let countdownText = "";
+  let countdownFormatted = "";
+
+  if (isInSession) {
+    const remainingSecs = Math.max(0, sessionEndSecs - currentSecsOfDay);
+    const rH = Math.floor(remainingSecs / 3600);
+    const rM = Math.floor((remainingSecs % 3600) / 60);
+    const rS = remainingSecs % 60;
+    countdownFormatted = `${String(rH).padStart(2, "0")}h ${String(rM).padStart(2, "0")}m ${String(rS).padStart(2, "0")}s`;
+    countdownText = `⏳ Restan: ${countdownFormatted} de sesión`;
+  } else {
+    let daysToAdd = 0;
+    if (["Mon", "Tue", "Wed", "Thu"].includes(weekday)) {
+      daysToAdd = (currentSecsOfDay < sessionStartSecs) ? 0 : 1;
+    } else if (weekday === "Fri") {
+      daysToAdd = (currentSecsOfDay < sessionStartSecs) ? 0 : 3;
+    } else if (weekday === "Sat") {
+      daysToAdd = 2;
+    } else if (weekday === "Sun") {
+      daysToAdd = 1;
+    }
+
+    const targetSecs = (daysToAdd * 86400) + sessionStartSecs;
+    const remainingSecs = Math.max(0, targetSecs - currentSecsOfDay);
+    const rH = Math.floor(remainingSecs / 3600);
+    const rM = Math.floor((remainingSecs % 3600) / 60);
+    const rS = remainingSecs % 60;
+    countdownFormatted = `${String(rH).padStart(2, "0")}h ${String(rM).padStart(2, "0")}m ${String(rS).padStart(2, "0")}s`;
+    countdownText = `⏳ Inicia en: ${countdownFormatted}`;
+  }
+
+  const optimalInfo = calculateOptimalTradingWindow(weekday, year, month, day, weeklyNewsState);
+
+  lastCalculatedSessionStatus = {
+    isInSession,
+    countdownText,
+    countdownFormatted,
+    optimalInfo,
+    weekday,
+    hour,
+    min,
+    sec
+  };
+
+  return lastCalculatedSessionStatus;
+}
 
 function startMarketClock() {
   function tick() {
     const now = new Date();
-    
-    // Obtener componentes en zona horaria America/New_York
-    const nyFormatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: "America/New_York",
-      weekday: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false
-    });
-    
-    const parts = nyFormatter.formatToParts(now);
-    const getPart = type => {
-      const p = parts.find(x => x.type === type);
-      return p ? p.value : "";
-    };
-    
-    const weekday = getPart("weekday"); // "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
-    const hour = parseInt(getPart("hour"), 10) || 0;
-    const min = parseInt(getPart("minute"), 10) || 0;
-    const sec = parseInt(getPart("second"), 10) || 0;
+    const session = getNySessionStatus(now);
 
     const nyClockEl = document.getElementById("marketNyClock");
     if (nyClockEl) {
-      nyClockEl.textContent = `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")} NY (ET)`;
+      nyClockEl.textContent = `${String(session.hour).padStart(2, "0")}:${String(session.min).padStart(2, "0")}:${String(session.sec).padStart(2, "0")} NY (ET)`;
     }
 
     const localClockEl = document.getElementById("marketLocalClock");
@@ -2401,155 +2559,101 @@ function startMarketClock() {
       localClockEl.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     }
 
-    const localKillzoneEl = document.getElementById("localKillzoneTime");
-    if (localKillzoneEl) {
-      try {
-        const nyStr = now.toLocaleString("en-US", { timeZone: "America/New_York" });
-        const nyDate = new Date(nyStr);
-        const diffMs = now.getTime() - nyDate.getTime();
-        
-        const t1 = new Date(nyDate);
-        t1.setHours(9, 45, 0, 0);
-        const local1 = new Date(t1.getTime() + diffMs);
-        
-        const t2 = new Date(nyDate);
-        t2.setHours(10, 45, 0, 0);
-        const local2 = new Date(t2.getTime() + diffMs);
-        
-        const fmt = d => d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
-        localKillzoneEl.textContent = `🎯 Tu hora local: ${fmt(local1)} – ${fmt(local2)}`;
-      } catch (e) {
-        localKillzoneEl.textContent = "🎯 Tu hora local: 08:45 AM – 09:45 AM";
+    // Actualizar Banner de Guardia de Sesión NY
+    const guardBanner = document.getElementById("sessionGuardBanner");
+    const guardBadge = document.getElementById("sessionGuardStatusBadge");
+    const guardCountdown = document.getElementById("sessionGuardCountdownText");
+    const guardHeadline = document.getElementById("sessionGuardHeadline");
+    const guardIconBox = document.getElementById("sessionGuardIconBox");
+
+    const optDayLabel = document.getElementById("optimalDayLabel");
+    const optNyWindow = document.getElementById("optimalNyWindowDisplay");
+    const optLocalWindow = document.getElementById("optimalLocalWindowDisplay");
+    const optReason = document.getElementById("optimalNewsReasonDisplay");
+
+    if (optDayLabel && session.optimalInfo) optDayLabel.textContent = session.optimalInfo.dayName;
+    if (optNyWindow && session.optimalInfo) optNyWindow.textContent = session.optimalInfo.nyWindow;
+    if (optLocalWindow && session.optimalInfo) optLocalWindow.textContent = session.optimalInfo.localWindow;
+    if (optReason && session.optimalInfo) optReason.textContent = session.optimalInfo.newsReason;
+
+    if (session.isInSession) {
+      if (guardBanner) {
+        guardBanner.className = "p-4 sm:p-5 rounded-2xl border-2 transition-all duration-300 shadow-xl bg-emerald-950/40 border-emerald-500/60 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4";
       }
-    }
-
-    // Reglas del Mercado Spot XAU/USD (Oro):
-    // Apertura: Domingo 18:00 NY
-    // Cierre: Viernes 17:00 NY
-    // Pausa diaria / Rollover bancario: Lunes a Jueves 17:00 - 18:00 NY
-    // Fin de semana: Viernes >= 17:00 NY, todo Sábado, Domingo < 18:00 NY
-    const isFridayClosed = (weekday === "Fri" && hour >= 17);
-    const isSaturday = (weekday === "Sat");
-    const isSundayClosed = (weekday === "Sun" && hour < 18);
-    const isWeekend = isFridayClosed || isSaturday || isSundayClosed;
-
-    let status = {
-      badgeText: "MERCADO CERRADO",
-      badgeStyle: "bg-red-950/80 border-red-500/50 text-red-400",
-      dotStyle: "bg-red-500",
-      sessionName: "FIN DE SEMANA",
-      desc: "El mercado Spot de Oro cerró el viernes 17:00 NY. Reapertura: Domingo 18:00 NY.",
-      trafficClass: "bg-red-500/20 text-red-400 border-red-500/50",
-      trafficText: "🔴 MERCADO CERRADO (Fin de semana)",
-      countdown: "Reapertura: Domingo 18:00 NY"
-    };
-
-    if (isWeekend) {
-      // Calcular horas faltantes hacia el Domingo a las 18:00 NY
-      // Mon=1..Fri=5, Sat=6, Sun=0
-      let daysRemaining = 0;
-      if (weekday === "Fri") daysRemaining = 2; // Fri 17:00 to Sun 18:00
-      else if (weekday === "Sat") daysRemaining = 1; // Sat to Sun 18:00
-      else if (weekday === "Sun") daysRemaining = 0;
-
-      const targetMins = (daysRemaining * 24 * 60) + (18 * 60);
-      const currentMins = (hour * 60) + min;
-      const diffMins = Math.max(0, targetMins - currentMins);
-      const hDiff = Math.floor(diffMins / 60);
-      const mDiff = diffMins % 60;
-      const sDiff = 59 - sec;
-
-      status = {
-        badgeText: "🔴 MERCADO CERRADO",
-        badgeStyle: "bg-red-950/80 border-red-500/50 text-red-400 shadow-sm",
-        dotStyle: "bg-red-500 animate-pulse",
-        sessionName: "FIN DE SEMANA",
-        desc: `Mercado Spot de Oro inactivo. Próxima apertura: Domingo 18:00 NY.`
-      };
+      if (guardIconBox) {
+        guardIconBox.className = "w-11 h-11 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shrink-0 shadow-lg";
+        guardIconBox.innerHTML = '<i data-lucide="activity" class="w-6 h-6"></i>';
+      }
+      if (guardBadge) {
+        guardBadge.className = "px-3 py-1 rounded-lg bg-emerald-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse";
+        guardBadge.innerHTML = '<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>SESIÓN NY ACTIVA · EN HORARIO</span>';
+      }
+      if (guardCountdown) {
+        guardCountdown.textContent = session.countdownText;
+      }
+      if (guardHeadline) {
+        guardHeadline.innerHTML = `Ventana Dorada de New York abierta (08:00 – 11:30 NY). Spreads mínimos y volumen bancario óptimo en XAU/USD. Ejecuta únicamente confluencia con el sesgo diario y gatillo M5.`;
+      }
     } else {
-      // Día de semana (Lunes a Viernes antes de 17:00 NY o Domingo tras 18:00 NY)
-      const timeInMins = (hour * 60) + min;
-
-      if (timeInMins >= 17 * 60 && timeInMins < 18 * 60) {
-        // Rollover bancario diario
-        status = {
-          badgeText: "⏸️ ROLLOVER BANCARIO",
-          badgeStyle: "bg-amber-950/80 border-amber-500/50 text-amber-400 shadow-sm",
-          dotStyle: "bg-amber-500 animate-pulse",
-          sessionName: "DAILY ROLLOVER (17:00 - 18:00 NY)",
-          desc: "Pausa diaria de mantenimiento bancario y cobro de swaps. Spreads anómalos."
-        };
-      } else if (timeInMins >= 8 * 60 && timeInMins < 11 * 60 + 30) {
-        // Ventana New York (08:00 - 11:30 NY)
-        if (timeInMins >= 9 * 60 + 30 && timeInMins < 9 * 60 + 45) {
-          status = {
-            badgeText: "🔔 APERTURA WALL STREET",
-            badgeStyle: "bg-amber-950/80 border-amber-500/50 text-amber-300 shadow-sm",
-            dotStyle: "bg-amber-400 animate-ping",
-            sessionName: "APERTURA WALL STREET (09:30 NY)",
-            desc: "Primeros 15 min de la bolsa de NY. Alta volatilidad."
-          };
-        } else if (timeInMins >= 8 * 60 + 30 && timeInMins < 8 * 60 + 40) {
-          status = {
-            badgeText: "⚠️ NOTICIAS EE.UU.",
-            badgeStyle: "bg-red-950/80 border-red-500/50 text-red-300 shadow-sm",
-            dotStyle: "bg-red-400 animate-ping",
-            sessionName: "NOTICIAS MACRO EE.UU.",
-            desc: "Expansión violenta de spreads por noticias. Esperar 10 min de digestión."
-          };
-        } else {
-          status = {
-            badgeText: "🟢 SESIÓN NY ACTIVA",
-            badgeStyle: "bg-emerald-950/80 border-emerald-500/50 text-emerald-300 shadow-sm",
-            dotStyle: "bg-emerald-400 animate-pulse",
-            sessionName: "SESIÓN NEW YORK (08:30 – 11:30 NY)",
-            desc: "Spreads mínimos y volumen óptimo para Adaptive Supertrend M5."
-          };
-        }
-      } else if (timeInMins >= 11 * 60 + 30 && timeInMins < 17 * 60) {
-        status = {
-          badgeText: "⚪ SESIÓN NY TARDE",
-          badgeStyle: "bg-gray-900/90 border-gray-700 text-gray-300 shadow-sm",
-          dotStyle: "bg-gray-500",
-          sessionName: "NEW YORK TARDE",
-          desc: "Londres cerró mesas. El volumen de oro cae un 60%."
-        };
-      } else if (timeInMins >= 3 * 60 && timeInMins < 8 * 60) {
-        status = {
-          badgeText: "🇬🇧 SESIÓN LONDRES",
-          badgeStyle: "bg-blue-950/80 border-blue-500/50 text-blue-300 shadow-sm",
-          dotStyle: "bg-blue-400 animate-pulse",
-          sessionName: "SESIÓN LONDRES",
-          desc: "Apertura europea. Monitorear zonas clave para New York."
-        };
-      } else {
-        status = {
-          badgeText: "🌏 SESIÓN ASIA",
-          badgeStyle: "bg-indigo-950/80 border-indigo-500/50 text-indigo-300 shadow-sm",
-          dotStyle: "bg-indigo-400",
-          sessionName: "SESIÓN ASIÁTICA",
-          desc: "Baja liquidez y sin catalizadores. No operar."
-        };
+      if (guardBanner) {
+        guardBanner.className = "p-4 sm:p-5 rounded-2xl border-2 transition-all duration-300 shadow-xl bg-rose-950/40 border-rose-600/60 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4";
+      }
+      if (guardIconBox) {
+        guardIconBox.className = "w-11 h-11 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0 shadow-lg";
+        guardIconBox.innerHTML = '<i data-lucide="moon" class="w-6 h-6"></i>';
+      }
+      if (guardBadge) {
+        guardBadge.className = "px-3 py-1 rounded-lg bg-rose-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse";
+        guardBadge.innerHTML = '<i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i><span>NO OPERAR · FUERA DE SESIÓN NY</span>';
+      }
+      if (guardCountdown) {
+        guardCountdown.textContent = session.countdownText;
+      }
+      if (guardHeadline) {
+        guardHeadline.innerHTML = `El mercado Spot de Oro se encuentra fuera de la <strong>Ventana Dorada de New York</strong> (08:00 AM – 11:30 AM NY). En horas asiáticas o madrugada el volumen interbancario cae un 80% y los spreads se ensanchan. <strong>Disciplina: No regales tu dinero operando fuera de sesión.</strong>`;
       }
     }
 
-    // Actualizar elementos visuales en el DOM
+    // Actualizar Radar de Confluencia Item 2 (Sesión NY)
+    const confDot2 = document.getElementById("confluenceDot2");
+    const confCheck2 = document.getElementById("confluenceCheck2");
+    const confScore = document.getElementById("confluenceScoreBadge");
+    const confBanner = document.getElementById("confluenceVerdictBanner");
+
+    if (session.isInSession) {
+      if (confDot2) confDot2.className = "w-2 h-2 rounded-full bg-emerald-400";
+      if (confCheck2) {
+        confCheck2.className = "font-mono text-emerald-400 font-bold text-[10px]";
+        confCheck2.textContent = "✓ SESIÓN ACTIVA (NY)";
+      }
+    } else {
+      if (confDot2) confDot2.className = "w-2 h-2 rounded-full bg-rose-500 animate-pulse";
+      if (confCheck2) {
+        confCheck2.className = "font-mono text-rose-400 font-bold text-[10px]";
+        confCheck2.textContent = "✗ FUERA DE SESIÓN";
+      }
+      if (!lastProcessedSignalId) {
+        if (confScore) {
+          confScore.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-600 font-bold flex items-center gap-1";
+          confScore.textContent = "🚫 NO OPERAR (FUERA DE SESIÓN)";
+        }
+        if (confBanner) {
+          confBanner.className = "p-2 rounded-lg bg-rose-950/40 border border-rose-500/40 text-[10px] text-rose-300 font-medium leading-tight";
+          confBanner.innerHTML = `🚫 <strong>NO OPERAR · MERCADO FUERA DE SESIÓN NY:</strong> Faltan ${session.countdownFormatted} para la apertura. Hora óptima: ${session.optimalInfo ? session.optimalInfo.nyWindow : "08:15 – 11:30 NY"}. Disciplina: jamás operes sin liquidez bancaria.`;
+        }
+      }
+    }
+
+    // Actualizar Badge en el Header
     const badgeEl = document.getElementById("marketLiveBadge");
     if (badgeEl) {
-      badgeEl.className = `px-3 py-1.5 rounded-xl font-mono text-xs font-bold border flex items-center gap-1.5 shadow-sm ${status.badgeStyle}`;
-      badgeEl.innerHTML = `<span class="w-2 h-2 rounded-full ${status.dotStyle}"></span><span>${status.badgeText}</span>`;
-    }
-
-    const sessionNameEl = document.getElementById("marketSessionName");
-    if (sessionNameEl) sessionNameEl.textContent = status.sessionName;
-
-    const sessionDescEl = document.getElementById("marketSessionDescription");
-    if (sessionDescEl) sessionDescEl.textContent = status.desc;
-
-    const trafficEl = document.getElementById("nyTrafficLight");
-    if (trafficEl) {
-      trafficEl.className = `px-3 py-1 rounded-lg text-xs font-black border flex items-center gap-1.5 font-mono ${status.trafficClass}`;
-      trafficEl.innerHTML = `<span>${status.trafficText}</span>`;
+      if (session.isInSession) {
+        badgeEl.className = "h-8 px-2.5 rounded-xl font-mono text-xs font-bold border flex items-center gap-1.5 shadow-sm bg-emerald-950/80 border-emerald-500/50 text-emerald-300";
+        badgeEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>🟢 SESIÓN NY ACTIVA</span>';
+      } else {
+        badgeEl.className = "h-8 px-2.5 rounded-xl font-mono text-xs font-bold border flex items-center gap-1.5 shadow-sm bg-rose-950/80 border-rose-500/50 text-rose-300";
+        badgeEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span><span>🔴 FUERA DE SESIÓN (${session.countdownFormatted})</span>`;
+      }
     }
   }
 
@@ -2676,46 +2780,81 @@ function playTradeAlertSound(isAcknowledge = true) {
 function applySignalToUI(signal, isManual = false) {
   if (!signal) return;
 
+  const confDot2 = document.getElementById("confluenceDot2");
+  const confCheck2 = document.getElementById("confluenceCheck2");
   const confDot4 = document.getElementById("confluenceDot4");
   const confCheck4 = document.getElementById("confluenceCheck4");
   const confBadge = document.getElementById("confluenceScoreBadge");
   const confBanner = document.getElementById("confluenceVerdictBanner");
 
+  const session = getNySessionStatus(new Date());
   const isValidA = signal.status === "VALIDATED_A_PLUS";
 
   if (isValidA) {
-    if (confDot4) confDot4.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping";
-    if (confCheck4) {
-      confCheck4.className = "font-mono text-emerald-400 font-bold text-[10px]";
-      confCheck4.textContent = `✓ GATILLO: ${signal.action} M5 @ $${Number(signal.price || 2720.5).toFixed(1)}`;
-    }
-    if (confBadge) {
-      confBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500 font-bold flex items-center gap-1 animate-pulse";
-      confBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>4/4 SETUP A+ CONFIRMADO</span>';
-    }
-    if (confBanner) {
-      confBanner.className = "p-2 rounded-lg bg-emerald-950/60 border border-emerald-500/50 text-[10px] text-emerald-300 font-bold leading-tight";
-      confBanner.innerHTML = `🔥 <strong>¡GATILLO CONFIRMADO EN TRADINGVIEW!</strong> Señal de ${signal.action} M5 @ $${Number(signal.price || 2720.5).toFixed(2)}. Confluencia 4/4 activa. Dispara en tu broker y anota el trade.`;
-    }
+    if (session.isInSession) {
+      if (confDot2) confDot2.className = "w-2 h-2 rounded-full bg-emerald-400";
+      if (confCheck2) {
+        confCheck2.className = "font-mono text-emerald-400 font-bold text-[10px]";
+        confCheck2.textContent = "✓ SESIÓN ACTIVA (NY)";
+      }
+      if (confDot4) confDot4.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping";
+      if (confCheck4) {
+        confCheck4.className = "font-mono text-emerald-400 font-bold text-[10px]";
+        confCheck4.textContent = `✓ GATILLO: ${signal.action} M5 @ $${Number(signal.price || 2720.5).toFixed(1)}`;
+      }
+      if (confBadge) {
+        confBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500 font-bold flex items-center gap-1 animate-pulse";
+        confBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>4/4 SETUP A+ CONFIRMADO</span>';
+      }
+      if (confBanner) {
+        confBanner.className = "p-2 rounded-lg bg-emerald-950/60 border border-emerald-500/50 text-[10px] text-emerald-300 font-bold leading-tight";
+        confBanner.innerHTML = `🔥 <strong>¡GATILLO CONFIRMADO EN TRADINGVIEW!</strong> Señal de ${signal.action} M5 @ $${Number(signal.price || 2720.5).toFixed(2)}. Confluencia 4/4 activa en New York. Dispara en tu broker y anota el trade.`;
+      }
 
-    // Sonido campana de éxito
-    playTradeAlertSound(true);
+      // Sonido campana de éxito
+      playTradeAlertSound(true);
 
-    // Pre-rellenar formulario de Bitácora Real automáticamente
-    const dirBuy = document.getElementById("btnRealDirBuy");
-    const dirSell = document.getElementById("btnRealDirSell");
-    const pointsInput = document.getElementById("realTradeTvPoints");
+      // Pre-rellenar formulario de Bitácora Real automáticamente
+      const dirBuy = document.getElementById("btnRealDirBuy");
+      const dirSell = document.getElementById("btnRealDirSell");
+      const pointsInput = document.getElementById("realTradeTvPoints");
 
-    if (signal.action === "BUY") {
-      if (dirBuy) dirBuy.click();
-    } else if (signal.action === "SELL") {
-      if (dirSell) dirSell.click();
+      if (signal.action === "BUY") {
+        if (dirBuy) dirBuy.click();
+      } else if (signal.action === "SELL") {
+        if (dirSell) dirSell.click();
+      }
+      if (pointsInput && signal.sl_points) {
+        pointsInput.value = signal.sl_points;
+      }
+
+      showToast(`🚨 <strong>¡GATILLO A+ CONFIRMADO!</strong> Señal de <strong>${signal.action}</strong> M5 alineada con el sesgo diario en plena sesión NY. Confluencia 4/4 activa.`, "success", 6000);
+    } else {
+      // Gatillo técnico presente PERO fuera de sesión
+      if (confDot2) confDot2.className = "w-2 h-2 rounded-full bg-rose-500 animate-pulse";
+      if (confCheck2) {
+        confCheck2.className = "font-mono text-rose-400 font-bold text-[10px]";
+        confCheck2.textContent = "✗ FUERA DE SESIÓN";
+      }
+      if (confDot4) confDot4.className = "w-2.5 h-2.5 rounded-full bg-yellow-400 animate-ping";
+      if (confCheck4) {
+        confCheck4.className = "font-mono text-yellow-400 font-bold text-[10px]";
+        confCheck4.textContent = `⚠️ GATILLO ${signal.action} (BLOQUEADO)`;
+      }
+      if (confBadge) {
+        confBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-600 font-bold flex items-center gap-1";
+        confBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>🚫 BLOQUEADO: FUERA DE SESIÓN</span>';
+      }
+      if (confBanner) {
+        confBanner.className = "p-2 rounded-lg bg-rose-950/60 border border-rose-500/60 text-[10px] text-rose-200 font-medium leading-tight";
+        confBanner.innerHTML = `🚫 <strong>NO OPERAR · GATILLO BLOQUEADO POR SESIÓN:</strong> Señal técnica de ${signal.action} M5 detectada, pero el mercado está en horas asiáticas/madrugada. Faltan ${session.countdownFormatted} para la sesión de New York. Disciplina: no abras operaciones sin volumen interbancario.`;
+      }
+
+      // Sonido advertencia
+      playTradeAlertSound(false);
+
+      showToast(`🚫 <strong>NO OPERAR · FUERA DE SESIÓN NY:</strong> Señal ${signal.action} en M5 detectada pero bloqueada. Faltan <strong>${session.countdownFormatted}</strong> para la apertura (08:00 NY). Hora óptima: <strong>${session.optimalInfo ? session.optimalInfo.nyWindow : "08:15 – 11:30 NY"}</strong>.`, "error", 8000);
     }
-    if (pointsInput && signal.sl_points) {
-      pointsInput.value = signal.sl_points;
-    }
-
-    showToast(`🚨 <strong>¡GATILLO A+ CONFIRMADO!</strong> Señal de <strong>${signal.action}</strong> M5 alineada con el sesgo diario. Confluencia 4/4 activa.`, "success", 6000);
   } else {
     // Señal en contratendencia
     if (confDot4) confDot4.className = "w-2.5 h-2.5 rounded-full bg-rose-400";
