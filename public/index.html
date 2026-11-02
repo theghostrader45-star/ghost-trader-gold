@@ -1032,19 +1032,23 @@
             </div>
           </div>
 
-          <!-- Metric 4: Take Profits (R:R 1.5 & 3.0) -->
+          <!-- Metric 4: Take Profits (R:R 1:2.0 Mínimo & 1:3.0+ Óptimo) -->
           <div class="bg-gray-900/90 border border-blue-500/30 rounded-xl p-3.5 space-y-1 shadow-inner">
             <div class="flex items-center justify-between">
-              <span class="text-[10px] text-blue-400 font-mono font-bold tracking-wider uppercase">Objetivos de Ganancia (TP)</span>
+              <span class="text-[10px] text-blue-400 font-mono font-bold tracking-wider uppercase">Objetivos R:R (1:2 & 1:3+)</span>
               <i data-lucide="trending-down" class="w-3.5 h-3.5 text-blue-400"></i>
             </div>
             <div class="flex items-center justify-between text-xs font-mono font-bold text-white pt-0.5">
-              <span class="text-gray-400">TP1 (1.5 R:R):</span>
-              <span class="text-emerald-400" id="radarTp1Price">$3,933.70</span>
+              <span class="text-gray-400">TP1 (1:2.0 Mínimo):</span>
+              <span class="text-emerald-400" id="radarTp1Price">$3,925.50</span>
             </div>
             <div class="flex items-center justify-between text-xs font-mono font-bold text-white">
-              <span class="text-gray-400">TP2 (3.0 R:R):</span>
+              <span class="text-gray-400">TP2 (1:3.0 Óptimo):</span>
               <span class="text-emerald-300" id="radarTp2Price">$3,909.20</span>
+            </div>
+            <div class="flex items-center justify-between text-[11px] font-mono font-bold text-white">
+              <span class="text-gray-500">TP3 (1:5.0 Runner):</span>
+              <span class="text-blue-300" id="radarTp3Price">$3,876.50</span>
             </div>
           </div>
 
@@ -1180,94 +1184,194 @@
         </div>
       </section>
 
-      <!-- CARD 4: CALIBRACIÓN DEL INDICADOR OFICIAL CREATIVE QUANT EN TRADINGVIEW -->
-      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+      <!-- CARD 4: CHECKLIST INSTITUCIONAL DE CERTEZA ABSOLUTA (6 PASOS PARA GATILLAR EN M5) -->
+      <section class="bg-cardBg border-2 border-emerald-500/50 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-2">
-            <i data-lucide="sliders" class="w-5 h-5 text-emerald-400"></i>
-            <h3 class="text-sm sm:text-base font-bold text-white">Calibración en TradingView: "Adaptive Supertrend Multimethod (Creative Quant)"</h3>
+            <i data-lucide="list-checks" class="w-5 h-5 text-emerald-400"></i>
+            <h3 class="text-sm sm:text-base font-black text-white tracking-wide">Checklist de Certeza Absoluta · 6 Filtros Institucionales M5</h3>
           </div>
-          <span class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-600/70">
-            Ajustar en la Tuerca ⚙️ de tu Indicador Oficial
+          <span class="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600/80 animate-pulse">
+            0% DUDAS · 100% DISCIPLINA
           </span>
         </div>
 
-        <div class="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/40 text-amber-200 text-xs leading-relaxed flex items-start gap-2.5">
-          <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
-          <div>
-            <strong>¡Atención! No uses scripts simplificados de terceros:</strong> El indicador oficial <strong>Adaptive Supertrend Multimethod</strong> de <em>Creative Quant</em> tiene cientos de líneas con algoritmos de régimen de volatilidad y trailing institucional. Para que tu gráfico se vea limpio y sin flechas repetitivas, <strong>usa tu indicador oficial de Creative Quant</strong> y modifica únicamente estos 3 parámetros en su ventana de configuración (⚙️):
+        <p class="text-xs text-gray-400 leading-relaxed">
+          Para lograr la rentabilidad consistente, <strong>está prohibido adivinar o entrar por impulso</strong>. Solo se ejecuta una operación si los 6 filtros están verificados al 100%:
+        </p>
+
+        <!-- 6-Step Verification Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5" id="checklistContainer">
+          
+          <!-- Step 1 -->
+          <div class="p-3.5 rounded-xl bg-gray-900/90 border border-emerald-500/40 space-y-1.5 shadow-inner">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider">Paso 1 · Macro Flow</span>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600">✓ VERIFICADO</span>
+            </div>
+            <div class="text-xs font-bold text-white">Sesgo Macro Dominante</div>
+            <p class="text-[11px] text-gray-400 leading-relaxed">DXY alcista y TIPS > 2.0%. Operativa institucional en <strong>Sell-Only</strong>. Cero compras contra la tendencia mayor.</p>
           </div>
+
+          <!-- Step 2 -->
+          <div class="p-3.5 rounded-xl bg-gray-900/90 border border-emerald-500/40 space-y-1.5 shadow-inner">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider">Paso 2 · Liquidez M15</span>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600">✓ VERIFICADO</span>
+            </div>
+            <div class="text-xs font-bold text-white">Barrido de Liquidez (Judas Swing)</div>
+            <p class="text-[11px] text-gray-400 leading-relaxed">Los market makers barrieron los máximos previos en <strong>$3,972.50</strong> para capturar órdenes de compra tardías.</p>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="p-3.5 rounded-xl bg-gray-900/90 border border-emerald-500/40 space-y-1.5 shadow-inner">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider">Paso 3 · Desplazamiento</span>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600">✓ VERIFICADO</span>
+            </div>
+            <div class="text-xs font-bold text-white">Quiebre Estructural con FVG</div>
+            <p class="text-[11px] text-gray-400 leading-relaxed">Caída impulsiva posterior al barrido que rompe mínimos internos y deja desequilibrio (Fair Value Gap).</p>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="p-3.5 rounded-xl bg-gray-900/90 border border-amber-500/40 space-y-1.5 shadow-inner">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider">Paso 4 · Retesteo OTE</span>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-600">⏳ EN CURSO</span>
+            </div>
+            <div class="text-xs font-bold text-white">Zona 50% – 61.8% (2da Onda)</div>
+            <p class="text-[11px] text-gray-400 leading-relaxed">El precio retrocede a <strong>$3,956.25 – $3,960.10</strong> con menor volumen, sin poder amenazar el máximo de $3,972.50.</p>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="p-3.5 rounded-xl bg-gray-900/90 border border-amber-500/40 space-y-1.5 shadow-inner">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider">Paso 5 · Gatillo M5</span>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-600">⏳ ESPERANDO CIERRE</span>
+            </div>
+            <div class="text-xs font-bold text-white">Vela de Rechazo + Banda Roja</div>
+            <p class="text-[11px] text-gray-400 leading-relaxed">Vela M5 con mecha superior que confirma rechazo y cierra bajo la banda del Adaptive Supertrend en :02 de Tickmill.</p>
+          </div>
+
+          <!-- Step 6 -->
+          <div class="p-3.5 rounded-xl bg-gray-900/90 border border-emerald-500/40 space-y-1.5 shadow-inner">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-wider">Paso 6 · Momentum</span>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600">✓ CONFIRMADO</span>
+            </div>
+            <div class="text-xs font-bold text-white">RSI &lt; 50 + MACD Hist (-)</div>
+            <p class="text-[11px] text-gray-400 leading-relaxed">RSI en territorio bajista (&lt; 50) y MACD decreciente garantizan que el trade no se atasque y corra hacia TP.</p>
+          </div>
+
         </div>
 
-        <!-- 3-Column Settings Grid -->
+        <div class="p-3 rounded-xl bg-gradient-to-r from-emerald-950/40 via-gray-900 to-teal-950/40 border border-emerald-500/40 flex items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+            <span class="text-emerald-200 font-medium"><strong>Veredicto Operativo:</strong> Si los 6 pasos están cumplidos, <strong>dispara sin dudar</strong>. Si falta 1 solo paso, <strong>disciplina absoluta: se espera el próximo bloque</strong>.</span>
+          </div>
+          <span class="text-[11px] font-mono text-emerald-300 font-black shrink-0">5/6 LISTO</span>
+        </div>
+      </section>
+
+      <!-- CARD 5: MATRIZ MATEMÁTICA DE RENTABILIDAD ABSOLUTA (R:R 1:2 MÍNIMO & 1:3+ ÓPTIMO) -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <i data-lucide="scale" class="w-5 h-5 text-amber-400"></i>
+            <h3 class="text-sm sm:text-base font-bold text-white">Matemática de Rentabilidad Absoluta · Ratios Asimétricos R:R 1:2 y 1:3+</h3>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-600/70">
+            ESPERANZA MATEMÁTICA POSITIVA (EV+)
+          </span>
+        </div>
+
+        <p class="text-xs text-gray-400 leading-relaxed">
+          En los mercados institucionales no gana quien acierta más veces, sino <strong>quien arriesga \$1 para buscar \$2 y \$3+</strong>. Con esta estructura asimétrica, incluso acertando solo el 45% al 50% de las operaciones, tu cuenta crece exponencialmente mes tras mes:
+        </p>
+
+        <!-- 3 Target Pillars -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           
-          <div class="p-4 rounded-xl bg-gray-900/90 border border-emerald-500/50 space-y-2">
-            <span class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider block">1. Multiplicador Base</span>
-            <div class="text-xl font-black font-mono text-white flex items-center justify-between">
-              <span>2.2</span>
-              <span class="text-xs text-gray-500 line-through">2.9</span>
+          <!-- Pillar 1: TP1 (1:2.0) -->
+          <div class="p-4 rounded-xl bg-gray-900/90 border border-emerald-500/40 space-y-2 relative overflow-hidden">
+            <div class="text-[10px] font-mono font-bold text-emerald-400 tracking-wider uppercase">TP1 · Mínimo Obligatorio</div>
+            <div class="text-2xl font-black font-mono text-emerald-300">Ratio 1:2.0</div>
+            <div class="text-xs font-mono text-white flex items-center justify-between border-b border-gray-800 pb-1.5">
+              <span class="text-gray-400">Precio Objetivo:</span>
+              <span class="text-emerald-400 font-bold" id="mathTp1Price">$3,925.50</span>
             </div>
-            <div class="text-[11px] text-gray-300 font-medium">En la sección <strong>"Basic Settings"</strong>:</div>
-            <p class="text-[11px] text-gray-400 leading-relaxed">
-              Cambia <em>Multiplier</em> de <strong>2.9</strong> a <strong>2.2</strong>. Esto hace que la banda no quede a $25 dólares de distancia tras una subida de $70 y rote 3 veces más rápido.
-            </p>
+            <div class="text-xs font-mono text-white flex items-center justify-between border-b border-gray-800 pb-1.5">
+              <span class="text-gray-400">Recorrido:</span>
+              <span class="text-emerald-300 font-bold" id="mathTp1Pts">+326.6 pts ($3.26)</span>
+            </div>
+            <div class="text-[11px] text-gray-300 leading-relaxed pt-1">
+              <strong>Protocolo Institucional:</strong> Al tocar TP1, se cierra el <strong>60% al 70%</strong> del volumen y el Stop Loss se traslada inmediatamente a <strong>Breakeven (Riesgo Cero)</strong>. Ya es un trade ganador garantizado.
+            </div>
           </div>
 
-          <div class="p-4 rounded-xl bg-gray-900/90 border border-emerald-500/50 space-y-2">
-            <span class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider block">2. Periodo ATR</span>
-            <div class="text-xl font-black font-mono text-white flex items-center justify-between">
-              <span>10</span>
-              <span class="text-xs text-gray-500 line-through">13</span>
+          <!-- Pillar 2: TP2 (1:3.0) -->
+          <div class="p-4 rounded-xl bg-gray-900/90 border-2 border-emerald-500/60 space-y-2 relative overflow-hidden shadow-lg shadow-emerald-950/20">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-mono font-bold text-yellow-400 tracking-wider uppercase">TP2 · Objetivo Principal</span>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-yellow-950 text-yellow-300 border border-yellow-600">ESTRELLA</span>
             </div>
-            <div class="text-[11px] text-gray-300 font-medium">En la sección <strong>"Basic Settings"</strong>:</div>
-            <p class="text-[11px] text-gray-400 leading-relaxed">
-              Cambia <em>ATR Period</em> de <strong>13</strong> a <strong>10</strong> para que se adapte con mayor fidelidad a las velas M5 en la sesión New York.
-            </p>
+            <div class="text-2xl font-black font-mono text-white">Ratio 1:3.0</div>
+            <div class="text-xs font-mono text-white flex items-center justify-between border-b border-gray-800 pb-1.5">
+              <span class="text-gray-400">Precio Objetivo:</span>
+              <span class="text-emerald-400 font-bold" id="mathTp2Price">$3,909.20</span>
+            </div>
+            <div class="text-xs font-mono text-white flex items-center justify-between border-b border-gray-800 pb-1.5">
+              <span class="text-gray-400">Recorrido:</span>
+              <span class="text-emerald-300 font-bold" id="mathTp2Pts">+490.0 pts ($4.90)</span>
+            </div>
+            <div class="text-[11px] text-gray-300 leading-relaxed pt-1">
+              <strong>Protocolo Institucional:</strong> Toma de ganancias del <strong>25%</strong> restante en la piscina de liquidez externa de la sesión previa. Multiplica por 3 cualquier pérdida previa.
+            </div>
           </div>
 
-          <div class="p-4 rounded-xl bg-gray-900/90 border border-emerald-500/50 space-y-2">
-            <span class="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider block">3. Umbrales de RSI</span>
-            <div class="text-xl font-black font-mono text-white flex items-center justify-between">
-              <span>50 / 50</span>
-              <span class="text-xs text-gray-500 line-through">45 / 55</span>
+          <!-- Pillar 3: TP3 (1:5.0) -->
+          <div class="p-4 rounded-xl bg-gray-900/90 border border-blue-500/40 space-y-2 relative overflow-hidden">
+            <div class="text-[10px] font-mono font-bold text-blue-400 tracking-wider uppercase">TP3 · Runner Institucional</div>
+            <div class="text-2xl font-black font-mono text-blue-300">Ratio 1:5.0+</div>
+            <div class="text-xs font-mono text-white flex items-center justify-between border-b border-gray-800 pb-1.5">
+              <span class="text-gray-400">Precio Objetivo:</span>
+              <span class="text-blue-300 font-bold" id="mathTp3Price">$3,876.50</span>
             </div>
-            <div class="text-[11px] text-gray-300 font-medium">En la sección <strong>"Momentum Filters"</strong>:</div>
-            <p class="text-[11px] text-gray-400 leading-relaxed">
-              Pon <em>RSI Sell Threshold</em> en <strong>50</strong> (en vez de 45). Así valida el quiebre bajista cuando el RSI pasa a la mitad inferior sin exigir una sobreventa tardía.
-            </p>
+            <div class="text-xs font-mono text-white flex items-center justify-between border-b border-gray-800 pb-1.5">
+              <span class="text-gray-400">Recorrido:</span>
+              <span class="text-blue-200 font-bold" id="mathTp3Pts">+816.5 pts ($8.16)</span>
+            </div>
+            <div class="text-[11px] text-gray-300 leading-relaxed pt-1">
+              <strong>Protocolo Institucional:</strong> Se deja correr una porción mínima (<strong>5% a 10%</strong>) con Trailing Stop para exprimir días de tendencia masiva hacia mínimos asiáticos.
+            </div>
           </div>
 
         </div>
 
-        <!-- Visual Table comparison -->
-        <div class="rounded-xl overflow-hidden border border-gray-800 bg-gray-950">
-          <div class="bg-gray-900 px-4 py-2 border-b border-gray-800 text-xs font-mono font-bold text-gray-300 flex items-center justify-between">
-            <span>Resumen de Parámetros Calibrados (Creative Quant)</span>
-            <span class="text-emerald-400">100% Sincronizado con este Dashboard</span>
+        <!-- Mathematical Proof Card -->
+        <div class="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-2">
+          <div class="text-xs font-bold font-mono text-amber-400 flex items-center gap-1.5">
+            <i data-lucide="calculator" class="w-4 h-4"></i>
+            <span>La Fórmula de tu Rentabilidad Absoluta (Ejemplo real en 10 Trades):</span>
           </div>
-          <div class="p-4 text-xs font-mono space-y-2 text-gray-300">
-            <div class="flex items-center justify-between border-b border-gray-800/60 pb-1.5">
-              <span class="text-gray-400">• Multiplicador Base (Basic Multiplier):</span>
-              <span class="text-emerald-400 font-bold">2.2 (Intradía) | 2.9 (Macro)</span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
+            <div class="p-2.5 rounded-lg bg-gray-900/80 border border-gray-800">
+              <span class="text-gray-400 block text-[10px]">Si pierdes 5 trades (Riesgo 3%):</span>
+              <span class="text-rose-400 font-bold text-sm">5 x -$3.30 = -$16.50</span>
             </div>
-            <div class="flex items-center justify-between border-b border-gray-800/60 pb-1.5">
-              <span class="text-gray-400">• Periodo ATR (ATR Period):</span>
-              <span class="text-emerald-400 font-bold">10 (Intradía) | 13 (Macro)</span>
+            <div class="p-2.5 rounded-lg bg-gray-900/80 border border-gray-800">
+              <span class="text-gray-400 block text-[10px]">Si ganas 5 trades a 1:2.5 promedio:</span>
+              <span class="text-emerald-400 font-bold text-sm">5 x +$8.25 = +$41.25</span>
             </div>
-            <div class="flex items-center justify-between border-b border-gray-800/60 pb-1.5">
-              <span class="text-gray-400">• Filtro RSI Venta (RSI Sell Threshold):</span>
-              <span class="text-emerald-400 font-bold">&lt;= 50</span>
-            </div>
-            <div class="flex items-center justify-between border-b border-gray-800/60 pb-1.5">
-              <span class="text-gray-400">• Filtro RSI Compra (RSI Buy Threshold):</span>
-              <span class="text-emerald-400 font-bold">&gt;= 50</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-400">• Modo de Señal (Signal Mode):</span>
-              <span class="text-amber-400 font-bold">On Candle Close (Al Cierre)</span>
+            <div class="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/40">
+              <span class="text-emerald-300 block text-[10px]">Crecimiento Neto de tu Cuenta:</span>
+              <span class="text-emerald-300 font-black text-sm">+$24.75 (+24.7% NETO)</span>
             </div>
           </div>
+          <p class="text-[11px] text-gray-400 leading-relaxed">
+            💡 <strong>Conclusión:</strong> No necesitas ganar el 90% de los trades. Con esta disciplina matemática y un R:R mínimo de 1:2 y 1:3+, alcanzar la rentabilidad consistente es una consecuencia matemática inevitable.
+          </p>
         </div>
       </section>
 

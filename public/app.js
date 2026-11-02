@@ -4205,17 +4205,30 @@ function renderPrecisionRadarUI(data) {
   const tp2El = document.getElementById('radarTp2Price');
   if (tp2El) tp2El.textContent = `$${entry.tp2_price.toFixed(2)}`;
 
+  const tp3El = document.getElementById('radarTp3Price');
+  if (tp3El && entry.tp3_price) tp3El.textContent = `$${entry.tp3_price.toFixed(2)}`;
+
+  // 5. Matriz Matemática R:R
+  const mathTp1 = document.getElementById('mathTp1Price');
+  const mathTp1Pts = document.getElementById('mathTp1Pts');
+  if (mathTp1) mathTp1.textContent = `$${entry.tp1_price.toFixed(2)}`;
+  if (mathTp1Pts) mathTp1Pts.textContent = `+${(entry.sl_points * 2.0).toFixed(1)} pts ($${((entry.sl_points * 2.0)/100).toFixed(2)})`;
+
+  const mathTp2 = document.getElementById('mathTp2Price');
+  const mathTp2Pts = document.getElementById('mathTp2Pts');
+  if (mathTp2) mathTp2.textContent = `$${entry.tp2_price.toFixed(2)}`;
+  if (mathTp2Pts) mathTp2Pts.textContent = `+${(entry.sl_points * 3.0).toFixed(1)} pts ($${((entry.sl_points * 3.0)/100).toFixed(2)})`;
+
+  const mathTp3 = document.getElementById('mathTp3Price');
+  const mathTp3Pts = document.getElementById('mathTp3Pts');
+  if (mathTp3 && entry.tp3_price) mathTp3.textContent = `$${entry.tp3_price.toFixed(2)}`;
+  if (mathTp3Pts) mathTp3Pts.textContent = `+${(entry.sl_points * 5.0).toFixed(1)} pts ($${((entry.sl_points * 5.0)/100).toFixed(2)})`;
+
   const descEl = document.getElementById('radarActionDesc');
   if (descEl) descEl.textContent = entry.action_desc;
 
   const noteEl = document.getElementById('radarProtectionNote');
   if (noteEl) noteEl.textContent = entry.protection_note;
-
-  // 5. Pine Script Code Box
-  const pineEl = document.getElementById('pineScriptDisplay');
-  if (pineEl && radar.pine_script_code) {
-    pineEl.textContent = radar.pine_script_code;
-  }
 
   // 6. Mode Buttons State
   const btnPrecision = document.getElementById('btnRadarModePrecision');
@@ -4238,7 +4251,6 @@ function setupPrecisionRadarEvents() {
   const btnMacro = document.getElementById('btnRadarModeMacro');
   const refreshBtn = document.getElementById('btnRefreshPrecisionRadar');
   const btnCopyCalc = document.getElementById('btnCopySetupToCalculator');
-  const btnCopyPine = document.getElementById('btnCopyPineScript');
 
   if (btnPrecision) {
     btnPrecision.addEventListener('click', () => loadPrecisionRadarData('PRECISION'));
@@ -4251,9 +4263,6 @@ function setupPrecisionRadarEvents() {
   }
   if (btnCopyCalc) {
     btnCopyCalc.addEventListener('click', copyRadarSetupToCalculator);
-  }
-  if (btnCopyPine) {
-    btnCopyPine.addEventListener('click', copyPineScriptToClipboard);
   }
 }
 
@@ -4284,30 +4293,4 @@ function copyRadarSetupToCalculator() {
   }
 
   showToast(`🎯 ¡Parámetros transferidos a la Calculadora! SL: ${slPts} pts ($${(slPts/100).toFixed(2)}) @ $${targetPrice}`, 'success', 3500);
-}
-
-function copyPineScriptToClipboard() {
-  const pineEl = document.getElementById('pineScriptDisplay');
-  const code = pineEl ? pineEl.textContent : "";
-  if (!code) {
-    showToast("⚠️ No hay código para copiar.", "warning");
-    return;
-  }
-
-  navigator.clipboard.writeText(code).then(() => {
-    const btn = document.getElementById('btnCopyPineScript');
-    if (btn) {
-      const origHtml = btn.innerHTML;
-      btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i><span>¡Copiado!</span>';
-      initIcons();
-      setTimeout(() => {
-        btn.innerHTML = origHtml;
-        initIcons();
-      }, 2000);
-    }
-    showToast("📋 ¡Código Pine Script copiado! Pégalo en el Pine Editor de TradingView.", "success", 3000);
-  }).catch(err => {
-    console.error("Error copiando Pine Script:", err);
-    showToast("Error copiando código al portapapeles", "error");
-  });
 }
