@@ -943,6 +943,7 @@ function renderBacktestTradesTable() {
         <td class="py-2.5 px-3 text-gold-400 font-bold">${Number(t.lot_size || 0.01).toFixed(2)}</td>
         <td class="py-2.5 px-3 text-purple-300 font-mono">$${Number(t.margin_used || 0).toFixed(2)}</td>
         <td class="py-2.5 px-3">${badgeOutcome}</td>
+        <td class="py-2.5 px-3 text-rose-400 font-mono">${t.commission ? '-$' + Number(t.commission).toFixed(2) : '$0.00'}</td>
         <td class="py-2.5 px-3 ${pnlColor}">${pnlSign}$${Number(t.pnl).toFixed(2)}</td>
         <td class="py-2.5 px-3 text-white font-bold">$${Number(t.balance_after || 0).toFixed(2)}</td>
         <td class="py-2.5 px-3 text-gray-300 font-sans text-xs truncate max-w-[120px]" title="${t.notes || ''}">${t.strategy || 'General'}</td>
@@ -1082,6 +1083,7 @@ function renderRealTradesTable() {
         <td class="py-2.5 px-3 text-amber-300 font-mono">$${Number(t.dollar_risk || t.risk_budget || 0).toFixed(2)}</td>
         <td class="py-2.5 px-3 text-gold-400 font-bold font-mono">${Number(t.lot_size || t.suggested_lot || 0.01).toFixed(2)}</td>
         <td class="py-2.5 px-3">${badgeOutcome}</td>
+        <td class="py-2.5 px-3 text-rose-400 font-mono">${t.commission ? '-$' + Number(t.commission).toFixed(2) : '$0.00'}</td>
         <td class="py-2.5 px-3 ${pnlColor}">${pnlSign}$${Number(t.pnl).toFixed(2)}</td>
         <td class="py-2.5 px-3 text-white font-bold">$${Number(t.balance_after || 0).toFixed(2)}</td>
         <td class="py-2.5 px-3">${chartBtn}</td>
@@ -1687,19 +1689,22 @@ async function handleAddRealTrade(e) {
   const manualLotVal = manualLotInput && manualLotInput.value ? parseFloat(manualLotInput.value) : null;
   const lot_size = (manualLotVal && manualLotVal > 0) ? roundNum(manualLotVal, 2) : suggested_lot;
 
+  const commissionInput = document.getElementById('realTradeCommission');
+  const commission = commissionInput && commissionInput.value ? Math.abs(parseFloat(commissionInput.value)) : 0.0;
+
   const actualDollarRisk = roundNum(points * lot_size, 2);
   let pnl = 0.0;
   let retPct = 0.0;
 
   if (status === 'win') {
-    pnl = roundNum(points * lot_size * rr, 2);
+    pnl = roundNum((points * lot_size * rr) - commission, 2);
     retPct = curBal > 0 ? roundNum((pnl / curBal) * 100.0, 2) : (riskPct * rr);
   } else if (status === 'loss') {
-    pnl = -actualDollarRisk;
-    retPct = curBal > 0 ? -roundNum((actualDollarRisk / curBal) * 100.0, 2) : -riskPct;
+    pnl = roundNum(-actualDollarRisk - commission, 2);
+    retPct = curBal > 0 ? roundNum((pnl / curBal) * 100.0, 2) : -riskPct;
   } else {
-    pnl = 0.0;
-    retPct = 0.0;
+    pnl = roundNum(-commission, 2);
+    retPct = curBal > 0 ? roundNum((pnl / curBal) * 100.0, 2) : 0.0;
   }
 
   const leverage = parseFloat(appState.config.leverage) || 300;
@@ -1721,6 +1726,7 @@ async function handleAddRealTrade(e) {
     suggested_lot,
     lot_size,
     manual_lot: manualLotVal || null,
+    commission,
     margin_used,
     status,
     pnl,

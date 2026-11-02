@@ -280,6 +280,7 @@ def recalculate_trade_history(trades, config):
         trade_risk = float(t.get("risk_pct_custom") or risk_pct)
         trade_rr = float(t.get("rr_custom") or global_rr)
         status = t.get("status", "win").lower()
+        commission = float(t.get("commission", 0.0))
         
         # Pure percentage compounding:
         if status == "win":
@@ -289,7 +290,10 @@ def recalculate_trade_history(trades, config):
         else:
             ret_pct = 0.0
             
-        pnl = round(curr_bal * (ret_pct / 100.0), 2)
+        if "pnl" in t and (t.get("manual_lot") is not None or commission > 0):
+            pnl = round(float(t["pnl"]), 2)
+        else:
+            pnl = round(curr_bal * (ret_pct / 100.0) - commission, 2)
         
         # Reference lot size for MT4/MT5 based on Gold SL points
         dollar_risk = curr_bal * (trade_risk / 100.0)
@@ -313,6 +317,7 @@ def recalculate_trade_history(trades, config):
         t_new["suggested_lot"] = suggested_lot
         t_new["lot_size"] = suggested_lot
         t_new["margin_used"] = margin_used
+        t_new["commission"] = commission
         t_new["pnl"] = pnl
         t_new["balance_before"] = round(curr_bal, 2)
         
@@ -372,7 +377,11 @@ def calculate_analytics(trades, config):
         else:
             ret_pct = 0.0
 
-        pnl = round(current_balance * (ret_pct / 100.0), 2)
+        commission = float(t.get("commission", 0.0))
+        if "pnl" in t and (t.get("manual_lot") is not None or commission > 0):
+            pnl = round(float(t["pnl"]), 2)
+        else:
+            pnl = round(current_balance * (ret_pct / 100.0) - commission, 2)
         
         # Track SL points for average calculation
         if t.get("tv_points") is not None and float(t.get("tv_points")) >= 20.0:
@@ -1051,8 +1060,9 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             lot_size = round(manual_lot, 2) if manual_lot > 0 else suggested_lot
             margin_used = round((2700.0 * 100 * lot_size) / float(config.get("leverage", 300)), 2)
 
-            # If client computed PnL with manual lot size, respect it:
-            if "pnl" in payload and manual_lot > 0:
+            commission = round(float(payload.get("commission", 0.0)), 2)
+            # If client computed PnL with manual lot size or commission, respect it:
+            if "pnl" in payload and (manual_lot > 0 or commission > 0):
                 pnl = round(float(payload["pnl"]), 2)
                 dollar_risk = round(float(payload.get("dollar_risk", dollar_risk)), 2)
 
@@ -1071,6 +1081,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 "suggested_lot": suggested_lot,
                 "lot_size": lot_size,
                 "manual_lot": manual_lot if manual_lot > 0 else None,
+                "commission": commission,
                 "margin_used": margin_used,
                 "status": status,
                 "pnl": pnl,

@@ -1827,29 +1827,44 @@
 
           </div>
 
-          <!-- Row 2: Lotaje Manual & TradingView Chart Link -->
+          <!-- Row 2: Lotaje Manual, Comisión Broker & TradingView Chart Link -->
           <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5 text-xs">
             
-            <!-- Lote Manual / Operado MT4 (6 cols) -->
-            <div class="md:col-span-6">
+            <!-- Lote Manual / Operado MT4/MT5 (4 cols) -->
+            <div class="md:col-span-4">
               <label class="block text-gray-400 mb-1.5 font-semibold flex items-center justify-between">
                 <span class="flex items-center gap-1.5">
                   <i data-lucide="layers" class="w-3.5 h-3.5 text-gold-400"></i>
-                  <span>Lotaje Operado MT4 / MT5 (Manual o Sugerido)</span>
+                  <span>Lotaje MT4 / MT5</span>
                 </span>
-                <span class="text-[11px] text-gray-400 font-mono font-normal">Sugerido: <b id="realTradeSuggestedLotBadge" class="text-gold-400">0.02</b> lotes</span>
+                <span class="text-[10px] text-gray-400 font-mono">Sugerido: <b id="realTradeSuggestedLotBadge" class="text-gold-400">0.01</b></span>
               </label>
               <div class="relative">
-                <input type="number" id="realTradeManualLot" step="0.01" min="0.01" max="100" class="w-full bg-gray-950 border-2 border-gold-500/50 focus:border-gold-400 rounded-xl px-3.5 py-2 text-gold-300 font-mono font-black text-sm focus:outline-none" placeholder="ej. 0.02 (o pon tu lote manual)">
+                <input type="number" id="realTradeManualLot" step="0.01" min="0.01" max="100" class="w-full bg-gray-950 border-2 border-gold-500/50 focus:border-gold-400 rounded-xl px-3.5 py-2 text-gold-300 font-mono font-black text-sm focus:outline-none" placeholder="0.01">
                 <span class="absolute right-3 top-2 text-xs text-gray-500 font-mono font-bold uppercase">Lotes</span>
               </div>
             </div>
 
-            <!-- TradingView Chart URL (6 cols) -->
-            <div class="md:col-span-6">
+            <!-- Comisión Broker USD (4 cols) -->
+            <div class="md:col-span-4">
+              <label class="block text-gray-400 mb-1.5 font-semibold flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                  <i data-lucide="receipt" class="w-3.5 h-3.5 text-rose-400"></i>
+                  <span>Comisión Broker ($)</span>
+                </span>
+                <span class="text-[10px] text-gray-500 font-mono">ej. 0.06</span>
+              </label>
+              <div class="relative">
+                <input type="number" id="realTradeCommission" step="0.01" min="0" class="w-full bg-gray-950 border border-gray-800 focus:border-rose-500 rounded-xl px-3.5 py-2 text-rose-300 font-mono font-bold text-sm focus:outline-none" placeholder="0.06" value="0.00">
+                <span class="absolute right-3 top-2 text-xs text-gray-500 font-mono font-bold uppercase">USD</span>
+              </div>
+            </div>
+
+            <!-- TradingView Chart URL (4 cols) -->
+            <div class="md:col-span-4">
               <label class="block text-gray-400 mb-1.5 font-semibold flex items-center gap-1.5">
                 <i data-lucide="link" class="w-3.5 h-3.5 text-blue-400"></i>
-                <span>URL Captura TradingView (Opcional)</span>
+                <span>URL Gráfico (Opcional)</span>
               </label>
               <input type="url" id="realTradeChartUrl" placeholder="https://www.tradingview.com/x/..." class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none">
             </div>
@@ -1959,7 +1974,8 @@
                 <th class="py-2.5 px-3">Riesgo ($)</th>
                 <th class="py-2.5 px-3">Lote MT4</th>
                 <th class="py-2.5 px-3">Resultado</th>
-                <th class="py-2.5 px-3">PnL ($)</th>
+                <th class="py-2.5 px-3">Comisión</th>
+                <th class="py-2.5 px-3">PnL Neto ($)</th>
                 <th class="py-2.5 px-3">Balance</th>
                 <th class="py-2.5 px-3">Gráfico TV</th>
                 <th class="py-2.5 px-3 text-right">Acciones</th>
@@ -1967,7 +1983,7 @@
             </thead>
             <tbody id="realTradesTableBody" class="divide-y divide-gray-800/60 font-mono">
               <tr>
-                <td colspan="13" class="py-12 text-center text-gray-500 font-sans">
+                <td colspan="14" class="py-12 text-center text-gray-500 font-sans">
                   Aún no has registrado operaciones en tu Bitácora Real. Llena el formulario superior para documentar tu primera operación.
                 </td>
               </tr>
