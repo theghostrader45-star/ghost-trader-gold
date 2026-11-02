@@ -2658,9 +2658,19 @@ function startMarketClock() {
       }
     }
 
-    // Cuenta Regresiva Sincronizada con Velas M5 de TradingView (:00, :05, :10...)
+    // Cuenta Regresiva Sincronizada con Velas M5 de TradingView
+    // Tickmill abre sus velas de 5m con +2 min de desfase (:02, :07, :12, :17, :22...)
+    let brokerOffsetSec = 120; // Por defecto 120s para sincronización exacta con Tickmill
+    try {
+      const savedBrokerOffset = localStorage.getItem('m5_broker_offset');
+      if (savedBrokerOffset !== null) {
+        brokerOffsetSec = parseInt(savedBrokerOffset, 10);
+      }
+    } catch (e) {}
+
     const currentSecondsInHour = (now.getMinutes() * 60) + now.getSeconds();
-    const secondsIn5MinBlock = currentSecondsInHour % 300;
+    const normalizedSeconds = (currentSecondsInHour - brokerOffsetSec + 3600) % 3600;
+    const secondsIn5MinBlock = normalizedSeconds % 300;
     const remainingToNext5Min = 300 - secondsIn5MinBlock;
 
     const m5Mins = Math.floor(remainingToNext5Min / 60);
@@ -2673,7 +2683,7 @@ function startMarketClock() {
     }
 
     // Disparar en el segundo exacto del cierre de vela M5
-    const currentM5Block = Math.floor(now.getTime() / 300000);
+    const currentM5Block = Math.floor((now.getTime() - (brokerOffsetSec * 1000)) / 300000);
     if (remainingToNext5Min === 300 && lastTriggeredM5Block !== currentM5Block) {
       lastTriggeredM5Block = currentM5Block;
       executeM5AutoRefresh(false);
@@ -2745,6 +2755,36 @@ function setupGoldBiasDashboard() {
   const m5Badge = document.getElementById("m5SyncBadge");
   if (m5Badge) {
     m5Badge.addEventListener("click", () => executeM5AutoRefresh(true));
+  }
+
+  // Alternar entre feed de Tickmill (:02, :07...) y Estándar (:00, :05...)
+  const brokerLabelEl = document.getElementById("m5SyncBrokerLabel");
+  if (brokerLabelEl) {
+    let savedOffset = localStorage.getItem("m5_broker_offset");
+    if (savedOffset === "0") {
+      brokerLabelEl.textContent = "M5 Estándar";
+      brokerLabelEl.className = "text-[9px] uppercase tracking-wider text-gray-400 hover:text-white font-bold leading-none cursor-pointer transition";
+    } else {
+      brokerLabelEl.textContent = "M5 Tickmill";
+      brokerLabelEl.className = "text-[9px] uppercase tracking-wider text-emerald-400 hover:text-white font-bold leading-none cursor-pointer transition";
+    }
+
+    brokerLabelEl.addEventListener("click", (e) => {
+      e.stopPropagation();
+      let currentOffset = 120;
+      try {
+        currentOffset = parseInt(localStorage.getItem("m5_broker_offset") || "120", 10);
+      } catch (err) {}
+      const newOffset = currentOffset === 120 ? 0 : 120;
+      try {
+        localStorage.setItem("m5_broker_offset", newOffset);
+      } catch (err) {}
+      brokerLabelEl.textContent = newOffset === 120 ? "M5 Tickmill" : "M5 Estándar";
+      brokerLabelEl.className = newOffset === 120 
+        ? "text-[9px] uppercase tracking-wider text-emerald-400 hover:text-white font-bold leading-none cursor-pointer transition"
+        : "text-[9px] uppercase tracking-wider text-gray-400 hover:text-white font-bold leading-none cursor-pointer transition";
+      showToast(newOffset === 120 ? "Sincronizado con Tickmill (+2 min desfase)" : "Sincronizado con Estándar (:00, :05...)");
+    });
   }
 }
 
