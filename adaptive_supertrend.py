@@ -663,6 +663,58 @@ def calculate_precision_radar(current_price=None, daily_bias="BEARISH", session_
         "expectancy_formula": "Con Win Rate del 50% y R:R de 1:2.5 promedio: 10 trades = 5 pérdidas (-$16.50) vs 5 ganancias (+$41.25) = Ganancia neta de +$24.75 (+24.7% de rentabilidad neta)."
     }
 
+    # Ticket de Entrada Quirúrgica (Ficha Técnica de Ejecución Directa)
+    now_hour_ny = datetime.now().hour  # local estimation
+    # Instrucción exacta de qué hacer ahora
+    if proximity_code == "READY":
+        ticket_state_label = "🟢 GATILLO LISTO EN ZONA OTE"
+        ticket_state_desc = f"El precio cotiza en zona (${entry_zone_min:.2f} – ${entry_zone_max:.2f}). Espera al segundo :02 del cierre M5. Si deja mecha de rechazo superior, EJECUTA VENTA EN MT5."
+        ticket_color = "emerald"
+    elif proximity_code == "IMMINENT":
+        ticket_state_label = f"🟡 PREPARANDO RETESTEO (A {abs(distance_pts):.0f} pts)"
+        ticket_state_desc = f"El oro está a solo {abs(distance_pts):.0f} puntos de activar la orden. Abre MT5, fija 0.01 lotes y ten listos los valores de SL y TP."
+        ticket_color = "amber"
+    else:
+        ticket_state_label = f"⏳ EN ESPERA DE RETESTEO ({abs(distance_pts):.0f} pts restantes)"
+        ticket_state_desc = f"El precio cotiza en ${current_price:.2f}, lejos de la zona de venta (${entry_zone_min:.2f} – ${entry_zone_max:.2f}). PACIENCIA: Prohibido vender en el fondo. Espera el retroceso."
+        ticket_color = "blue"
+
+    execution_ticket = {
+        "ticker": "XAUUSD (Oro Spot)",
+        "action": direction,
+        "action_badge": "VENTA / SELL" if direction == "SELL" else "COMPRA / BUY",
+        "order_type": "SELL LIMIT en zona OTE o MARKET SELL al cierre de vela con mecha",
+        "state_label": ticket_state_label,
+        "state_desc": ticket_state_desc,
+        "state_color": ticket_color,
+        "entry_exact": entry_target_price,
+        "entry_range": f"${entry_zone_min:.2f} – ${entry_zone_max:.2f}",
+        "current_price": round(current_price, 2),
+        "distance_pts": distance_pts,
+        "sl_price": sl_price,
+        "sl_points": sl_points,
+        "sl_dollars_001": round((sl_points / 100.0), 2),
+        "tp1_price": tp1_price,
+        "tp1_pts": round(sl_points * tp1_rr, 1),
+        "tp1_rr": f"1:{tp1_rr:.1f} MÍNIMO",
+        "tp1_dollars_001": round(((sl_points * tp1_rr) / 100.0), 2),
+        "tp2_price": tp2_price,
+        "tp2_pts": round(sl_points * tp2_rr, 1),
+        "tp2_rr": f"1:{tp2_rr:.1f} ÓPTIMO",
+        "tp2_dollars_001": round(((sl_points * tp2_rr) / 100.0), 2),
+        "tp3_price": tp3_price,
+        "tp3_pts": round(sl_points * tp3_rr, 1),
+        "tp3_rr": f"1:{tp3_rr:.1f} RUNNER",
+        "tp3_dollars_001": round(((sl_points * tp3_rr) / 100.0), 2),
+        "lot_recommended": 0.01,
+        "what_to_do_now": [
+            f"1. SITUACIÓN ACTUAL: El precio cotiza en ${current_price:.2f}. Como la dirección es VENTA, está TERMINANTEMENTE PROHIBIDO vender aquí abajo. Esperamos retroceso.",
+            f"2. ZONA DE ACTIVACIÓN: Si el precio sube a ${entry_zone_min:.2f} – ${entry_zone_max:.2f}, nos preparamos en MT5 con 0.01 lotes.",
+            f"3. GATILLO M5: Esperamos al cierre oficial de la vela en Tickmill (:02, :07, :12). Si la vela rechaza con mecha superior y el RSI se mantiene < 50, se dispara la orden.",
+            f"4. PARÁMETROS EN MT5: Entrada @ ${entry_target_price:.2f} | Stop Loss @ ${sl_price:.2f} | TP1 @ ${tp1_price:.2f} (Mover a BE al tocarlo)."
+        ]
+    }
+
     return {
         "mode": mode,
         "mode_name": cfg["mode_name"],
@@ -699,6 +751,7 @@ def calculate_precision_radar(current_price=None, daily_bias="BEARISH", session_
         "mtf_matrix": mtf_matrix,
         "institutional_checklist": institutional_checklist,
         "math_rr_matrix": math_rr_matrix,
+        "execution_ticket": execution_ticket,
         "anti_inducement_diagnostic": {
             "title": "Análisis Institucional: La Trampa de las 10:32 AM vs La 2da Onda",
             "event_1032": {

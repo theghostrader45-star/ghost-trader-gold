@@ -4236,7 +4236,57 @@ function renderPrecisionRadarUI(data) {
   const noteEl = document.getElementById('radarProtectionNote');
   if (noteEl) noteEl.textContent = entry.protection_note;
 
-  // 6. Mode Buttons State
+  // 6. Ficha Técnica / Ticket de Entrada Quirúrgica (Card 6)
+  const ticket = radar.execution_ticket;
+  if (ticket) {
+    const tBadge = document.getElementById('ticketStateBadge');
+    const tText = document.getElementById('ticketStateText');
+    if (tBadge && tText) {
+      tText.textContent = ticket.state_label;
+      if (ticket.state_color === 'emerald') {
+        tBadge.className = "px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 bg-emerald-950 text-emerald-300 border border-emerald-500 shadow-md animate-pulse";
+      } else if (ticket.state_color === 'amber') {
+        tBadge.className = "px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 bg-amber-950 text-amber-300 border border-amber-600 shadow-md animate-pulse";
+      } else {
+        tBadge.className = "px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 bg-blue-950 text-blue-300 border border-blue-600/80 shadow-md";
+      }
+    }
+
+    const tAction = document.getElementById('ticketActionText');
+    if (tAction) {
+      tAction.textContent = ticket.action_badge;
+      tAction.className = ticket.action === 'SELL' ? "text-base font-black text-rose-400 block" : "text-base font-black text-emerald-400 block";
+    }
+
+    const tEntry = document.getElementById('ticketEntryText');
+    if (tEntry) tEntry.textContent = `$${ticket.entry_exact.toFixed(2)}`;
+
+    const tRange = document.getElementById('ticketRangeText');
+    if (tRange) tRange.textContent = ticket.entry_range;
+
+    const tSl = document.getElementById('ticketSlText');
+    if (tSl) tSl.textContent = `$${ticket.sl_price.toFixed(2)}`;
+
+    const tSlPts = document.getElementById('ticketSlPtsText');
+    if (tSlPts) tSlPts.textContent = `${ticket.sl_points.toFixed(0)} pts (-$${ticket.sl_dollars_001.toFixed(2)})`;
+
+    const tTp1 = document.getElementById('ticketTp1Text');
+    if (tTp1) tTp1.textContent = `$${ticket.tp1_price.toFixed(2)}`;
+
+    const tTp1Pts = document.getElementById('ticketTp1PtsText');
+    if (tTp1Pts) tTp1Pts.textContent = `+${ticket.tp1_pts.toFixed(0)} pts (+$${ticket.tp1_dollars_001.toFixed(2)})`;
+
+    const tTp2 = document.getElementById('ticketTp2Text');
+    if (tTp2) tTp2.textContent = `$${ticket.tp2_price.toFixed(2)}`;
+
+    const tTp2Pts = document.getElementById('ticketTp2PtsText');
+    if (tTp2Pts) tTp2Pts.textContent = `+${ticket.tp2_pts.toFixed(0)} pts (+$${ticket.tp2_dollars_001.toFixed(2)})`;
+
+    const tStepPrice = document.getElementById('ticketStepPrice');
+    if (tStepPrice) tStepPrice.textContent = `$${ticket.current_price.toFixed(2)}`;
+  }
+
+  // 7. Mode Buttons State
   const btnPrecision = document.getElementById('btnRadarModePrecision');
   const btnMacro = document.getElementById('btnRadarModeMacro');
   if (btnPrecision && btnMacro) {
@@ -4257,6 +4307,7 @@ function setupPrecisionRadarEvents() {
   const btnMacro = document.getElementById('btnRadarModeMacro');
   const refreshBtn = document.getElementById('btnRefreshPrecisionRadar');
   const btnCopyCalc = document.getElementById('btnCopySetupToCalculator');
+  const btnCopyTicket = document.getElementById('btnCopyTicketParams');
 
   if (btnPrecision) {
     btnPrecision.addEventListener('click', () => loadPrecisionRadarData('PRECISION'));
@@ -4270,6 +4321,38 @@ function setupPrecisionRadarEvents() {
   if (btnCopyCalc) {
     btnCopyCalc.addEventListener('click', copyRadarSetupToCalculator);
   }
+  if (btnCopyTicket) {
+    btnCopyTicket.addEventListener('click', copyTicketParamsToClipboard);
+  }
+}
+
+function copyTicketParamsToClipboard() {
+  if (!currentPrecisionRadarData || !currentPrecisionRadarData.precision_radar) {
+    showToast("⚠️ Ficha no cargada aún. Espera un momento.", "warning");
+    return;
+  }
+  const t = currentPrecisionRadarData.precision_radar.execution_ticket;
+  if (!t) return;
+
+  const textToCopy = `📌 ORDEN INST. XAU/USD (ORO)
+• Acción: ${t.action} (Sell-Only)
+• Entrada Óptima: $${t.entry_exact.toFixed(2)} (Zona: ${t.entry_range})
+• Stop Loss: $${t.sl_price.toFixed(2)} (${t.sl_points.toFixed(0)} pts)
+• TP1 (1:2.0 Mínimo): $${t.tp1_price.toFixed(2)} (+${t.tp1_pts.toFixed(0)} pts) -> Cerrar 70% y Mover a BE
+• TP2 (1:3.0 Óptimo): $${t.tp2_price.toFixed(2)} (+${t.tp2_pts.toFixed(0)} pts)
+• Lotaje Sugerido para tu cuenta: ${t.lot_recommended} lotes`;
+
+  navigator.clipboard.writeText(textToCopy).then(() => {
+    const btnText = document.getElementById('btnCopyTicketText');
+    if (btnText) {
+      const orig = btnText.textContent;
+      btnText.textContent = "¡Parámetros Copiados!";
+      setTimeout(() => { btnText.textContent = orig; }, 2000);
+    }
+    showToast("📋 ¡Parámetros de orden MT5 copiados al portapapeles!", "success", 3000);
+  }).catch(err => {
+    console.warn("Clipboard error:", err);
+  });
 }
 
 function copyRadarSetupToCalculator() {

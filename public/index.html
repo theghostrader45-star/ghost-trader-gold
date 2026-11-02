@@ -1375,6 +1375,124 @@
         </div>
       </section>
 
+      <!-- CARD 6: ORDEN FINAL INSTITUCIONAL · FICHA TÉCNICA DE ENTRADA QUIRÚRGICA -->
+      <section class="bg-gradient-to-b from-gray-900 via-gray-950 to-gray-900 border-2 border-yellow-500/60 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-5 relative overflow-hidden">
+        <div class="absolute -right-20 -top-20 w-52 h-52 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Top Header & Live State Badge -->
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800 pb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 flex items-center justify-center font-bold">
+              <i data-lucide="file-check-2" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-base sm:text-lg font-black text-white tracking-wide">Ficha Técnica de Entrada · Orden Final MT5</h3>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-yellow-950 text-yellow-300 border border-yellow-600 font-bold">VALORES EXACTOS</span>
+              </div>
+              <p class="text-xs text-gray-400">Resumen operativo directo al grano: qué hacer, qué valores poner en tu broker y en qué estado estamos.</p>
+            </div>
+          </div>
+
+          <!-- Live State Pill -->
+          <div id="ticketStateBadge" class="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 bg-blue-950 text-blue-300 border border-blue-600/80 shadow-md">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse"></span>
+            <span id="ticketStateText">⏳ EN ESPERA DE RETESTEO (104 pts restantes)</span>
+          </div>
+        </div>
+
+        <!-- Direct Execution Values (The MT5 Ticket) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs font-mono">
+          
+          <!-- Box 1: Acción -->
+          <div class="p-3 rounded-xl bg-gray-950/80 border border-rose-500/40 space-y-1">
+            <span class="text-[10px] text-gray-400 uppercase tracking-wider block font-sans">Acción</span>
+            <span id="ticketActionText" class="text-base font-black text-rose-400 block">VENTA / SELL</span>
+            <span class="text-[10px] text-rose-300/80 block">Sell-Only Institucional</span>
+          </div>
+
+          <!-- Box 2: Entrada Exacta -->
+          <div class="p-3 rounded-xl bg-gray-950/80 border border-emerald-500/40 space-y-1">
+            <span class="text-[10px] text-gray-400 uppercase tracking-wider block font-sans">Entrada Óptima</span>
+            <span id="ticketEntryText" class="text-base font-black text-emerald-400 block">$3,958.20</span>
+            <span id="ticketRangeText" class="text-[10px] text-gray-400 block">$3,956 – $3,960</span>
+          </div>
+
+          <!-- Box 3: Stop Loss -->
+          <div class="p-3 rounded-xl bg-gray-950/80 border border-rose-500/40 space-y-1">
+            <span class="text-[10px] text-gray-400 uppercase tracking-wider block font-sans">Stop Loss (SL)</span>
+            <span id="ticketSlText" class="text-base font-black text-rose-300 block">$3,974.50</span>
+            <span id="ticketSlPtsText" class="text-[10px] text-rose-400 block">163 pts (-$1.63)</span>
+          </div>
+
+          <!-- Box 4: TP1 (1:2.0) -->
+          <div class="p-3 rounded-xl bg-gray-950/80 border border-emerald-500/40 space-y-1">
+            <span class="text-[10px] text-gray-400 uppercase tracking-wider block font-sans">TP1 (1:2.0 Mínimo)</span>
+            <span id="ticketTp1Text" class="text-base font-black text-emerald-400 block">$3,925.50</span>
+            <span id="ticketTp1PtsText" class="text-[10px] text-emerald-300 block">+326 pts (+$3.26)</span>
+          </div>
+
+          <!-- Box 5: TP2 (1:3.0) -->
+          <div class="p-3 rounded-xl bg-gray-950/80 border border-yellow-500/40 space-y-1">
+            <span class="text-[10px] text-gray-400 uppercase tracking-wider block font-sans">TP2 (1:3.0 Óptimo)</span>
+            <span id="ticketTp2Text" class="text-base font-black text-yellow-300 block">$3,909.20</span>
+            <span id="ticketTp2PtsText" class="text-[10px] text-yellow-400 block">+490 pts (+$4.90)</span>
+          </div>
+
+          <!-- Box 6: Lotaje Sugerido -->
+          <div class="p-3 rounded-xl bg-gray-950/80 border border-gold-500/40 space-y-1">
+            <span class="text-[10px] text-gray-400 uppercase tracking-wider block font-sans">Lote en MT5</span>
+            <span id="ticketLotText" class="text-base font-black text-gold-300 block">0.01 Lotes</span>
+            <span class="text-[10px] text-gold-400 block">Riesgo 1.7% saldo</span>
+          </div>
+
+        </div>
+
+        <!-- Instrucción Clara y Específica: Qué Hacer Paso a Paso -->
+        <div class="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="text-xs font-bold font-mono text-yellow-400 flex items-center gap-1.5">
+              <i data-lucide="compass" class="w-4 h-4"></i>
+              <span>Instrucción Operativa Exacta (¿Qué hago en este momento?):</span>
+            </div>
+            <button type="button" id="btnCopyTicketParams" class="px-3 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-yellow-500/60 text-gray-300 hover:text-white rounded-lg text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+              <i data-lucide="copy" class="w-3.5 h-3.5 text-yellow-400"></i>
+              <span id="btnCopyTicketText">Copiar Datos de Orden MT5</span>
+            </button>
+          </div>
+
+          <div class="space-y-2 text-xs leading-relaxed text-gray-300" id="ticketInstructionsContainer">
+            <div class="flex items-start gap-2.5 p-2 rounded-lg bg-gray-900/60 border border-gray-800/80">
+              <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 font-bold font-mono flex items-center justify-center shrink-0 text-[10px]">1</span>
+              <div>
+                <strong class="text-white">Estado de Mercado:</strong> El precio cotiza en <span id="ticketStepPrice" class="text-yellow-400 font-mono font-bold">$3,947.80</span>. Como el sesgo es VENTA y estamos por debajo de la zona óptima ($3,958), <strong>está TERMINANTEMENTE PROHIBIDO vender en el fondo</strong>. Manos quietas hasta que el precio retroceda.
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2.5 p-2 rounded-lg bg-gray-900/60 border border-gray-800/80">
+              <span class="w-5 h-5 rounded-full bg-yellow-500/20 text-yellow-400 font-bold font-mono flex items-center justify-center shrink-0 text-[10px]">2</span>
+              <div>
+                <strong class="text-white">Zona de Activación ($3,956 – $3,960):</strong> Si el precio sube a esta zona, abres MT5, seleccionas XAUUSD, fijas <strong>0.01 lotes</strong> y preparas la orden.
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2.5 p-2 rounded-lg bg-gray-900/60 border border-gray-800/80">
+              <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold font-mono flex items-center justify-center shrink-0 text-[10px]">3</span>
+              <div>
+                <strong class="text-white">Gatillo al Cierre de Vela M5:</strong> Esperas al segundo <strong class="text-emerald-400">:02</strong> de Tickmill. Si la vela M5 cierra con mecha de rechazo superior bajo la banda roja y el RSI sigue bajo 50, presionas <strong>Sell by Market</strong>.
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2.5 p-2 rounded-lg bg-gray-900/60 border border-gray-800/80">
+              <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-400 font-bold font-mono flex items-center justify-center shrink-0 text-[10px]">4</span>
+              <div>
+                <strong class="text-white">Gestión Post-Entrada:</strong> Fijas SL en <strong class="text-rose-400 font-mono">$3,974.50</strong> y TP1 en <strong class="text-emerald-400 font-mono">$3,925.50</strong>. Al tocar TP1, cierras el 70% del trade y mueves SL a <strong>Breakeven ($3,958.20)</strong>. Cero riesgo a partir de ahí.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </div>
 
 
