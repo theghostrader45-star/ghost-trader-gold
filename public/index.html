@@ -814,10 +814,10 @@
             <div class="bg-gray-950/70 border border-gray-800/80 rounded-xl p-4 space-y-2">
               <div class="flex items-center gap-2 text-amber-400 font-bold text-xs">
                 <i data-lucide="compass" class="w-4 h-4"></i>
-                <span>1. Sesgo Institucional Diario</span>
+                <span>1. Sesgo Diario & 3 Pestañas</span>
               </div>
               <p class="text-gray-400 text-[11px] leading-relaxed">
-                Determina la dirección obligatoria del día: <strong class="text-emerald-400">BULLISH</strong> (solo compras) o <strong class="text-red-400">BEARISH</strong> (solo ventas). Jamás tomes operaciones contra el sesgo en 5 minutos.
+                Determina la dirección obligatoria del día: <strong class="text-emerald-400">BULLISH</strong> (solo compras) o <strong class="text-red-400">BEARISH</strong> (solo ventas). Flujo de trabajo en 3 pasos: <strong>1. Macro Sesión</strong> &rarr; <strong>2. Calculadora</strong> &rarr; <strong>3. Bitácora</strong>.
               </p>
               <div class="text-[10px] text-gray-500 font-mono bg-gray-900 px-2 py-1 rounded">
                 Soporte = Entrada | Resistencia = Salida
@@ -827,10 +827,10 @@
             <div class="bg-gray-950/70 border border-gray-800/80 rounded-xl p-4 space-y-2">
               <div class="flex items-center gap-2 text-red-400 font-bold text-xs">
                 <i data-lucide="shield-alert" class="w-4 h-4"></i>
-                <span>2. Regla de Bloqueo ±15 Min</span>
+                <span>2. Bloqueo ±15 Min & 3 Fases</span>
               </div>
               <p class="text-gray-400 text-[11px] leading-relaxed">
-                Revisa el <strong>Calendario Semanal</strong>. 15 minutos antes y 15 minutos después de noticias de alto impacto (NFP, CPI, FOMC, ISM) no dispares operaciones por manipulación de liquidez y spreads abiertos.
+                Congelar órdenes 15 min antes y después de noticias de alto impacto. Monitorear las <strong>3 Fases</strong>: Fase 1 (Shock 0-5m), Fase 2 (Absorción FVG 5-15m) y Fase 3 (Expansión 15-60m).
               </p>
               <div class="text-[10px] text-red-400/90 font-mono bg-red-950/40 border border-red-900/40 px-2 py-1 rounded">
                 Protección obligatoria de capital
@@ -840,10 +840,10 @@
             <div class="bg-gray-950/70 border border-gray-800/80 rounded-xl p-4 space-y-2">
               <div class="flex items-center gap-2 text-emerald-400 font-bold text-xs">
                 <i data-lucide="trending-up" class="w-4 h-4"></i>
-                <span>3. Gatillo 5m Adaptive Supertrend</span>
+                <span>3. Gatillo M5 Tickmill (:02, :07...)</span>
               </div>
               <p class="text-gray-400 text-[11px] leading-relaxed">
-                Espera en M5 que el indicador <strong>Creative Quant</strong> marque cambio de tendencia a favor del sesgo en zonas clave. Calcula lotaje exacto en la calculadora y anota el trade en tu Bitácora Real.
+                Gatillo al cierre de vela en Tickmill. Calibración: <strong>ATR 13 · Mult 2.9 · MA 45 · RSI 14 (55/45) · MACD (8,21,5)</strong>. Objetivos en <strong>1.5 R:R, 3.0 R:R y 5.0 R:R</strong>.
               </p>
               <div class="text-[10px] text-emerald-400/90 font-mono bg-emerald-950/40 border border-emerald-900/40 px-2 py-1 rounded">
                 Confluencia macro + micro 5m
@@ -1614,15 +1614,15 @@
           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-800 pb-3">
             <div>
               <span class="text-[10px] uppercase tracking-widest font-mono text-amber-400 font-bold">Ghost Trader | Gold — Institutional Framework</span>
-              <h1 class="text-lg sm:text-xl font-black text-white">MANUAL OPERATIVO OFICIAL: MACRO SESIÓN & ESTRATEGIA 5M</h1>
+              <h1 class="text-lg sm:text-xl font-black text-white">MANUAL OPERATIVO OFICIAL: MACRO SESIÓN & ESTRATEGIA M5</h1>
             </div>
             <div class="text-right">
-              <span class="text-[10px] font-mono px-2 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">Versión 2.0 • 2026</span>
-              <div class="text-[10px] text-gray-400 mt-1">Instrumento: <strong>XAU/USD (Oro al Contado)</strong></div>
+              <span class="text-[10px] font-mono px-2 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">Versión 2.5 • Actualizada Noviembre 2026</span>
+              <div class="text-[10px] text-gray-400 mt-1">Instrumento: <strong>XAU/USD (Oro al Contado) • Feed Tickmill</strong></div>
             </div>
           </div>
           <p class="text-xs text-gray-300 pt-1">
-            Esta guía detalla el paso a paso riguroso para interpretar cada componente del Dashboard, asegurar confluencia fundamental con la acción del precio intradía (Adaptive Supertrend en 5 minutos) y proteger el capital ante eventos económicos de alto impacto en la sesión de New York.
+            Esta guía detalla el paso a paso riguroso para interpretar cada componente del Dashboard, la arquitectura de 3 pestañas (Macro Sesión, Calculadora y Bitácora), el análisis de 3 fases ante noticias de alto impacto, la sincronización de velas M5 con Tickmill (:02, :07, :12...) y la calibración matemática final del indicador Creative Quant (Adaptive Supertrend Multimethod).
           </p>
         </div>
 
@@ -1630,8 +1630,15 @@
         <div class="print-card bg-gray-950/70 border border-gray-800 rounded-2xl p-4 sm:p-5 space-y-3">
           <div class="flex items-center gap-2.5 text-amber-400 font-bold text-sm border-b border-gray-800 pb-2">
             <i data-lucide="compass" class="w-4 h-4"></i>
-            <span>Módulo 1: La Brújula Macro & Sesgo Institucional Diario</span>
+            <span>Módulo 1: La Arquitectura del Terminal & Sesgo Institucional Diario</span>
           </div>
+
+          <p class="text-[11px] text-gray-300 leading-relaxed">
+            El terminal se organiza en 3 pestañas jerárquicas diseñadas para guiar tu proceso mental antes y durante la sesión:
+            <strong>1. Macro Sesión</strong> (Dirección de alta probabilidad y contexto fundamental),
+            <strong>2. Calculadora</strong> (Gestión de riesgo matemática Myfxbook y lotaje exacto para apalancamiento 1:300), y
+            <strong>3. Bitácora</strong> (Registro de trades en 1 clic y auditoría de forward-testing con balance sincronizado).
+          </p>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
             <div class="p-3 bg-emerald-950/30 border border-emerald-900/50 rounded-xl space-y-1">
@@ -1673,57 +1680,62 @@
             </h4>
             <ul class="text-[11px] text-gray-300 space-y-1.5 pl-4 list-disc">
               <li><strong>Zona de Soporte (Piso Institucional):</strong> Franja donde grandes fondos colocan bloques de liquidez pasiva compradora. En sesgo Bullish, es el área idónea para buscar gatillos de compra en M5.</li>
-              <li><strong>Zona de Resistencia (Techo Institucional):</strong> Techo de liquidez vendedora. En sesgo Bearish, es la zona de mayor confluencia para buscar gatillos de venta en M5. En sesgo Bullish, funciona como Take Profit 1 o zona de toma de parciales.</li>
+              <li><strong>Zona de Resistencia (Techo Institucional):</strong> Techo de liquidez vendedora. En sesgo Bearish, es la zona de mayor confluencia para buscar gatillos de venta en M5.</li>
               <li><strong>Nivel de Invalidez:</strong> Precio frontera. Si el oro quiebra y cierra con vela de 15m/1h más allá de este nivel, la premisa macro del día queda <strong>ANULADA</strong>. En ese momento se suspenden nuevas órdenes hasta actualizar el análisis.</li>
             </ul>
           </div>
         </div>
 
-        <!-- MÓDULO 2: CALENDARIO SEMANAL & REGLA DE BLOQUEO ±15 MIN -->
+        <!-- MÓDULO 2: CALENDARIO SEMANAL, BLOQUEO ±15 MIN & ESCÁNER POST-NOTICIA (3 FASES) -->
         <div class="print-card bg-gray-950/70 border border-gray-800 rounded-2xl p-4 sm:p-5 space-y-3">
           <div class="flex items-center gap-2.5 text-red-400 font-bold text-sm border-b border-gray-800 pb-2">
             <i data-lucide="shield-alert" class="w-4 h-4"></i>
-            <span>Módulo 2: Calendario Semanal de Noticias & Protocolo de Bloqueo Temporal</span>
+            <span>Módulo 2: Calendario Semanal, Regla de Bloqueo ±15 min & Escáner Post-Noticia (3 Fases)</span>
           </div>
 
-          <div class="space-y-2 text-[11px]">
+          <div class="space-y-3 text-[11px]">
             <p>
               El oro (XAU/USD) es el activo con mayor volatilidad por milisegundo durante anuncios macroeconómicos de EE.UU. Operar durante estas ventanas genera <strong>slippage negativo severo</strong>, apertura de spreads institucionales (que pasan de 15 a 150 puntos) y barridos de stops en ambas direcciones (whipsaws).
             </p>
 
-            <div class="p-3.5 bg-red-950/40 border-2 border-red-500/40 rounded-xl space-y-2">
-              <div class="flex items-center gap-2 text-red-300 font-bold text-xs uppercase tracking-wider">
-                <i data-lucide="alert-triangle" class="w-4 h-4 text-red-400"></i>
-                <span>LA REGLA DE BLOQUEO ±15 MINUTOS (MANDATORIA)</span>
+            <!-- 3 Fases del Mercado tras una Noticia -->
+            <div class="p-3.5 bg-gray-900 border border-gray-800 rounded-xl space-y-2.5">
+              <div class="font-bold text-white text-xs flex items-center gap-1.5">
+                <i data-lucide="activity" class="w-4 h-4 text-amber-400"></i>
+                <span>Las 3 Fases Institucionales de Reacción ante una Noticia:</span>
               </div>
-              <ul class="space-y-1.5 pl-4 list-disc text-gray-200">
-                <li><strong>15 Minutos Antes:</strong> No abrir ninguna nueva operación. Si tienes un trade abierto en ganancias considerables (>1:2 R:R), protégete asegurando a Breakeven (BE) o cerrando un parcial del 75%. Si el trade está cerca del precio de entrada, es preferible cerrar manualmente.</li>
-                <li><strong>Durante el Evento (Minuto 0):</strong> Observar la absorción institucional y el spike sin tocar el teclado.</li>
-                <li><strong>15 Minutos Después:</strong> Esperar a que el spread en MT4/MT5 vuelva a su normalidad (menos de 25 puntos) y a que el mercado dibuje la estructura real tras barrer la liquidez inicial. Solo entonces se reanudan los gatillos con Adaptive Supertrend en 5m.</li>
-              </ul>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                <div class="p-2.5 bg-red-950/40 border border-red-500/40 rounded-lg space-y-1">
+                  <div class="font-bold text-red-300 text-xs">Fase 1 (Minutos 0 a 5): Shock Inicial</div>
+                  <p class="text-[10px] text-gray-300 leading-snug">
+                    Spreads abiertos al máximo y caza de mechas en ambos extremos. <strong>Regla: BLOQUEO TOTAL</strong>. Jamás dispares órdenes en el primer latigazo.
+                  </p>
+                </div>
+                <div class="p-2.5 bg-amber-950/40 border border-amber-500/40 rounded-lg space-y-1">
+                  <div class="font-bold text-amber-300 text-xs">Fase 2 (Minutos 5 a 15): Absorción & FVG</div>
+                  <p class="text-[10px] text-gray-300 leading-snug">
+                    Los algoritmos institucionales comienzan a rellenar el desbalance (Fair Value Gap). Los spreads regresan a la normalidad (10-15 pts). <strong>Regla: Preparar el gatillo en zona clave</strong>.
+                  </p>
+                </div>
+                <div class="p-2.5 bg-emerald-950/40 border border-emerald-500/40 rounded-lg space-y-1">
+                  <div class="font-bold text-emerald-300 text-xs">Fase 3 (Minutos 15 a 60): Expansión</div>
+                  <p class="text-[10px] text-gray-300 leading-snug">
+                    El mercado toma la dirección tendencial real confluente con el resultado fundamental. <strong>Regla: Gatillo válido en M5 con Adaptive Supertrend</strong>.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <!-- Catálogo de Noticias de Alto Impacto -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
-              <div class="p-2.5 bg-gray-900 border border-gray-800 rounded-xl space-y-1">
-                <span class="font-bold text-red-400 text-xs">Eventos de Máximo Riesgo (Rojo)</span>
-                <p class="text-[10px] text-gray-400 leading-tight">
-                  • <strong>NFP (Nóminas no Agrícolas)</strong>: 1er viernes de cada mes 08:30 AM NY.<br>
-                  • <strong>CPI (Índice de Precios al Consumidor)</strong>: Inflación mensual 08:30 AM NY.<br>
-                  • <strong>Decisión de Tasas FOMC & Powell</strong>: Miércoles 02:00 PM y 02:30 PM NY.<br>
-                  • <strong>PIB Trimestral (Advance GDP)</strong>: Crecimiento económico 08:30 AM NY.
-                </p>
+            <!-- ¿Afecta el Sesgo del Día o es Escáner de Sesión? -->
+            <div class="p-3 bg-blue-950/30 border border-blue-500/30 rounded-xl space-y-1.5">
+              <div class="font-bold text-blue-300 text-xs flex items-center gap-1.5">
+                <i data-lucide="help-circle" class="w-3.5 h-3.5 text-blue-400"></i>
+                <span>¿La noticia cambia el Sesgo del Día o es un Escáner de Sesión?</span>
               </div>
-
-              <div class="p-2.5 bg-gray-900 border border-gray-800 rounded-xl space-y-1">
-                <span class="font-bold text-amber-400 text-xs">Eventos de Medio Impacto (Naranja)</span>
-                <p class="text-[10px] text-gray-400 leading-tight">
-                  • <strong>PMI Manufacturero & Servicios ISM</strong>: 10:00 AM NY.<br>
-                  • <strong>Ventas Minoristas (Retail Sales)</strong>: 08:30 AM NY.<br>
-                  • <strong>Subastas de Bonos a 10 y 30 años</strong>: 01:00 PM NY.<br>
-                  • <strong>Inventarios de Crudo AIE</strong>: Miércoles 10:30 AM NY.
-                </p>
-              </div>
+              <ul class="list-disc pl-4 space-y-1 text-gray-300 text-[10px]">
+                <li><strong>Escáner Intradiario de Sesión (90% de noticias):</strong> Datos como PMI ISM, Precios Pagados, Reclamaciones de Desempleo o Ventas Minoristas generan un <em>choque de volatilidad de 15 minutos</em>. Tras absorber el impacto, el mercado retoma la estructura del sesgo macro mayor. El sesgo diario <strong>NO cambia</strong>.</li>
+                <li><strong>Sesgo del Día (Cambio Estructural Macro):</strong> Solo catalizadores supremos como <strong>NFP (Nóminas no Agrícolas)</strong>, <strong>CPI (Inflación)</strong> o <strong>Decisiones de Tasas FOMC</strong> con sorpresas extremas (>1.5 sigmas de desviación) tienen el poder de reestructurar el sesgo de la jornada. En ese caso, el dashboard alerta: <em>"🔥 Recalibrar Sesgo Diario por Choque Macro"</em>.</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -1736,77 +1748,69 @@
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-[11px]">
-            
-            <!-- Driver 1: DXY -->
             <div class="p-3 bg-gray-900/90 border border-gray-800 rounded-xl space-y-1">
               <div class="flex items-center justify-between">
                 <strong class="text-white">1. DXY (Índice Dólar)</strong>
                 <span class="text-[9px] font-mono text-rose-400 font-bold">Inversa -0.85</span>
               </div>
               <p class="text-gray-400 leading-snug">
-                El oro cotiza en dólares. Si el dólar se fortalece (DXY sube), comprar oro se vuelve más caro para tenedores de otras divisas, provocando caídas en XAU. Si DXY colapsa, el oro vuela al alza.
+                El oro cotiza en dólares. Si el dólar se fortalece (DXY sube), comprar oro se vuelve más caro, provocando caídas en XAU. Si DXY colapsa, el oro vuela al alza.
               </p>
             </div>
 
-            <!-- Driver 2: US10Y -->
             <div class="p-3 bg-gray-900/90 border border-gray-800 rounded-xl space-y-1">
               <div class="flex items-center justify-between">
                 <strong class="text-white">2. US10Y (Bonos del Tesoro)</strong>
                 <span class="text-[9px] font-mono text-rose-400 font-bold">Inversa -0.75</span>
               </div>
               <p class="text-gray-400 leading-snug">
-                Rendimiento de la deuda de EE.UU. a 10 años. Si los bonos ofrecen un rendimiento alto y seguro (ej. 4.3%), los grandes capitales prefieren bonos antes que oro, el cual no paga intereses ni dividendos.
+                Rendimiento de la deuda a 10 años de EE.UU. Bonos con altos rendimientos (>4.3%) compiten directamente contra el oro, el cual no paga intereses ni dividendos.
               </p>
             </div>
 
-            <!-- Driver 3: Tasas Reales (TIPS) -->
             <div class="p-3 bg-gray-900/90 border border-gray-800 rounded-xl space-y-1">
               <div class="flex items-center justify-between">
                 <strong class="text-white">3. TIPS (Tasas Reales)</strong>
                 <span class="text-[9px] font-mono text-amber-400 font-bold">Driver Supremo</span>
               </div>
               <p class="text-gray-400 leading-snug">
-                Tasa nominal menos inflación esperada. Históricamente es el factor con mayor correlación institucional: cuando la tasa real es positiva y alta (>2%), presiona al oro a la baja; cuando es negativa o cae, el oro explota.
+                Tasa nominal menos inflación esperada. Cuando la tasa real es positiva y alta (>2%), presiona al oro a la baja; cuando es negativa o cae, el oro explota.
               </p>
             </div>
 
-            <!-- Driver 4: WTI Petróleo -->
             <div class="p-3 bg-gray-900/90 border border-gray-800 rounded-xl space-y-1">
               <div class="flex items-center justify-between">
                 <strong class="text-white">4. WTI Crudo (Inflación)</strong>
                 <span class="text-[9px] font-mono text-emerald-400 font-bold">Directa +0.60</span>
               </div>
               <p class="text-gray-400 leading-snug">
-                Proxy de energía y presiones inflacionarias globales. Un repunte sostenido del crudo reactiva el temor a una inflación pegajosa, haciendo que los inversores busquen al oro como reserva de valor.
+                Proxy de energía y presiones inflacionarias globales. Un repunte sostenido del crudo reactiva el temor a una inflación pegajosa, impulsando al oro como reserva de valor.
               </p>
             </div>
 
-            <!-- Driver 5: VIX (Volatilidad) -->
             <div class="p-3 bg-gray-900/90 border border-gray-800 rounded-xl space-y-1">
               <div class="flex items-center justify-between">
                 <strong class="text-white">5. VIX (Índice de Miedo)</strong>
                 <span class="text-[9px] font-mono text-emerald-400 font-bold">Directa en Crisis</span>
               </div>
               <p class="text-gray-400 leading-snug">
-                Mide la volatilidad implícita del S&P 500. Cuando el VIX supera 20-25 puntos, hay pánico financiero o escalada bélica, desatando una búsqueda desesperada de liquidez y refugio en lingotes de oro.
+                Mide la volatilidad implícita del S&P 500. Cuando el VIX supera 20-25 puntos por tensión geopolítica o bancaria, se desata una estampida de refugio hacia el oro.
               </p>
             </div>
 
-            <!-- Driver 6: Bancos Centrales -->
             <div class="p-3 bg-gray-900/90 border border-gray-800 rounded-xl space-y-1">
               <div class="flex items-center justify-between">
                 <strong class="text-white">6. Bancos Centrales</strong>
                 <span class="text-[9px] font-mono text-gold-400 font-bold">Piso Estructural</span>
               </div>
               <p class="text-gray-400 leading-snug">
-                Compras mensuales masivas de bancos como el Banco Popular de China (PBoC) y la India (RBI) para desdolarizar sus reservas. Crean un suelo estructural que frena caídas profundas en el largo plazo.
+                Compras mensuales masivas de bancos como el Banco Popular de China (PBoC) y la India (RBI) para desdolarizar sus reservas. Crean un suelo estructural ante caídas.
               </p>
             </div>
-
           </div>
         </div>
 
-        <!-- MÓDULO 4: ESTRATEGIA EN 5M CON ADAPTIVE SUPERTREND (CREATIVE QUANT) -->
+        <!-- MÓDULO 4: ESTRATEGIA EN 5M CON ADAPTIVE SUPERTREND (CREATIVE QUANT) - CALIBRACIÓN FINAL -->
         <div class="print-card bg-gray-950/70 border border-gray-800 rounded-2xl p-4 sm:p-5 space-y-3">
           <div class="flex items-center gap-2.5 text-emerald-400 font-bold text-sm border-b border-gray-800 pb-2">
             <i data-lucide="trending-up" class="w-4 h-4"></i>
@@ -1818,64 +1822,140 @@
               El principio rector de la operativa es: <strong>El análisis Macro da la DIRECCIÓN (Sesgo), el gráfico de 5 minutos da la ENTRADA (Timing exacto)</strong>. Jamás ejecutes un trade en M5 que contradiga la Brújula Macro.
             </p>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <!-- Compras -->
-              <div class="p-3 bg-emerald-950/25 border border-emerald-800/40 rounded-xl space-y-1.5">
-                <span class="font-bold text-emerald-400 text-xs flex items-center gap-1">
-                  <i data-lucide="check" class="w-3.5 h-3.5"></i> Protocolo de Compra (BUY en M5)
-                </span>
-                <ol class="list-decimal pl-4 space-y-1 text-gray-300">
-                  <li>Confirmar que el Sesgo Macro del día sea <strong>BULLISH</strong> (>70% de convicción).</li>
-                  <li>Esperar que el precio de XAU/USD visite la <strong>Zona de Soporte Institucional</strong>.</li>
-                  <li>En el gráfico M5, esperar el cambio de color a verde y flecha de compra del indicador <strong>Adaptive Supertrend Multimethod</strong>.</li>
-                  <li>Colocar el <strong>Stop Loss</strong> exactamente por debajo de la banda inferior del Supertrend o swing low (ej. 200 a 300 puntos de distancia).</li>
-                  <li>Anotar los puntos de SL en la <strong>Calculadora Myfxbook</strong> y abrir el lotaje exacto en MT4/MT5.</li>
-                </ol>
-              </div>
-
-              <!-- Ventas -->
-              <div class="p-3 bg-red-950/25 border border-red-800/40 rounded-xl space-y-1.5">
-                <span class="font-bold text-red-400 text-xs flex items-center gap-1">
-                  <i data-lucide="check" class="w-3.5 h-3.5"></i> Protocolo de Venta (SELL en M5)
-                </span>
-                <ol class="list-decimal pl-4 space-y-1 text-gray-300">
-                  <li>Confirmar que el Sesgo Macro del día sea <strong>BEARISH</strong> (>70% de convicción).</li>
-                  <li>Esperar que el precio de XAU/USD busque liquidez en la <strong>Zona de Resistencia Institucional</strong>.</li>
-                  <li>En el gráfico M5, esperar el cambio de color a rojo y flecha de venta del indicador <strong>Adaptive Supertrend Multimethod</strong>.</li>
-                  <li>Colocar el <strong>Stop Loss</strong> exactamente por encima de la banda superior del Supertrend o swing high (ej. 250 a 350 puntos).</li>
-                  <li>Anotar los puntos de SL en la <strong>Calculadora Myfxbook</strong> y abrir el lotaje exacto en MT4/MT5.</li>
-                </ol>
-              </div>
+            <!-- Tabla de Calibración Matemática Exacta -->
+            <div class="overflow-x-auto rounded-xl border border-gray-800">
+              <table class="w-full text-left text-[10px] text-gray-300">
+                <thead class="bg-gray-900 uppercase text-gray-400 font-mono">
+                  <tr>
+                    <th class="py-2 px-3">Módulo</th>
+                    <th class="py-2 px-3">Parámetro</th>
+                    <th class="py-2 px-3">Calibración Final</th>
+                    <th class="py-2 px-3">Función Institucional en Oro</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800/60 font-mono">
+                  <tr>
+                    <td class="py-1.5 px-3 font-sans font-bold text-amber-400">Configuración Base</td>
+                    <td class="py-1.5 px-3">Base ATR Period / Multiplier</td>
+                    <td class="py-1.5 px-3 text-emerald-400 font-bold">13 / 2.9</td>
+                    <td class="py-1.5 px-3 font-sans text-gray-400">Absorbe ruido de mechas en velas M5 sin perder sensibilidad de giro.</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-3 font-sans font-bold text-amber-400">Auto-Selection</td>
+                    <td class="py-1.5 px-3">Criteria / Bars / Trades / Days</td>
+                    <td class="py-1.5 px-3 text-emerald-400 font-bold">Total Points / 70 / 7 / 6d</td>
+                    <td class="py-1.5 px-3 font-sans text-gray-400">Prioriza puntos netos acumulados y evalúa cada 70 velas (~6 hrs de sesión).</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-3 font-sans font-bold text-amber-400">Percentil & Z-Score</td>
+                    <td class="py-1.5 px-3">Lookback / Sensibilidad</td>
+                    <td class="py-1.5 px-3 text-emerald-400 font-bold">110 (0.4) · 100 (0.25)</td>
+                    <td class="py-1.5 px-3 font-sans text-gray-400">Mide dispersión estadística y aceleración institucional evitando sobre-reacción.</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-3 font-sans font-bold text-amber-400">Régimen Volatilidad</td>
+                    <td class="py-1.5 px-3">MA 45 / Baja, Normal, Alta</td>
+                    <td class="py-1.5 px-3 text-emerald-400 font-bold">2.0 · 2.7 · 3.3</td>
+                    <td class="py-1.5 px-3 font-sans text-gray-400">Bandas dinámicas: ceñidas en apertura y amplias (3.3) en alta volatilidad.</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-3 font-sans font-bold text-amber-400">Período Dinámico</td>
+                    <td class="py-1.5 px-3">Mín / Máx / Sensibilidad</td>
+                    <td class="py-1.5 px-3 text-emerald-400 font-bold">9 / 19 / 40</td>
+                    <td class="py-1.5 px-3 font-sans text-gray-400">Rango dinámico adaptativo para no generar señales en consolidaciones lentas.</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-3 font-sans font-bold text-amber-400">ROC & MTF</td>
+                    <td class="py-1.5 px-3">ROC Lookback / Higher TF</td>
+                    <td class="py-1.5 px-3 text-emerald-400 font-bold">14 (0.4) · 1h (0.5) · EMA 5</td>
+                    <td class="py-1.5 px-3 font-sans text-gray-400">Confluencia estructural con velas de 1 hora y suavizado EMA 5 anti-parpadeo.</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-3 font-sans font-bold text-amber-400">Filtros Momentum</td>
+                    <td class="py-1.5 px-3">RSI(14) / MACD(8, 21, 5)</td>
+                    <td class="py-1.5 px-3 text-emerald-400 font-bold">Buy > 55 / Sell < 45</td>
+                    <td class="py-1.5 px-3 font-sans text-gray-400">Gatillo riguroso al cierre de vela (On Candle Close) con confirmación de momentum.</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-3 font-sans font-bold text-amber-400">Targets (R:R)</td>
+                    <td class="py-1.5 px-3">TP1 / TP2 / TP3</td>
+                    <td class="py-1.5 px-3 text-emerald-400 font-bold">1.5 R:R · 3.0 R:R · 5.0 R:R</td>
+                    <td class="py-1.5 px-3 font-sans text-gray-400">TP1 para asegurar Breakeven, TP2 salida principal y TP3 para expansión macro.</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
-            <div class="p-3 bg-gray-900 border border-gray-800 rounded-xl flex items-center justify-between text-xs">
-              <span class="text-gray-300"><strong>Conversión Rápida de Puntos en XAU:</strong> 100 puntos = $1.00 de movimiento | 250 puntos = $2.50 | 500 puntos = $5.00</span>
-              <span class="font-mono text-emerald-400 font-bold bg-gray-950 px-2 py-1 rounded border border-gray-800">1 Lote = $10 / pt</span>
+            <!-- Sincronización de Velas M5 con Broker Tickmill -->
+            <div class="p-3 bg-gray-900 border border-gray-800 rounded-xl space-y-1.5">
+              <div class="font-bold text-emerald-400 text-xs flex items-center gap-1.5">
+                <i data-lucide="clock" class="w-4 h-4 text-emerald-400"></i>
+                <span>Sincronización Exacta de Velas M5 con Tickmill (+120s Desfase)</span>
+              </div>
+              <p class="text-[10px] text-gray-300 leading-relaxed">
+                El broker Tickmill abre su mercado dominical a las 18:02 (tras 2 minutos de mantenimiento de rollover). Por esa razón, todas las velas de 5 minutos en TradingView cierran a los minutos <strong>:02, :07, :12, :17, :22, :27, :32, :37, :42, :47, :52, :57</strong>. Tu dashboard cuenta con sincronización automática de 120 segundos para que el contador y el gatillo coincidan con tu gráfico al segundo exacto.
+              </p>
             </div>
           </div>
         </div>
 
-        <!-- MÓDULO 5: CHECKLIST PRE-SESIÓN DE 5 PASOS -->
+        <!-- MÓDULO 5: GESTIÓN DE CAPITAL MYFXBOOK & BITÁCORA REAL -->
+        <div class="print-card bg-gray-950/70 border border-gray-800 rounded-2xl p-4 sm:p-5 space-y-3">
+          <div class="flex items-center gap-2.5 text-yellow-400 font-bold text-sm border-b border-gray-800 pb-2">
+            <i data-lucide="calculator" class="w-4 h-4"></i>
+            <span>Módulo 5: Gestión de Capital Myfxbook & Bitácora Real</span>
+          </div>
+
+          <div class="space-y-3 text-[11px]">
+            <p>
+              En el oro, el lotaje jamás se adivina ni se fija arbitrariamente. Cada operación se calibra matemáticamente con la fórmula institucional de Myfxbook:
+            </p>
+            
+            <div class="p-3 bg-gray-900 border border-gray-800 rounded-xl font-mono text-center text-xs text-yellow-400">
+              Lotaje MT4/MT5 = (Balance Real × % Riesgo) / (Puntos SL × $0.10 × 100)
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              <div class="p-3 bg-gray-900/60 border border-gray-800 rounded-xl space-y-1">
+                <strong class="text-white">Plan de Parciales Institucional (3 Salidas):</strong>
+                <ul class="list-disc pl-4 space-y-0.5 text-gray-300 text-[10px]">
+                  <li><strong>Target 1 (1.5 R:R):</strong> Cerrar 50% del lote y mover Stop Loss inmediatamente a Breakeven (+0.00). Operación 100% blindada.</li>
+                  <li><strong>Target 2 (3.0 R:R):</strong> Cerrar 35% adicional. Tomas el grueso del beneficio del día.</li>
+                  <li><strong>Target 3 (5.0 R:R):</strong> Dejar correr el 15% restante protegido con trailing ATR (2.2) para capturar expansiones de New York.</li>
+                </ul>
+              </div>
+
+              <div class="p-3 bg-gray-900/60 border border-gray-800 rounded-xl space-y-1">
+                <strong class="text-white">Registro en Bitácora Real sin Fricción:</strong>
+                <p class="text-[10px] text-gray-400 leading-snug">
+                  La pestaña Bitácora captura automáticamente la fecha, hora y sesión New York al pulsar un botón. Solo ingresas los puntos de SL del indicador y el resultado (WIN/LOSS/BE). El dashboard actualiza en vivo tu Balance Real, Win Rate y Drawdown acumulado, con opción de exportar a CSV.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MÓDULO 6: CHECKLIST PRE-SESIÓN DE 5 PASOS (07:45 AM NY) -->
         <div class="print-card bg-gray-950/70 border border-gray-800 rounded-2xl p-4 sm:p-5 space-y-3">
           <div class="flex items-center gap-2.5 text-amber-400 font-bold text-sm border-b border-gray-800 pb-2">
             <i data-lucide="check-square" class="w-4 h-4"></i>
-            <span>Módulo 5: Checklist Pre-Sesión de 5 Pasos (Protocolo Diario 07:45 AM NY)</span>
+            <span>Módulo 6: Checklist Pre-Sesión de 5 Pasos (Protocolo Diario 07:45 AM NY)</span>
           </div>
 
           <div class="space-y-2 text-[11px]">
             <div class="flex items-start gap-2.5 p-2 rounded-lg bg-gray-900/60 border border-gray-800">
               <span class="w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0 font-mono">1</span>
               <div>
-                <strong class="text-white">Paso 1 — Validar la Brújula Macro:</strong>
-                <span class="text-gray-400"> Entra a la pestaña Macro Sesión, confirma si el sesgo es Bullish o Bearish y anota los niveles de Soporte, Resistencia e Invalidez en tu TradingView.</span>
+                <strong class="text-white">Paso 1 — Validar la Brújula Macro (Tab 1):</strong>
+                <span class="text-gray-400"> Confirma si el sesgo institucional es BULLISH o BEARISH y proyecta en TradingView los niveles de Soporte, Resistencia e Invalidez.</span>
               </div>
             </div>
 
             <div class="flex items-start gap-2.5 p-2 rounded-lg bg-gray-900/60 border border-gray-800">
               <span class="w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0 font-mono">2</span>
               <div>
-                <strong class="text-white">Paso 2 — Auditar el Calendario Semanal:</strong>
-                <span class="text-gray-400"> Revisa si hay noticias de alto impacto (rojas) programadas hoy para la sesión de Nueva York. Pon una alarma en tu móvil 15 minutos antes de cada noticia para congelar ejecuciones.</span>
+                <strong class="text-white">Paso 2 — Auditar el Calendario Semanal & Noticias (Tab 1):</strong>
+                <span class="text-gray-400"> Revisa si hay noticias de alto impacto (rojas). Si hay noticia a las 08:30 o 10:00 AM NY, aplica la regla de bloqueo ±15 min y monitorea las 3 Fases de reacción.</span>
               </div>
             </div>
 
@@ -1883,23 +1963,23 @@
               <span class="w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0 font-mono">3</span>
               <div>
                 <strong class="text-white">Paso 3 — Verificar los Drivers Clave (DXY & US10Y):</strong>
-                <span class="text-gray-400"> Comprueba que el dólar y el rendimiento a 10 años se muevan de forma coherente con tu premisa de mercado para evitar trampas institucionales.</span>
+                <span class="text-gray-400"> Comprueba que el dólar y el bono a 10 años confirmen la dirección del oro para evitar trampas de liquidez.</span>
               </div>
             </div>
 
             <div class="flex items-start gap-2.5 p-2 rounded-lg bg-gray-900/60 border border-gray-800">
               <span class="w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0 font-mono">4</span>
               <div>
-                <strong class="text-white">Paso 4 — Calcular el Lotaje con Precisión Quirúrgica:</strong>
-                <span class="text-gray-400"> Abre la pestaña Calculadora Myfxbook. Con tu balance real sincronizado ($110), ingresa tu porcentaje de riesgo disciplinado (ej. 3-5%) y la distancia en puntos de tu SL. Toma nota del lotaje exacto sugerido.</span>
+                <strong class="text-white">Paso 4 — Calcular el Lotaje en la Calculadora (Tab 2):</strong>
+                <span class="text-gray-400"> Con tu balance sincronizado, introduce tu porcentaje de riesgo disciplinado (ej. 3%–5%) y la distancia en puntos de tu SL. Copia el lote sugerido para MT4/MT5.</span>
               </div>
             </div>
 
             <div class="flex items-start gap-2.5 p-2 rounded-lg bg-gray-900/60 border border-gray-800">
               <span class="w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0 font-mono">5</span>
               <div>
-                <strong class="text-white">Paso 5 — Registrar la Operación en la Bitácora Real:</strong>
-                <span class="text-gray-400"> Una vez ejecutada la orden en MT4/MT5, haz clic en "Registrar Trade en Bitácora Real". La fecha y hora se capturan en automático, la sesión queda fijada en New York y tus métricas de Win Rate y Drawdown se actualizarán en tiempo real.</span>
+                <strong class="text-white">Paso 5 — Registrar la Operación en la Bitácora Real (Tab 3):</strong>
+                <span class="text-gray-400"> Ejecutada la orden, regístrala con 1 clic en tu Bitácora. Gestiona tus salidas en TP1 (1.5 R:R), TP2 (3.0 R:R) y TP3 (5.0 R:R) para mantener tu disciplina al 100%.</span>
               </div>
             </div>
           </div>
