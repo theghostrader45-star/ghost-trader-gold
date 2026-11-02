@@ -765,6 +765,15 @@
               <span id="marketSessionName">Calculando sesión...</span>
             </div>
 
+            <!-- AUTO-REFRESH 5 MINUTOS (SINCRONIZADO CON VELAS M5) -->
+            <div id="m5SyncBadge" class="h-8 px-2.5 rounded-xl bg-gray-950/80 border border-emerald-500/30 flex items-center gap-1.5 shadow-inner text-xs font-mono select-none cursor-pointer hover:border-emerald-500/60 transition" title="Auto-actualización cada 5 minutos sincronizada con velas M5. Clic para forzar actualización ahora.">
+              <span id="m5SyncDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <div class="text-left">
+                <div class="text-[9px] uppercase tracking-wider text-gray-400 font-bold leading-none">Vela M5</div>
+                <div id="m5SyncCountdownText" class="text-xs font-mono font-bold text-emerald-300 leading-none">05:00</div>
+              </div>
+            </div>
+
             <!-- Botones Refrescar y Guía PDF -->
             <button id="btnRefreshBias" class="h-8 px-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 text-yellow-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition cursor-pointer shadow-sm">
               <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
@@ -1994,6 +2003,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261102_07"></script>
+<script src="app.js?v=20261102_08"></script>
 </body>
 </html>

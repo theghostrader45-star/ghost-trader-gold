@@ -2655,6 +2655,27 @@ function startMarketClock() {
         badgeEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span><span>🔴 FUERA DE SESIÓN (${session.countdownFormatted})</span>`;
       }
     }
+
+    // Cuenta Regresiva Sincronizada con Velas M5 de TradingView (:00, :05, :10...)
+    const currentSecondsInHour = (now.getMinutes() * 60) + now.getSeconds();
+    const secondsIn5MinBlock = currentSecondsInHour % 300;
+    const remainingToNext5Min = 300 - secondsIn5MinBlock;
+
+    const m5Mins = Math.floor(remainingToNext5Min / 60);
+    const m5Secs = remainingToNext5Min % 60;
+    const m5CountdownFormatted = `${String(m5Mins).padStart(2, "0")}:${String(m5Secs).padStart(2, "0")}`;
+
+    const m5TextEl = document.getElementById("m5SyncCountdownText");
+    if (m5TextEl && !isAutoRefreshingM5) {
+      m5TextEl.textContent = m5CountdownFormatted;
+    }
+
+    // Disparar en el segundo exacto del cierre de vela M5
+    const currentM5Block = Math.floor(now.getTime() / 300000);
+    if (remainingToNext5Min === 300 && lastTriggeredM5Block !== currentM5Block) {
+      lastTriggeredM5Block = currentM5Block;
+      executeM5AutoRefresh(false);
+    }
   }
 
   tick();
@@ -2662,25 +2683,66 @@ function startMarketClock() {
   marketClockInterval = setInterval(tick, 1000);
 }
 
+let isAutoRefreshingM5 = false;
+let lastTriggeredM5Block = null;
+
+async function executeM5AutoRefresh(isUserClick = false) {
+  if (isAutoRefreshingM5) return;
+  isAutoRefreshingM5 = true;
+
+  const m5Dot = document.getElementById("m5SyncDot");
+  const m5Text = document.getElementById("m5SyncCountdownText");
+  const btnRefresh = document.getElementById("btnRefreshBias");
+
+  if (m5Dot) m5Dot.className = "w-2 h-2 rounded-full bg-yellow-400 animate-spin";
+  if (m5Text) m5Text.textContent = "SYNC...";
+  if (btnRefresh) {
+    btnRefresh.innerHTML = '<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i><span>Sincronizando...</span>';
+    initIcons();
+  }
+
+  try {
+    await Promise.all([
+      loadGoldBiasData(),
+      loadWeeklyNews(),
+      loadTrades('real')
+    ]);
+
+    if (m5Dot) m5Dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+    if (btnRefresh) {
+      btnRefresh.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i><span>¡Actualizado!</span>';
+      initIcons();
+      setTimeout(() => {
+        btnRefresh.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Refrescar</span>';
+        initIcons();
+      }, 1500);
+    }
+
+    if (isUserClick) {
+      showToast("🔄 <strong>Actualización M5 Completa:</strong> Sesgo macro, noticias y bitácora sincronizados.", "success", 4000);
+    } else {
+      showToast("🔄 <strong>Cierre de Vela M5:</strong> Datos institucionales actualizados automáticamente.", "info", 3500);
+    }
+  } catch (err) {
+    console.warn("M5 auto-refresh error:", err);
+  } finally {
+    isAutoRefreshingM5 = false;
+  }
+}
+
 function setupGoldBiasDashboard() {
   startMarketClock();
 
-  // Botón Refrescar Datos
+  // Botón Refrescar Manual
   const btnRefresh = document.getElementById("btnRefreshBias");
   if (btnRefresh) {
-    btnRefresh.addEventListener("click", async () => {
-      btnRefresh.innerHTML = '<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i><span>Actualizando...</span>';
-      initIcons();
-      await loadGoldBiasData();
-      setTimeout(() => {
-        btnRefresh.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i><span>¡Actualizado!</span>';
-        initIcons();
-        setTimeout(() => {
-          btnRefresh.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Refrescar</span>';
-          initIcons();
-        }, 1500);
-      }, 400);
-    });
+    btnRefresh.addEventListener("click", () => executeM5AutoRefresh(true));
+  }
+
+  // Clic en el badge de Vela M5 para forzar refresco
+  const m5Badge = document.getElementById("m5SyncBadge");
+  if (m5Badge) {
+    m5Badge.addEventListener("click", () => executeM5AutoRefresh(true));
   }
 }
 
