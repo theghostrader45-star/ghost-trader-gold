@@ -2874,11 +2874,13 @@ function startMarketClock() {
       m5TextEl.textContent = m5CountdownFormatted;
     }
 
-    // Disparar en el segundo exacto del cierre de vela M5
+    // Disparar inmediatamente al comenzar el nuevo bloque de 5m de Tickmill (:02, :07, :12...)
     const currentM5Block = Math.floor((now.getTime() - (brokerOffsetSec * 1000)) / 300000);
-    if (remainingToNext5Min === 300 && lastTriggeredM5Block !== currentM5Block) {
+    if (lastTriggeredM5Block !== null && lastTriggeredM5Block !== currentM5Block) {
       lastTriggeredM5Block = currentM5Block;
       executeM5AutoRefresh(false);
+    } else if (lastTriggeredM5Block === null) {
+      lastTriggeredM5Block = currentM5Block;
     }
   }
 
@@ -2986,9 +2988,9 @@ function setupGoldBiasDashboard() {
     btnScan.addEventListener("click", () => loadPythonEngineSignal(true));
   }
 
-  // Carga inicial y sondeo periódico cada 8 segundos
+  // Carga inicial y sondeo periódico cada 4 segundos
   loadPythonEngineSignal(false);
-  setInterval(() => loadPythonEngineSignal(false), 8000);
+  setInterval(() => loadPythonEngineSignal(false), 4000);
 }
 
 // -------------------------------------------------------------
@@ -3004,7 +3006,13 @@ async function loadPythonEngineSignal(isUserClick = false) {
       initIcons();
     }
 
-    const res = await fetch("/api/adaptive-supertrend");
+    let brokerOffset = 120;
+    try {
+      const saved = localStorage.getItem("m5_broker_offset");
+      if (saved !== null) brokerOffset = parseInt(saved, 10);
+    } catch (e) {}
+
+    const res = await fetch(`/api/adaptive-supertrend?offset=${brokerOffset}`);
     if (!res.ok) return;
     const data = await res.json();
     if (!data || !data.analysis) return;

@@ -208,7 +208,7 @@ def get_tickmill_candle_timing(offset_seconds=120):
         "is_in_development": is_in_development
     }
 
-def analyze_adaptive_supertrend(candles, config=None, daily_bias="BEARISH", force_state=None):
+def analyze_adaptive_supertrend(candles, config=None, daily_bias="BEARISH", force_state=None, offset_seconds=120):
     """
     Calcula el estado del Adaptive Supertrend Multimethod en velas M5 de Tickmill.
     Distingue rigurosamente entre:
@@ -220,7 +220,7 @@ def analyze_adaptive_supertrend(candles, config=None, daily_bias="BEARISH", forc
     if config:
         cfg.update(config)
         
-    timing = get_tickmill_candle_timing(120)
+    timing = get_tickmill_candle_timing(offset_seconds)
     
     if not candles or len(candles) < 20:
         return {
