@@ -1,0 +1,216 @@
+//@version=6
+indicator("XAU/USD Asian Range Breakout Pro", shorttitle="ASIAN PRO", overlay=true, max_lines_count=500, max_boxes_count=500, max_labels_count=500)
+
+// =============================================================================
+// PARÁMETROS DE ENTRADA (INPUTS)
+// =============================================================================
+grp_sess = "1. Horarios y Sesión"
+asian_session = input.session("1800-0200:1234567", "Horario Sesión Asia (Tokio/Sydney)", group=grp_sess, tooltip="Rango nocturno de acumulación (Hora NY). Por defecto: 18:00 a 02:00 NY.")
+session_tz    = input.string("America/New_York", "Zona Horaria de Referencia", options=["America/New_York", "UTC", "Europe/London"], group=grp_sess)
+trade_session = input.session("0800-1130:23456", "Ventana Operativa NY (Solapamiento)", group=grp_sess, tooltip="Horario donde se validan las rupturas diurnas (08:00 a 11:30 NY).")
+
+grp_filt = "2. Filtro Direccional (Sesgo Macro)"
+dir_filter    = input.string("Solo Ventas (Sell-Only)", "Dirección Obligatoria de Hoy", options=["Ambos Lados", "Solo Ventas (Sell-Only)", "Solo Compras (Buy-Only)"], group=grp_filt, tooltip="Sincronízalo con la Pestaña 4 (Macro) de tu dashboard. Si el sesgo es Bajista, pon 'Solo Ventas' para evitar trampas alcistas.")
+buffer_usd    = input.float(0.20, "Buffer de Entrada ($ USD)", step=0.05, minval=0.0, group=grp_filt, tooltip="Distancia de margen por fuera de la caja para evitar mechas falsas (0.20 USD = 20 puntos TV).")
+
+grp_risk = "3. Parámetros de Riesgo & Salidas"
+sl_mode       = input.string("50% Rango Asiático (Midpoint)", "Ubicación de Stop Loss", options=["50% Rango Asiático (Midpoint)", "Extremo Opuesto de la Caja"], group=grp_risk)
+tp1_mult      = input.float(1.5, "Multiplicador TP1 (x Rango Asiático)", step=0.1, minval=0.5, group=grp_risk)
+tp2_mult      = input.float(2.0, "Multiplicador TP2 (Final / R:R 1:2)", step=0.1, minval=1.0, group=grp_risk)
+
+grp_vis = "4. Estética Visual & Tabla"
+show_box      = input.bool(true, "Dibujar Caja Sombreada de Asia", group=grp_vis)
+show_midline  = input.bool(true, "Mostrar Línea Media (50% SL)", group=grp_vis)
+show_levels   = input.bool(true, "Proyectar Niveles de Entrada, SL y TP", group=grp_vis)
+show_labels   = input.bool(true, "Mostrar Etiquetas de Precios", group=grp_vis)
+show_table    = input.bool(true, "Mostrar Ficha Táctica en Gráfico", group=grp_vis)
+table_pos     = input.string("Superior Derecha", "Posición de la Ficha", options=["Superior Derecha", "Inferior Derecha", "Superior Izquierda", "Inferior Izquierda"], group=grp_vis)
+
+// Colores
+col_box_bg    = color.new(#6366f1, 88)
+col_box_brd   = color.new(#818cf8, 40)
+col_entry     = color.new(#facc15, 0)
+col_sl        = color.new(#ef4444, 0)
+col_tp1       = color.new(#10b981, 0)
+col_tp2       = color.new(#059669, 0)
+
+// =============================================================================
+// DETECCIÓN DE SESIONES
+// =============================================================================
+in_asian = not na(time(timeframe.period, asian_session, session_tz))
+in_trade = not na(time(timeframe.period, trade_session, session_tz))
+
+// Variables persistentes del día
+var float a_high = na
+var float a_low = na
+var int   a_start_bar = na
+var int   a_end_bar = na
+var box   a_box = na
+var bool  breakout_fired = false
+var string breakout_dir = na
+
+// Detección de nueva sesión asiática
+asian_start = in_asian and not in_asian[1]
+asian_end   = not in_asian and in_asian[1]
+
+if asian_start
+    a_high := high
+    a_low  := low
+    a_start_bar := bar_index
+    breakout_fired := false
+    breakout_dir := na
+    if show_box
+        a_box := box.new(left=bar_index, top=a_high, right=bar_index, bottom=a_low, border_color=col_box_brd, border_width=1, border_style=line.style_dashed, bgcolor=col_box_bg)
+
+if in_asian
+    a_high := math.max(nz(a_high, high), high)
+    a_low  := math.min(nz(a_low, low), low)
+    if show_box and not na(a_box)
+        box.set_top(a_box, a_high)
+        box.set_bottom(a_box, a_low)
+        box.set_right(a_box, bar_index)
+
+if asian_end
+    a_end_bar := bar_index
+
+// Cálculos del rango
+range_usd = not na(a_high) and not na(a_low) ? (a_high - a_low) : na
+range_pts = not na(range_usd) ? math.round(range_usd * 100.0) : na
+midpoint  = not na(a_high) and not na(a_low) ? ((a_high + a_low) / 2.0) : na
+
+// Niveles proyectados
+sell_entry = not na(a_low)  ? (a_low - buffer_usd) : na
+buy_entry  = not na(a_high) ? (a_high + buffer_usd) : na
+
+sell_sl    = sl_mode == "50% Rango Asiático (Midpoint)" ? midpoint : a_high
+buy_sl     = sl_mode == "50% Rango Asiático (Midpoint)" ? midpoint : a_low
+
+sell_tp1   = not na(sell_entry) and not na(range_usd) ? (sell_entry - (range_usd * tp1_mult)) : na
+sell_tp2   = not na(sell_entry) and not na(sell_sl)   ? (sell_entry - ((sell_sl - sell_entry) * tp2_mult)) : na
+
+buy_tp1    = not na(buy_entry)  and not na(range_usd) ? (buy_entry + (range_usd * tp1_mult)) : na
+buy_tp2    = not na(buy_entry)  and not na(buy_sl)    ? (buy_entry + ((buy_entry - buy_sl) * tp2_mult)) : na
+
+// =============================================================================
+// PROYECCIÓN DE LÍNEAS VISUALES EN LA SESIÓN DE TRADING
+// =============================================================================
+var line line_high = na
+var line line_low = na
+var line line_mid = na
+var line line_entry = na
+var line line_sl = na
+var line line_tp1 = na
+var line line_tp2 = na
+
+var label lbl_high = na
+var label lbl_low = na
+var label lbl_entry = na
+var label lbl_sl = na
+var label lbl_tp1 = na
+var label lbl_tp2 = na
+
+if asian_end and show_levels
+    line.delete(line_high)
+    line.delete(line_low)
+    line.delete(line_mid)
+    line.delete(line_entry)
+    line.delete(line_sl)
+    line.delete(line_tp1)
+    line.delete(line_tp2)
+    label.delete(lbl_high)
+    label.delete(lbl_low)
+    label.delete(lbl_entry)
+    label.delete(lbl_sl)
+    label.delete(lbl_tp1)
+    label.delete(lbl_tp2)
+
+    line_high := line.new(a_start_bar, a_high, bar_index + 120, a_high, color=col_box_brd, width=1, style=line.style_dashed)
+    line_low  := line.new(a_start_bar, a_low,  bar_index + 120, a_low,  color=col_box_brd, width=1, style=line.style_dashed)
+
+    if show_midline
+        line_mid := line.new(a_start_bar, midpoint, bar_index + 120, midpoint, color=color.new(#ef4444, 40), width=1, style=line.style_dotted)
+
+    if dir_filter == "Solo Ventas (Sell-Only)" or dir_filter == "Ambos Lados"
+        line_entry := line.new(bar_index, sell_entry, bar_index + 100, sell_entry, color=col_entry, width=2)
+        line_sl    := line.new(bar_index, sell_sl,    bar_index + 100, sell_sl,    color=col_sl,    width=2, style=line.style_dashed)
+        line_tp1   := line.new(bar_index, sell_tp1,   bar_index + 100, sell_tp1,   color=col_tp1,   width=1, style=line.style_dashed)
+        line_tp2   := line.new(bar_index, sell_tp2,   bar_index + 100, sell_tp2,   color=col_tp2,   width=2)
+        
+        if show_labels
+            lbl_entry := label.new(bar_index + 35, sell_entry, "ENTRADA SELL STOP: $" + str.tostring(sell_entry, "#.##"), color=col_entry, textcolor=color.black, size=size.small, style=label.style_label_down)
+            lbl_sl    := label.new(bar_index + 35, sell_sl,    "STOP LOSS (50%): $" + str.tostring(sell_sl, "#.##"), color=col_sl, textcolor=color.white, size=size.small, style=label.style_label_down)
+            lbl_tp2   := label.new(bar_index + 35, sell_tp2,   "TAKE PROFIT 1:2: $" + str.tostring(sell_tp2, "#.##"), color=col_tp2, textcolor=color.white, size=size.small, style=label.style_label_up)
+
+    else if dir_filter == "Solo Compras (Buy-Only)"
+        line_entry := line.new(bar_index, buy_entry, bar_index + 100, buy_entry, color=col_entry, width=2)
+        line_sl    := line.new(bar_index, buy_sl,    bar_index + 100, buy_sl,    color=col_sl,    width=2, style=line.style_dashed)
+        line_tp1   := line.new(bar_index, buy_tp1,   bar_index + 100, buy_tp1,   color=col_tp1,   width=1, style=line.style_dashed)
+        line_tp2   := line.new(bar_index, buy_tp2,   bar_index + 100, buy_tp2,   color=col_tp2,   width=2)
+
+        if show_labels
+            lbl_entry := label.new(bar_index + 35, buy_entry, "ENTRADA BUY STOP: $" + str.tostring(buy_entry, "#.##"), color=col_entry, textcolor=color.black, size=size.small, style=label.style_label_up)
+            lbl_sl    := label.new(bar_index + 35, buy_sl,    "STOP LOSS (50%): $" + str.tostring(buy_sl, "#.##"), color=col_sl, textcolor=color.white, size=size.small, style=label.style_label_up)
+            lbl_tp2   := label.new(bar_index + 35, buy_tp2,   "TAKE PROFIT 1:2: $" + str.tostring(buy_tp2, "#.##"), color=col_tp2, textcolor=color.white, size=size.small, style=label.style_label_down)
+
+// =============================================================================
+// DETECCIÓN DE RUPTURA & ALERTAS EN TIEMPO REAL
+// =============================================================================
+is_sell_break = (dir_filter != "Solo Compras (Buy-Only)") and in_trade and not breakout_fired and (close < sell_entry)
+is_buy_break  = (dir_filter != "Solo Ventas (Sell-Only)") and in_trade and not breakout_fired and (close > buy_entry)
+
+if is_sell_break
+    breakout_fired := true
+    breakout_dir   := "SELL"
+    label.new(bar_index, high + 0.50, "RUPTURA BAJISTA
+Sell Stop Activado
+SL: $" + str.tostring(sell_sl, "#.##"), color=color.red, textcolor=color.white, style=label.style_label_down, size=size.normal)
+    alert("XAU/USD: Ruptura Bajista del Rango Asiatico confirmada! Entrada Sell en $" + str.tostring(close, "#.##") + ", SL en $" + str.tostring(sell_sl, "#.##"), alert.freq_once_per_bar_close)
+
+if is_buy_break
+    breakout_fired := true
+    breakout_dir   := "BUY"
+    label.new(bar_index, low - 0.50, "RUPTURA ALCISTA
+Buy Stop Activado
+SL: $" + str.tostring(buy_sl, "#.##"), color=color.green, textcolor=color.white, style=label.style_label_up, size=size.normal)
+    alert("XAU/USD: Ruptura Alcista del Rango Asiatico confirmada! Entrada Buy en $" + str.tostring(close, "#.##") + ", SL en $" + str.tostring(buy_sl, "#.##"), alert.freq_once_per_bar_close)
+
+// =============================================================================
+// TABLA INFORMATIVA EN PANTALLA (HUD TÁCTICO)
+// =============================================================================
+var table info_table = na
+
+table_position_val = table_pos == "Superior Derecha" ? position.top_right : (table_pos == "Inferior Derecha" ? position.bottom_right : (table_pos == "Superior Izquierda" ? position.top_left : position.bottom_left))
+
+if show_table and (barstate.islast or barstate.islastconfirmedhistory)
+    table.delete(info_table)
+    info_table := table.new(position=table_position_val, columns=2, rows=8, bgcolor=color.new(#111827, 10), border_color=color.new(#374151, 30), border_width=1)
+    
+    table.cell(info_table, 0, 0, "ASIAN BREAKOUT PRO", bgcolor=color.new(#eab308, 0), text_color=color.black, text_size=size.small)
+    table.cell(info_table, 1, 0, "1 TRADE / DIA", bgcolor=color.new(#eab308, 0), text_color=color.black, text_size=size.small)
+    
+    table.cell(info_table, 0, 1, "Rango Asiatico:", text_color=color.gray, text_size=size.small)
+    table.cell(info_table, 1, 1, str.tostring(range_pts, "#") + " pts ($" + str.tostring(range_usd, "#.##") + ")", text_color=color.white, text_size=size.small)
+    
+    string qual_txt = range_pts <= 300 ? "Optimo (< 300 pts)" : (range_pts <= 450 ? "Normal" : "Ancho (> 450 pts)")
+    color  qual_col = range_pts <= 300 ? color.green : (range_pts <= 450 ? color.yellow : color.red)
+    table.cell(info_table, 0, 2, "Compresion:", text_color=color.gray, text_size=size.small)
+    table.cell(info_table, 1, 2, qual_txt, text_color=qual_col, text_size=size.small)
+
+    table.cell(info_table, 0, 3, "Sesgo Macro:", text_color=color.gray, text_size=size.small)
+    table.cell(info_table, 1, 3, dir_filter, text_color=dir_filter == "Solo Ventas (Sell-Only)" ? color.red : (dir_filter == "Solo Compras (Buy-Only)" ? color.green : color.yellow), text_size=size.small)
+
+    string ord_txt = dir_filter == "Solo Ventas (Sell-Only)" ? ("SELL STOP @ $" + str.tostring(sell_entry, "#.##")) : ("BUY STOP @ $" + str.tostring(buy_entry, "#.##"))
+    table.cell(info_table, 0, 4, "Orden Sugerida:", text_color=color.gray, text_size=size.small)
+    table.cell(info_table, 1, 4, ord_txt, text_color=color.yellow, text_size=size.small)
+
+    float cur_sl = dir_filter == "Solo Ventas (Sell-Only)" ? sell_sl : buy_sl
+    table.cell(info_table, 0, 5, "Stop Loss (50%):", text_color=color.gray, text_size=size.small)
+    table.cell(info_table, 1, 5, "$" + str.tostring(cur_sl, "#.##"), text_color=color.red, text_size=size.small)
+
+    float cur_tp = dir_filter == "Solo Ventas (Sell-Only)" ? sell_tp2 : buy_tp2
+    table.cell(info_table, 0, 6, "Take Profit (1:2):", text_color=color.gray, text_size=size.small)
+    table.cell(info_table, 1, 6, "$" + str.tostring(cur_tp, "#.##"), text_color=color.green, text_size=size.small)
+
+    string st_txt = in_asian ? "Sesion Asia (Acumulando)" : (in_trade ? "Ventana NY (Disparo)" : "Fuera de Horario NY")
+    table.cell(info_table, 0, 7, "Estado Sesion:", text_color=color.gray, text_size=size.small)
+    table.cell(info_table, 1, 7, st_txt, text_color=color.white, text_size=size.small)

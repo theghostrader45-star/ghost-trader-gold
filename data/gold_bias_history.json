@@ -1,0 +1,226 @@
+{
+  "2026-10-31": {
+    "date": "2026-10-31",
+    "day_label": "Sábado, 31 Oct 2026 · Fin de Semana / Pre-Semana NY",
+    "bias": "BEARISH",
+    "bias_title": "🔴 SESGO INSTITUCIONAL: BAJISTA (Sell-Only)",
+    "confidence": 85,
+    "confidence_label": "Alta Convicción (85%)",
+    "headline": "Oro bajo presión estructural tras perder el soporte clave de ,000. DXY firme sobre 104.30.",
+    "macro_summary": "Liquidación de fondos de materias primas tras confirmarse que el PIB de EE.UU. avanzó al 3.4% anualizado y la inflación PCE subyacente se mantuvo pegajosa en 3.1%. Los rendimientos de los bonos TIPS 10A alcanzaron el 2.12%.",
+    "catalyst": "PCE Subyacente EE.UU. & PIB 3.4%",
+    "session_levels": {
+      "asian_high": "3912.80",
+      "asian_low": "3894.10",
+      "asian_range_pts": 1870,
+      "pdh": "3985.50",
+      "pdl": "3872.20",
+      "pd_range_pts": 11330,
+      "london_high": "3,917.60",
+      "london_low": "3,890.90",
+      "london_range_pts": 2670
+    },
+    "technical_zones": {
+      "key_resistance": "3,920.00 – 4,000.00",
+      "key_support": "3,850.00 – 3,800.00",
+      "invalidation": "4,015.00"
+    },
+    "result_outcome": "Mercado cerrado por fin de semana. Apertura prevista el domingo a las 18:00 NY con sesgo vendedora dominante."
+  },
+  "2026-10-30": {
+    "date": "2026-10-30",
+    "day_label": "Viernes, 30 Oct 2026 · Sesión New York",
+    "bias": "BEARISH",
+    "bias_title": "🔴 SESGO INSTITUCIONAL: BAJISTA (Sell-Only)",
+    "confidence": 80,
+    "confidence_label": "Alta Convicción (80%)",
+    "headline": "Venta masiva en oro al inicio de NY. Fuerte aceleración bajista tras romper los ,950.",
+    "macro_summary": "El dólar se apreció con fuerza frente al euro y yen tras declaraciones restrictivas de miembros del FOMC. Los inversores redujeron exposición a metales preciosos para tomar liquidez antes del cierre de mes.",
+    "catalyst": "Discursos Hawkish de Gobernadores de la Fed",
+    "session_levels": {
+      "asian_high": "3962.50",
+      "asian_low": "3941.20",
+      "asian_range_pts": 2130,
+      "pdh": "4010.00",
+      "pdl": "3935.00",
+      "pd_range_pts": 7500,
+      "london_high": "3,967.30",
+      "london_low": "3,938.00",
+      "london_range_pts": 2930
+    },
+    "technical_zones": {
+      "key_resistance": "3,965.00 – 3,980.00",
+      "key_support": "3,900.00 – 3,880.00",
+      "invalidation": "4,012.00"
+    },
+    "result_outcome": "Ruptura bajista limpia del Asian Low (,941.20) a las 08:45 NY. El precio se desplomó hasta ,872.20 alcanzando un ratio de 3.2R."
+  },
+  "2026-10-29": {
+    "date": "2026-10-29",
+    "day_label": "Jueves, 29 Oct 2026 · Sesión New York",
+    "bias": "BEARISH",
+    "bias_title": "🔴 SESGO INSTITUCIONAL: BAJISTA (Sell-Only)",
+    "confidence": 75,
+    "confidence_label": "Alta Convicción (75%)",
+    "headline": "PIB de EE.UU. supera estimaciones del consenso de Wall Street (3.4% vs 2.9% esperado).",
+    "macro_summary": "El crecimiento vigoroso del consumo interno en EE.UU. aleja los temores de recesión y debilita la tesis de refugio del oro. Los bonos a 10 años alcanzaron rendimientos reales de 2.08%.",
+    "catalyst": "Publicación del PIB del 3er Trimestre de EE.UU. (08:30 AM NY)",
+    "session_levels": {
+      "asian_high": "4018.40",
+      "asian_low": "3995.10",
+      "asian_range_pts": 2330,
+      "pdh": "4038.50",
+      "pdl": "3988.00",
+      "pd_range_pts": 5050,
+      "london_high": "4,023.20",
+      "london_low": "3,991.90",
+      "london_range_pts": 3130
+    },
+    "technical_zones": {
+      "key_resistance": "4,020.00 – 4,035.00",
+      "key_support": "3,970.00 – 3,950.00",
+      "invalidation": "4,045.00"
+    },
+    "result_outcome": "Tras 15 minutos de digestión del dato de PIB a las 08:30 NY, a las 09:15 NY rompió el Asian Low de ,995.10 cayendo directo a ,948.00 (+4.7R)."
+  },
+  "2026-10-28": {
+    "date": "2026-10-28",
+    "day_label": "Miércoles, 28 Oct 2026 · Sesión New York",
+    "bias": "NEUTRAL",
+    "bias_title": "🟡 SESGO INSTITUCIONAL: NEUTRAL / RANGO (Cautela)",
+    "confidence": 60,
+    "confidence_label": "Convicción Moderada (60%)",
+    "headline": "Mercado institucional en modo espera previa a los datos de PIB e inflación de EE.UU.",
+    "macro_summary": "Volumen moderado en materias primas. Los grandes operadores evitaron abrir posiciones direccionales pesadas antes del bloque de datos macro de jueves y viernes. Rango estrecho en DXY (103.80 - 104.05).",
+    "catalyst": "Expectativa Previa a PIB & PCE",
+    "session_levels": {
+      "asian_high": "4032.20",
+      "asian_low": "4015.80",
+      "asian_range_pts": 1640,
+      "pdh": "4042.00",
+      "pdl": "4010.50",
+      "pd_range_pts": 3150,
+      "london_high": "4,037.00",
+      "london_low": "4,012.60",
+      "london_range_pts": 2440
+    },
+    "technical_zones": {
+      "key_resistance": "4,040.00 – 4,050.00",
+      "key_support": "4,010.00 – 4,000.00",
+      "invalidation": "4,060.00"
+    },
+    "result_outcome": "Día de rango lateral sin ruptura limpia. El trade asiático cerró en Breakeven sin llegar al target de 2.0R."
+  },
+  "2026-10-27": {
+    "date": "2026-10-27",
+    "day_label": "Martes, 27 Oct 2026 · Sesión New York",
+    "bias": "BEARISH",
+    "bias_title": "🔴 SESGO INSTITUCIONAL: BAJISTA (Sell-Only)",
+    "confidence": 70,
+    "confidence_label": "Convicción Favorable (70%)",
+    "headline": "Rotación institucional de materias primas a renta fija de corto plazo.",
+    "macro_summary": "Las subastas de deuda del Tesoro de EE.UU. a 2 y 5 años atrajeron fuerte demanda extranjera, fortaleciendo el DXY y drenando liquidez del oro en el mercado spot de Londres.",
+    "catalyst": "Subastas del Tesoro de EE.UU. de Corto Plazo",
+    "session_levels": {
+      "asian_high": "4055.60",
+      "asian_low": "4038.20",
+      "asian_range_pts": 1740,
+      "pdh": "4070.00",
+      "pdl": "4035.00",
+      "pd_range_pts": 3500,
+      "london_high": "4,060.40",
+      "london_low": "4,035.00",
+      "london_range_pts": 2540
+    },
+    "technical_zones": {
+      "key_resistance": "4,060.00 – 4,070.00",
+      "key_support": "4,020.00 – 4,010.00",
+      "invalidation": "4,080.00"
+    },
+    "result_outcome": "Ruptura del Asian Low (,038.20) a las 09:35 NY. Expansión a la baja hasta ,012.00 (+2.5R)."
+  },
+  "2026-10-24": {
+    "date": "2026-10-24",
+    "day_label": "Viernes, 24 Oct 2026 · Sesión New York",
+    "bias": "BULLISH",
+    "bias_title": "🟢 SESGO INSTITUCIONAL: ALCISTA (Buy-Only)",
+    "confidence": 80,
+    "confidence_label": "Alta Convicción (80%)",
+    "headline": "Debilidad del Dólar y repunte de aversión al riesgo impulsan al oro hacia máximos.",
+    "macro_summary": "Datos de pedidos de bienes duraderos en EE.UU. cayeron -0.8% frente a lo esperado, debilitando los rendimientos del Tesoro US10Y hasta 4.05%. Los inversores buscaron cobertura en lingotes.",
+    "catalyst": "Bienes Duraderos EE.UU. & Caída del DXY a 103.20",
+    "session_levels": {
+      "asian_high": "3978.50",
+      "asian_low": "3961.00",
+      "asian_range_pts": 1750,
+      "pdh": "3985.00",
+      "pdl": "3948.00",
+      "pd_range_pts": 3700,
+      "london_high": "3,983.30",
+      "london_low": "3,957.80",
+      "london_range_pts": 2550
+    },
+    "technical_zones": {
+      "key_resistance": "4,020.00 – 4,040.00",
+      "key_support": "3,960.00 – 3,945.00",
+      "invalidation": "3,938.00"
+    },
+    "result_outcome": "Ruptura alcista del Asian High (,978.50) a las 08:15 NY. Expansión explosiva hacia ,035.00 (+3.2R)."
+  },
+  "2026-10-23": {
+    "date": "2026-10-23",
+    "day_label": "Jueves, 23 Oct 2026 · Sesión New York",
+    "bias": "BULLISH",
+    "bias_title": "🟢 SESGO INSTITUCIONAL: ALCISTA (Buy-Only)",
+    "confidence": 75,
+    "confidence_label": "Alta Convicción (75%)",
+    "headline": "Compras masivas de bancos centrales asiáticos sostienen el suelo de ,950.",
+    "macro_summary": "Datos de aduanas de Suiza confirmaron exportaciones récord de oro físico hacia China e India. El Banco Popular de China (PBOC) reportó incremento en sus reservas oficiales por 18vo mes consecutivo.",
+    "catalyst": "Reporte de Reservas Oficiales PBOC (China)",
+    "session_levels": {
+      "asian_high": "3965.80",
+      "asian_low": "3948.20",
+      "asian_range_pts": 1760,
+      "pdh": "3972.00",
+      "pdl": "3930.00",
+      "pd_range_pts": 4200,
+      "london_high": "3,970.60",
+      "london_low": "3,945.00",
+      "london_range_pts": 2560
+    },
+    "technical_zones": {
+      "key_resistance": "3,990.00 – 4,005.00",
+      "key_support": "3,940.00 – 3,930.00",
+      "invalidation": "3,925.00"
+    },
+    "result_outcome": "Ruptura alcista a las 09:45 NY tras el campanazo de Wall Street. Alcanzó los ,992.00 (+2.4R)."
+  },
+  "2026-10-22": {
+    "date": "2026-10-22",
+    "day_label": "Miércoles, 22 Oct 2026 · Sesión New York",
+    "bias": "BULLISH",
+    "bias_title": "🟢 SESGO INSTITUCIONAL: ALCISTA (Buy-Only)",
+    "confidence": 85,
+    "confidence_label": "Alta Convicción (85%)",
+    "headline": "Rally impulsivo hacia la barrera psicológica de los ,000.",
+    "macro_summary": "Tensiones geopolíticas en Medio Oriente y Europa del Este elevaron la prima de riesgo. Los fondos de cobertura aumentaron posiciones netas largas en futuros COMEX en más de 25,000 contratos.",
+    "catalyst": "Demanda de Cobertura Geopolítica",
+    "session_levels": {
+      "asian_high": "3942.00",
+      "asian_low": "3922.50",
+      "asian_range_pts": 1950,
+      "pdh": "3950.00",
+      "pdl": "3910.00",
+      "pd_range_pts": 4000,
+      "london_high": "3,946.80",
+      "london_low": "3,919.30",
+      "london_range_pts": 2750
+    },
+    "technical_zones": {
+      "key_resistance": "3,980.00 – 4,000.00",
+      "key_support": "3,920.00 – 3,905.00",
+      "invalidation": "3,895.00"
+    },
+    "result_outcome": "Ruptura alcista limpia del Asian High (,942.00) con vela envolvente M15 a las 08:30 NY. Alcanzó ,984.00 (+2.1R)."
+  }
+}

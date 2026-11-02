@@ -1,0 +1,2 @@
+# Ghost Trader | Gold
+# Pure Python Standard Library — Zero external pip dependencies required

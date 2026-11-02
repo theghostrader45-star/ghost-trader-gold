@@ -1,0 +1,12 @@
+{
+  "initial_balance": 110.0,
+  "risk_pct": 10.0,
+  "leverage": 300,
+  "rr_ratio": 2.0,
+  "contract_size": 100,
+  "min_lot": 0.01,
+  "lot_step": 0.01,
+  "risk_mode": "compound",
+  "currency": "USD",
+  "asset": "XAU/USD (Gold)"
+}

@@ -1,0 +1,173 @@
+/* Base Modern Typography & Dark Theme */
+* {
+  box-sizing: border-box;
+}
+
+html, body, button, input, select, textarea {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+body {
+  background-color: #090D16 !important;
+  color: #f1f5f9 !important;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Fallback theme colors */
+:root {
+  --gold-400: #FACC15;
+  --gold-500: #EAB308;
+  --gold-600: #CA8A04;
+  --tv-blue: #2962FF;
+  --tv-green: #089981;
+  --tv-red: #F23645;
+  --dark-bg: #090D16;
+  --card-bg: #111827;
+  --card-border: #1F2937;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b0f19;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1f2937;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
+
+/* Animations */
+@keyframes pulseSlow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Glow effects */
+.glow-gold {
+  box-shadow: 0 0 20px -5px rgba(234, 179, 8, 0.25);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 20px -5px rgba(16, 185, 129, 0.25);
+}
+
+.glow-rose {
+  box-shadow: 0 0 20px -5px rgba(244, 63, 94, 0.25);
+}
+
+/* Table styling */
+table tbody tr:hover {
+  background-color: rgba(31, 41, 55, 0.4);
+}
+
+/* Symmetrical Collapse Toggle Buttons */
+.btn-collapse-toggle {
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  width: 104px !important;
+  min-width: 104px !important;
+  max-width: 104px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 0 10px !important;
+  border-radius: 12px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  outline: none !important;
+  flex-shrink: 0 !important;
+}
+
+.btn-collapse-toggle .btn-collapse-label {
+  display: inline-block;
+  text-align: center;
+}
+
+/* ============================================================== */
+/* ESTILOS DE IMPRESIÓN / EXPORTACIÓN PDF (MANUAL MACRO ORO)     */
+/* ============================================================== */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+  }
+  
+  /* Ocultar la interfaz oscura y dejar solo el manual */
+  header, nav, main, #modalEditTrade, #modalSettings, #modalUpdateMacroBias, .no-print {
+    display: none !important;
+  }
+  
+  #modalMacroGuide {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: auto !important;
+  }
+  
+  #modalMacroGuide > div {
+    max-width: 100% !important;
+    max-height: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  
+  #macroGuidePrintArea {
+    overflow: visible !important;
+    padding: 0 !important;
+    color: #0f172a !important;
+  }
+  
+  #macroGuidePrintArea .print-card {
+    background-color: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    break-inside: avoid !important;
+    margin-bottom: 1.25rem !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+  }
+  
+  #macroGuidePrintArea h1, 
+  #macroGuidePrintArea h2, 
+  #macroGuidePrintArea h3, 
+  #macroGuidePrintArea h4, 
+  #macroGuidePrintArea strong {
+    color: #0f172a !important;
+  }
+  
+  #macroGuidePrintArea p,
+  #macroGuidePrintArea li,
+  #macroGuidePrintArea span {
+    color: #334155 !important;
+  }
+
+  .print-page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+}

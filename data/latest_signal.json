@@ -1,0 +1,13 @@
+{
+  "id": 1793600177394,
+  "ticker": "XAUUSD",
+  "action": "SELL",
+  "price": 2720.5,
+  "timeframe": "5",
+  "sl_points": 2100.0,
+  "timestamp": "2026-11-02T01:16:17.394175",
+  "epoch": 1793600177,
+  "bias_at_time": "BEARISH",
+  "status": "VALIDATED_A_PLUS",
+  "created_at": "2026-11-02 01:16:17"
+}

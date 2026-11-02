@@ -1,0 +1,152 @@
+{
+  "updated_at": "31 Oct 2026 · Fin de Semana / Pre-Semana New York",
+  "asset": "XAU/USD (Oro Spot / Dólar)",
+  "sessions_target": "Ventana Dorada New York: 08:00 AM – 11:30 AM (Hora NY)",
+  "bias": "BEARISH",
+  "bias_title": "🔴 SESGO INSTITUCIONAL: BAJISTA (Sell-Only)",
+  "confidence": 85,
+  "confidence_label": "Alta Convicción (85%)",
+  "headline": "Oro bajo presión estructural tras perder el soporte clave de $4,000. Rendimientos reales firmes y fortaleza del DXY limitan el apetito por metal sin rendimiento.",
+  "macro_summary": "Liquidación institucional tras confirmarse crecimiento del PIB de EE.UU. en 3.4% y PCE subyacente persistente en 3.1%. Las expectativas de recortes agresivos de tasas de la Fed se disipan, mientras los rendimientos reales de los bonos TIPS 10A se sitúan sobre el 2.10%, elevando el costo de oportunidad de mantener lingotes.",
+  "money_flow": {
+    "verdict": "ROTACIÓN INSTITUCIONAL DEFENSIVA",
+    "summary": "El dinero institucional rota desde materias primas sin rendimiento (Oro) hacia activos denominados en dólares (DXY) y papel de deuda soberana de EE.UU. (T-Bills & Rendimientos Reales atractivos).",
+    "net_direction": "BEARISH_GOLD",
+    "assets": [
+      {
+        "symbol": "DXY",
+        "name": "Índice Dólar (DXY)",
+        "action": "ENTRADA DE CAPITAL",
+        "trend": "bullish",
+        "stat": "104.35 (+0.45%)",
+        "desc": "El dólar absorbe liquidez global. Fuerte correlación inversa (-0.85) presionando al oro a la baja."
+      },
+      {
+        "symbol": "US10Y TIPS",
+        "name": "Rendimiento Real 10A",
+        "action": "PRESIÓN VENDEDORA",
+        "trend": "bullish",
+        "stat": "+2.12% (Real)",
+        "desc": "Driver #1 del oro. Al ofrecer renta real positiva libre de riesgo, drena el flujo que busca refugio en oro."
+      },
+      {
+        "symbol": "XAU/USD",
+        "name": "Oro Spot COMEX",
+        "action": "SALIDA / DISTRIBUCIÓN",
+        "trend": "bearish",
+        "stat": "-1.8% (Bajo $4,000)",
+        "desc": "Stop outs masivos tras perder los $4,000. Los algoritmos bancarios ejecutan ventas en retrocesos a resistencias."
+      },
+      {
+        "symbol": "SPX / QQQ",
+        "name": "Wall Street Equities",
+        "action": "ROTACIÓN SELECTIVA",
+        "trend": "neutral",
+        "stat": "Cautela / Espera",
+        "desc": "Toma de beneficios tácticos en tecnología; fondos mantienen liquidez en dólares a la espera de la Fed."
+      }
+    ]
+  },
+  "macro_sources": [
+    {
+      "source": "US Dollar Index (DXY)",
+      "indicator": "Fuerza Relativa del Dólar (Pestaña G10)",
+      "value": "104.35",
+      "signal": "BAJISTA PARA ORO",
+      "status": "bearish_gold",
+      "impact": "Alto (Correlación -0.85)",
+      "desc": "El DXY rompió al alza su media móvil de 50 días. Cada impulso del dólar frente al euro y yen abarata mecánicamente el valor cotizado del oro."
+    },
+    {
+      "source": "US 10-Year TIPS Real Yield",
+      "indicator": "Rendimiento del Tesoro Protegido contra Inflación",
+      "value": "2.12%",
+      "signal": "BAJISTA PARA ORO",
+      "status": "bearish_gold",
+      "impact": "Crítico (Driver #1 Institucional)",
+      "desc": "Históricamente, cuando el TIPS 10A supera el 2.0%, el oro enfrenta techos rígidos porque los fondos soberanos prefieren deuda garantizada de EE.UU."
+    },
+    {
+      "source": "CME FedWatch Tool",
+      "indicator": "Expectativas de Tasas Próxima Reunión FOMC",
+      "value": "82.5% Pausa / Mantener",
+      "signal": "BAJISTA PARA ORO",
+      "status": "bearish_gold",
+      "impact": "Alto",
+      "desc": "Solo un 17.5% de probabilidad de recorte de 25 bps. La narrativa de 'tasas altas por más tiempo' posterga el inicio de un rally monetario en metales."
+    },
+    {
+      "source": "Curva de Tipos (US 2Y vs 10Y)",
+      "indicator": "Diferencial de Rendimientos del Tesoro",
+      "value": "+0.18% (Desinvertida)",
+      "signal": "NEUTRAL / RIESGO",
+      "status": "neutral_gold",
+      "impact": "Medio",
+      "desc": "La normalización de la curva reduce la probabilidad inminente de recesión profunda en EE.UU., moderando la demanda de oro como refugio urgente."
+    },
+    {
+      "source": "CFTC COT Report (Futuros COMEX)",
+      "indicator": "Posicionamiento Especulativo Hedge Funds",
+      "value": "Net Longs: 184k contratos (-12k)",
+      "signal": "DISTRIBUCIÓN INSTITUCIONAL",
+      "status": "bearish_gold",
+      "impact": "Alto",
+      "desc": "Reducción de contratos largos por 3ra semana consecutiva. Los fondos están tomando beneficios tras el máximo histórico previo."
+    },
+    {
+      "source": "Bancos Centrales & PBOC China",
+      "indicator": "Demanda de Reservas Físicas Oficiales",
+      "value": "Compras activas en soporte",
+      "signal": "SOPORTE ESTRUCTURAL",
+      "status": "bullish_gold",
+      "impact": "Medio-Alto (Largo Plazo)",
+      "desc": "El Banco Popular de China y naciones BRICS continúan comprando lingotes para desdolarizar reservas, sirviendo de piso firme en correcciones profundas."
+    }
+  ],
+  "session_levels": {
+    "pdh": "3,985.50",
+    "pdl": "3,872.20",
+    "pd_range_pts": 11330,
+    "london_high": "3,936.50",
+    "london_low": "3,908.20",
+    "london_range_pts": 2830,
+    "asian_high": "3,912.80",
+    "asian_low": "3,894.10",
+    "asian_range_pts": 1870,
+    "current_pivot": "3,922.35"
+  },
+  "technical_zones": {
+    "key_resistance": "3,920.00 – 4,000.00",
+    "key_resistance_label": "Zona A+ de Ventas (Antiguo Soporte ahora Resistencia Institucional)",
+    "key_support": "3,850.00 – 3,800.00",
+    "key_support_label": "Zona Objetivo de Toma de Ganancias (Piscina de Liquidez)",
+    "invalidation": "4,015.00",
+    "invalidation_label": "Cierre de vela H4 por encima invalida el sesgo bajista"
+  },
+  "calendar_warnings": [
+    {
+      "time": "08:30 AM NY",
+      "event": "Nóminas No Agrícolas (NFP) / IPC (Inflación) / PCE",
+      "impact": "Alto (Carpeta Roja)",
+      "rule": "Cero operaciones abiertas 15 min antes y 15 min después del anuncio."
+    },
+    {
+      "time": "08:30 AM NY (Jueves)",
+      "event": "Solicitudes Iniciales de Desempleo (Jobless Claims)",
+      "impact": "Medio-Alto",
+      "rule": "Genera volatilidad inmediata de 200 a 400 puntos TV en el primer minuto."
+    },
+    {
+      "time": "10:00 AM NY",
+      "event": "PMI ISM (Manufacturero / Servicios) & Discursos Fed",
+      "impact": "Alto (In-Killzone)",
+      "rule": "Pausar ejecuciones entre 09:58 AM y 10:05 AM NY."
+    },
+    {
+      "time": "02:00 PM NY",
+      "event": "Decisión de Tasas FOMC & Conferencia de Prensa",
+      "impact": "Extremo (Doble Barrido)",
+      "rule": "Cierre de todas las operaciones intradía antes de las 13:45 NY."
+    }
+  ]
+}

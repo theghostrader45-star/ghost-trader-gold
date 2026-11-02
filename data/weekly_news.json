@@ -1,0 +1,185 @@
+{
+  "week_label": "Semana Operativa · 02 al 06 de Noviembre (Semana NFP & Datos de Empleo)",
+  "week_start": "2026-11-02",
+  "week_end": "2026-11-06",
+  "timezone": "America/New_York (UTC-4)",
+  "days": [
+    {
+      "date": "2026-11-02",
+      "day_name": "Lunes",
+      "day_short": "LUN",
+      "impact_level": "HIGH",
+      "badge_text": "🔴 ISM MANUFACTURERO",
+      "events": [
+        {
+          "id": "news_20261102_01",
+          "time": "10:00 AM NY",
+          "currency": "USD",
+          "title": "ISM PMI Manufacturero de EE.UU.",
+          "impact": "HIGH",
+          "forecast": "49.5",
+          "previous": "47.2",
+          "actual": "48.6",
+          "impact_gold": "Cae en plena Killzone de New York. Si sale por debajo de 50 (contracción prolongada), presiona al dólar a la baja y genera impulso alcista en el Oro.",
+          "rule_action": "⚠️ Pausa Táctica: Cero entradas de 09:58 a 10:05 NY. Esperar vela M5 cerrada."
+        },
+        {
+          "id": "news_20261102_02",
+          "time": "10:00 AM NY",
+          "currency": "USD",
+          "title": "Precios Pagados en Manufactura ISM",
+          "impact": "MEDIUM",
+          "forecast": "52.0",
+          "previous": "48.3",
+          "actual": "51.2",
+          "impact_gold": "Componente inflacionario temprano. Un repunte eleva los rendimientos de los bonos a 10 años.",
+          "rule_action": "Seguimiento simultáneo con el PMI principal."
+        }
+      ]
+    },
+    {
+      "date": "2026-11-03",
+      "day_name": "Martes",
+      "day_short": "MAR",
+      "impact_level": "HIGH",
+      "badge_text": "🔴 VACANTES JOLTS",
+      "events": [
+        {
+          "id": "news_20261103_01",
+          "time": "10:00 AM NY",
+          "currency": "USD",
+          "title": "Encuesta de Ofertas de Empleo JOLTS",
+          "impact": "HIGH",
+          "forecast": "7.98M",
+          "previous": "8.04M",
+          "actual": "--",
+          "impact_gold": "Termómetro vital de la Fed para el empleo. Menos ofertas de empleo confirma enfriamiento laboral, impulsando compras en Oro.",
+          "rule_action": "⚠️ Pausa Táctica 09:58 a 10:06 NY. Posible latigazo de 40 a 70 pts TV."
+        },
+        {
+          "id": "news_20261103_02",
+          "time": "01:30 PM NY",
+          "currency": "USD",
+          "title": "Discurso de Miembros de la Reserva Federal (Fed Speeches)",
+          "impact": "MEDIUM",
+          "forecast": "--",
+          "previous": "--",
+          "actual": "--",
+          "impact_gold": "Riesgo de volatilidad en sesión de la tarde. No se recomienda abrir nuevos trades tras el London Fix (11:30 NY).",
+          "rule_action": "Sesión ya finalizada según el plan institucional."
+        }
+      ]
+    },
+    {
+      "date": "2026-11-04",
+      "day_name": "Miércoles",
+      "day_short": "MIÉ",
+      "impact_level": "HIGH",
+      "badge_text": "🔥 ADP + ISM SERVICIOS",
+      "events": [
+        {
+          "id": "news_20261104_01",
+          "time": "08:15 AM NY",
+          "currency": "USD",
+          "title": "Informe de Empleo No Agrícola ADP",
+          "impact": "HIGH",
+          "forecast": "145K",
+          "previous": "143K",
+          "actual": "--",
+          "impact_gold": "Preludio directo de NFP. Genera quiebres anticipados en el rango previo de New York 15 min antes de la apertura de Wall Street.",
+          "rule_action": "⛔ Bloqueo Estricto: 08:10 a 08:25 NY. Esperar que el spread regrese a lo normal."
+        },
+        {
+          "id": "news_20261104_02",
+          "time": "10:00 AM NY",
+          "currency": "USD",
+          "title": "ISM PMI del Sector Servicios (No Manufacturero)",
+          "impact": "HIGH",
+          "forecast": "53.8",
+          "previous": "54.9",
+          "actual": "--",
+          "impact_gold": "El sector servicios representa más del 70% de la economía de EE.UU. Noticia catalizadora de gran recorrido direccional.",
+          "rule_action": "⚠️ Alerta Killzone: No tener órdenes pendientes abiertas a las 09:59 NY."
+        }
+      ]
+    },
+    {
+      "date": "2026-11-05",
+      "day_name": "Jueves",
+      "day_short": "JUE",
+      "impact_level": "HIGH",
+      "badge_text": "🔴 PETICIONES SUBSIDIO",
+      "events": [
+        {
+          "id": "news_20261105_01",
+          "time": "08:30 AM NY",
+          "currency": "USD",
+          "title": "Nuevas Peticiones de Subsidio por Desempleo (Initial Jobless Claims)",
+          "impact": "HIGH",
+          "forecast": "221K",
+          "previous": "218K",
+          "actual": "--",
+          "impact_gold": "Peticiones semanales. Cifras superiores al pronóstico (>225K) debilitan al dólar y habilitan compras en soporte clave del Oro.",
+          "rule_action": "⛔ Bloqueo: 08:25 a 08:40 NY. Buscar confirmación de entrada M5 a las 08:45 NY."
+        },
+        {
+          "id": "news_20261105_02",
+          "time": "08:30 AM NY",
+          "currency": "USD",
+          "title": "Balanza Comercial de EE.UU.",
+          "impact": "MEDIUM",
+          "forecast": "-70.2B",
+          "previous": "-70.4B",
+          "actual": "--",
+          "impact_gold": "Publicación simultánea con peticiones de desempleo.",
+          "rule_action": "Seguimiento unificado con Jobless Claims."
+        }
+      ]
+    },
+    {
+      "date": "2026-11-06",
+      "day_name": "Viernes",
+      "day_short": "VIE",
+      "impact_level": "CRITICAL",
+      "badge_text": "💥 NFP VIERNES (MÁXIMA VOLATILIDAD)",
+      "events": [
+        {
+          "id": "news_20261106_01",
+          "time": "08:30 AM NY",
+          "currency": "USD",
+          "title": "NFP (Nóminas No Agrícolas de EE.UU.)",
+          "impact": "CRITICAL",
+          "forecast": "180K",
+          "previous": "254K",
+          "actual": "--",
+          "impact_gold": "El evento de mayor volatilidad mensual. Mueve entre 1,500 y 3,000 puntos TV ($15.00 a $30.00) en velas de 1 a 5 minutos. Spreads bancarios se disparan.",
+          "rule_action": "⛔ PROHIBIDO DISPARAR ANTES DE LAS 08:45 NY. Cero apuestas previas. Esperar vela M5 cerrada."
+        },
+        {
+          "id": "news_20261106_02",
+          "time": "08:30 AM NY",
+          "currency": "USD",
+          "title": "Tasa de Desempleo de EE.UU.",
+          "impact": "HIGH",
+          "forecast": "4.1%",
+          "previous": "4.1%",
+          "actual": "--",
+          "impact_gold": "Si el desempleo sube a 4.2% o superior, desata rally comprador agresivo en metales preciosos.",
+          "rule_action": "Alineado con el bloqueo estricto de NFP."
+        },
+        {
+          "id": "news_20261106_03",
+          "time": "08:30 AM NY",
+          "currency": "USD",
+          "title": "Ingresos Medios por Hora (Salarios m/m)",
+          "impact": "HIGH",
+          "forecast": "+0.3%",
+          "previous": "+0.4%",
+          "actual": "--",
+          "impact_gold": "Presión salarial subyacente. Clave para la reunión de política monetaria de la Reserva Federal.",
+          "rule_action": "Esperar absorción completa antes de operar el Adaptive Supertrend."
+        }
+      ]
+    }
+  ]
+}

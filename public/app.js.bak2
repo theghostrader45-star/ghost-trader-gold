@@ -1,0 +1,2451 @@
+/**
+ * XAU/USD Pro Dashboard - Backtesting Dinámico, Bitácora Real y Calculadora Myfxbook
+ * Cálculo de interés compuesto basado puramente en porcentaje y puntos de oro.
+ */
+
+// Global State
+let appState = {
+  activeTab: 'backtest', // 'backtest' | 'real' | 'calculator'
+  config: {
+    initial_balance: 110.0,
+    risk_pct: 5.0,
+    rr_ratio: 1.0,
+    leverage: 300,
+    contract_size: 100,
+    min_lot: 0.01,
+    lot_step: 0.01
+  },
+  backtest: {
+    summary: {},
+    trades: [],
+    equityCurve: [],
+    filter: 'all'
+  },
+  real: {
+    summary: {},
+    trades: [],
+    equityCurve: [],
+    filter: 'all'
+  },
+  calculator: {
+    balance: 110.0,
+    risk_pct: 5.0,
+    sl_points: 250,
+    rr: 1.0,
+    leverage: 300,
+    gold_price: 2720.0
+  }
+};
+
+// Chart instances
+let equityChart = null;
+let distributionChart = null;
+let drawdownChart = null;
+
+// Initialize on DOM Loaded
+document.addEventListener('DOMContentLoaded', async () => {
+  initIcons();
+  setupTabNavigation();
+  setupEventListeners();
+  initCharts();
+  await loadConfig();
+  await loadTrades('backtest');
+  await loadTrades('real');
+  setCurrentDateTime();
+  recalculateTradingViewValues();
+  runMyfxbookCalculator();
+  setupGoldBiasDashboard();
+  loadGoldBiasData();
+});
+
+function initIcons() {
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+}
+
+function setCurrentDateTime() {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const formatted = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  
+  const dateField = document.getElementById('tradeDate');
+  if (dateField && !dateField.value) {
+    dateField.value = formatted;
+  }
+  const realDateField = document.getElementById('realTradeDate');
+  if (realDateField && !realDateField.value) {
+    realDateField.value = formatted;
+  }
+}
+
+function roundNum(val, decimals = 2) {
+  const factor = Math.pow(10, decimals);
+  return Math.round(val * factor) / factor;
+}
+
+// ----------------------------------------------------
+// TAB NAVIGATION
+// ----------------------------------------------------
+function setupTabNavigation() {
+  const btnBacktest = document.getElementById('tabBtnBacktest');
+  const btnReal = document.getElementById('tabBtnRealJournal');
+  const btnCalc = document.getElementById('tabBtnCalculator');
+  const btnGoldBias = document.getElementById('tabBtnGoldBias');
+
+  const viewBacktest = document.getElementById('viewBacktest');
+  const viewReal = document.getElementById('viewRealJournal');
+  const viewCalc = document.getElementById('viewCalculator');
+  const viewGoldBias = document.getElementById('viewGoldBias');
+
+  function switchTab(tab) {
+    appState.activeTab = tab;
+
+    // Reset tab button styles
+    const activeClasses = ['bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-600/30', 'font-bold'];
+    const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
+
+    [btnBacktest, btnReal, btnCalc, btnGoldBias].forEach(btn => {
+      if (btn) {
+        btn.classList.remove(...activeClasses);
+        btn.classList.remove('bg-emerald-600', 'bg-gold-500', 'bg-yellow-500', 'text-black');
+        btn.classList.add(...inactiveClasses);
+      }
+    });
+
+    viewBacktest.classList.add('hidden');
+    viewReal.classList.add('hidden');
+    viewCalc.classList.add('hidden');
+    if (viewGoldBias) viewGoldBias.classList.add('hidden');
+
+    if (tab === 'backtest') {
+      btnBacktest.classList.remove(...inactiveClasses);
+      btnBacktest.classList.add(...activeClasses);
+      viewBacktest.classList.remove('hidden');
+      if (equityChart) equityChart.resize();
+      if (distributionChart) distributionChart.resize();
+      if (drawdownChart) drawdownChart.resize();
+    } else if (tab === 'real') {
+      btnReal.classList.remove(...inactiveClasses);
+      btnReal.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-bold');
+      viewReal.classList.remove('hidden');
+      renderRealJournalDashboard();
+    } else if (tab === 'calculator') {
+      btnCalc.classList.remove(...inactiveClasses);
+      btnCalc.classList.add('bg-gold-500', 'text-black', 'shadow-lg', 'shadow-gold-500/30', 'font-black');
+      viewCalc.classList.remove('hidden');
+      runMyfxbookCalculator();
+    } else if (tab === 'gold_bias') {
+      if (btnGoldBias) {
+        btnGoldBias.classList.remove(...inactiveClasses);
+        btnGoldBias.classList.add('bg-yellow-500', 'text-black', 'shadow-lg', 'shadow-yellow-500/30', 'font-black');
+      }
+      if (viewGoldBias) viewGoldBias.classList.remove('hidden');
+      loadGoldBiasData();
+    }
+
+    initIcons();
+  }
+
+  btnBacktest.addEventListener('click', () => switchTab('backtest'));
+  btnReal.addEventListener('click', () => switchTab('real'));
+  btnCalc.addEventListener('click', () => switchTab('calculator'));
+  if (btnGoldBias) btnGoldBias.addEventListener('click', () => switchTab('gold_bias'));
+
+  // Quick jump button from calculator
+  const btnSendToReal = document.getElementById('btnSendToRealJournal');
+  if (btnSendToReal) {
+    btnSendToReal.addEventListener('click', () => {
+      const sl = document.getElementById('calcSlPointsInput').value;
+      const risk = document.getElementById('calcRiskPctInput').value;
+      const rr = document.getElementById('calcRRInput').value;
+      
+      document.getElementById('realTradeTvPoints').value = sl;
+      document.getElementById('realTradeRiskPct').value = risk;
+      document.getElementById('realTradeRR').value = rr;
+      
+      switchTab('real');
+      recalculateRealJournalPreview();
+    });
+  }
+
+  const btnSendToBacktest = document.getElementById('btnSendToBacktest');
+  if (btnSendToBacktest) {
+    btnSendToBacktest.addEventListener('click', () => {
+      const sl = document.getElementById('calcSlPointsInput').value;
+      const rr = document.getElementById('calcRRInput').value;
+      
+      document.getElementById('tradeTvPoints').value = sl;
+      document.getElementById('tradeSpecificRR').value = rr;
+      
+      switchTab('backtest');
+      recalculateTradingViewValues();
+    });
+  }
+}
+
+// ----------------------------------------------------
+// API Communication
+// ----------------------------------------------------
+async function loadConfig() {
+  try {
+    const res = await fetch('/api/config');
+    if (res.ok) {
+      const data = await res.json();
+      appState.config = data.config || data;
+      updateConfigUI();
+    }
+  } catch (err) {
+    console.warn('Config local:', err);
+  }
+}
+
+async function loadTrades(mode = 'backtest') {
+  try {
+    const res = await fetch(`/api/trades?mode=${mode}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (mode === 'real') {
+        appState.real.summary = data.summary || {};
+        appState.real.equityCurve = data.equity_curve || [];
+        appState.real.trades = data.trades || [];
+        renderRealJournalDashboard();
+      } else {
+        appState.backtest.summary = data.summary || {};
+        appState.backtest.equityCurve = data.equity_curve || [];
+        appState.backtest.trades = data.trades || [];
+        renderBacktestDashboard();
+      }
+    }
+  } catch (err) {
+    console.error(`Error cargando trades (${mode}):`, err);
+  }
+}
+
+function updateConfigUI() {
+  const cfg = appState.config;
+  const initial = Number(cfg.initial_balance || 110.0);
+  const risk = Number(cfg.risk_pct || 5.0);
+  const rr = Number(cfg.rr_ratio || 1.0);
+
+  document.getElementById('badgeInitialBalance').textContent = initial.toFixed(2);
+  document.getElementById('badgeRiskPct').textContent = risk.toFixed(1);
+  document.getElementById('badgeCurrentRR').textContent = rr.toFixed(1);
+  document.getElementById('statInitialLabel').textContent = initial.toFixed(2);
+
+  // Recalculation Console inputs
+  const initialInput = document.getElementById('globalInitialInput');
+  if (initialInput) initialInput.value = Math.round(initial);
+  const labelActiveInitial = document.getElementById('labelActiveInitialBal');
+  if (labelActiveInitial) labelActiveInitial.textContent = `$${initial.toFixed(2)}`;
+
+  document.getElementById('globalRiskInput').value = risk.toFixed(1);
+  document.getElementById('globalRRInput').value = rr.toFixed(1);
+  document.getElementById('labelActiveRiskPct').textContent = `${risk.toFixed(1)}%`;
+  document.getElementById('labelActiveRR').textContent = `1:${rr.toFixed(1)}`;
+
+  // Trade form RR input
+  document.getElementById('tradeSpecificRR').value = rr.toFixed(1);
+
+  // Settings modal
+  document.getElementById('settingInitialBalance').value = initial;
+  document.getElementById('settingRiskPct').value = risk;
+  document.getElementById('settingRR').value = rr;
+  document.getElementById('settingLeverage').value = cfg.leverage || 300;
+}
+
+// ----------------------------------------------------
+// Pure Percentage Compounding Recalculation Engine
+// ----------------------------------------------------
+let recalcDebounceTimer = null;
+
+async function triggerRecalculate(newRisk, newRR, newInitial) {
+  const initial = (newInitial !== undefined && !isNaN(newInitial) && newInitial > 0)
+    ? Number(newInitial)
+    : Number(appState.config.initial_balance || 110.0);
+  const leverage = Number(appState.config.leverage || 300);
+
+  appState.config.initial_balance = initial;
+  appState.config.risk_pct = newRisk;
+  appState.config.rr_ratio = newRR;
+
+  // Update labels instantly
+  const lblInit = document.getElementById('labelActiveInitialBal');
+  if (lblInit) lblInit.textContent = `$${initial.toFixed(2)}`;
+  const lblRisk = document.getElementById('labelActiveRiskPct');
+  if (lblRisk) lblRisk.textContent = `${newRisk.toFixed(1)}%`;
+  const lblRR = document.getElementById('labelActiveRR');
+  if (lblRR) lblRR.textContent = `1:${newRR.toFixed(1)}`;
+
+  document.getElementById('badgeInitialBalance').textContent = initial.toFixed(2);
+  document.getElementById('badgeRiskPct').textContent = newRisk.toFixed(1);
+  document.getElementById('badgeCurrentRR').textContent = newRR.toFixed(1);
+  document.getElementById('statInitialLabel').textContent = initial.toFixed(2);
+
+  // Immediate Client-Side Pure Percentage Compounding Recalculation
+  let currBal = initial;
+  let peak = initial;
+  let maxDdAmount = 0.0;
+  let maxDdPct = 0.0;
+  let wins = 0;
+  let losses = 0;
+  let be = 0;
+  let totalGain = 0.0;
+  let totalLoss = 0.0;
+  let streakWin = 0;
+  let streakLoss = 0;
+  let maxStreakWin = 0;
+  let maxStreakLoss = 0;
+  let totalSlPoints = 0;
+  let minSlPoints = 999999;
+  let maxSlPoints = 0;
+
+  const curve = [{
+    trade_num: 0,
+    date: 'Inicio',
+    balance: roundNum(initial, 2),
+    drawdown_pct: 0.0,
+    pnl: 0.0
+  }];
+
+  const updatedTrades = appState.backtest.trades.map((t, idx) => {
+    // Invariant Stop Loss points
+    let points, price;
+    if (t.tv_points !== undefined && Number(t.tv_points) >= 20) {
+      points = Math.round(Number(t.tv_points));
+      price = (points / 100).toFixed(2);
+    } else if (t.sl_points !== undefined && Number(t.sl_points) >= 20) {
+      points = Math.round(Number(t.sl_points));
+      price = (points / 100).toFixed(2);
+    } else {
+      const parsed = parseTradingViewInput(t.sl_distance || 2.50);
+      points = parsed.points;
+      price = parsed.price;
+    }
+
+    const tradeRR = Number(t.rr_custom || newRR);
+    const status = (t.status || 'win').toLowerCase();
+
+    totalSlPoints += points;
+    if (points < minSlPoints) minSlPoints = points;
+    if (points > maxSlPoints) maxSlPoints = points;
+
+    // Pure Percentage Compounding Calculation
+    let retPct = 0.0;
+    let pnl = 0.0;
+    const dollarRisk = roundNum(currBal * (newRisk / 100.0), 2);
+    const rawLot = points > 0 ? (dollarRisk / points) : 0.01;
+    const lotSize = Math.max(0.01, roundNum(rawLot, 2));
+
+    if (status === 'win') {
+      retPct = newRisk * tradeRR;
+      pnl = roundNum(currBal * (retPct / 100.0), 2);
+      wins++;
+      totalGain += pnl;
+      streakWin++;
+      streakLoss = 0;
+      if (streakWin > maxStreakWin) maxStreakWin = streakWin;
+    } else if (status === 'loss') {
+      retPct = -newRisk;
+      pnl = -roundNum(currBal * (newRisk / 100.0), 2);
+      losses++;
+      totalLoss += Math.abs(pnl);
+      streakLoss++;
+      streakWin = 0;
+      if (streakLoss > maxStreakLoss) maxStreakLoss = streakLoss;
+    } else {
+      be++;
+      streakWin = 0;
+      streakLoss = 0;
+    }
+
+    const balBefore = currBal;
+    currBal += pnl;
+    if (currBal < 0) currBal = 0.0;
+
+    if (currBal > peak) peak = currBal;
+    const ddAmount = peak - currBal;
+    const ddPct = peak > 0 ? (ddAmount / peak) * 100.0 : 0.0;
+    if (ddAmount > maxDdAmount) maxDdAmount = ddAmount;
+    if (ddPct > maxDdPct) maxDdPct = ddPct;
+
+    curve.push({
+      trade_num: idx + 1,
+      date: t.date || `T#${idx + 1}`,
+      balance: roundNum(currBal, 2),
+      drawdown_pct: roundNum(ddPct, 2),
+      pnl: roundNum(pnl, 2)
+    });
+
+    const marginUsed = roundNum((2720.0 * 100 * lotSize) / leverage, 2);
+
+    return {
+      ...t,
+      tv_points: points,
+      price_dist: price,
+      sl_points: points,
+      tp_points: Math.round(points * tradeRR),
+      sl_distance: price,
+      lot_size: lotSize,
+      risk_budget: roundNum(dollarRisk, 2),
+      margin_used: marginUsed,
+      pnl: pnl,
+      ret_pct: roundNum(retPct, 2),
+      rr: tradeRR,
+      balance_before: roundNum(balBefore, 2),
+      balance_after: roundNum(currBal, 2)
+    };
+  });
+
+  appState.backtest.trades = updatedTrades;
+  appState.backtest.equityCurve = curve;
+
+  const totalClosed = wins + losses + be;
+  const winRate = totalClosed > 0 ? (wins / totalClosed) * 100.0 : 0.0;
+  const lossRate = totalClosed > 0 ? (losses / totalClosed) * 100.0 : 0.0;
+  const pf = totalLoss > 0 ? totalGain / totalLoss : (totalGain > 0 ? 999.0 : 0.0);
+  const netPnl = currBal - initial;
+  const netRet = initial > 0 ? (netPnl / initial) * 100.0 : 0.0;
+  const avgWin = wins > 0 ? totalGain / wins : 0.0;
+  const avgLoss = losses > 0 ? totalLoss / losses : 0.0;
+  const expectancy = (winRate / 100.0 * avgWin) - (lossRate / 100.0 * avgLoss);
+  const beWinrate = newRR > 0 ? (1.0 / (1.0 + newRR)) * 100.0 : 50.0;
+
+  const avgSlPoints = totalClosed > 0 ? roundNum(totalSlPoints / totalClosed, 1) : 0;
+  const avgSlPrice = roundNum(avgSlPoints / 100.0, 2);
+  const finalMinSl = totalClosed > 0 ? minSlPoints : 0;
+  const finalMaxSl = totalClosed > 0 ? maxSlPoints : 0;
+
+  appState.backtest.summary = {
+    initial_balance: roundNum(initial, 2),
+    current_balance: roundNum(currBal, 2),
+    net_pnl: roundNum(netPnl, 2),
+    net_return_pct: roundNum(netRet, 2),
+    total_trades: totalClosed,
+    wins,
+    losses,
+    breakevens: be,
+    win_rate: roundNum(winRate, 2),
+    loss_rate: roundNum(lossRate, 2),
+    profit_factor: pf === 999.0 ? '∞' : roundNum(pf, 2),
+    total_gain: roundNum(totalGain, 2),
+    total_loss: roundNum(totalLoss, 2),
+    avg_win: roundNum(avgWin, 2),
+    avg_loss: roundNum(avgLoss, 2),
+    avg_sl_points: avgSlPoints,
+    avg_sl_price: avgSlPrice,
+    min_sl_points: finalMinSl,
+    max_sl_points: finalMaxSl,
+    max_drawdown_amount: roundNum(maxDdAmount, 2),
+    max_drawdown_pct: roundNum(maxDdPct, 2),
+    max_streak_win: maxStreakWin,
+    max_streak_loss: maxStreakLoss,
+    expectancy_usd: roundNum(expectancy, 2),
+    be_winrate: roundNum(beWinrate, 1)
+  };
+
+  // Render Backtest Dashboard
+  updateConfigUI();
+  renderBacktestDashboard();
+  recalculateTradingViewValues();
+
+  // Debounced API call to sync with server
+  clearTimeout(recalcDebounceTimer);
+  recalcDebounceTimer = setTimeout(async () => {
+    try {
+      await fetch('/api/recalculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          mode: 'backtest',
+          initial_balance: initial,
+          risk_pct: newRisk, 
+          rr_ratio: newRR 
+        })
+      });
+    } catch (err) {
+      console.warn('Error sincronizando recálculo:', err);
+    }
+  }, 300);
+}
+
+// ----------------------------------------------------
+// Parsing helper for Gold Points
+// ----------------------------------------------------
+function parseTradingViewInput(rawVal) {
+  let strVal = String(rawVal).trim();
+  let val = parseFloat(strVal);
+  if (isNaN(val) || val <= 0) val = 250;
+
+  let points, price;
+  if (strVal.includes('.') || val < 50.0) {
+    points = Math.round(val * 100);
+    price = val.toFixed(2);
+  } else {
+    points = Math.round(val);
+    price = (points / 100).toFixed(2);
+  }
+  return { points, price };
+}
+
+// ----------------------------------------------------
+// Form 1: Backtest Widget Calculations
+// ----------------------------------------------------
+function recalculateTradingViewValues() {
+  const curBal = (appState.backtest.summary && appState.backtest.summary.current_balance !== undefined) 
+    ? appState.backtest.summary.current_balance 
+    : appState.config.initial_balance;
+
+  const riskPct = parseFloat(appState.config.risk_pct) || 5.0;
+  const leverage = parseFloat(appState.config.leverage) || 300;
+
+  const rawInput = document.getElementById('tradeTvPoints').value;
+  const { points, price } = parseTradingViewInput(rawInput);
+
+  const tradeRR = parseFloat(document.getElementById('tradeSpecificRR').value) || parseFloat(appState.config.rr_ratio) || 1.0;
+
+  const tvSlFormatted = `${points} (${price})`;
+  const tpPoints = Math.round(points * tradeRR);
+  const tpPrice = (tpPoints / 100).toFixed(2);
+  const tvTpFormatted = `${tpPoints} (${tpPrice})`;
+
+  document.getElementById('tvPointsExplain').textContent = `Stop: ${tvSlFormatted}`;
+  document.getElementById('tvWidgetSlPoints').textContent = tvSlFormatted;
+  document.getElementById('tvWidgetTpPoints').textContent = `${tvTpFormatted} (1:${tradeRR.toFixed(1)})`;
+  document.getElementById('tvWidgetRRRatio').textContent = `1:${tradeRR.toFixed(1)}`;
+
+  // Pure % Compounding dollar target
+  const dollarRisk = roundNum(curBal * (riskPct / 100.0), 2);
+  const dollarReward = roundNum(dollarRisk * tradeRR, 2);
+  const rewardPct = roundNum(riskPct * tradeRR, 1);
+
+  // Suggested lot for MetaTrader
+  const rawLot = dollarRisk / points;
+  const roundedLot = Math.max(0.01, roundNum(rawLot, 2));
+
+  // Margin at 1:300 leverage
+  const notional = 2720.0 * 100 * roundedLot;
+  const marginReq = notional / leverage;
+  const marginPct = (marginReq / curBal) * 100.0;
+
+  // Update UI Elements
+  document.getElementById('badgeCurrentRiskUsd').textContent = `$${dollarRisk.toFixed(2)}`;
+  document.getElementById('formCurrentBalanceDisplay').textContent = `$${curBal.toFixed(2)}`;
+  document.getElementById('formCurrentRiskBudgetDisplay').textContent = `$${dollarRisk.toFixed(2)}`;
+
+  document.getElementById('calcOutLot').textContent = roundedLot.toFixed(2);
+  document.getElementById('tradeLot').value = roundedLot.toFixed(2);
+  document.getElementById('tvRawLotText').textContent = `(raw: ${rawLot.toFixed(4)})`;
+
+  document.getElementById('calcOutMargin').textContent = `~$${marginReq.toFixed(2)} (${marginPct.toFixed(1)}%)`;
+
+  // Dollar Labels (Pure %)
+  document.getElementById('tvWidgetRiskUsd').textContent = `-$${dollarRisk.toFixed(2)} (-${riskPct.toFixed(1)}%)`;
+  document.getElementById('tvWidgetRewardUsd').textContent = `+$${dollarReward.toFixed(2)} (+${rewardPct.toFixed(1)}%)`;
+
+  // Preview radio badges
+  document.getElementById('formPreviewGain').textContent = `+$${dollarReward.toFixed(2)}`;
+  document.getElementById('formPreviewLoss').textContent = `-$${dollarRisk.toFixed(2)}`;
+
+  // Warning check
+  const warningBox = document.getElementById('calcWarningBox');
+  const warningText = document.getElementById('calcWarningText');
+  
+  if (marginReq > curBal) {
+    warningBox.classList.remove('hidden');
+    warningText.innerHTML = `<strong>Margen alto:</strong> Requiere ~$${marginReq.toFixed(2)} (supera tu balance de $${curBal.toFixed(2)}).`;
+  } else if (roundedLot === 0.01 && (0.01 * points) > dollarRisk * 1.5) {
+    const actualRisk = roundNum(0.01 * points, 2);
+    warningBox.classList.remove('hidden');
+    warningText.innerHTML = `<strong>SL amplio en MT4:</strong> El lote mínimo de tu broker (0.01) movería $${actualRisk.toFixed(2)} en lugar de $${dollarRisk.toFixed(2)}.`;
+  } else {
+    warningBox.classList.add('hidden');
+  }
+
+  initIcons();
+}
+
+// ----------------------------------------------------
+// Form 2: Real Journal Live Preview
+// ----------------------------------------------------
+function recalculateRealJournalPreview() {
+  const curBal = (appState.real.summary && appState.real.summary.current_balance !== undefined)
+    ? appState.real.summary.current_balance
+    : appState.config.initial_balance;
+
+  const rawInput = document.getElementById('realTradeTvPoints').value;
+  const { points, price } = parseTradingViewInput(rawInput);
+  const riskPct = parseFloat(document.getElementById('realTradeRiskPct').value) || 5.0;
+  const rr = parseFloat(document.getElementById('realTradeRR').value) || 1.0;
+  const leverage = parseFloat(appState.config.leverage) || 300;
+
+  const dollarRisk = roundNum(curBal * (riskPct / 100.0), 2);
+  const dollarReward = roundNum(dollarRisk * rr, 2);
+  const rewardPct = roundNum(riskPct * rr, 1);
+
+  const rawLot = dollarRisk / points;
+  const roundedLot = Math.max(0.01, roundNum(rawLot, 2));
+  const marginReq = roundNum((2720.0 * 100 * roundedLot) / leverage, 2);
+
+  document.getElementById('realSlExplain').textContent = `${points} pts ($${price})`;
+  document.getElementById('realFormCurrentBalDisplay').textContent = `$${curBal.toFixed(2)}`;
+  document.getElementById('realPreviewRiskDollar').textContent = `-$${dollarRisk.toFixed(2)} (-${riskPct.toFixed(1)}%)`;
+  document.getElementById('realPreviewRewardDollar').textContent = `+$${dollarReward.toFixed(2)} (+${rewardPct.toFixed(1)}%)`;
+  document.getElementById('realPreviewLot').textContent = roundedLot.toFixed(2);
+  document.getElementById('realPreviewMargin').textContent = `~$${marginReq.toFixed(2)}`;
+}
+
+// ----------------------------------------------------
+// View 3: Myfxbook Style Calculator Logic
+// ----------------------------------------------------
+function runMyfxbookCalculator() {
+  const balance = parseFloat(document.getElementById('calcBalInput').value) || 110.0;
+  const riskPct = parseFloat(document.getElementById('calcRiskPctInput').value) || 5.0;
+  const rawSl = document.getElementById('calcSlPointsInput').value;
+  const { points, price } = parseTradingViewInput(rawSl);
+  const rr = parseFloat(document.getElementById('calcRRInput').value) || 1.0;
+  const leverage = parseFloat(document.getElementById('calcLeverageInput').value) || 300;
+  const goldPrice = 2720.0;
+
+  // Dollar Risk & Reward
+  const dollarRisk = roundNum(balance * (riskPct / 100.0), 2);
+  const dollarReward = roundNum(dollarRisk * rr, 2);
+  const rewardPct = roundNum(riskPct * rr, 1);
+
+  // Position Sizing: 1.00 lot Gold = 100 oz. 1 TV Point = $1.00 USD on 1.00 lot.
+  // Suggested Lot = Dollar Risk / Points
+  const rawLot = dollarRisk / points;
+  const suggestedLot = Math.max(0.01, roundNum(rawLot, 2));
+
+  // Margin at given leverage
+  const notional = goldPrice * 100 * suggestedLot;
+  const marginReq = roundNum(notional / leverage, 2);
+  const marginPct = balance > 0 ? roundNum((marginReq / balance) * 100.0, 1) : 0.0;
+
+  // Contract volume in troy oz
+  const contractOz = roundNum(suggestedLot * 100, 1);
+
+  // Update Calculator UI
+  document.getElementById('myfxBalLabel').textContent = `$${balance.toFixed(2)}`;
+  document.getElementById('myfxRiskLabel').textContent = `${riskPct.toFixed(1)}%`;
+  document.getElementById('myfxSlLabel').textContent = `${points} pts ($${price})`;
+  document.getElementById('myfxSlText').textContent = `${points} puntos ($${price})`;
+
+  // Hero Lot Card
+  document.getElementById('myfxHeroLot').textContent = suggestedLot.toFixed(2);
+  document.getElementById('myfxHeroRawLot').textContent = `Lote exacto sin redondeo: ${rawLot.toFixed(4)}`;
+
+  // Breakdown Cards
+  document.getElementById('myfxRiskUsd').textContent = `-$${dollarRisk.toFixed(2)}`;
+  document.getElementById('myfxRiskPctText').textContent = `${riskPct.toFixed(1)}% de la cuenta`;
+
+  document.getElementById('myfxRewardUsd').textContent = `+$${dollarReward.toFixed(2)}`;
+  document.getElementById('myfxRewardPctText').textContent = `+${rewardPct.toFixed(1)}% de la cuenta`;
+
+  document.getElementById('myfxPriceDist').textContent = `$${price}`;
+  document.getElementById('myfxPointsDist').textContent = `${points} puntos TV`;
+
+  document.getElementById('myfxMarginReq').textContent = `~$${marginReq.toFixed(2)}`;
+  document.getElementById('myfxMarginPct').textContent = `${marginPct}% del balance`;
+
+  document.getElementById('myfxContractUnits').textContent = `${contractOz} oz`;
+  document.getElementById('myfxRatioOut').textContent = `1:${rr.toFixed(1)}`;
+
+  // Warnings
+  const warnBox = document.getElementById('myfxWarningBox');
+  const warnText = document.getElementById('myfxWarningText');
+  if (marginReq > balance) {
+    warnBox.classList.remove('hidden');
+    warnText.innerHTML = `<strong>Aviso de Margen:</strong> Se requiere $${marginReq.toFixed(2)} de margen pero el balance es de $${balance.toFixed(2)}. Considera subir el apalancamiento o reducir el riesgo.`;
+  } else if (suggestedLot === 0.01 && rawLot < 0.007) {
+    const actualRisk = roundNum(0.01 * points, 2);
+    const actualPct = roundNum((actualRisk / balance) * 100.0, 1);
+    warnBox.classList.remove('hidden');
+    warnText.innerHTML = `<strong>Lote Mínimo de Broker (0.01):</strong> Para arriesgar solo $${dollarRisk.toFixed(2)} (${riskPct}%) necesitarías ${rawLot.toFixed(4)} lotes. Con 0.01 arriesgarías $${actualRisk.toFixed(2)} (${actualPct}%).`;
+  } else {
+    warnBox.classList.add('hidden');
+  }
+
+  initIcons();
+}
+
+// ----------------------------------------------------
+// Render Backtest Dashboard & KPIs
+// ----------------------------------------------------
+function renderBacktestDashboard() {
+  const s = appState.backtest.summary || {};
+  const cfg = appState.config || {};
+  
+  const curBal = s.current_balance !== undefined ? s.current_balance : cfg.initial_balance;
+  const netPnl = s.net_pnl !== undefined ? s.net_pnl : 0.0;
+  const netRet = s.net_return_pct !== undefined ? s.net_return_pct : 0.0;
+  const winRate = s.win_rate !== undefined ? s.win_rate : 0.0;
+  const wins = s.wins || 0;
+  const losses = s.losses || 0;
+  const total = s.total_trades || 0;
+  const pf = s.profit_factor !== undefined ? s.profit_factor : 0.0;
+  const maxDd = s.max_drawdown_pct !== undefined ? s.max_drawdown_pct : 0.0;
+  const maxDdUsd = s.max_drawdown_amount !== undefined ? s.max_drawdown_amount : 0.0;
+  const maxWinStreak = s.max_streak_win || 0;
+  const maxLossStreak = s.max_streak_loss || 0;
+  const expectancy = s.expectancy_usd !== undefined ? s.expectancy_usd : 0.0;
+  const beWinrate = s.be_winrate !== undefined ? s.be_winrate : 50.0;
+
+  document.getElementById('tabBadgeBacktest').textContent = `${total} ops`;
+  document.getElementById('recalcTradesCount').textContent = total;
+
+  // Win Rate Card
+  document.getElementById('statWinRate').textContent = `${winRate.toFixed(1)}%`;
+  document.getElementById('statWins').textContent = wins;
+  document.getElementById('statLosses').textContent = losses;
+  document.getElementById('statWinRateBar').style.width = `${Math.min(100, winRate)}%`;
+
+  const winRateBadge = document.getElementById('winRateBadge');
+  if (total === 0) {
+    winRateBadge.className = 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-gray-800 text-gray-400';
+    winRateBadge.textContent = '0 Trades';
+  } else if (winRate >= beWinrate) {
+    winRateBadge.className = 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-950 text-emerald-400 border border-emerald-800';
+    winRateBadge.textContent = `Rentable (>${beWinrate}%)`;
+  } else {
+    winRateBadge.className = 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-rose-950 text-rose-400 border border-rose-800';
+    winRateBadge.textContent = `Bajo BE (${beWinrate}%)`;
+  }
+
+  // Balance Card
+  document.getElementById('statCurrentBalance').textContent = `$${curBal.toFixed(2)}`;
+  const sign = netPnl >= 0 ? '+' : '';
+  const netPnlEl = document.getElementById('statNetPnL');
+  netPnlEl.textContent = `${sign}$${netPnl.toFixed(2)} (${sign}${netRet.toFixed(1)}%)`;
+  netPnlEl.className = netPnl >= 0 ? 'font-bold text-emerald-400' : 'font-bold text-rose-400';
+
+  const returnBadge = document.getElementById('statReturnBadge');
+  returnBadge.textContent = `${sign}${netRet.toFixed(1)}%`;
+  returnBadge.className = netPnl >= 0 
+    ? 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800/40'
+    : 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-rose-950/60 text-rose-400 border border-rose-800/40';
+
+  // Profit Factor Card
+  document.getElementById('statProfitFactor').textContent = pf === '∞' ? '∞' : Number(pf).toFixed(2);
+  document.getElementById('statTotalGain').textContent = Number(s.total_gain || 0).toFixed(2);
+  document.getElementById('statTotalLoss').textContent = Number(s.total_loss || 0).toFixed(2);
+  document.getElementById('breakevenTargetText').textContent = `BE objetivo: ${beWinrate}% (R:R 1:${Number(cfg.rr_ratio || 1.0).toFixed(1)})`;
+
+  // Max DD Card
+  document.getElementById('statMaxDD').textContent = `${maxDd.toFixed(1)}%`;
+  document.getElementById('statMaxDDUsd').textContent = `-$${maxDdUsd.toFixed(2)}`;
+  document.getElementById('currentDrawdownDisplay').textContent = `${maxDd.toFixed(1)}%`;
+
+  // Streaks Card
+  document.getElementById('statMaxWinStreak').textContent = maxWinStreak;
+  document.getElementById('statMaxLossStreak').textContent = maxLossStreak;
+
+  // Expectancy Card
+  const expSign = expectancy >= 0 ? '+' : '';
+  const expEl = document.getElementById('statExpectancy');
+  expEl.textContent = `${expSign}$${expectancy.toFixed(2)}`;
+  expEl.className = expectancy >= 0 ? 'text-2xl font-black text-emerald-400' : 'text-2xl font-black text-rose-400';
+  document.getElementById('statTotalTrades').textContent = total;
+
+  // Average Stop Loss Metrics
+  const avgSlPts = s.avg_sl_points !== undefined ? s.avg_sl_points : 0;
+  const avgSlPr = s.avg_sl_price !== undefined ? s.avg_sl_price : 0;
+  const minSlPts = s.min_sl_points !== undefined ? s.min_sl_points : 0;
+  const maxSlPts = s.max_sl_points !== undefined ? s.max_sl_points : 0;
+
+  const recalcAvgSlBadge = document.getElementById('recalcAvgSlBadge');
+  if (recalcAvgSlBadge) {
+    recalcAvgSlBadge.textContent = total > 0 ? `${avgSlPts} pts ($${avgSlPr.toFixed(2)})` : '0 pts ($0.00)';
+  }
+  const statAvgSlPoints = document.getElementById('statAvgSlPoints');
+  if (statAvgSlPoints) {
+    statAvgSlPoints.textContent = total > 0 ? avgSlPts : '0';
+  }
+  const statAvgSlPrice = document.getElementById('statAvgSlPrice');
+  if (statAvgSlPrice) {
+    statAvgSlPrice.textContent = avgSlPr.toFixed(2);
+  }
+  const statMinMaxSl = document.getElementById('statMinMaxSl');
+  if (statMinMaxSl) {
+    statMinMaxSl.textContent = total > 0 ? `${minSlPts} - ${maxSlPts} pts` : '-';
+  }
+  const labelFormAvgSl = document.getElementById('labelFormAvgSl');
+  if (labelFormAvgSl) {
+    labelFormAvgSl.textContent = total > 0 ? avgSlPts : '250';
+  }
+
+  // Header dynamic risk budget
+  const currentRisk = curBal * (parseFloat(cfg.risk_pct || 5.0) / 100.0);
+  document.getElementById('badgeCurrentRiskUsd').textContent = `$${currentRisk.toFixed(2)}`;
+
+  // Update Charts & Table
+  updateCharts();
+  renderBacktestTradesTable();
+  initIcons();
+}
+
+function renderBacktestTradesTable() {
+  const tbody = document.getElementById('tradesTableBody');
+  const countAll = document.getElementById('countAll');
+  const countWins = document.getElementById('countWins');
+  const countLosses = document.getElementById('countLosses');
+
+  const trades = appState.backtest.trades;
+  const winsCount = trades.filter(t => t.status === 'win').length;
+  const lossesCount = trades.filter(t => t.status === 'loss').length;
+
+  countAll.textContent = trades.length;
+  countWins.textContent = winsCount;
+  countLosses.textContent = lossesCount;
+
+  let filtered = trades;
+  if (appState.backtest.filter === 'win') {
+    filtered = trades.filter(t => t.status === 'win');
+  } else if (appState.backtest.filter === 'loss') {
+    filtered = trades.filter(t => t.status === 'loss');
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="14" class="py-12 text-center text-gray-500 font-sans">
+          ${trades.length === 0 
+            ? 'Aún no has registrado operaciones. Ingresa los puntos de Stop Loss arriba y haz clic en <strong>"REGISTRAR OPERACIÓN AL BACKTEST"</strong>.' 
+            : 'No hay operaciones con este filtro seleccionado.'}
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const rowsHtml = filtered.slice().reverse().map((t, idx) => {
+    const isWin = t.status === 'win';
+    const isLoss = t.status === 'loss';
+    const pnlSign = t.pnl > 0 ? '+' : '';
+    const pnlColor = isWin ? 'text-emerald-400 font-bold' : (isLoss ? 'text-rose-400 font-bold' : 'text-gray-400');
+    
+    const tradeRR = Number(t.rr || appState.config.rr_ratio || 1.0);
+    const badgeOutcome = isWin
+      ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">WIN (+${tradeRR}R)</span>`
+      : (isLoss 
+          ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-800">LOSS (-1R)</span>'
+          : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-800 text-gray-400">BE (0)</span>');
+
+    const dirBadge = t.direction === 'BUY'
+      ? '<span class="text-tvGreen font-bold flex items-center gap-0.5"><i data-lucide="arrow-up-right" class="w-3 h-3"></i> Larga</span>'
+      : '<span class="text-tvRed font-bold flex items-center gap-0.5"><i data-lucide="arrow-down-right" class="w-3 h-3"></i> Corta</span>';
+
+    let pts = t.tv_points || t.sl_points;
+    if (!pts && t.sl_distance) pts = Math.round(t.sl_distance * 100);
+    if (!pts) pts = 250;
+    const priceVal = (pts / 100).toFixed(2);
+    const tvLabel = `${pts} (${priceVal})`;
+
+    const tpPts = Math.round(pts * tradeRR);
+    const tpPriceVal = (tpPts / 100).toFixed(2);
+    const tvTpLabel = `${tpPts} (${tpPriceVal})`;
+
+    const riskBudget = t.risk_budget ? `$${Number(t.risk_budget).toFixed(2)}` : `$${(t.balance_before * (appState.config.risk_pct / 100)).toFixed(2)}`;
+
+    return `
+      <tr class="transition hover:bg-gray-800/40">
+        <td class="py-2.5 px-3 text-gray-500">${filtered.length - idx}</td>
+        <td class="py-2.5 px-3 text-gray-300 font-sans text-xs">${t.date || '-'}</td>
+        <td class="py-2.5 px-3">${dirBadge}</td>
+        <td class="py-2.5 px-3 text-rose-300 font-bold">${tvLabel}</td>
+        <td class="py-2.5 px-3 text-emerald-300 font-bold">${tvTpLabel}</td>
+        <td class="py-2.5 px-3 text-blue-300 font-bold font-mono">1:${tradeRR.toFixed(1)}</td>
+        <td class="py-2.5 px-3 text-amber-300 font-mono">${riskBudget}</td>
+        <td class="py-2.5 px-3 text-gold-400 font-bold">${Number(t.lot_size || 0.01).toFixed(2)}</td>
+        <td class="py-2.5 px-3 text-purple-300 font-mono">$${Number(t.margin_used || 0).toFixed(2)}</td>
+        <td class="py-2.5 px-3">${badgeOutcome}</td>
+        <td class="py-2.5 px-3 ${pnlColor}">${pnlSign}$${Number(t.pnl).toFixed(2)}</td>
+        <td class="py-2.5 px-3 text-white font-bold">$${Number(t.balance_after || 0).toFixed(2)}</td>
+        <td class="py-2.5 px-3 text-gray-300 font-sans text-xs truncate max-w-[120px]" title="${t.notes || ''}">${t.strategy || 'General'}</td>
+        <td class="py-2.5 px-3 text-right">
+          <div class="flex items-center justify-end gap-1.5">
+            <button onclick="handleOpenEditModal('${t.id}', 'backtest')" class="p-1 rounded hover:bg-gray-800 text-gray-400 hover:text-gold-400 transition" title="Editar este trade">
+              <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+            </button>
+            <button onclick="handleDeleteTrade('${t.id}', 'backtest')" class="p-1 rounded hover:bg-gray-800 text-gray-400 hover:text-rose-400 transition" title="Borrar este trade">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  tbody.innerHTML = rowsHtml;
+}
+
+// ----------------------------------------------------
+// Render Real Journal Dashboard & Table
+// ----------------------------------------------------
+function renderRealJournalDashboard() {
+  const s = appState.real.summary || {};
+  const trades = appState.real.trades || [];
+  const cfg = appState.config || {};
+  
+  const curBal = s.current_balance !== undefined ? s.current_balance : cfg.initial_balance;
+  const netPnl = s.net_pnl !== undefined ? s.net_pnl : 0.0;
+  const netRet = s.net_return_pct !== undefined ? s.net_return_pct : 0.0;
+  const winRate = s.win_rate !== undefined ? s.win_rate : 0.0;
+  const wins = s.wins || 0;
+  const losses = s.losses || 0;
+  const total = trades.length;
+  const pf = s.profit_factor !== undefined ? s.profit_factor : 0.0;
+  const maxDd = s.max_drawdown_pct !== undefined ? s.max_drawdown_pct : 0.0;
+  const maxDdUsd = s.max_drawdown_amount !== undefined ? s.max_drawdown_amount : 0.0;
+  const avgSlPts = s.avg_sl_points !== undefined ? s.avg_sl_points : 0;
+  const avgSlPrice = s.avg_sl_price !== undefined ? s.avg_sl_price : 0;
+
+  // Calculate Discipline metric (% where emotion was not FOMO or Revancha)
+  const disciplinedTrades = trades.filter(t => {
+    const emo = (t.emotion || '').toLowerCase();
+    return !emo.includes('fomo') && !emo.includes('venganza') && !emo.includes('revancha');
+  });
+  const disciplinePct = total > 0 ? roundNum((disciplinedTrades.length / total) * 100.0, 1) : 100.0;
+
+  document.getElementById('tabBadgeReal').textContent = `${total} ops`;
+  document.getElementById('realStatTotalOps').textContent = total;
+  document.getElementById('realStatBalance').textContent = `$${curBal.toFixed(2)}`;
+  document.getElementById('realStatInitBal').textContent = Number(cfg.initial_balance || 110.0).toFixed(2);
+  
+  const pnlSign = netPnl >= 0 ? '+' : '';
+  const netPnlEl = document.getElementById('realStatNetPnL');
+  netPnlEl.textContent = `${pnlSign}$${netPnl.toFixed(2)} (${pnlSign}${netRet.toFixed(1)}%)`;
+  netPnlEl.className = netPnl >= 0 ? 'font-bold text-emerald-400' : 'font-bold text-rose-400';
+
+  document.getElementById('realStatWinRate').textContent = `${winRate.toFixed(1)}%`;
+  document.getElementById('realStatWins').textContent = wins;
+  document.getElementById('realStatLosses').textContent = losses;
+  document.getElementById('realStatWinRateBar').style.width = `${Math.min(100, winRate)}%`;
+
+  document.getElementById('realStatPF').textContent = pf === '∞' ? '∞' : Number(pf).toFixed(2);
+  document.getElementById('realStatGain').textContent = Number(s.total_gain || 0).toFixed(2);
+  document.getElementById('realStatLoss').textContent = Number(s.total_loss || 0).toFixed(2);
+
+  document.getElementById('realStatDisciplinePct').textContent = `${disciplinePct}%`;
+  document.getElementById('realStatDisciplineCount').textContent = `${disciplinedTrades.length}/${total}`;
+
+  document.getElementById('realStatAvgSl').textContent = total > 0 ? avgSlPts : '0';
+  document.getElementById('realStatAvgSlPrice').textContent = total > 0 ? avgSlPrice.toFixed(2) : '0.00';
+
+  document.getElementById('realStatDD').textContent = `${maxDd.toFixed(1)}%`;
+  document.getElementById('realStatDDUsd').textContent = `-$${maxDdUsd.toFixed(2)}`;
+
+  renderRealTradesTable();
+  recalculateRealJournalPreview();
+  initIcons();
+}
+
+function renderRealTradesTable() {
+  const tbody = document.getElementById('realTradesTableBody');
+  const trades = appState.real.trades || [];
+
+  if (trades.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="15" class="py-12 text-center text-gray-500 font-sans">
+          Aún no has registrado operaciones en tu Bitácora Real. Llena el formulario superior para documentar tu primer trade en vivo.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const rowsHtml = trades.slice().reverse().map((t, idx) => {
+    const isWin = t.status === 'win';
+    const isLoss = t.status === 'loss';
+    const pnlSign = t.pnl > 0 ? '+' : '';
+    const pnlColor = isWin ? 'text-emerald-400 font-bold' : (isLoss ? 'text-rose-400 font-bold' : 'text-gray-400');
+    const tradeRR = Number(t.rr || 1.0);
+
+    const badgeOutcome = isWin
+      ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">WIN (+${tradeRR}R)</span>`
+      : (isLoss 
+          ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-800">LOSS (-1R)</span>'
+          : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-800 text-gray-400">BE (0)</span>');
+
+    const dirBadge = t.direction === 'BUY'
+      ? '<span class="text-tvGreen font-bold flex items-center gap-0.5"><i data-lucide="arrow-up-right" class="w-3 h-3"></i> BUY</span>'
+      : '<span class="text-tvRed font-bold flex items-center gap-0.5"><i data-lucide="arrow-down-right" class="w-3 h-3"></i> SELL</span>';
+
+    // Emotion Styling
+    const emo = t.emotion || 'Plan Seguido 100%';
+    let emoClass = 'bg-emerald-950 text-emerald-400 border-emerald-800';
+    if (emo.includes('FOMO') || emo.includes('Venganza') || emo.includes('Revancha')) {
+      emoClass = 'bg-rose-950 text-rose-300 border-rose-800 font-bold';
+    } else if (emo.includes('Anticipada') || emo.includes('Prematura')) {
+      emoClass = 'bg-amber-950 text-amber-300 border-amber-800';
+    }
+
+    const pts = t.tv_points || t.sl_points || 250;
+    const priceVal = (pts / 100).toFixed(2);
+
+    const chartBtn = t.tv_chart_url 
+      ? `<a href="${t.tv_chart_url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-950/70 hover:bg-blue-900 border border-blue-800/80 text-blue-300 text-[10px] font-medium transition" title="Ver captura en TradingView">
+           <i data-lucide="external-link" class="w-3 h-3"></i> Gráfico
+         </a>`
+      : `<span class="text-gray-600 text-[10px]">-</span>`;
+
+    return `
+      <tr class="transition hover:bg-gray-800/40">
+        <td class="py-2.5 px-3 text-gray-500">${trades.length - idx}</td>
+        <td class="py-2.5 px-3 text-gray-300 font-sans text-xs">${t.date || '-'}</td>
+        <td class="py-2.5 px-3 text-gray-300 font-sans text-xs font-semibold">${t.session || 'NY'}</td>
+        <td class="py-2.5 px-3">${dirBadge}</td>
+        <td class="py-2.5 px-3 text-rose-300 font-bold">${pts} pts ($${priceVal})</td>
+        <td class="py-2.5 px-3 text-blue-300 font-bold font-mono">1:${tradeRR.toFixed(1)}</td>
+        <td class="py-2.5 px-3 text-amber-300 font-mono">$${Number(t.dollar_risk || t.risk_budget || 0).toFixed(2)}</td>
+        <td class="py-2.5 px-3 text-gold-400 font-bold">${Number(t.suggested_lot || t.lot_size || 0.01).toFixed(2)}</td>
+        <td class="py-2.5 px-3">${badgeOutcome}</td>
+        <td class="py-2.5 px-3 ${pnlColor}">${pnlSign}$${Number(t.pnl).toFixed(2)}</td>
+        <td class="py-2.5 px-3 text-white font-bold">$${Number(t.balance_after || 0).toFixed(2)}</td>
+        <td class="py-2.5 px-3 text-gray-300 font-sans text-xs">${t.strategy || 'General'}</td>
+        <td class="py-2.5 px-3 font-sans text-xs">
+          <span class="px-2 py-0.5 rounded text-[10px] border ${emoClass}">${emo}</span>
+        </td>
+        <td class="py-2.5 px-3">${chartBtn}</td>
+        <td class="py-2.5 px-3 text-right">
+          <div class="flex items-center justify-end gap-1.5">
+            <button onclick="handleOpenEditModal('${t.id}', 'real')" class="p-1 rounded hover:bg-gray-800 text-gray-400 hover:text-gold-400 transition" title="Editar trade">
+              <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+            </button>
+            <button onclick="handleDeleteTrade('${t.id}', 'real')" class="p-1 rounded hover:bg-gray-800 text-gray-400 hover:text-rose-400 transition" title="Borrar trade">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  tbody.innerHTML = rowsHtml;
+}
+
+// ----------------------------------------------------
+// Chart.js Setup
+// ----------------------------------------------------
+function initCharts() {
+  const equityCanvas = document.getElementById('equityChart');
+  const distCanvas = document.getElementById('distributionChart');
+  const ddCanvas = document.getElementById('drawdownChart');
+
+  if (!equityCanvas || !distCanvas || !ddCanvas) return;
+
+  const equityCtx = equityCanvas.getContext('2d');
+  const distCtx = distCanvas.getContext('2d');
+  const ddCtx = ddCanvas.getContext('2d');
+
+  equityChart = new Chart(equityCtx, {
+    type: 'line',
+    data: {
+      labels: ['Inicio'],
+      datasets: [
+        {
+          label: 'Balance ($ USD)',
+          data: [110],
+          borderColor: '#10B981',
+          backgroundColor: 'rgba(16, 185, 129, 0.12)',
+          borderWidth: 2.5,
+          tension: 0.25,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#10B981'
+        },
+        {
+          label: 'Base Inicial',
+          data: [110],
+          borderColor: 'rgba(156, 163, 175, 0.35)',
+          borderWidth: 1.5,
+          borderDash: [5, 5],
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#111827',
+          borderColor: '#374151',
+          borderWidth: 1,
+          padding: 10,
+          callbacks: {
+            label: (ctx) => ` Balance: $${Number(ctx.parsed.y).toFixed(2)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(31, 41, 55, 0.5)' },
+          ticks: { color: '#6B7280', font: { size: 10 } }
+        },
+        y: {
+          grid: { color: 'rgba(31, 41, 55, 0.5)' },
+          ticks: {
+            color: '#6B7280',
+            font: { size: 10 },
+            callback: (val) => `$${val}`
+          }
+        }
+      }
+    }
+  });
+
+  distributionChart = new Chart(distCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Ganadas', 'Perdidas', 'Breakeven'],
+      datasets: [{
+        data: [0, 0, 0],
+        backgroundColor: ['#089981', '#F23645', '#4B5563'],
+        borderWidth: 2,
+        borderColor: '#111827'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '70%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#9CA3AF', font: { size: 10 }, boxWidth: 10 }
+        }
+      }
+    }
+  });
+
+  drawdownChart = new Chart(ddCtx, {
+    type: 'line',
+    data: {
+      labels: ['Inicio'],
+      datasets: [{
+        label: 'Drawdown %',
+        data: [0],
+        borderColor: '#F23645',
+        backgroundColor: 'rgba(242, 54, 69, 0.15)',
+        borderWidth: 1.5,
+        fill: true,
+        pointRadius: 0,
+        tension: 0.2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { display: false },
+        y: {
+          reverse: true,
+          grid: { color: 'rgba(31, 41, 55, 0.4)' },
+          ticks: {
+            color: '#F23645',
+            font: { size: 9 },
+            callback: (v) => `-${v}%`
+          }
+        }
+      }
+    }
+  });
+}
+
+function updateCharts() {
+  const curve = appState.backtest.equityCurve || [];
+  const initial = appState.config.initial_balance || 110;
+  const wins = appState.backtest.summary.wins || 0;
+  const losses = appState.backtest.summary.losses || 0;
+  const be = appState.backtest.summary.breakevens || 0;
+
+  if (equityChart) {
+    if (curve.length === 0) {
+      equityChart.data.labels = ['Inicio'];
+      equityChart.data.datasets[0].data = [initial];
+      equityChart.data.datasets[1].data = [initial];
+    } else {
+      equityChart.data.labels = curve.map(c => c.trade_num === 0 ? 'Inicio' : `T#${c.trade_num}`);
+      const balances = curve.map(c => c.balance);
+      equityChart.data.datasets[0].data = balances;
+      equityChart.data.datasets[1].data = curve.map(() => initial);
+
+      const current = balances[balances.length - 1];
+      const color = current >= initial ? '#10B981' : '#F23645';
+      const bg = current >= initial ? 'rgba(16, 185, 129, 0.12)' : 'rgba(242, 54, 69, 0.12)';
+      equityChart.data.datasets[0].borderColor = color;
+      equityChart.data.datasets[0].backgroundColor = bg;
+      equityChart.data.datasets[0].pointBackgroundColor = color;
+    }
+    equityChart.update();
+  }
+
+  if (distributionChart) {
+    distributionChart.data.datasets[0].data = [wins, losses, be];
+    document.getElementById('donutTotalCount').textContent = `${wins + losses + be} trades`;
+    distributionChart.update();
+  }
+
+  if (drawdownChart) {
+    if (curve.length === 0) {
+      drawdownChart.data.labels = ['Inicio'];
+      drawdownChart.data.datasets[0].data = [0];
+    } else {
+      drawdownChart.data.labels = curve.map(c => c.trade_num);
+      drawdownChart.data.datasets[0].data = curve.map(c => c.drawdown_pct);
+    }
+    drawdownChart.update();
+  }
+}
+
+// ----------------------------------------------------
+// Event Listeners Setup
+// ----------------------------------------------------
+function setupEventListeners() {
+  // Backtest Buy/Sell Buttons
+  const btnBuy = document.getElementById('btnDirBuy');
+  const btnSell = document.getElementById('btnDirSell');
+  const dirInput = document.getElementById('tradeDirection');
+
+  btnBuy.addEventListener('click', () => {
+    dirInput.value = 'BUY';
+    btnBuy.className = 'py-2.5 rounded-lg text-center font-bold text-xs bg-tvGreen text-white shadow transition flex items-center justify-center gap-1';
+    btnSell.className = 'py-2.5 rounded-lg text-center font-bold text-xs text-gray-400 hover:text-white transition flex items-center justify-center gap-1';
+  });
+
+  btnSell.addEventListener('click', () => {
+    dirInput.value = 'SELL';
+    btnSell.className = 'py-2.5 rounded-lg text-center font-bold text-xs bg-tvRed text-white shadow transition flex items-center justify-center gap-1';
+    btnBuy.className = 'py-2.5 rounded-lg text-center font-bold text-xs text-gray-400 hover:text-white transition flex items-center justify-center gap-1';
+  });
+
+  // Real Journal Buy/Sell Buttons
+  const btnRealBuy = document.getElementById('btnRealDirBuy');
+  const btnRealSell = document.getElementById('btnRealDirSell');
+  const realDirInput = document.getElementById('realTradeDirection');
+
+  if (btnRealBuy && btnRealSell) {
+    btnRealBuy.addEventListener('click', () => {
+      realDirInput.value = 'BUY';
+      btnRealBuy.className = 'py-1.5 rounded-lg text-center font-bold text-xs bg-tvGreen text-white shadow transition flex items-center justify-center';
+      btnRealSell.className = 'py-1.5 rounded-lg text-center font-bold text-xs text-gray-400 hover:text-white transition flex items-center justify-center';
+    });
+    btnRealSell.addEventListener('click', () => {
+      realDirInput.value = 'SELL';
+      btnRealSell.className = 'py-1.5 rounded-lg text-center font-bold text-xs bg-tvRed text-white shadow transition flex items-center justify-center';
+      btnRealBuy.className = 'py-1.5 rounded-lg text-center font-bold text-xs text-gray-400 hover:text-white transition flex items-center justify-center';
+    });
+  }
+
+  // Backtest points change
+  document.getElementById('tradeTvPoints').addEventListener('input', recalculateTradingViewValues);
+  document.getElementById('tradeSpecificRR').addEventListener('input', recalculateTradingViewValues);
+
+  // Quick buttons for Backtest Stop Loss points
+  document.querySelectorAll('.btnQuickTv').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.btnQuickTv').forEach(b => {
+        b.className = 'btnQuickTv px-1.5 py-0.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-[10px] font-mono';
+      });
+      btn.className = 'btnQuickTv px-1.5 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/40 rounded text-[10px] font-mono font-bold';
+      document.getElementById('tradeTvPoints').value = btn.dataset.val;
+      recalculateTradingViewValues();
+    });
+  });
+
+  const btnUseAvgSl = document.getElementById('btnUseAvgSl');
+  if (btnUseAvgSl) {
+    btnUseAvgSl.addEventListener('click', () => {
+      const avg = (appState.backtest.summary && appState.backtest.summary.avg_sl_points) ? appState.backtest.summary.avg_sl_points : 250;
+      document.getElementById('tradeTvPoints').value = avg;
+      recalculateTradingViewValues();
+    });
+  }
+
+  // Dynamic Recalculation Console Controls
+  const globalInitialInput = document.getElementById('globalInitialInput');
+  const globalRiskInput = document.getElementById('globalRiskInput');
+  const globalRRInput = document.getElementById('globalRRInput');
+
+  function getActiveConsoleValues() {
+    const init = parseFloat(globalInitialInput ? globalInitialInput.value : null) || parseFloat(appState.config.initial_balance) || 110.0;
+    const risk = parseFloat(globalRiskInput ? globalRiskInput.value : null) || parseFloat(appState.config.risk_pct) || 5.0;
+    const rr = parseFloat(globalRRInput ? globalRRInput.value : null) || parseFloat(appState.config.rr_ratio) || 1.0;
+    return { init, risk, rr };
+  }
+
+  if (globalInitialInput) {
+    globalInitialInput.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val > 0) {
+        document.querySelectorAll('.btnQuickInitial').forEach(b => {
+          b.className = parseFloat(b.dataset.initial) === val
+            ? 'btnQuickInitial px-2 py-1 bg-blue-600/30 text-blue-400 border border-blue-500/50 rounded text-xs font-mono font-bold'
+            : 'btnQuickInitial px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-xs font-mono text-gray-300';
+        });
+        const { risk, rr } = getActiveConsoleValues();
+        triggerRecalculate(risk, rr, val);
+      }
+    });
+
+    document.querySelectorAll('.btnQuickInitial').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btnQuickInitial').forEach(b => {
+          b.className = 'btnQuickInitial px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-xs font-mono text-gray-300';
+        });
+        btn.className = 'btnQuickInitial px-2 py-1 bg-blue-600/30 text-blue-400 border border-blue-500/50 rounded text-xs font-mono font-bold';
+        const initVal = parseFloat(btn.dataset.initial);
+        globalInitialInput.value = initVal;
+        const { risk, rr } = getActiveConsoleValues();
+        triggerRecalculate(risk, rr, initVal);
+      });
+    });
+  }
+
+  globalRiskInput.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    if (!isNaN(val) && val > 0) {
+      document.querySelectorAll('.btnQuickRisk').forEach(b => {
+        b.className = parseFloat(b.dataset.risk) === val
+          ? 'btnQuickRisk px-2 py-1 bg-blue-600/30 text-blue-400 border border-blue-500/50 rounded text-xs font-mono font-bold'
+          : 'btnQuickRisk px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-xs font-mono text-gray-300';
+      });
+      const { init, rr } = getActiveConsoleValues();
+      triggerRecalculate(val, rr, init);
+    }
+  });
+
+  document.querySelectorAll('.btnQuickRisk').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.btnQuickRisk').forEach(b => {
+        b.className = 'btnQuickRisk px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-xs font-mono text-gray-300';
+      });
+      btn.className = 'btnQuickRisk px-2 py-1 bg-blue-600/30 text-blue-400 border border-blue-500/50 rounded text-xs font-mono font-bold';
+      const riskVal = parseFloat(btn.dataset.risk);
+      globalRiskInput.value = riskVal.toFixed(1);
+      const { init, rr } = getActiveConsoleValues();
+      triggerRecalculate(riskVal, rr, init);
+    });
+  });
+
+  globalRRInput.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    if (!isNaN(val) && val > 0) {
+      document.querySelectorAll('.btnQuickRR').forEach(b => {
+        b.className = parseFloat(b.dataset.rr) === val
+          ? 'btnQuickRR px-2 py-1 bg-blue-600/30 text-blue-400 border border-blue-500/50 rounded text-xs font-mono font-bold'
+          : 'btnQuickRR px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-xs font-mono text-gray-300';
+      });
+      const { init, risk } = getActiveConsoleValues();
+      triggerRecalculate(risk, val, init);
+    }
+  });
+
+  document.querySelectorAll('.btnQuickRR').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.btnQuickRR').forEach(b => {
+        b.className = 'btnQuickRR px-2 py-1 bg-gray-800 hover:bg-gray-700 rounded text-xs font-mono text-gray-300';
+      });
+      btn.className = 'btnQuickRR px-2 py-1 bg-blue-600/30 text-blue-400 border border-blue-500/50 rounded text-xs font-mono font-bold';
+      const rrVal = parseFloat(btn.dataset.rr);
+      globalRRInput.value = rrVal.toFixed(1);
+      const { init, risk } = getActiveConsoleValues();
+      triggerRecalculate(risk, rrVal, init);
+    });
+  });
+
+  // Backtest Submit
+  document.getElementById('tradeForm').addEventListener('submit', handleAddBacktestTrade);
+
+  // Real Journal Submit
+  const realTradeForm = document.getElementById('realTradeForm');
+  if (realTradeForm) {
+    realTradeForm.addEventListener('submit', handleAddRealTrade);
+    document.getElementById('realTradeTvPoints').addEventListener('input', recalculateRealJournalPreview);
+    document.getElementById('realTradeRiskPct').addEventListener('input', recalculateRealJournalPreview);
+    document.getElementById('realTradeRR').addEventListener('input', recalculateRealJournalPreview);
+  }
+
+  // Clear Button
+  document.getElementById('btnClearData').addEventListener('click', handleClearData);
+
+  // Backtest Table Filters
+  document.getElementById('filterAll').addEventListener('click', () => setBacktestFilter('all'));
+  document.getElementById('filterWins').addEventListener('click', () => setBacktestFilter('win'));
+  document.getElementById('filterLosses').addEventListener('click', () => setBacktestFilter('loss'));
+
+  // CSV Export Buttons
+  document.getElementById('btnExportCsv').addEventListener('click', () => exportTradesToCsv('backtest'));
+  const btnExportReal = document.getElementById('btnExportRealCsv');
+  if (btnExportReal) {
+    btnExportReal.addEventListener('click', () => exportTradesToCsv('real'));
+  }
+
+  // Calculator Listeners
+  const calcBal = document.getElementById('calcBalInput');
+  const calcRisk = document.getElementById('calcRiskPctInput');
+  const calcSl = document.getElementById('calcSlPointsInput');
+  const calcRR = document.getElementById('calcRRInput');
+  const calcLev = document.getElementById('calcLeverageInput');
+
+  if (calcBal) calcBal.addEventListener('input', runMyfxbookCalculator);
+  if (calcRisk) calcRisk.addEventListener('input', runMyfxbookCalculator);
+  if (calcSl) calcSl.addEventListener('input', runMyfxbookCalculator);
+  if (calcRR) calcRR.addEventListener('input', runMyfxbookCalculator);
+  if (calcLev) calcLev.addEventListener('change', runMyfxbookCalculator);
+
+  // Calculator Quick Balances
+  document.querySelectorAll('.btnCalcQuickBal').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.btnCalcQuickBal').forEach(b => b.className = 'btnCalcQuickBal px-2 py-0.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-[11px] font-mono');
+      btn.className = 'btnCalcQuickBal px-2 py-0.5 bg-gold-500/20 text-gold-300 border border-gold-500/40 rounded text-[11px] font-mono font-bold';
+      calcBal.value = btn.dataset.val;
+      runMyfxbookCalculator();
+    });
+  });
+
+  // Calculator Quick Risk
+  document.querySelectorAll('.btnCalcQuickRisk').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.btnCalcQuickRisk').forEach(b => b.className = 'btnCalcQuickRisk px-2 py-0.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-[11px] font-mono');
+      btn.className = 'btnCalcQuickRisk px-2 py-0.5 bg-gold-500/20 text-gold-300 border border-gold-500/40 rounded text-[11px] font-mono font-bold';
+      calcRisk.value = btn.dataset.val;
+      runMyfxbookCalculator();
+    });
+  });
+
+  // Calculator Quick SL Points
+  document.querySelectorAll('.btnCalcQuickSl').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.btnCalcQuickSl').forEach(b => b.className = 'btnCalcQuickSl px-2 py-0.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-[11px] font-mono');
+      btn.className = 'btnCalcQuickSl px-2 py-0.5 bg-gold-500/20 text-gold-300 border border-gold-500/40 rounded text-[11px] font-mono font-bold';
+      calcSl.value = btn.dataset.val;
+      runMyfxbookCalculator();
+    });
+  });
+
+  // Copy Lot Button
+  const btnCopyLot = document.getElementById('btnCopyLot');
+  if (btnCopyLot) {
+    btnCopyLot.addEventListener('click', () => {
+      const lotVal = document.getElementById('myfxHeroLot').textContent;
+      navigator.clipboard.writeText(lotVal).then(() => {
+        const textSpan = document.getElementById('btnCopyLotText');
+        const orig = textSpan.textContent;
+        textSpan.textContent = '¡Copiado!';
+        setTimeout(() => { textSpan.textContent = orig; }, 1800);
+      }).catch(err => {
+        console.warn('Clipboard failed:', err);
+      });
+    });
+  }
+
+  // Sync Balance to Calculator Button
+  const btnSyncBal = document.getElementById('btnSyncBalToCalc');
+  if (btnSyncBal) {
+    btnSyncBal.addEventListener('click', () => {
+      const activeBal = appState.activeTab === 'real'
+        ? (appState.real.summary.current_balance || appState.config.initial_balance)
+        : (appState.backtest.summary.current_balance || appState.config.initial_balance);
+      calcBal.value = Math.round(activeBal);
+      runMyfxbookCalculator();
+    });
+  }
+
+  // Settings Modal
+  const modalSettings = document.getElementById('modalSettings');
+  document.getElementById('btnOpenSettings').addEventListener('click', () => {
+    modalSettings.classList.remove('hidden');
+    initIcons();
+  });
+  document.getElementById('btnCloseSettings').addEventListener('click', () => modalSettings.classList.add('hidden'));
+  document.getElementById('btnSaveSettings').addEventListener('click', handleSaveSettings);
+
+  // Edit Trade Modal
+  const modalEdit = document.getElementById('modalEditTrade');
+  document.getElementById('btnCloseEditModal').addEventListener('click', () => modalEdit.classList.add('hidden'));
+  document.getElementById('btnCancelEditTrade').addEventListener('click', () => modalEdit.classList.add('hidden'));
+  document.getElementById('btnSaveEditedTrade').addEventListener('click', handleSaveEditedTrade);
+}
+
+function setBacktestFilter(filter) {
+  appState.backtest.filter = filter;
+  const btnAll = document.getElementById('filterAll');
+  const btnWins = document.getElementById('filterWins');
+  const btnLosses = document.getElementById('filterLosses');
+
+  btnAll.className = filter === 'all' 
+    ? 'px-2.5 py-1 rounded text-white font-semibold bg-gray-800' 
+    : 'px-2.5 py-1 rounded text-gray-400 hover:text-white';
+  btnWins.className = filter === 'win' 
+    ? 'px-2.5 py-1 rounded text-emerald-400 font-semibold bg-gray-800' 
+    : 'px-2.5 py-1 rounded text-gray-400 hover:text-emerald-400';
+  btnLosses.className = filter === 'loss' 
+    ? 'px-2.5 py-1 rounded text-rose-400 font-semibold bg-gray-800' 
+    : 'px-2.5 py-1 rounded text-gray-400 hover:text-rose-400';
+
+  renderBacktestTradesTable();
+  initIcons();
+}
+
+// ----------------------------------------------------
+// Handlers: Add Trades
+// ----------------------------------------------------
+async function handleAddBacktestTrade(e) {
+  e.preventDefault();
+
+  const curBal = (appState.backtest.summary && appState.backtest.summary.current_balance !== undefined) 
+    ? appState.backtest.summary.current_balance 
+    : appState.config.initial_balance;
+
+  const date = document.getElementById('tradeDate').value || new Date().toISOString().slice(0, 16).replace('T', ' ');
+  const direction = document.getElementById('tradeDirection').value;
+  
+  const rawInput = document.getElementById('tradeTvPoints').value;
+  const { points, price } = parseTradingViewInput(rawInput);
+  
+  const tradeRR = parseFloat(document.getElementById('tradeSpecificRR').value) || parseFloat(appState.config.rr_ratio) || 1.0;
+  const riskPct = parseFloat(appState.config.risk_pct) || 5.0;
+  const strategy = document.getElementById('tradeStrategy').value || 'General';
+  const notes = document.getElementById('tradeNotes').value || '';
+  
+  const statusRadio = document.querySelector('input[name="tradeResult"]:checked');
+  const status = statusRadio ? statusRadio.value : 'win';
+
+  // Pure % Compounding
+  let retPct = 0.0;
+  if (status === 'win') {
+    retPct = riskPct * tradeRR;
+  } else if (status === 'loss') {
+    retPct = -riskPct;
+  }
+  const pnl = roundNum(curBal * (retPct / 100.0), 2);
+  const dollarRisk = roundNum(curBal * (riskPct / 100.0), 2);
+  const rawLot = dollarRisk / points;
+  const lot_size = Math.max(0.01, roundNum(rawLot, 2));
+  const leverage = parseFloat(appState.config.leverage) || 300;
+  const margin_used = roundNum((2720.0 * 100 * lot_size / leverage), 2);
+
+  const payload = {
+    mode: 'backtest',
+    date,
+    direction,
+    tv_points: points,
+    price_dist: price,
+    sl_points: points,
+    tp_points: Math.round(points * tradeRR),
+    sl_distance: price,
+    risk_pct: riskPct,
+    ret_pct: retPct,
+    dollar_risk: dollarRisk,
+    lot_size,
+    suggested_lot: lot_size,
+    margin_used,
+    status,
+    pnl,
+    rr: tradeRR,
+    strategy,
+    notes
+  };
+
+  try {
+    const res = await fetch('/api/trades?mode=backtest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      appState.backtest.summary = data.analytics.summary;
+      appState.backtest.equityCurve = data.analytics.equity_curve;
+      appState.backtest.trades = data.analytics.trades;
+      
+      renderBacktestDashboard();
+      recalculateTradingViewValues();
+      setCurrentDateTime();
+      document.getElementById('tradeNotes').value = '';
+    }
+  } catch (err) {
+    console.error('Error al guardar trade:', err);
+    alert('Error al registrar la operación al backtest');
+  }
+}
+
+async function handleAddRealTrade(e) {
+  e.preventDefault();
+
+  const curBal = (appState.real.summary && appState.real.summary.current_balance !== undefined) 
+    ? appState.real.summary.current_balance 
+    : appState.config.initial_balance;
+
+  const date = document.getElementById('realTradeDate').value || new Date().toISOString().slice(0, 16).replace('T', ' ');
+  const session = document.getElementById('realTradeSession').value || 'New York';
+  const direction = document.getElementById('realTradeDirection').value || 'BUY';
+
+  const rawInput = document.getElementById('realTradeTvPoints').value;
+  const { points, price } = parseTradingViewInput(rawInput);
+
+  const riskPct = parseFloat(document.getElementById('realTradeRiskPct').value) || 5.0;
+  const rr = parseFloat(document.getElementById('realTradeRR').value) || 1.0;
+  const strategy = document.getElementById('realTradeStrategy').value || 'General';
+  const emotion = document.getElementById('realTradeEmotion').value || 'Plan Seguido 100%';
+  const tvChartUrl = document.getElementById('realTradeChartUrl').value || '';
+
+  const statusRadio = document.querySelector('input[name="realTradeResult"]:checked');
+  const status = statusRadio ? statusRadio.value : 'win';
+
+  let retPct = 0.0;
+  if (status === 'win') {
+    retPct = riskPct * rr;
+  } else if (status === 'loss') {
+    retPct = -riskPct;
+  }
+  const pnl = roundNum(curBal * (retPct / 100.0), 2);
+  const dollarRisk = roundNum(curBal * (riskPct / 100.0), 2);
+  const rawLot = dollarRisk / points;
+  const lot_size = Math.max(0.01, roundNum(rawLot, 2));
+  const leverage = parseFloat(appState.config.leverage) || 300;
+  const margin_used = roundNum((2720.0 * 100 * lot_size / leverage), 2);
+
+  const payload = {
+    mode: 'real',
+    date,
+    session,
+    direction,
+    tv_points: points,
+    price_dist: price,
+    sl_points: points,
+    tp_points: Math.round(points * rr),
+    sl_distance: price,
+    risk_pct: riskPct,
+    ret_pct: retPct,
+    dollar_risk: dollarRisk,
+    suggested_lot: lot_size,
+    lot_size,
+    margin_used,
+    status,
+    pnl,
+    rr,
+    strategy,
+    emotion,
+    tv_chart_url: tvChartUrl,
+    notes: `Sesión ${session} • ${emotion}`
+  };
+
+  try {
+    const res = await fetch('/api/trades?mode=real', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      appState.real.summary = data.analytics.summary;
+      appState.real.equityCurve = data.analytics.equity_curve;
+      appState.real.trades = data.analytics.trades;
+      
+      renderRealJournalDashboard();
+      setCurrentDateTime();
+      document.getElementById('realTradeChartUrl').value = '';
+    }
+  } catch (err) {
+    console.error('Error al guardar trade real:', err);
+    alert('Error al registrar operación en bitácora real');
+  }
+}
+
+// ----------------------------------------------------
+// Handlers: Delete, Edit, Clear
+// ----------------------------------------------------
+window.handleDeleteTrade = async function(id, mode = 'backtest') {
+  const modeText = mode === 'real' ? 'la bitácora real' : 'el backtesting';
+  if (!confirm(`¿Deseas eliminar esta operación de ${modeText}?`)) return;
+
+  try {
+    const res = await fetch(`/api/trades/${id}?mode=${mode}`, { method: 'DELETE' });
+    if (res.ok) {
+      const data = await res.json();
+      if (mode === 'real') {
+        appState.real.summary = data.summary;
+        appState.real.equityCurve = data.equity_curve;
+        appState.real.trades = data.trades;
+        renderRealJournalDashboard();
+      } else {
+        appState.backtest.summary = data.summary;
+        appState.backtest.equityCurve = data.equity_curve;
+        appState.backtest.trades = data.trades;
+        renderBacktestDashboard();
+        recalculateTradingViewValues();
+      }
+    }
+  } catch (err) {
+    console.error(`Error eliminando trade (${mode}):`, err);
+  }
+};
+
+window.handleOpenEditModal = function(id, mode = 'backtest') {
+  const tradeList = mode === 'real' ? appState.real.trades : appState.backtest.trades;
+  const trade = tradeList.find(t => t.id === id);
+  if (!trade) return;
+
+  const pts = trade.tv_points || trade.sl_points || (trade.sl_distance ? Math.round(trade.sl_distance * 100) : 250);
+  document.getElementById('editTradeId').value = trade.id;
+  document.getElementById('editTradeMode').value = mode;
+  document.getElementById('editTradeTvPoints').value = pts;
+  document.getElementById('editTradeRR').value = Number(trade.rr || 1.0).toFixed(1);
+  document.getElementById('editTradeDirection').value = trade.direction || 'BUY';
+  document.getElementById('editTradeStatus').value = trade.status || 'win';
+  document.getElementById('editTradeStrategy').value = trade.strategy || '';
+  document.getElementById('editTradeEmotion').value = trade.emotion || 'Plan Seguido 100%';
+  document.getElementById('editTradeChartUrl').value = trade.tv_chart_url || '';
+
+  document.getElementById('modalEditTrade').classList.remove('hidden');
+  initIcons();
+};
+
+async function handleSaveEditedTrade() {
+  const id = document.getElementById('editTradeId').value;
+  const mode = document.getElementById('editTradeMode').value || 'backtest';
+  if (!id) return;
+
+  const rawInput = document.getElementById('editTradeTvPoints').value;
+  const { points, price } = parseTradingViewInput(rawInput);
+  const tradeRR = parseFloat(document.getElementById('editTradeRR').value) || 1.0;
+  const status = document.getElementById('editTradeStatus').value;
+  const direction = document.getElementById('editTradeDirection').value;
+  const strategy = document.getElementById('editTradeStrategy').value;
+  const emotion = document.getElementById('editTradeEmotion').value;
+  const tvChartUrl = document.getElementById('editTradeChartUrl').value;
+
+  const payload = {
+    mode,
+    tv_points: points,
+    price_dist: price,
+    sl_points: points,
+    tp_points: Math.round(points * tradeRR),
+    sl_distance: price,
+    direction,
+    status,
+    rr: tradeRR,
+    rr_custom: tradeRR,
+    strategy,
+    emotion,
+    tv_chart_url: tvChartUrl
+  };
+
+  try {
+    const res = await fetch(`/api/trades/${id}?mode=${mode}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (mode === 'real') {
+        appState.real.summary = data.summary;
+        appState.real.equityCurve = data.equity_curve;
+        appState.real.trades = data.trades;
+        renderRealJournalDashboard();
+      } else {
+        appState.backtest.summary = data.summary;
+        appState.backtest.equityCurve = data.equity_curve;
+        appState.backtest.trades = data.trades;
+        renderBacktestDashboard();
+        recalculateTradingViewValues();
+      }
+      document.getElementById('modalEditTrade').classList.add('hidden');
+    }
+  } catch (err) {
+    console.error('Error editando trade:', err);
+    alert('Error al actualizar la operación');
+  }
+}
+
+async function handleClearData() {
+  const activeTab = appState.activeTab;
+  const mode = activeTab === 'real' ? 'real' : 'backtest';
+  const label = mode === 'real' ? 'la BITÁCORA REAL' : 'el BACKTESTING';
+
+  if (!confirm(`⚠️ ¿Estás seguro de que deseas LIMPIAR TODAS las operaciones de ${label}?`)) return;
+
+  try {
+    const res = await fetch('/api/trades/clear', { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (mode === 'real') {
+        appState.real.summary = data.summary;
+        appState.real.equityCurve = data.equity_curve;
+        appState.real.trades = data.trades;
+        renderRealJournalDashboard();
+      } else {
+        appState.backtest.summary = data.summary;
+        appState.backtest.equityCurve = data.equity_curve;
+        appState.backtest.trades = data.trades;
+        renderBacktestDashboard();
+        recalculateTradingViewValues();
+      }
+    }
+  } catch (err) {
+    console.error(`Error limpiando datos (${mode}):`, err);
+  }
+}
+
+// ----------------------------------------------------
+// Settings & Export
+// ----------------------------------------------------
+async function handleSaveSettings() {
+  const initial_balance = parseFloat(document.getElementById('settingInitialBalance').value);
+  const risk_pct = parseFloat(document.getElementById('settingRiskPct').value);
+  const rr_ratio = parseFloat(document.getElementById('settingRR').value);
+  const leverage = parseFloat(document.getElementById('settingLeverage').value);
+
+  const payload = { initial_balance, risk_pct, rr_ratio, leverage };
+
+  try {
+    const res = await fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      appState.config = data.config || appState.config;
+      if (data.analytics) {
+        appState.backtest.summary = data.analytics.summary;
+        appState.backtest.equityCurve = data.analytics.equity_curve;
+        appState.backtest.trades = data.analytics.trades;
+      }
+      
+      updateConfigUI();
+      document.getElementById('modalSettings').classList.add('hidden');
+      renderBacktestDashboard();
+      recalculateTradingViewValues();
+      runMyfxbookCalculator();
+    }
+  } catch (err) {
+    console.error('Error guardando configuración:', err);
+  }
+}
+
+function exportTradesToCsv(mode = 'backtest') {
+  const trades = mode === 'real' ? appState.real.trades : appState.backtest.trades;
+  if (!trades || trades.length === 0) {
+    alert(`No hay operaciones en ${mode === 'real' ? 'la bitácora real' : 'el backtesting'} para exportar.`);
+    return;
+  }
+
+  const headers = mode === 'real'
+    ? ['#', 'Fecha', 'Sesion', 'Direccion', 'StopLoss_Pts', 'TakeProfit_Pts', 'Ratio_RR', 'Riesgo_USD', 'Lote_MT4', 'Resultado', 'PnL_USD', 'Balance', 'Estrategia', 'Psicologia_Emocion', 'URL_TradingView']
+    : ['#', 'Fecha', 'Direccion', 'StopLoss_Pts', 'TakeProfit_Pts', 'Ratio_RR', 'Riesgo_Compuesto_USD', 'Lote_Sugerido', 'Margen', 'Resultado', 'PnL_USD', 'Balance_Compuesto', 'Estrategia', 'Notas'];
+
+  const rows = trades.map((t, idx) => {
+    let pts = t.tv_points || t.sl_points || 250;
+    const priceVal = (pts / 100).toFixed(2);
+    const tradeRR = Number(t.rr || 1.0);
+    const tpPts = Math.round(pts * tradeRR);
+    const tpPriceVal = (tpPts / 100).toFixed(2);
+
+    if (mode === 'real') {
+      return [
+        idx + 1,
+        `"${t.date || ''}"`,
+        `"${t.session || 'NY'}"`,
+        t.direction,
+        `"${pts} ($${priceVal})"`,
+        `"${tpPts} ($${tpPriceVal})"`,
+        `"1:${tradeRR.toFixed(1)}"`,
+        t.dollar_risk || 0,
+        t.suggested_lot || t.lot_size || 0.01,
+        t.status,
+        t.pnl,
+        t.balance_after,
+        `"${t.strategy || ''}"`,
+        `"${t.emotion || ''}"`,
+        `"${t.tv_chart_url || ''}"`
+      ];
+    } else {
+      return [
+        idx + 1,
+        `"${t.date || ''}"`,
+        t.direction,
+        `"${pts} ($${priceVal})"`,
+        `"${tpPts} ($${tpPriceVal})"`,
+        `"1:${tradeRR.toFixed(1)}"`,
+        t.risk_budget || t.dollar_risk || 0,
+        t.lot_size || 0.01,
+        t.margin_used || 0,
+        t.status,
+        t.pnl,
+        t.balance_after,
+        `"${t.strategy || ''}"`,
+        `"${(t.notes || '').replace(/"/g, '""')}"`
+      ];
+    }
+  });
+
+  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `xauusd_${mode}_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+
+// ----------------------------------------------------
+// GOLD MACRO BIAS & 1-TRADE PROTOCOL ENGINE
+// ----------------------------------------------------
+let goldBiasState = null;
+
+async function loadGoldBiasData() {
+  try {
+    const res = await fetch("/api/gold-bias");
+    if (!res.ok) return;
+    const data = await res.json();
+    goldBiasState = data;
+    renderGoldBiasUI(data);
+  } catch (err) {
+    console.error("Error loading gold bias:", err);
+  }
+}
+
+function renderGoldBiasUI(data) {
+  if (!data) return;
+
+  const titleText = document.getElementById("biasTitleText");
+  if (titleText && data.bias_title) titleText.textContent = data.bias_title;
+
+  const headline = document.getElementById("biasHeadlineText");
+  if (headline && data.headline) headline.textContent = data.headline;
+
+  const summary = document.getElementById("biasSummaryText");
+  if (summary && data.macro_summary) summary.textContent = data.macro_summary;
+
+  const confBadge = document.getElementById("biasConfidenceBadge");
+  if (confBadge && data.confidence_label) confBadge.textContent = data.confidence_label;
+
+  // Hero Direction Badge
+  const dirBadge = document.getElementById("biasDirectionBadge");
+  if (dirBadge) {
+    if (data.bias === "BULLISH") {
+      dirBadge.className = "px-3 py-1 rounded-xl font-black text-xs font-mono bg-emerald-950 text-emerald-300 border border-emerald-700 flex items-center gap-1.5 shadow-sm";
+      dirBadge.innerHTML = '<i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-400"></i><span>ALCISTA (BUY-ONLY)</span>';
+    } else if (data.bias === "BEARISH") {
+      dirBadge.className = "px-3 py-1 rounded-xl font-black text-xs font-mono bg-red-950 text-red-300 border border-red-700 flex items-center gap-1.5 shadow-sm";
+      dirBadge.innerHTML = '<i data-lucide="trending-down" class="w-3.5 h-3.5 text-red-400"></i><span>BAJISTA (SELL-ONLY)</span>';
+    } else {
+      dirBadge.className = "px-3 py-1 rounded-xl font-black text-xs font-mono bg-yellow-950 text-yellow-300 border border-yellow-700 flex items-center gap-1.5 shadow-sm";
+      dirBadge.innerHTML = '<i data-lucide="minus-circle" class="w-3.5 h-3.5 text-yellow-400"></i><span>NEUTRAL / RANGO</span>';
+    }
+  }
+
+  // Render Key Levels in Unified Section
+  if (data.technical_zones) {
+    const elRes = document.getElementById("biasResistanceZone");
+    const elSup = document.getElementById("biasSupportZone");
+    const elInv = document.getElementById("biasInvalidationLevel");
+    if (elRes && data.technical_zones.key_resistance) {
+      elRes.textContent = "$" + data.technical_zones.key_resistance.replace(/^\$/, "");
+    }
+    if (elSup && data.technical_zones.key_support) {
+      elSup.textContent = "$" + data.technical_zones.key_support.replace(/^\$/, "");
+    }
+    if (elInv && data.technical_zones.invalidation) {
+      elInv.textContent = "$" + data.technical_zones.invalidation.replace(/^\$/, "");
+    }
+  }
+
+  // Render Smart Money Flow Barometer
+  const flowVerdict = document.getElementById("moneyFlowVerdict");
+  if (flowVerdict && data.money_flow && data.money_flow.verdict) {
+    flowVerdict.textContent = data.money_flow.verdict;
+  }
+  const flowSummary = document.getElementById("moneyFlowSummary");
+  if (flowSummary && data.money_flow && data.money_flow.summary) {
+    flowSummary.textContent = data.money_flow.summary;
+  }
+
+  const flowAssetsContainer = document.getElementById("moneyFlowAssetsContainer");
+  if (flowAssetsContainer && data.money_flow && Array.isArray(data.money_flow.assets)) {
+    flowAssetsContainer.innerHTML = data.money_flow.assets.map(asset => {
+      const isBull = asset.trend === "bullish";
+      const isBear = asset.trend === "bearish";
+      const tagBg = isBull 
+        ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" 
+        : (isBear ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-gray-800 text-gray-300 border-gray-700");
+      const barColor = isBull ? "bg-emerald-500" : (isBear ? "bg-red-500" : "bg-yellow-500");
+      const barWidth = isBull ? "w-4/5" : (isBear ? "w-4/5" : "w-1/2");
+      const statCol = isBull ? "text-emerald-400" : (isBear ? "text-red-400" : "text-yellow-400");
+      
+      return `
+        <div class="p-3.5 rounded-xl bg-gray-900/90 border border-gray-800 space-y-2 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-black text-white font-mono">${asset.symbol}</span>
+              <span class="text-[11px] text-gray-400 font-medium">${asset.name}</span>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${tagBg}">${asset.action}</span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-mono font-bold ${statCol}">${asset.stat}</span>
+            <span class="text-[10px] text-gray-500 uppercase font-mono">${isBull ? "Entrada Neta" : (isBear ? "Salida Neta" : "Neutro")}</span>
+          </div>
+          <div class="w-full bg-gray-800/80 rounded-full h-1.5 overflow-hidden">
+            <div class="h-full rounded-full ${barColor} ${barWidth} transition-all duration-500"></div>
+          </div>
+          <p class="text-[11px] text-gray-400 leading-tight">${asset.desc}</p>
+        </div>
+      `;
+    }).join("");
+  }
+
+  const tabBadge = document.getElementById("tabBadgeBias");
+  if (tabBadge) {
+    const isBear = data.bias === "BEARISH";
+    const isBull = data.bias === "BULLISH";
+    tabBadge.textContent = (isBear ? "BAJISTA" : (isBull ? "ALCISTA" : "NEUTRAL")) + " " + (data.confidence || 85) + "%";
+    tabBadge.className = isBear 
+      ? "px-2 py-0.5 rounded-full text-[10px] font-mono bg-red-950 text-red-300 border border-red-800"
+      : (isBull 
+          ? "px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800"
+          : "px-2 py-0.5 rounded-full text-[10px] font-mono bg-yellow-950 text-yellow-300 border border-yellow-800");
+  }
+
+  if (window._setSetupMode) {
+    if (data.bias === "BULLISH") {
+      window._setSetupMode("buy");
+    } else {
+      window._setSetupMode("sell");
+    }
+  }
+
+  initIcons();
+}
+
+// -------------------------------------------------------------
+// Reloj Institucional y Detección en Tiempo Real de Sesión
+// -------------------------------------------------------------
+let marketClockInterval = null;
+
+function startMarketClock() {
+  function tick() {
+    const now = new Date();
+    
+    // Obtener componentes en zona horaria America/New_York
+    const nyFormatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York",
+      weekday: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false
+    });
+    
+    const parts = nyFormatter.formatToParts(now);
+    const getPart = type => {
+      const p = parts.find(x => x.type === type);
+      return p ? p.value : "";
+    };
+    
+    const weekday = getPart("weekday"); // "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+    const hour = parseInt(getPart("hour"), 10) || 0;
+    const min = parseInt(getPart("minute"), 10) || 0;
+    const sec = parseInt(getPart("second"), 10) || 0;
+
+    const nyClockEl = document.getElementById("marketNyClock");
+    if (nyClockEl) {
+      nyClockEl.textContent = `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")} NY (ET)`;
+    }
+
+    const localClockEl = document.getElementById("marketLocalClock");
+    if (localClockEl) {
+      localClockEl.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    }
+
+    const localKillzoneEl = document.getElementById("localKillzoneTime");
+    if (localKillzoneEl) {
+      try {
+        const nyStr = now.toLocaleString("en-US", { timeZone: "America/New_York" });
+        const nyDate = new Date(nyStr);
+        const diffMs = now.getTime() - nyDate.getTime();
+        
+        const t1 = new Date(nyDate);
+        t1.setHours(9, 45, 0, 0);
+        const local1 = new Date(t1.getTime() + diffMs);
+        
+        const t2 = new Date(nyDate);
+        t2.setHours(10, 45, 0, 0);
+        const local2 = new Date(t2.getTime() + diffMs);
+        
+        const fmt = d => d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+        localKillzoneEl.textContent = `🎯 Tu hora local: ${fmt(local1)} – ${fmt(local2)}`;
+      } catch (e) {
+        localKillzoneEl.textContent = "🎯 Tu hora local: 08:45 AM – 09:45 AM";
+      }
+    }
+
+    // Reglas del Mercado Spot XAU/USD (Oro):
+    // Apertura: Domingo 18:00 NY
+    // Cierre: Viernes 17:00 NY
+    // Pausa diaria / Rollover bancario: Lunes a Jueves 17:00 - 18:00 NY
+    // Fin de semana: Viernes >= 17:00 NY, todo Sábado, Domingo < 18:00 NY
+    const isFridayClosed = (weekday === "Fri" && hour >= 17);
+    const isSaturday = (weekday === "Sat");
+    const isSundayClosed = (weekday === "Sun" && hour < 18);
+    const isWeekend = isFridayClosed || isSaturday || isSundayClosed;
+
+    let status = {
+      badgeText: "MERCADO CERRADO",
+      badgeStyle: "bg-red-950/80 border-red-500/50 text-red-400",
+      dotStyle: "bg-red-500",
+      sessionName: "FIN DE SEMANA",
+      desc: "El mercado Spot de Oro cerró el viernes 17:00 NY. Reapertura: Domingo 18:00 NY.",
+      trafficClass: "bg-red-500/20 text-red-400 border-red-500/50",
+      trafficText: "🔴 MERCADO CERRADO (Fin de semana)",
+      countdown: "Reapertura: Domingo 18:00 NY"
+    };
+
+    if (isWeekend) {
+      // Calcular horas faltantes hacia el Domingo a las 18:00 NY
+      // Mon=1..Fri=5, Sat=6, Sun=0
+      let daysRemaining = 0;
+      if (weekday === "Fri") daysRemaining = 2; // Fri 17:00 to Sun 18:00
+      else if (weekday === "Sat") daysRemaining = 1; // Sat to Sun 18:00
+      else if (weekday === "Sun") daysRemaining = 0;
+
+      const targetMins = (daysRemaining * 24 * 60) + (18 * 60);
+      const currentMins = (hour * 60) + min;
+      const diffMins = Math.max(0, targetMins - currentMins);
+      const hDiff = Math.floor(diffMins / 60);
+      const mDiff = diffMins % 60;
+      const sDiff = 59 - sec;
+
+      status = {
+        badgeText: "🔴 MERCADO CERRADO (Fin de semana)",
+        badgeStyle: "bg-red-950/80 border-red-500/50 text-red-400 shadow-lg shadow-red-950/40",
+        dotStyle: "bg-red-500 animate-pulse",
+        sessionName: "FIN DE SEMANA · BANCOS CENTRALES EN RECESO",
+        desc: `Mercado Spot de Oro inactivo. Próxima apertura bancaria institucional: Domingo 18:00 NY (En ${hDiff}h ${mDiff}m ${sDiff}s).`,
+        trafficClass: "bg-red-500/20 text-red-400 border-red-500/50",
+        trafficText: `🔴 CERRADO (Abre en ${hDiff}h ${mDiff}m)`,
+        countdown: `Domingo 18:00 NY (Faltan ${hDiff}h ${mDiff}m)`
+      };
+    } else {
+      // Día de semana (Lunes a Viernes antes de 17:00 NY o Domingo tras 18:00 NY)
+      const timeInMins = (hour * 60) + min;
+
+      if (timeInMins >= 17 * 60 && timeInMins < 18 * 60) {
+        // Rollover bancario diario
+        status = {
+          badgeText: "⏸️ PAUSA DIARIA ROLLOVER",
+          badgeStyle: "bg-amber-950/80 border-amber-500/50 text-amber-400",
+          dotStyle: "bg-amber-500 animate-pulse",
+          sessionName: "DAILY ROLLOVER (17:00 - 18:00 NY)",
+          desc: "Pausa diaria de mantenimiento bancario y cobro de swaps. Spreads anómalos. Prohibido ejecutar entradas.",
+          trafficClass: "bg-amber-500/20 text-amber-400 border-amber-500/50",
+          trafficText: "⏸️ PAUSA ROLLOVER / SPREADS ALTOS",
+          countdown: "Reapertura de spreads a las 18:00 NY"
+        };
+      } else if (timeInMins >= 8 * 60 && timeInMins < 11 * 60 + 30) {
+        // Ventana Dorada New York (08:00 - 11:30 NY)
+        if (timeInMins >= 9 * 60 + 30 && timeInMins < 9 * 60 + 45) {
+          status = {
+            badgeText: "🔔 CAMPANAZO WALL STREET (09:30 AM NY)",
+            badgeStyle: "bg-amber-950/80 border-amber-500/50 text-amber-300 shadow-lg shadow-amber-950/40",
+            dotStyle: "bg-amber-400 animate-ping",
+            sessionName: "APERTURA EQUITIES WALL STREET (Alta Volatilidad)",
+            desc: "Primeros 15 min de la bolsa de NY. Entrada masiva de fondos y barridas iniciales. Esperar absorción para disparar el gatillo.",
+            trafficClass: "bg-amber-500/20 text-amber-300 border-amber-500/50",
+            trafficText: "🟡 EN ESPERA / ABSORBIENDO CAMPANAZO",
+            countdown: "Ventana Sniper activa tras 09:45 NY"
+          };
+        } else if (timeInMins >= 8 * 60 + 30 && timeInMins < 8 * 60 + 40) {
+          status = {
+            badgeText: "⚠️ LIBERACIÓN DATOS MACRO (08:30 AM NY)",
+            badgeStyle: "bg-red-950/80 border-red-500/50 text-red-300 shadow-lg shadow-red-950/40",
+            dotStyle: "bg-red-400 animate-ping",
+            sessionName: "PUBLICACIÓN NOTICIAS EE.UU. (CPI / NFP / PCE)",
+            desc: "Expansión violenta de spreads por noticias. Esperar 10 min de digestión antes de buscar operaciones.",
+            trafficClass: "bg-red-500/20 text-red-300 border-red-500/50",
+            trafficText: "⚠️ ALERTA NOTICIA / NO DISPARAR",
+            countdown: "Digestión de noticia en curso"
+          };
+        } else {
+          status = {
+            badgeText: "🟢 VENTANA DORADA NEW YORK ACTIVA",
+            badgeStyle: "bg-emerald-950/80 border-emerald-500/50 text-emerald-300 shadow-lg shadow-emerald-950/40",
+            dotStyle: "bg-emerald-400 animate-pulse",
+            sessionName: "LONDRES + NEW YORK OVERLAP (Máxima Liquidez Bancaria)",
+            desc: "Spreads mínimos y volumen bancario óptimo. APROBADO para buscar el único trade del día con Heikin Ashi M5.",
+            trafficClass: "bg-emerald-500/20 text-emerald-300 border-emerald-500/50",
+            trafficText: "🟢 AUTORIZADO (VENTANA DORADA ACTIVA)",
+            countdown: "Cierre de ventana a las 11:30 NY"
+          };
+        }
+      } else if (timeInMins >= 11 * 60 + 30 && timeInMins < 17 * 60) {
+        status = {
+          badgeText: "⚪ SESIÓN NY TARDE (London Fix Cerrado)",
+          badgeStyle: "bg-gray-900/90 border-gray-700 text-gray-300",
+          dotStyle: "bg-gray-500",
+          sessionName: "NEW YORK AFTERNOON (Volumen Decreciente)",
+          desc: "Londres cerró sus mesas de dinero a las 11:30 NY. El volumen de oro cae un 60%. Según las reglas institucionales, NO se deben abrir nuevos trades.",
+          trafficClass: "bg-gray-800 text-gray-400 border-gray-700",
+          trafficText: "⚪ FUERA DE HORARIO / LONDON FIX CERRADO",
+          countdown: "Sesión completada por hoy"
+        };
+      } else if (timeInMins >= 3 * 60 && timeInMins < 8 * 60) {
+        status = {
+          badgeText: "🇬🇧 SESIÓN LONDRES ACTIVA",
+          badgeStyle: "bg-blue-950/80 border-blue-500/50 text-blue-300",
+          dotStyle: "bg-blue-400 animate-pulse",
+          sessionName: "SESIÓN LONDRES (Pre-New York)",
+          desc: "Expansión y manipulación del rango asiático. Monitorear resistencias para preparar la venta en New York.",
+          trafficClass: "bg-blue-500/20 text-blue-300 border-blue-500/50",
+          trafficText: "🇬🇧 LONDRES ACTIVA (Pre-NY)",
+          countdown: "Ventana Dorada NY abre a las 08:00 NY"
+        };
+      } else {
+        status = {
+          badgeText: "🌏 SESIÓN ASIA (Sydney / Tokio)",
+          badgeStyle: "bg-indigo-950/80 border-indigo-500/50 text-indigo-300",
+          dotStyle: "bg-indigo-400",
+          sessionName: "SESIÓN ASIÁTICA (Consolidación de Rangos)",
+          desc: "Creación de zonas de liquidez (Asian High / Asian Low). No operar scalping; esperar a Londres o NY.",
+          trafficClass: "bg-indigo-500/20 text-indigo-300 border-indigo-500/50",
+          trafficText: "🌏 ASIA ACTIVA (Consolidación)",
+          countdown: "Londres abre a las 03:00 NY"
+        };
+      }
+    }
+
+    // Actualizar elementos visuales en el DOM
+    const badgeEl = document.getElementById("marketLiveBadge");
+    if (badgeEl) {
+      badgeEl.className = `px-3.5 py-1.5 rounded-xl font-black text-xs sm:text-sm font-mono border flex items-center gap-2 ${status.badgeStyle}`;
+      badgeEl.innerHTML = `<span class="w-2.5 h-2.5 rounded-full ${status.dotStyle}"></span><span>${status.badgeText}</span>`;
+    }
+
+    const sessionNameEl = document.getElementById("marketSessionName");
+    if (sessionNameEl) sessionNameEl.textContent = status.sessionName;
+
+    const sessionDescEl = document.getElementById("marketSessionDescription");
+    if (sessionDescEl) sessionDescEl.textContent = status.desc;
+
+    const trafficEl = document.getElementById("nyTrafficLight");
+    if (trafficEl) {
+      trafficEl.className = `px-3 py-1 rounded-lg text-xs font-black border flex items-center gap-1.5 font-mono ${status.trafficClass}`;
+      trafficEl.innerHTML = `<span>${status.trafficText}</span>`;
+    }
+  }
+
+  tick();
+  if (marketClockInterval) clearInterval(marketClockInterval);
+  marketClockInterval = setInterval(tick, 1000);
+}
+
+function setupGoldBiasDashboard() {
+  startMarketClock();
+
+  // Botón Refrescar Datos
+  const btnRefresh = document.getElementById("btnRefreshBias");
+  if (btnRefresh) {
+    btnRefresh.addEventListener("click", async () => {
+      btnRefresh.innerHTML = '<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i><span>Actualizando...</span>';
+      initIcons();
+      await loadGoldBiasData();
+      setTimeout(() => {
+        btnRefresh.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i><span>¡Actualizado!</span>';
+        initIcons();
+        setTimeout(() => {
+          btnRefresh.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Refrescar</span>';
+          initIcons();
+        }, 1500);
+      }, 400);
+    });
+  }
+
+  // Dual Setup Mode Switcher (Venta vs Compra)
+  const btnSell = document.getElementById("btnSetupModeSell");
+  const btnBuy = document.getElementById("btnSetupModeBuy");
+  const containerSell = document.getElementById("setupContainerSell");
+  const containerBuy = document.getElementById("setupContainerBuy");
+  const setupBadge = document.getElementById("setupActiveBadge");
+
+  function setSetupMode(mode) {
+    if (mode === "buy") {
+      if (containerSell) containerSell.classList.add("hidden");
+      if (containerBuy) containerBuy.classList.remove("hidden");
+      if (btnBuy) {
+        btnBuy.className = "px-3.5 py-1.5 rounded-lg text-xs font-black bg-emerald-600 text-white shadow-md shadow-emerald-600/30 flex items-center gap-1.5 transition cursor-pointer";
+      }
+      if (btnSell) {
+        btnSell.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-gray-800 transition flex items-center gap-1.5 cursor-pointer";
+      }
+      if (setupBadge) {
+        setupBadge.className = "text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono border border-emerald-500/30";
+        setupBadge.textContent = "🟢 Modo Compra Activo";
+      }
+    } else {
+      if (containerBuy) containerBuy.classList.add("hidden");
+      if (containerSell) containerSell.classList.remove("hidden");
+      if (btnSell) {
+        btnSell.className = "px-3.5 py-1.5 rounded-lg text-xs font-black bg-red-600 text-white shadow-md shadow-red-600/30 flex items-center gap-1.5 transition cursor-pointer";
+      }
+      if (btnBuy) {
+        btnBuy.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-gray-800 transition flex items-center gap-1.5 cursor-pointer";
+      }
+      if (setupBadge) {
+        setupBadge.className = "text-[10px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 font-mono border border-red-500/30";
+        setupBadge.textContent = "🔴 Modo Venta Activo";
+      }
+    }
+    initIcons();
+  }
+
+  if (btnSell) btnSell.addEventListener("click", () => setSetupMode("sell"));
+  if (btnBuy) btnBuy.addEventListener("click", () => setSetupMode("buy"));
+  window._setSetupMode = setSetupMode;
+
+  // -------------------------------------------------------------
+  // Modal de Actualización Macro (Live Macro Bias Update)
+  // -------------------------------------------------------------
+  const modalMacro = document.getElementById("modalUpdateMacroBias");
+  const btnOpenMacro = document.getElementById("btnOpenMacroModal");
+  const btnCloseMacro = document.getElementById("btnCloseMacroModal");
+  const btnCancelMacro = document.getElementById("btnCancelMacroModal");
+  const btnSaveMacro = document.getElementById("btnSaveMacroBias");
+
+  const inputBias = document.getElementById("modalMacroBiasSelect");
+  const inputConf = document.getElementById("modalMacroConfidence");
+  const inputHeadline = document.getElementById("modalMacroHeadline");
+  const inputSummary = document.getElementById("modalMacroSummary");
+  const inputRes = document.getElementById("modalMacroResistance");
+  const inputSup = document.getElementById("modalMacroSupport");
+  const inputInv = document.getElementById("modalMacroInvalidation");
+
+  function openMacroModal() {
+    if (!modalMacro) return;
+    const current = goldBiasState || {};
+    if (inputBias) inputBias.value = current.bias || "BEARISH";
+    if (inputConf) inputConf.value = current.confidence || 85;
+    if (inputHeadline) inputHeadline.value = current.headline || "";
+    if (inputSummary) inputSummary.value = current.macro_summary || "";
+
+    const zones = current.technical_zones || {};
+    if (inputRes) inputRes.value = (zones.key_resistance || "3,920.00 – 4,000.00").replace(/^\$/, "");
+    if (inputSup) inputSup.value = (zones.key_support || "3,850.00 – 3,800.00").replace(/^\$/, "");
+    if (inputInv) inputInv.value = (zones.invalidation || "4,015.00").replace(/^\$/, "");
+
+    modalMacro.classList.remove("hidden");
+    initIcons();
+  }
+
+  function closeMacroModal() {
+    if (modalMacro) modalMacro.classList.add("hidden");
+  }
+
+  if (btnOpenMacro) btnOpenMacro.addEventListener("click", openMacroModal);
+  if (btnCloseMacro) btnCloseMacro.addEventListener("click", closeMacroModal);
+  if (btnCancelMacro) btnCancelMacro.addEventListener("click", closeMacroModal);
+
+  if (modalMacro) {
+    modalMacro.addEventListener("click", (e) => {
+      if (e.target === modalMacro) closeMacroModal();
+    });
+  }
+
+  if (btnSaveMacro) {
+    btnSaveMacro.addEventListener("click", async () => {
+      const biasVal = inputBias ? inputBias.value : "BEARISH";
+      const confVal = parseInt(inputConf ? inputConf.value : "85", 10) || 85;
+      const headVal = inputHeadline ? inputHeadline.value.trim() : "";
+      const sumVal = inputSummary ? inputSummary.value.trim() : "";
+      const resVal = inputRes ? inputRes.value.trim() : "3,920.00 – 4,000.00";
+      const supVal = inputSup ? inputSup.value.trim() : "3,850.00 – 3,800.00";
+      const invVal = inputInv ? inputInv.value.trim() : "4,015.00";
+
+      let biasTitle = "🔴 SESGO INSTITUCIONAL: BAJISTA (Sell-Only)";
+      if (biasVal === "BULLISH") biasTitle = "🟢 SESGO INSTITUCIONAL: ALCISTA (Buy-Only)";
+      if (biasVal === "NEUTRAL") biasTitle = "🟡 SESGO INSTITUCIONAL: NEUTRAL (Rango)";
+
+      const nowFormatted = new Intl.DateTimeFormat("es-ES", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(new Date());
+
+      const payload = {
+        bias: biasVal,
+        bias_title: biasTitle,
+        confidence: confVal,
+        confidence_label: (confVal >= 75 ? "Alta" : "Media") + " Convicción (" + confVal + "%)",
+        headline: headVal || (biasVal === "BEARISH" ? "Presión bajista en Oro" : "Presión alcista en Oro"),
+        macro_summary: sumVal || "Actualizado por el operador en vivo.",
+        updated_at: nowFormatted + " · Actualizado por Trader",
+        technical_zones: {
+          ...(goldBiasState && goldBiasState.technical_zones ? goldBiasState.technical_zones : {}),
+          key_resistance: resVal,
+          key_support: supVal,
+          invalidation: invVal
+        }
+      };
+
+      btnSaveMacro.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Guardando...</span>';
+      initIcons();
+
+      try {
+        const res = await fetch("/api/gold-bias", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const resJson = await res.json();
+          goldBiasState = resJson.bias || { ...goldBiasState, ...payload };
+          renderGoldBiasUI(goldBiasState);
+          btnSaveMacro.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i><span>¡Guardado con Éxito!</span>';
+          initIcons();
+          setTimeout(() => {
+            closeMacroModal();
+            btnSaveMacro.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i><span>Guardar y Aplicar</span>';
+            initIcons();
+          }, 600);
+        } else {
+          btnSaveMacro.innerHTML = '<i data-lucide="alert-triangle" class="w-4 h-4 text-red-400"></i><span>Error al guardar</span>';
+          initIcons();
+          setTimeout(() => {
+            btnSaveMacro.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i><span>Guardar y Aplicar</span>';
+            initIcons();
+          }, 1500);
+        }
+      } catch (err) {
+        console.error("Error guardando sesgo macro:", err);
+        btnSaveMacro.innerHTML = '<i data-lucide="alert-triangle" class="w-4 h-4 text-red-400"></i><span>Error de red</span>';
+        initIcons();
+        setTimeout(() => {
+          btnSaveMacro.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i><span>Guardar y Aplicar</span>';
+          initIcons();
+        }, 1500);
+      }
+    });
+  }
+}
