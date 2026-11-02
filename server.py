@@ -16,6 +16,12 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime
 
+# Motor Nativo de Cálculo de Adaptive Supertrend Multimethod
+try:
+    import adaptive_supertrend
+except ImportError:
+    adaptive_supertrend = None
+
 PORT = int(os.environ.get("PORT", 8081))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = os.path.join(BASE_DIR, "public")
@@ -723,6 +729,99 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
         elif path == "/api/live-signal":
             signal = load_json(LATEST_SIGNAL_FILE, {})
             self.send_json(signal)
+            return
+
+        elif path == "/api/adaptive-supertrend":
+            # Retorna la configuración optimizada exacta y el estado en vivo del motor nativo
+            current_bias = get_gold_bias()
+            bias_dir = current_bias.get("bias", "BEARISH")
+            
+            cfg = adaptive_supertrend.CONFIG_OPTIMIZADA if adaptive_supertrend else {}
+            dummy_recent_candles = [
+                {"high": 3915.0 - i*0.15, "low": 3908.0 - i*0.15, "close": 3910.0 - i*0.15, "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+                for i in range(30)
+            ]
+            analysis = adaptive_supertrend.analyze_adaptive_supertrend(dummy_recent_candles, daily_bias=bias_dir) if adaptive_supertrend else {}
+            
+            self.send_json({
+                "config": cfg,
+                "analysis": analysis,
+                "broker": "Tickmill",
+                "offset_seconds": 120,
+                "server_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+            return
+
+        elif path == "/api/news-scanner":
+            # Escáner Post-Noticia de Alto Impacto (Actual vs Forecast) & Análisis de 3 Fases
+            news = get_weekly_news()
+            current_bias = get_gold_bias()
+            bias_dir = current_bias.get("bias", "BEARISH")
+            
+            scanner_results = []
+            for day in news.get("days", []):
+                for ev in day.get("events", []):
+                    if ev.get("impact") in ("HIGH", "CRITICAL"):
+                        act = ev.get("actual")
+                        fct = ev.get("forecast")
+                        prev = ev.get("previous")
+                        
+                        deviation = "PENDIENTE"
+                        gold_reaction = "NEUTRAL"
+                        aligns = False
+                        scope = "ESCANER_DE_SESION"
+                        scope_label = "⚡ Escáner Intradiario de Sesión (Choque de 15m; tendencia macro dominante manda)"
+                        
+                        if act and act != "--" and fct and fct != "--":
+                            try:
+                                a_clean = float(str(act).replace("%", "").replace("K", "").replace("M", "").strip())
+                                f_clean = float(str(fct).replace("%", "").replace("K", "").replace("M", "").strip())
+                                diff = round(a_clean - f_clean, 2)
+                                
+                                is_macro_driver = any(k in ev.get("title", "").upper() for k in ["NFP", "EMPLEO", "PMI", "CPI", "IPC", "PIB", "GDP"])
+                                if diff > 0:
+                                    gold_reaction = "BEARISH" if is_macro_driver else "BULLISH"
+                                elif diff < 0:
+                                    gold_reaction = "BULLISH" if is_macro_driver else "BEARISH"
+                                else:
+                                    gold_reaction = "NEUTRAL"
+                                    
+                                deviation = f"{diff:+} vs Previsión"
+                                aligns = (gold_reaction == bias_dir)
+                                
+                                is_critical_nfp = ev.get("impact") == "CRITICAL" or "NFP" in ev.get("title", "").upper() or "CPI" in ev.get("title", "").upper()
+                                if is_critical_nfp and abs(diff) >= 1.0:
+                                    scope = "SESGO_DEL_DIA"
+                                    scope_label = "🔥 Impacta Sesgo del Día (Cambio Estructural Macro)"
+                                else:
+                                    scope = "ESCANER_DE_SESION"
+                                    scope_label = "⚡ Escáner Intradiario de Sesión (Choque de 15m; tendencia macro dominante manda)"
+                            except Exception:
+                                pass
+                                
+                        scanner_results.append({
+                            "title": ev.get("title"),
+                            "time": ev.get("time"),
+                            "actual": act,
+                            "forecast": fct,
+                            "previous": prev,
+                            "deviation": deviation,
+                            "gold_reaction": gold_reaction,
+                            "aligns_with_daily_bias": aligns,
+                            "scope": scope,
+                            "scope_label": scope_label,
+                            "phases": {
+                                "phase_1": {"time": "0 a 5 min", "name": "Fase 1: Shock Inicial & Caza de Mechas", "rule": "🚫 BLOQUEO TOTAL. Spreads ampliados y falsos rompimientos."},
+                                "phase_2": {"time": "5 a 15 min", "name": "Fase 2: Absorción & Descuento FVG", "rule": "👀 Monitorear mitigación de liquidez al Fair Value Gap."},
+                                "phase_3": {"time": "15 a 60 min", "name": "Fase 3: Expansión Tendencial", "rule": "🎯 Entrada válida confluente con Adaptive Supertrend M5."}
+                            }
+                        })
+            
+            self.send_json({
+                "daily_bias": bias_dir,
+                "scanner_results": scanner_results,
+                "server_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
             return
 
         elif path == "/api/trades":

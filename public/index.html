@@ -1117,10 +1117,6 @@
 
           <!-- Botón Contraer / Expandir a la Derecha -->
           <div class="flex items-center gap-2.5 shrink-0">
-            <div class="h-8 px-3 rounded-xl bg-emerald-950/50 border border-emerald-800/50 text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm">
-              <span class="text-gray-400">Total Ops:</span>
-              <span class="font-bold text-emerald-400" id="realStatTotalOpsBadge">0</span>
-            </div>
             <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#realKpiCardsContainer" title="Contraer / Expandir métricas">
               <span class="btn-collapse-label">Contraer</span>
               <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
@@ -1128,7 +1124,15 @@
           </div>
         </div>
 
-        <div id="realKpiCardsContainer" class="mt-4 pt-4 border-t border-gray-800/80 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+        <div id="realKpiCardsContainer" class="mt-4 pt-4 border-t border-gray-800/80 space-y-3.5">
+          <div class="flex items-center justify-between text-xs px-1">
+            <span class="text-gray-400 font-medium">Métricas de forward-testing acumuladas:</span>
+            <div class="h-7 px-3 rounded-xl bg-emerald-950/50 border border-emerald-800/50 text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm">
+              <span class="text-gray-400">Total Ops:</span>
+              <span class="font-bold text-emerald-400" id="realStatTotalOpsBadge">0</span>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
         
           <!-- Card 1: Balance Real Actual -->
           <div class="bg-gray-950/70 border border-gray-800/80 hover:border-gray-700/80 transition rounded-xl p-4 flex flex-col justify-between">
@@ -1202,6 +1206,7 @@
             </div>
             <div class="text-[10px] text-gray-500 mt-2">Preservación de capital</div>
           </div>
+          </div>
 
         </div>
       </section>
@@ -1224,10 +1229,6 @@
 
           <!-- Botón Contraer / Expandir a la Derecha -->
           <div class="flex items-center gap-2.5 shrink-0">
-            <div class="h-8 px-3 rounded-xl bg-emerald-950/50 border border-emerald-800/50 text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm">
-              <span class="text-gray-400">Balance actual:</span>
-              <span class="font-mono font-bold text-emerald-400" id="realFormCurrentBalDisplay">$110.00</span>
-            </div>
             <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#realTradeForm" title="Contraer / Expandir formulario">
               <span class="btn-collapse-label">Contraer</span>
               <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
@@ -1236,6 +1237,13 @@
         </div>
 
         <form id="realTradeForm" class="mt-4 pt-4 border-t border-gray-800/80 space-y-4">
+          <div class="flex items-center justify-between text-xs px-1 pb-1">
+            <span class="text-gray-400 font-medium">Parámetros de la operación:</span>
+            <div class="h-7 px-3 rounded-xl bg-emerald-950/50 border border-emerald-800/50 text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm">
+              <span class="text-gray-400">Balance actual:</span>
+              <span class="font-mono font-bold text-emerald-400" id="realFormCurrentBalDisplay">$110.00</span>
+            </div>
+          </div>
           
           <!-- Row 1: Date, Session, Direction, SL Points, Risk %, RR -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 text-xs">
@@ -1403,10 +1411,6 @@
 
           <!-- Botón Contraer / Expandir a la Derecha -->
           <div class="flex items-center gap-2.5 shrink-0 text-xs">
-            <button id="btnExportRealCsv" class="h-8 px-3 bg-gray-950/80 hover:bg-gray-800 rounded-xl border border-gray-700/80 text-gray-300 hover:text-white font-semibold transition flex items-center gap-1.5 shadow-sm text-xs cursor-pointer" title="Exportar Bitácora">
-              <i data-lucide="download" class="w-3.5 h-3.5"></i>
-              <span>Exportar Bitácora CSV</span>
-            </button>
             <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#realTradesTableContainer" title="Contraer / Expandir tabla">
               <span class="btn-collapse-label">Contraer</span>
               <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
@@ -1414,7 +1418,15 @@
           </div>
         </div>
 
-        <div id="realTradesTableContainer" class="mt-4 pt-4 border-t border-gray-800/80 overflow-x-auto">
+        <div id="realTradesTableContainer" class="mt-4 pt-4 border-t border-gray-800/80 space-y-3">
+          <div class="flex items-center justify-between text-xs px-1 pb-1">
+            <span class="text-gray-400 font-medium">Listado cronológico de trades:</span>
+            <button id="btnExportRealCsv" class="h-7 px-3 bg-gray-950/80 hover:bg-gray-800 rounded-xl border border-gray-700/80 text-gray-300 hover:text-white font-semibold transition flex items-center gap-1.5 shadow-sm text-xs cursor-pointer" title="Exportar Bitácora">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Exportar Bitácora CSV</span>
+            </button>
+          </div>
+          <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-gray-300">
             <thead class="bg-gray-950/70 uppercase text-[10px] text-gray-400 tracking-wider">
               <tr>
@@ -1441,6 +1453,7 @@
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
 
       </section>
