@@ -6,69 +6,87 @@ Configuración optimizada institucional para sesión New York.
 import math
 
 CONFIG_OPTIMIZADA = {
-    # 1. Configuración Base
-    "base_atr_period": 14,          # Calibrado de 8 a 14 para absorber el ruido de velas de expansión
-    "base_multiplier": 3.0,          # Calibrado de 2.2 a 3.0 para evitar giros falsos en rangos
-    
-    # 2. Selección Automática / Override
+    # 1. Configuración de Auto-Selección (Auto-Selection)
     "auto_selection_enabled": True,
     "selection_criteria": "Total Points",  # Prioriza acumulación neta de puntos
-    "evaluation_interval_bars": 60,        # 60 velas M5 = 5 horas de sesión
-    "min_trades_required": 6,
-    "performance_lookback_days": 7,
-    "manual_override_method": "Hybrid",
+    "evaluation_interval_bars": 70,        # 70 velas M5 (~6 horas de sesión activa)
+    "min_trades_required": 7,              # 7 operaciones mínimas para evaluar método
+    "performance_lookback_days": 6,        # 6 días de histórico semanal
+    "manual_override_method": "Multi-Timeframe",  # Override fijado en MTF
     
-    # 3. Método Percentil
-    "percentile_lookback": 100,      # 100 velas M5 = ~8 horas de sesión
-    "percentile_sensitivity": 0.4,   # Reducido para no sobrerreaccionar a noticias
+    # 2. Configuración Base (Basic Settings)
+    "base_atr_period": 13,                 # ATR Period exacto: 13
+    "base_multiplier": 2.9,                # Multiplicador exacto: 2.9
     
-    # 4. Método Régimen
-    "regime_ma_length": 50,          # Suavizado para marcar tendencia de la sesión
-    "low_vol_multiplier": 2.0,       # Ceñido en baja volatilidad para cazar explosión
-    "normal_vol_multiplier": 2.8,
-    "high_vol_multiplier": 3.5,      # Espacio amplio para mechas de alta volatilidad
+    # 3. Método Percentil (Percentile Method)
+    "percentile_lookback": 110,            # 110 velas M5
+    "percentile_sensitivity": 0.4,         # Sensibilidad: 0.4
     
-    # 5. Método Z-Score
-    "z_score_lookback": 100,
-    "z_score_sensitivity": 0.25,
+    # 4. Método Régimen de Volatilidad (Regime Method)
+    "regime_ma_length": 45,                # Media móvil de régimen: 45
+    "low_vol_multiplier": 2.0,             # Multiplicador en baja volatilidad: 2.0
+    "normal_vol_multiplier": 2.7,          # Multiplicador en normal volatilidad: 2.7
+    "high_vol_multiplier": 3.3,            # Multiplicador en alta volatilidad: 3.3
     
-    # 6. Periodo Dinámico
-    "min_atr_period": 10,            # Mínimo 10 para evitar hipersensibilidad
-    "max_atr_period": 20,            # Máximo 20 para consolidaciones
-    "period_change_sensitivity": 40,
+    # 5. Método Z-Score (Z-Score Method)
+    "z_score_lookback": 100,               # Z-Score Lookback: 100
+    "z_score_sensitivity": 0.25,           # Z-Score Sensibilidad: 0.25
     
-    # 7. Rate of Change (ROC)
-    "roc_lookback": 14,              # 14 velas M5 = 70 minutos de impulso inicial
-    "roc_sensitivity": 0.40,
+    # 6. Periodo Dinámico (Dynamic Period Method)
+    "min_atr_period": 9,                   # Min ATR Period: 9
+    "max_atr_period": 19,                  # Max ATR Period: 19
+    "period_change_sensitivity": 40,       # Period Change Sensitivity: 40
     
-    # 8. Multi-Timeframe (MTF)
-    "higher_tf": "1h",
-    "mtf_sensitivity": 0.5,
+    # 7. Rate of Change (ROC Method)
+    "roc_lookback": 14,                    # ROC Lookback: 14 velas
+    "roc_sensitivity": 0.4,                # ROC Sensibilidad: 0.4
     
-    # 9. Suavizado Híbrido
-    "hybrid_smoothing_ema": 5,       # 5 velas EMA para eliminar parpadeo en Dojis
+    # 8. Multi-Timeframe (MTF Method)
+    "higher_tf": "1h",                     # Higher Timeframe: 1 hora
+    "mtf_sensitivity": 0.5,                # MTF Sensibilidad: 0.5
     
-    # 10. Modo de Señal
-    "signal_mode": "on_close",       # Rigurosamente al cierre de la vela de 5 minutos
+    # 9. Suavizado Híbrido (Hybrid Settings)
+    "hybrid_smoothing_ema": 5,             # EMA 5 velas
     
-    # 11. Filtros de Momentum
-    "rsi_filter_enabled": True,
-    "rsi_length": 14,                # Estándar libre de ruido
-    "rsi_buy_threshold": 55,         # Compras solo si RSI > 55
-    "rsi_sell_threshold": 45,        # Ventas solo si RSI < 45
+    # 10. Modo de Señal (Signal Settings)
+    "signal_mode": "on_close",             # On Candle Close (Al cierre de vela)
     
-    "macd_filter_enabled": True,
-    "macd_fast": 8,
-    "macd_slow": 21,
-    "macd_signal": 5,
+    # 11. Salidas, Trailing Stop y Targets (Trailing SL & Target)
+    "trailing_sl_enabled": False,          # Enable Trailing Stop Loss: Desmarcado
+    "trailing_sl_method": "ATR",
+    "tsl_atr_multiplier": 2.2,             # TSL ATR Multiplier: 2.2
+    "tsl_pct": 1.0,                        # TSL %: 1%
+    "tsl_fixed_points": 250,               # TSL Fixed Points: 250
+    "show_trailing_sl_line": True,         # Línea guía naranja activa
+    "alert_when_hits_tsl": True,
     
-    # 12. Salidas & Targets (R:R)
-    "trailing_sl_enabled": True,
-    "tsl_atr_multiplier": 2.2,       # No ahogar la operación
-    "target_method": "R:R",          # Alineado con la Calculadora del Dashboard
-    "target_1_rr": 1.5,              # Parciales & Mover a Breakeven
-    "target_2_rr": 3.0,              # Salida principal
-    "target_3_rr": 5.0               # Expansión macro
+    "enable_targets": True,                # Targets habilitados
+    "target_method": "RR Ratio",           # Ratio R:R
+    "target_1_rr": 1.5,                    # Target 1 R:R: 1.5
+    "target_2_rr": 3.0,                    # Target 2 R:R: 3.0
+    "target_3_rr": 5.0,                    # Target 3 R:R: 5.0
+    "target_1_fixed_points": 50,
+    "target_2_fixed_points": 100,
+    "target_3_fixed_points": 150,
+    "show_target_lines": True,             # Líneas cian activas en gráfico
+    "alert_when_hits_target": True,        # Alerta al tocar target activa
+    
+    # 12. Visualización (Display Settings)
+    "show_info_table": False,              # Tabla flotante desactivada para gráfico limpio
+    "show_all_methods_comparison": False,  # Comparativa múltiple desactivada
+    "table_position": "Bottom Right",
+    "table_text_size": "Tiny",
+    
+    # 13. Filtros de Momentum (Momentum Filters)
+    "rsi_filter_enabled": True,            # Filtro RSI habilitado
+    "rsi_length": 14,                      # RSI Periodo: 14
+    "rsi_buy_threshold": 55,               # Compras solo si RSI > 55
+    "rsi_sell_threshold": 45,              # Ventas solo si RSI < 45
+    
+    "macd_filter_enabled": True,           # Filtro MACD habilitado
+    "macd_fast": 8,                        # MACD Fast: 8
+    "macd_slow": 21,                       # MACD Slow: 21
+    "macd_signal": 5                       # MACD Signal: 5
 }
 
 def calculate_tr(high, low, close_prev):
