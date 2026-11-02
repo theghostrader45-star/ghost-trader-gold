@@ -2814,6 +2814,75 @@ function startMarketClock() {
       }
     }
 
+    // Actualizar Guardia de Sesión en Tab 2 (Radar de Precisión)
+    const precBanner = document.getElementById("precisionSessionGuardBanner");
+    const precBadge = document.getElementById("precisionSessionGuardBadge");
+    const precCountdown = document.getElementById("precisionSessionGuardCountdown");
+    const precHeadline = document.getElementById("precisionSessionGuardHeadline");
+    const precIconBox = document.getElementById("precisionSessionGuardIconBox");
+
+    if (precBanner || precBadge || precCountdown || precHeadline) {
+      if (session.isInSession) {
+        if (precBanner) {
+          precBanner.className = "p-4 sm:p-5 rounded-2xl border-2 transition-all duration-300 shadow-xl bg-emerald-950/40 border-emerald-500/60 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4";
+        }
+        if (precIconBox) {
+          precIconBox.className = "w-11 h-11 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shrink-0 shadow-lg";
+          precIconBox.innerHTML = '<i data-lucide="activity" class="w-6 h-6"></i>';
+        }
+        if (precBadge) {
+          precBadge.className = "px-3 py-1 rounded-lg bg-emerald-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse";
+          precBadge.innerHTML = '<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>SESIÓN NY ACTIVA · VENTANA DORADA</span>';
+        }
+        if (precCountdown) {
+          precCountdown.textContent = session.countdownText;
+          precCountdown.className = "text-xs font-mono font-bold text-emerald-300";
+        }
+        if (precHeadline) {
+          precHeadline.innerHTML = `Ventana Dorada abierta (08:00 – 11:30 NY). Spreads mínimos y volumen bancario óptimo en XAU/USD. <strong>Operativa autorizada con confluencia del Gatillo M5 y R:R 1:2 mínimo.</strong>`;
+        }
+      } else {
+        if (precBanner) {
+          precBanner.className = "p-4 sm:p-5 rounded-2xl border-2 transition-all duration-300 shadow-xl bg-rose-950/40 border-rose-600/60 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4";
+        }
+        if (precIconBox) {
+          precIconBox.className = "w-11 h-11 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0 shadow-lg";
+          precIconBox.innerHTML = '<i data-lucide="moon" class="w-6 h-6"></i>';
+        }
+        if (precBadge) {
+          precBadge.className = "px-3 py-1 rounded-lg bg-rose-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse";
+          precBadge.innerHTML = '<i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i><span>NO OPERAR · MERCADO FUERA DE NY (ASIA EN CURSO)</span>';
+        }
+        if (precCountdown) {
+          precCountdown.textContent = session.countdownText;
+          precCountdown.className = "text-xs font-mono font-bold text-rose-300";
+        }
+        if (precHeadline) {
+          precHeadline.innerHTML = `El oro en la sesión asiática acumula en rangos estrechos ($6 – $12) y los brokers amplían los spreads. <strong>Prohibido operar en Asia. El 80% del volumen y los movimientos de R:R 1:2 y 1:3 ocurren en New York.</strong>`;
+        }
+      }
+    }
+
+    // Actualizar Estado en vivo de la Ficha Técnica MT5 si estamos fuera de sesión
+    const tBadgeLive = document.getElementById("ticketStateBadge");
+    const tTextLive = document.getElementById("ticketStateText");
+    if (tBadgeLive && tTextLive) {
+      if (!session.isInSession) {
+        tBadgeLive.className = "px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 bg-rose-950 text-rose-300 border border-rose-600/80 shadow-md animate-pulse";
+        tTextLive.textContent = `🚫 FUERA DE NY (NO OPERAR EN ASIA) · ${session.countdownText}`;
+      } else if (currentPrecisionRadarData && currentPrecisionRadarData.precision_radar && currentPrecisionRadarData.precision_radar.execution_ticket) {
+        const liveTicket = currentPrecisionRadarData.precision_radar.execution_ticket;
+        tTextLive.textContent = liveTicket.state_label;
+        if (liveTicket.state_color === 'emerald') {
+          tBadgeLive.className = "px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 bg-emerald-950 text-emerald-300 border border-emerald-500 shadow-md animate-pulse";
+        } else if (liveTicket.state_color === 'amber') {
+          tBadgeLive.className = "px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 bg-amber-950 text-amber-300 border border-amber-600 shadow-md animate-pulse";
+        } else {
+          tBadgeLive.className = "px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 bg-blue-950 text-blue-300 border border-blue-600/80 shadow-md";
+        }
+      }
+    }
+
     // Evaluar Semáforo Dinámico de Noticias en tiempo real cada segundo
     const newsStatus = evaluateDynamicNewsShield();
 

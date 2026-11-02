@@ -967,6 +967,33 @@
         </div>
       </section>
 
+      <!-- GUARDIA ESTRICTO DE SESIÓN OPERATIVA (NY vs ASIA) -->
+      <section id="precisionSessionGuardBanner" class="p-4 sm:p-5 rounded-2xl border-2 transition-all duration-300 shadow-xl bg-rose-950/40 border-rose-600/60 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        <div class="flex items-start sm:items-center gap-3.5 min-w-0">
+          <div id="precisionSessionGuardIconBox" class="w-11 h-11 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0 shadow-lg">
+            <i data-lucide="moon" class="w-6 h-6"></i>
+          </div>
+          <div class="space-y-1.5 min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span id="precisionSessionGuardBadge" class="px-3 py-1 rounded-lg bg-rose-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse">
+                <i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i>
+                <span>NO OPERAR · MERCADO FUERA DE NY (ASIA EN CURSO)</span>
+              </span>
+              <span id="precisionSessionGuardCountdown" class="text-xs font-mono font-bold text-rose-300">⏳ Inicia en: --:--:--</span>
+            </div>
+            <p id="precisionSessionGuardHeadline" class="text-xs text-gray-300 leading-relaxed font-medium">
+              El oro en la sesión asiática acumula en rangos estrechos ($6 – $12) y los brokers amplían los spreads. <strong>El 80% del volumen y los recorridos limpios para R:R 1:2 y 1:3 ocurren exclusivamente en la Ventana Dorada de New York (08:00 AM – 11:30 AM NY)</strong>.
+            </p>
+          </div>
+        </div>
+
+        <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800 shrink-0 text-right space-y-1">
+          <span class="text-[10px] text-gray-400 uppercase tracking-widest block font-mono">Horario Exclusivo Autorizado</span>
+          <span class="text-xs font-black text-amber-400 font-mono block">🇺🇸 08:00 AM – 11:30 AM NY</span>
+          <span class="text-[10px] text-emerald-400 font-mono block">1 Solo Trade A+ al Día</span>
+        </div>
+      </section>
+
       <!-- CARD 1: ALERTA DEL PRÓXIMO PUNTO DE ENTRADA -->
       <section class="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-emerald-500/50 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-5 relative overflow-hidden">
         <div class="absolute -right-16 -top-16 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
