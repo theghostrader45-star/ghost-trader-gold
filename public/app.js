@@ -2298,21 +2298,12 @@ function updateMacroQuantIntelligence(data) {
     riskAdvice.innerHTML = `Riesgo recomendado: <strong>3% a 5%</strong>. Si el SL en TradingView es de 1,500 a 2,500 pts ($15 a $25), operar con <strong>0.01 – 0.02 lotes</strong> según la Calculadora.`;
   }
 
-  // 3. News Risk Shield (Semáforo Dinámico de Noticias)
-  const shieldHeadline = document.getElementById("newsShieldHeadline");
-  const shieldAdvice = document.getElementById("newsShieldAdvice");
-
-  if (shieldHeadline) {
-    shieldHeadline.textContent = "Sin noticias de alto impacto en las próximas 2 horas.";
-  }
-  if (shieldAdvice) {
-    shieldAdvice.textContent = "Operativa 100% autorizada con lotaje y Stop Loss normal. Spreads estables en el broker.";
-  }
+  // 3. News Risk Shield (Semáforo Dinámico de Noticias) & Radar Item 3
+  evaluateDynamicNewsShield();
 
   // 4. Radar de Confluencia "A+ Setup"
   const conf1 = document.getElementById("confluenceCheck1");
   const conf2 = document.getElementById("confluenceCheck2");
-  const conf3 = document.getElementById("confluenceCheck3");
   const conf4 = document.getElementById("confluenceCheck4");
   const confScore = document.getElementById("confluenceScoreBadge");
   const confBanner = document.getElementById("confluenceVerdictBanner");
@@ -2323,17 +2314,8 @@ function updateMacroQuantIntelligence(data) {
   if (conf2) {
     conf2.textContent = isBear ? `✓ EN RESISTENCIA` : (isBull ? `✓ EN SOPORTE` : `🟡 ZONA MEDIA`);
   }
-  if (conf3) {
-    conf3.textContent = `✓ VÍA LIBRE`;
-  }
   if (conf4) {
     conf4.textContent = `⏳ ESPERANDO VELA`;
-  }
-  if (confScore) {
-    confScore.textContent = `3/4 CONDICIONES`;
-  }
-  if (confBanner) {
-    confBanner.textContent = `Esperando cierre de vela en M5 para confirmación de ejecución de máxima probabilidad.`;
   }
 
   // 5. Proyección ADR (Escala TradingView)
@@ -2546,6 +2528,201 @@ function getNySessionStatus(now) {
   return lastCalculatedSessionStatus;
 }
 
+// -------------------------------------------------------------
+// Semáforo Dinámico en Tiempo Real (News Risk Shield)
+// -------------------------------------------------------------
+let lastNewsShieldStatus = {
+  isBlocked: false,
+  isWarning: false,
+  event: null,
+  diffMinutes: null,
+  statusText: "🟢 VÍA LIBRE",
+  headline: "Sin noticias de alto impacto en las próximas 2 horas.",
+  advice: "Operativa 100% autorizada con lotaje y Stop Loss normal. Spreads estables en el broker.",
+  bannerText: ""
+};
+
+function parseNewsTimeMinutes(timeStr) {
+  if (!timeStr) return null;
+  const match = String(timeStr).match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!match) return null;
+  let h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const ampm = match[3].toUpperCase();
+  if (ampm === "PM" && h < 12) h += 12;
+  if (ampm === "AM" && h === 12) h = 0;
+  return h * 60 + m;
+}
+
+function evaluateDynamicNewsShield() {
+  const now = new Date();
+  const nyFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  });
+  const parts = nyFormatter.formatToParts(now);
+  const getP = t => (parts.find(x => x.type === t) || {}).value;
+  const nyDateStr = `${getP("year")}-${getP("month")}-${getP("day")}`;
+  const currentTotalMin = parseInt(getP("hour"), 10) * 60 + parseInt(getP("minute"), 10);
+
+  // 1. Obtener eventos de hoy desde weeklyNewsState o fallback oficial
+  let todayEvents = [];
+  if (weeklyNewsState && Array.isArray(weeklyNewsState.days)) {
+    const todayObj = weeklyNewsState.days.find(d => d.date === nyDateStr);
+    if (todayObj && Array.isArray(todayObj.events)) {
+      todayEvents = todayObj.events;
+    }
+  }
+
+  // Fallback con el calendario exacto de la semana si aún no cargó el JSON
+  if (todayEvents.length === 0) {
+    if (nyDateStr === "2026-11-02") {
+      todayEvents = [
+        { time: "10:00 AM NY", title: "ISM PMI Manufacturero de EE.UU.", impact: "HIGH" },
+        { time: "10:00 AM NY", title: "Precios Pagados en Manufactura ISM", impact: "MEDIUM" }
+      ];
+    } else if (nyDateStr === "2026-11-03") {
+      todayEvents = [
+        { time: "10:00 AM NY", title: "Encuesta de Ofertas de Empleo JOLTS", impact: "HIGH" },
+        { time: "01:30 PM NY", title: "Discurso Miembros Fed", impact: "MEDIUM" }
+      ];
+    } else if (nyDateStr === "2026-11-04") {
+      todayEvents = [
+        { time: "08:15 AM NY", title: "Informe de Empleo No Agrícola ADP", impact: "HIGH" },
+        { time: "10:00 AM NY", title: "ISM PMI del Sector Servicios", impact: "HIGH" }
+      ];
+    } else if (nyDateStr === "2026-11-05") {
+      todayEvents = [
+        { time: "08:30 AM NY", title: "Nuevas Peticiones de Subsidio por Desempleo", impact: "HIGH" },
+        { time: "08:30 AM NY", title: "Balanza Comercial EE.UU.", impact: "MEDIUM" }
+      ];
+    } else if (nyDateStr === "2026-11-06") {
+      todayEvents = [
+        { time: "08:30 AM NY", title: "NFP (Nóminas No Agrícolas de EE.UU.)", impact: "CRITICAL" },
+        { time: "08:30 AM NY", title: "Tasa de Desempleo de EE.UU.", impact: "HIGH" }
+      ];
+    }
+  }
+
+  let activeBlock = null;
+  let activeWarning = null;
+
+  for (const ev of todayEvents) {
+    if (ev.impact === "HIGH" || ev.impact === "CRITICAL") {
+      const evMin = parseNewsTimeMinutes(ev.time);
+      if (evMin !== null) {
+        const diff = evMin - currentTotalMin;
+        // Ventana estricta de bloqueo institucional: 15 min antes hasta 15 min después (-15 a +15)
+        if (diff >= -15 && diff <= 15) {
+          activeBlock = { event: ev, diffMinutes: diff, evMin };
+          break;
+        } else if (diff > 15 && diff <= 120) {
+          if (!activeWarning || diff < activeWarning.diffMinutes) {
+            activeWarning = { event: ev, diffMinutes: diff, evMin };
+          }
+        }
+      }
+    }
+  }
+
+  const badgeEl = document.getElementById("newsShieldStatusBadge");
+  const textEl = document.getElementById("newsShieldStatusText");
+  const headlineEl = document.getElementById("newsShieldHeadline");
+  const adviceEl = document.getElementById("newsShieldAdvice");
+  const confDot3 = document.getElementById("confluenceDot3");
+  const confCheck3 = document.getElementById("confluenceCheck3");
+
+  if (activeBlock) {
+    const { event, diffMinutes } = activeBlock;
+    const isPre = diffMinutes > 0;
+    const absMin = Math.abs(diffMinutes);
+    const remCoolDown = Math.max(1, 15 - absMin);
+
+    lastNewsShieldStatus = {
+      isBlocked: true,
+      isWarning: false,
+      event,
+      diffMinutes,
+      statusText: isPre ? `🔴 BLOQUEO PRE-NOTICIA (-${absMin}m)` : `💥 EN VENTANA DE SHOCK (+${absMin}m)`,
+      headline: isPre 
+        ? `🚨 ${event.title} en ${absMin} min (${event.time})`
+        : `💥 ${event.title} publicado hace ${absMin} min`,
+      advice: isPre
+        ? `⛔ OPERATIVA CONGELADA: Ventana de seguridad de 15 min antes del anuncio. Cero aperturas de trades. Spreads en expansión y riesgo inminente de deslizamiento.`
+        : `⛔ OPERATIVA CONGELADA: Fase 1 y 2 de shock y absorción. Esperar ${remCoolDown} min más para estabilización de spreads y confirmación de vela M5.`,
+      bannerText: isPre
+        ? `🚫 <strong>NO OPERAR · NOTICIA EN ${absMin} MIN:</strong> Publicación inminente de ${event.title} (${event.time}). Regla institucional de congelar ±15 min activa.`
+        : `🚫 <strong>NO OPERAR · VENTANA DE SHOCK POST-NOTICIA:</strong> ${event.title} publicado hace ${absMin} min. Faltan ${remCoolDown} min de absorción institucional para buscar confluencia segura.`
+    };
+
+    if (badgeEl) badgeEl.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-600 font-bold flex items-center gap-1 animate-pulse";
+    if (textEl) textEl.textContent = lastNewsShieldStatus.statusText;
+    if (headlineEl) headlineEl.innerHTML = `<span class="text-rose-400 font-black">${lastNewsShieldStatus.headline}</span>`;
+    if (adviceEl) adviceEl.textContent = lastNewsShieldStatus.advice;
+
+    if (confDot3) confDot3.className = "w-2 h-2 rounded-full bg-rose-500 animate-pulse";
+    if (confCheck3) {
+      confCheck3.textContent = isPre ? `✗ BLOQUEO: ${event.title} (-${absMin}m)` : `✗ SHOCK: ${event.title} (+${absMin}m)`;
+      confCheck3.className = "font-mono text-rose-400 font-bold text-[10px]";
+    }
+
+  } else if (activeWarning) {
+    const { event, diffMinutes } = activeWarning;
+    lastNewsShieldStatus = {
+      isBlocked: false,
+      isWarning: true,
+      event,
+      diffMinutes,
+      statusText: `🟡 NOTICIA EN ${diffMinutes}m`,
+      headline: `⚠️ Próxima noticia: ${event.title} (${event.time})`,
+      advice: `Operativa autorizada con precaución. Si abres un trade en M5, asegúrate de tomar ganancias o ajustar a Breakeven antes de las ${event.time} (${diffMinutes} min restantes).`,
+      bannerText: ""
+    };
+
+    if (badgeEl) badgeEl.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-yellow-950 text-yellow-300 border border-yellow-600 font-bold flex items-center gap-1";
+    if (textEl) textEl.textContent = lastNewsShieldStatus.statusText;
+    if (headlineEl) headlineEl.innerHTML = `<span class="text-yellow-300 font-bold">${lastNewsShieldStatus.headline}</span>`;
+    if (adviceEl) adviceEl.textContent = lastNewsShieldStatus.advice;
+
+    if (confDot3) confDot3.className = "w-2 h-2 rounded-full bg-yellow-400";
+    if (confCheck3) {
+      confCheck3.textContent = `✓ VÍA LIBRE (${event.title} en ${diffMinutes}m)`;
+      confCheck3.className = "font-mono text-yellow-400 font-bold text-[10px]";
+    }
+
+  } else {
+    lastNewsShieldStatus = {
+      isBlocked: false,
+      isWarning: false,
+      event: null,
+      diffMinutes: null,
+      statusText: "🟢 VÍA LIBRE",
+      headline: "Sin noticias de alto impacto en las próximas 2 horas.",
+      advice: "Operativa 100% autorizada con lotaje y Stop Loss normal. Spreads estables en el broker.",
+      bannerText: ""
+    };
+
+    if (badgeEl) badgeEl.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold flex items-center gap-1";
+    if (textEl) textEl.textContent = "🟢 VÍA LIBRE";
+    if (headlineEl) headlineEl.textContent = lastNewsShieldStatus.headline;
+    if (adviceEl) adviceEl.textContent = lastNewsShieldStatus.advice;
+
+    if (confDot3) confDot3.className = "w-2 h-2 rounded-full bg-emerald-400";
+    if (confCheck3) {
+      confCheck3.textContent = "✓ VÍA LIBRE";
+      confCheck3.className = "font-mono text-emerald-400 font-bold text-[10px]";
+    }
+  }
+
+  return lastNewsShieldStatus;
+}
+
 function startMarketClock() {
   function tick() {
     const now = new Date();
@@ -2616,6 +2793,9 @@ function startMarketClock() {
       }
     }
 
+    // Evaluar Semáforo Dinámico de Noticias en tiempo real cada segundo
+    const newsStatus = evaluateDynamicNewsShield();
+
     // Actualizar Radar de Confluencia Item 2 (Sesión NY)
     const confDot2 = document.getElementById("confluenceDot2");
     const confCheck2 = document.getElementById("confluenceCheck2");
@@ -2627,6 +2807,18 @@ function startMarketClock() {
       if (confCheck2) {
         confCheck2.className = "font-mono text-emerald-400 font-bold text-[10px]";
         confCheck2.textContent = "✓ SESIÓN ACTIVA (NY)";
+      }
+
+      // Si hay bloqueo activo por noticias de alto impacto (±15 min), el semáforo sobreescribe el radar
+      if (newsStatus && newsStatus.isBlocked) {
+        if (confScore) {
+          confScore.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-600 font-bold flex items-center gap-1 animate-pulse";
+          confScore.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>⛔ BLOQUEADO POR NOTICIA</span>';
+        }
+        if (confBanner) {
+          confBanner.className = "p-2 rounded-lg bg-rose-950/60 border border-rose-500/60 text-[10px] text-rose-200 font-medium leading-tight";
+          confBanner.innerHTML = newsStatus.bannerText;
+        }
       }
     } else {
       if (confDot2) confDot2.className = "w-2 h-2 rounded-full bg-rose-500 animate-pulse";
@@ -2859,7 +3051,8 @@ function renderPythonEngineCard(analysis, isUserClick = false) {
   const isBuy = analysis.indicator_signal === "BUY";
   const isSell = analysis.indicator_signal === "SELL";
   const candleState = analysis.candle_state || "EN_DESARROLLO"; // "EN_DESARROLLO" | "CONFIRMADA_AL_CIERRE" | "ALREADY_TRIGGERED"
-  const hasConfluence = analysis.has_confluence === true;
+  const isNewsBlocked = lastNewsShieldStatus && lastNewsShieldStatus.isBlocked;
+  const hasConfluence = analysis.has_confluence === true && !isNewsBlocked;
   const session = getNySessionStatus(new Date());
 
   if (priceEl && analysis.current_price) priceEl.textContent = `$${Number(analysis.current_price).toFixed(2)}`;
@@ -3023,40 +3216,57 @@ function renderPythonEngineCard(analysis, isUserClick = false) {
         }
       }
     } else {
-      // Señal al cierre pero filtrada contra el sesgo
+      // Señal al cierre pero filtrada contra el sesgo O BLOQUEADA POR NOTICIA
       if (titleEl) {
-        titleEl.textContent = analysis.display_title || `${analysis.indicator_signal} AL CIERRE (FILTRADO)`;
-        titleEl.className = "font-mono font-bold text-xs text-yellow-400";
+        if (isNewsBlocked) {
+          titleEl.textContent = `BLOQUEADO POR NOTICIA (${analysis.indicator_signal})`;
+          titleEl.className = "font-mono font-bold text-xs text-rose-400";
+        } else {
+          titleEl.textContent = analysis.display_title || `${analysis.indicator_signal} AL CIERRE (FILTRADO)`;
+          titleEl.className = "font-mono font-bold text-xs text-yellow-400";
+        }
       }
-      if (iconWrap) iconWrap.className = "w-5 h-5 rounded-md bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-bold";
+      if (iconWrap) {
+        iconWrap.className = isNewsBlocked ? "w-5 h-5 rounded-md bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold" : "w-5 h-5 rounded-md bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-bold";
+      }
       if (iconEl) iconEl.setAttribute("data-lucide", "shield-alert");
 
       if (timingEl) {
-        timingEl.textContent = analysis.display_timing || "Descartado por ir contra el sesgo diario";
-        timingEl.className = "text-[9px] font-mono text-yellow-400/80";
+        timingEl.textContent = isNewsBlocked ? (lastNewsShieldStatus ? lastNewsShieldStatus.statusText : "Ventana ±15 min") : (analysis.display_timing || "Descartado por ir contra el sesgo diario");
+        timingEl.className = isNewsBlocked ? "text-[9px] font-mono text-rose-400/90 font-bold" : "text-[9px] font-mono text-yellow-400/80";
       }
       if (liveBadge) {
-        liveBadge.className = "text-[9px] px-2 py-0.5 rounded-full bg-yellow-950 text-yellow-300 border border-yellow-600/80 font-bold";
-        liveBadge.textContent = "SEÑAL FILTRADA";
+        liveBadge.className = isNewsBlocked ? "text-[9px] px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-600/80 font-bold" : "text-[9px] px-2 py-0.5 rounded-full bg-yellow-950 text-yellow-300 border border-yellow-600/80 font-bold";
+        liveBadge.textContent = isNewsBlocked ? "BLOQUEO NOTICIA" : "SEÑAL FILTRADA";
       }
 
       if (card) {
-        card.className = "p-2.5 rounded-xl bg-gray-900/80 border border-yellow-500/30 space-y-2";
+        card.className = isNewsBlocked ? "p-2.5 rounded-xl bg-gray-900/90 border border-rose-500/50 space-y-2 shadow-inner" : "p-2.5 rounded-xl bg-gray-900/80 border border-yellow-500/30 space-y-2";
       }
       if (confPill) {
-        confPill.innerHTML = '<i data-lucide="shield-alert" class="w-3 h-3 text-yellow-500"></i><span>FILTRADO CONTRA SESGO</span>';
-        confPill.className = "text-yellow-500 font-bold flex items-center gap-1";
+        if (isNewsBlocked) {
+          confPill.innerHTML = '<i data-lucide="shield-alert" class="w-3 h-3 text-rose-400"></i><span>BLOQUEADO POR NOTICIA</span>';
+          confPill.className = "text-rose-400 font-bold flex items-center gap-1";
+        } else {
+          confPill.innerHTML = '<i data-lucide="shield-alert" class="w-3 h-3 text-yellow-500"></i><span>FILTRADO CONTRA SESGO</span>';
+          confPill.className = "text-yellow-500 font-bold flex items-center gap-1";
+        }
       }
 
       if (confCheck4) {
-        confCheck4.textContent = `⚠️ ${analysis.indicator_signal} (FILTRADO CONTRA SESGO)`;
-        confCheck4.className = "font-mono text-yellow-400 font-bold text-[10px]";
+        confCheck4.textContent = isNewsBlocked ? `⚠️ ${analysis.indicator_signal} (BLOQUEO POR NOTICIA)` : `⚠️ ${analysis.indicator_signal} (FILTRADO CONTRA SESGO)`;
+        confCheck4.className = isNewsBlocked ? "font-mono text-rose-400 font-bold text-[10px]" : "font-mono text-yellow-400 font-bold text-[10px]";
       }
-      if (confDot4) confDot4.className = "w-2 h-2 rounded-full bg-yellow-400";
+      if (confDot4) confDot4.className = isNewsBlocked ? "w-2 h-2 rounded-full bg-rose-400" : "w-2 h-2 rounded-full bg-yellow-400";
 
       if (session.isInSession && confBanner) {
-        confBanner.className = "p-2 rounded-lg bg-yellow-950/40 border border-yellow-500/40 text-[10px] text-yellow-300 font-medium leading-tight";
-        confBanner.innerHTML = analysis.status_banner || `⚠️ <strong>SEÑAL FILTRADA:</strong> Señal técnica de ${analysis.indicator_signal} descartada por oponerse al sesgo macro.`;
+        if (isNewsBlocked && lastNewsShieldStatus && lastNewsShieldStatus.bannerText) {
+          confBanner.className = "p-2 rounded-lg bg-rose-950/60 border border-rose-500/60 text-[10px] text-rose-200 font-medium leading-tight";
+          confBanner.innerHTML = lastNewsShieldStatus.bannerText;
+        } else {
+          confBanner.className = "p-2 rounded-lg bg-yellow-950/40 border border-yellow-500/40 text-[10px] text-yellow-300 font-medium leading-tight";
+          confBanner.innerHTML = analysis.status_banner || `⚠️ <strong>SEÑAL FILTRADA:</strong> Señal técnica de ${analysis.indicator_signal} descartada por oponerse al sesgo macro.`;
+        }
       }
     }
   }
@@ -3173,6 +3383,21 @@ function applySignalToUI(signal, isManual = false) {
 
   const session = getNySessionStatus(new Date());
   const isValidA = signal.status === "VALIDATED_A_PLUS";
+
+  // Protección News Shield: Bloquear ejecución si estamos dentro de la ventana ±15 min de noticia
+  if (lastNewsShieldStatus && lastNewsShieldStatus.isBlocked) {
+    if (confBadge) {
+      confBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-600 font-bold flex items-center gap-1 animate-pulse";
+      confBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>🚫 BLOQUEADO POR NOTICIA</span>';
+    }
+    if (confBanner) {
+      confBanner.className = "p-2 rounded-lg bg-rose-950/60 border border-rose-500/60 text-[10px] text-rose-200 font-medium leading-tight";
+      confBanner.innerHTML = lastNewsShieldStatus.bannerText;
+    }
+    playTradeAlertSound(false);
+    showToast(`🚫 <strong>GATILLO BLOQUEADO POR NOTICIA:</strong> Señal ${signal.action} M5 descartada por coincidir con ventana de alto impacto (±15 min). Capital protegido.`, "error", 8000);
+    return;
+  }
 
   if (isValidA) {
     if (session.isInSession) {
