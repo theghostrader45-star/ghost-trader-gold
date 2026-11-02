@@ -733,6 +733,8 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
 
         elif path == "/api/adaptive-supertrend":
             # Retorna la configuración optimizada exacta y el estado en vivo del motor nativo
+            query = parse_qs(parsed.query)
+            force_state = query.get("state", [None])[0]
             current_bias = get_gold_bias()
             bias_dir = current_bias.get("bias", "BEARISH")
             
@@ -741,7 +743,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 {"high": 3915.0 - i*0.15, "low": 3908.0 - i*0.15, "close": 3910.0 - i*0.15, "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
                 for i in range(30)
             ]
-            analysis = adaptive_supertrend.analyze_adaptive_supertrend(dummy_recent_candles, daily_bias=bias_dir) if adaptive_supertrend else {}
+            analysis = adaptive_supertrend.analyze_adaptive_supertrend(dummy_recent_candles, daily_bias=bias_dir, force_state=force_state) if adaptive_supertrend else {}
             
             self.send_json({
                 "config": cfg,

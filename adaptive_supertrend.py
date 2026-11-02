@@ -4,6 +4,8 @@ Configuración optimizada institucional para sesión New York.
 """
 
 import math
+import time
+from datetime import datetime
 
 CONFIG_OPTIMIZADA = {
     # 1. Configuración de Auto-Selección (Auto-Selection)
@@ -182,20 +184,50 @@ def calculate_macd(candles, fast=8, slow=21, signal=5):
         "bearish": hist < 0 and macd_val < 0
     }
 
-def analyze_adaptive_supertrend(candles, config=None, daily_bias="BEARISH"):
+def get_tickmill_candle_timing(offset_seconds=120):
+    dt = datetime.now()
+    sec_in_hour = dt.minute * 60 + dt.second
+    norm_sec = (sec_in_hour - offset_seconds + 3600) % 3600
+    sec_in_5m = norm_sec % 300
+    rem_sec = 300 - sec_in_5m
+    
+    # Dentro de los primeros 45 segundos del bloque de 5m -> Vela recién cerrada (ventana de confirmación)
+    is_just_closed = sec_in_5m <= 45
+    # Desde el segundo 46 hasta 299 -> Vela en pleno desarrollo (formación)
+    is_in_development = sec_in_5m > 45
+    
+    min_rem = rem_sec // 60
+    sec_rem = rem_sec % 60
+    rem_str = f"{min_rem:02d}:{sec_rem:02d}"
+    
+    return {
+        "seconds_in_5m": sec_in_5m,
+        "remaining_seconds": rem_sec,
+        "remaining_formatted": rem_str,
+        "is_just_closed": is_just_closed,
+        "is_in_development": is_in_development
+    }
+
+def analyze_adaptive_supertrend(candles, config=None, daily_bias="BEARISH", force_state=None):
     """
-    Calcula el estado del Adaptive Supertrend Multimethod en velas M5 cerradas.
-    Retorna el estado exacto, dirección, bandas de precio, stop loss y niveles de take profit.
+    Calcula el estado del Adaptive Supertrend Multimethod en velas M5 de Tickmill.
+    Distingue rigurosamente entre:
+      1. "EN_DESARROLLO": Vela abierta en formación. NO se confirma, solo indica 'Compra/Venta en desarrollo, esperar'.
+      2. "CONFIRMADA_AL_CIERRE": Vela M5 cerrada en :02, :07, :12... Gatillo 4/4 activo.
+      3. "ALREADY_TRIGGERED": Señal anterior ya se dio y el precio está en recorrido. Esperar siguiente setup.
     """
     cfg = dict(CONFIG_OPTIMIZADA)
     if config:
         cfg.update(config)
         
+    timing = get_tickmill_candle_timing(120)
+    
     if not candles or len(candles) < 20:
         return {
             "status": "WAITING_DATA",
             "message": "Esperando histórico de velas M5...",
-            "direction": "NEUTRAL"
+            "direction": "NEUTRAL",
+            "candle_state": "WAITING"
         }
         
     last_candle = candles[-1]
@@ -208,7 +240,6 @@ def analyze_adaptive_supertrend(candles, config=None, daily_bias="BEARISH"):
     macd_data = calculate_macd(candles, cfg["macd_fast"], cfg["macd_slow"], cfg["macd_signal"])
     
     # Multiplicador adaptativo según el régimen de volatilidad
-    # Compara ATR actual con la media de ATR
     atrs_recent = [calculate_atr(candles[:i], cfg["base_atr_period"]) for i in range(len(candles) - 15, len(candles))]
     avg_atr = sum(atrs_recent) / max(len(atrs_recent), 1)
     
@@ -224,8 +255,6 @@ def analyze_adaptive_supertrend(candles, config=None, daily_bias="BEARISH"):
         regime = "NORMAL_VOLATILITY"
         
     band_distance = atr_val * effective_multiplier
-    
-    # Determinar dirección preliminar por acción del precio respecto al pivot
     hl2 = (high_price + low_price) / 2.0
     upper_band = hl2 + band_distance
     lower_band = hl2 - band_distance
@@ -238,7 +267,7 @@ def analyze_adaptive_supertrend(candles, config=None, daily_bias="BEARISH"):
     if close_price > hl2 and rsi_allows_buy and macd_data["hist"] >= 0:
         indicator_signal = "BUY"
         sl_price = lower_band
-        sl_points = max(round(abs(close_price - sl_price) * 100, 1), 200.0) # En puntos de oro
+        sl_points = max(round(abs(close_price - sl_price) * 100, 1), 200.0)
         tp1_price = close_price + (sl_points / 100.0 * cfg["target_1_rr"])
         tp2_price = close_price + (sl_points / 100.0 * cfg["target_2_rr"])
         tp3_price = close_price + (sl_points / 100.0 * cfg["target_3_rr"])
@@ -257,9 +286,48 @@ def analyze_adaptive_supertrend(candles, config=None, daily_bias="BEARISH"):
         tp2_price = close_price
         tp3_price = close_price
         
-    # Confluencia con el Sesgo Diario Macro
+    # Evaluar dirección de la vela anterior (para distinguir señal nueva de señal ya ejecutada)
+    prev_signal = "NEUTRAL"
+    if len(candles) >= 22:
+        prev_sub = candles[:-1]
+        p_last = prev_sub[-1]
+        p_close = p_last["close"]
+        p_hl2 = (p_last["high"] + p_last["low"]) / 2.0
+        p_rsi = calculate_rsi(prev_sub, cfg["rsi_length"])
+        p_macd = calculate_macd(prev_sub, cfg["macd_fast"], cfg["macd_slow"], cfg["macd_signal"])
+        if p_close > p_hl2 and p_rsi >= cfg["rsi_buy_threshold"] and p_macd["hist"] >= 0:
+            prev_signal = "BUY"
+        elif p_close < p_hl2 and p_rsi <= cfg["rsi_sell_threshold"] and p_macd["hist"] <= 0:
+            prev_signal = "SELL"
+
+    is_signal_flip = (indicator_signal != "NEUTRAL" and indicator_signal != prev_signal)
+    is_signal_ongoing = (indicator_signal != "NEUTRAL" and indicator_signal == prev_signal)
+
+    # Determinar el estado de ciclo de vela
+    if force_state:
+        candle_state = force_state
+    elif timing["is_in_development"]:
+        # Durante la formación de la vela:
+        # Si la señal ya venía activa de velas anteriores -> ALREADY_TRIGGERED (esperar siguiente setup)
+        # Si está oscilando o cambiando -> EN_DESARROLLO (esperar cierre oficial)
+        if is_signal_ongoing:
+            candle_state = "ALREADY_TRIGGERED"
+        else:
+            candle_state = "EN_DESARROLLO"
+    else:
+        # Ventana inmediata tras cierre de vela M5 (:02 Tickmill, primeros 45 segundos)
+        if is_signal_flip:
+            candle_state = "CONFIRMADA_AL_CIERRE"
+        elif is_signal_ongoing:
+            candle_state = "ALREADY_TRIGGERED"
+        else:
+            candle_state = "EN_DESARROLLO"
+        
+    is_confirmed = (candle_state == "CONFIRMADA_AL_CIERRE")
+    
+    # Confluencia con el Sesgo Diario Macro (SOLO SE VALIDA SI ESTÁ CONFIRMADA AL CIERRE)
     daily_bias_upper = str(daily_bias).upper()
-    has_confluence = (
+    has_confluence = is_confirmed and (
         (daily_bias_upper == "BULLISH" and indicator_signal == "BUY") or
         (daily_bias_upper == "BEARISH" and indicator_signal == "SELL")
     )
@@ -269,6 +337,34 @@ def analyze_adaptive_supertrend(candles, config=None, daily_bias="BEARISH"):
         (daily_bias_upper == "BEARISH" and indicator_signal == "BUY")
     )
 
+    # Títulos y mensajes según el estado exacto solicitado
+    if candle_state == "EN_DESARROLLO":
+        if indicator_signal == "BUY":
+            display_title = "COMPRA EN DESARROLLO (Esperar)"
+            display_timing = f"Vela en formación ({timing['remaining_formatted']} restantes)"
+            status_banner = f"⏳ <strong>COMPRA EN DESARROLLO:</strong> Vela M5 abierta y oscilando. NO CONFIRMAR NI DISPARAR ENTRADA. Esperar al cierre exacto ({timing['remaining_formatted']}) en Tickmill."
+        elif indicator_signal == "SELL":
+            display_title = "VENTA EN DESARROLLO (Esperar)"
+            display_timing = f"Vela en formación ({timing['remaining_formatted']} restantes)"
+            status_banner = f"⏳ <strong>VENTA EN DESARROLLO:</strong> Vela M5 abierta y oscilando. NO CONFIRMAR NI DISPARAR ENTRADA. Esperar al cierre exacto ({timing['remaining_formatted']}) en Tickmill."
+        else:
+            display_title = "CONSOLIDACIÓN EN DESARROLLO (Esperar)"
+            display_timing = f"Vela en formación ({timing['remaining_formatted']} restantes)"
+            status_banner = f"⏳ <strong>VELA EN FORMACIÓN:</strong> Esperando cierre M5 ({timing['remaining_formatted']}) para evaluar confluencia."
+    elif candle_state == "ALREADY_TRIGGERED":
+        display_title = "SEÑAL ANTERIOR YA EJECUTADA · ESPERAR PRÓXIMO SETUP"
+        display_timing = "Trade en curso · Prohibido perseguir el precio"
+        status_banner = "🛡️ <strong>DISCIPLINA INSTITUCIONAL:</strong> La señal anterior ya se activó y el trade está en desarrollo. No perseguir el mercado; esperar pacientemente al siguiente setup."
+    else: # CONFIRMADA_AL_CIERRE
+        if has_confluence:
+            display_title = f"{'COMPRA' if indicator_signal == 'BUY' else 'VENTA'} CONFIRMADA AL CIERRE ({indicator_signal} M5)"
+            display_timing = "✓ Cierre Confirmado · Ventana de Entrada Activa"
+            status_banner = f"🔥 <strong>¡GATILLO CONFIRMADO AL CIERRE DE VELA!</strong> Señal de {indicator_signal} M5 @ ${round(close_price, 2)} validada con confluencia 4/4 A+. Dispara en tu broker y anota el trade."
+        else:
+            display_title = f"{indicator_signal} AL CIERRE (FILTRADO CONTRA SESGO)"
+            display_timing = "Descartado por ir contra el sesgo diario"
+            status_banner = f"⚠️ <strong>SEÑAL FILTRADA:</strong> Señal técnica de {indicator_signal} descartada por oponerse al sesgo macro {daily_bias_upper}."
+
     return {
         "status": "ACTIVE",
         "ticker": "XAUUSD",
@@ -276,6 +372,12 @@ def analyze_adaptive_supertrend(candles, config=None, daily_bias="BEARISH"):
         "feed": "Tickmill",
         "current_price": round(close_price, 2),
         "indicator_signal": indicator_signal,
+        "candle_state": candle_state,              # "EN_DESARROLLO" / "CONFIRMADA_AL_CIERRE" / "ALREADY_TRIGGERED"
+        "is_confirmed": is_confirmed,
+        "display_title": display_title,
+        "display_timing": display_timing,
+        "status_banner": status_banner,
+        "timing": timing,
         "daily_bias": daily_bias_upper,
         "has_confluence": has_confluence,
         "is_filtered_against_bias": is_filtered_against_bias,

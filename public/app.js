@@ -2830,6 +2830,8 @@ async function loadPythonEngineSignal(isUserClick = false) {
   }
 }
 
+let lastConfirmedCandleStamp = null;
+
 function renderPythonEngineCard(analysis, isUserClick = false) {
   if (!analysis) return;
 
@@ -2837,6 +2839,7 @@ function renderPythonEngineCard(analysis, isUserClick = false) {
   const iconWrap = document.getElementById("pythonSignalIconWrap");
   const iconEl = document.getElementById("pythonSignalIcon");
   const timingEl = document.getElementById("pythonSignalTiming");
+  const liveBadge = document.getElementById("pythonEngineLiveStatus");
   const priceEl = document.getElementById("pythonSigPrice");
   const slEl = document.getElementById("pythonSigSl");
   const slPtsEl = document.getElementById("pythonSigSlPts");
@@ -2848,9 +2851,16 @@ function renderPythonEngineCard(analysis, isUserClick = false) {
   const confPill = document.getElementById("pythonSigConfluencePill");
   const card = document.getElementById("pythonEngineSignalCard");
 
+  const confDot4 = document.getElementById("confluenceDot4");
+  const confCheck4 = document.getElementById("confluenceCheck4");
+  const confScore = document.getElementById("confluenceScoreBadge");
+  const confBanner = document.getElementById("confluenceVerdictBanner");
+
   const isBuy = analysis.indicator_signal === "BUY";
   const isSell = analysis.indicator_signal === "SELL";
+  const candleState = analysis.candle_state || "EN_DESARROLLO"; // "EN_DESARROLLO" | "CONFIRMADA_AL_CIERRE" | "ALREADY_TRIGGERED"
   const hasConfluence = analysis.has_confluence === true;
+  const session = getNySessionStatus(new Date());
 
   if (priceEl && analysis.current_price) priceEl.textContent = `$${Number(analysis.current_price).toFixed(2)}`;
   if (slEl && analysis.sl_price) slEl.textContent = `$${Number(analysis.sl_price).toFixed(2)}`;
@@ -2867,60 +2877,194 @@ function renderPythonEngineCard(analysis, isUserClick = false) {
     regimeEl.textContent = `${regLabel} (${analysis.multiplier_used})`;
   }
 
-  if (titleEl) {
-    if (isBuy) {
-      titleEl.textContent = "COMPRA CONFIRMADA (BUY M5)";
-      titleEl.className = "font-mono font-black text-xs text-emerald-400";
-      if (iconWrap) iconWrap.className = "w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold";
-      if (iconEl) iconEl.setAttribute("data-lucide", "arrow-up-circle");
-    } else if (isSell) {
-      titleEl.textContent = "VENTA CONFIRMADA (SELL M5)";
-      titleEl.className = "font-mono font-black text-xs text-rose-400";
-      if (iconWrap) iconWrap.className = "w-5 h-5 rounded-md bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold";
-      if (iconEl) iconEl.setAttribute("data-lucide", "arrow-down-circle");
-    } else {
-      titleEl.textContent = "ESPERANDO CIERRE DE VELA M5";
-      titleEl.className = "font-mono font-bold text-xs text-yellow-400";
-      if (iconWrap) iconWrap.className = "w-5 h-5 rounded-md bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-bold";
-      if (iconEl) iconEl.setAttribute("data-lucide", "clock");
+  // 1. ESTADO: VELA EN DESARROLLO (Vela M5 abierta oscilando. PROHIBIDO confirmar o disparar)
+  if (candleState === "EN_DESARROLLO") {
+    if (titleEl) {
+      titleEl.textContent = analysis.display_title || (isBuy ? "COMPRA EN DESARROLLO (Esperar)" : (isSell ? "VENTA EN DESARROLLO (Esperar)" : "VELA EN FORMACIÓN"));
+      titleEl.className = "font-mono font-black text-xs text-amber-400";
+    }
+    if (iconWrap) iconWrap.className = "w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold";
+    if (iconEl) iconEl.setAttribute("data-lucide", "clock");
+
+    if (timingEl) {
+      timingEl.textContent = analysis.display_timing || "Vela en formación";
+      timingEl.className = "text-[9px] font-mono text-amber-400/90 font-bold";
+    }
+    if (liveBadge) {
+      const rem = analysis.timing ? analysis.timing.remaining_formatted : "";
+      liveBadge.className = "text-[9px] px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-600/80 font-bold";
+      liveBadge.textContent = rem ? `VELA EN FORMACIÓN (${rem})` : "VELA EN FORMACIÓN";
+    }
+
+    if (card) {
+      card.className = "p-2.5 rounded-xl bg-gray-900/90 border border-amber-500/50 space-y-2 shadow-inner";
+    }
+    if (confPill) {
+      confPill.innerHTML = '<i data-lucide="clock" class="w-3 h-3 text-amber-400 animate-spin"></i><span>EN DESARROLLO (ESPERAR)</span>';
+      confPill.className = "text-amber-400 font-bold flex items-center gap-1";
+    }
+
+    // Actualizar Radar de Confluencia
+    if (confCheck4) {
+      const sigName = isBuy ? "COMPRA" : (isSell ? "VENTA" : "VELA");
+      confCheck4.textContent = `⏳ ${sigName} EN DESARROLLO (Esperar cierre)`;
+      confCheck4.className = "font-mono text-amber-400 font-bold text-[10px]";
+    }
+    if (confDot4) confDot4.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+
+    if (session.isInSession) {
+      if (confScore) {
+        confScore.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-600/80 font-bold flex items-center gap-1";
+        confScore.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span><span>⏳ ESPERANDO CIERRE VELA M5</span>';
+      }
+      if (confBanner) {
+        confBanner.className = "p-2 rounded-lg bg-amber-950/40 border border-amber-500/40 text-[10px] text-amber-300 font-medium leading-tight";
+        confBanner.innerHTML = analysis.status_banner || `⏳ <strong>VELA EN DESARROLLO:</strong> Vela M5 abierta y oscilando en Tickmill. NO confirmar ni disparar trade hasta el cierre de vela.`;
+      }
     }
   }
 
-  if (card) {
+  // 2. ESTADO: SEÑAL ANTERIOR YA EJECUTADA (Trade en curso. Prohibido perseguir el precio)
+  else if (candleState === "ALREADY_TRIGGERED") {
+    if (titleEl) {
+      titleEl.textContent = analysis.display_title || "SEÑAL ANTERIOR YA EJECUTADA · ESPERAR PRÓXIMO SETUP";
+      titleEl.className = "font-mono font-bold text-xs text-blue-300";
+    }
+    if (iconWrap) iconWrap.className = "w-5 h-5 rounded-md bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold";
+    if (iconEl) iconEl.setAttribute("data-lucide", "history");
+
+    if (timingEl) {
+      timingEl.textContent = analysis.display_timing || "Trade en curso · Prohibido perseguir el precio";
+      timingEl.className = "text-[9px] font-mono text-blue-300/80";
+    }
+    if (liveBadge) {
+      liveBadge.className = "text-[9px] px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-600/80 font-bold";
+      liveBadge.textContent = "TRADE EN CURSO";
+    }
+
+    if (card) {
+      card.className = "p-2.5 rounded-xl bg-gray-900/80 border border-blue-500/40 space-y-2";
+    }
+    if (confPill) {
+      confPill.innerHTML = '<i data-lucide="shield" class="w-3 h-3 text-blue-400"></i><span>ESPERAR PRÓXIMO SETUP</span>';
+      confPill.className = "text-blue-400 font-bold flex items-center gap-1";
+    }
+
+    // Actualizar Radar de Confluencia
+    if (confCheck4) {
+      confCheck4.textContent = "🛡️ SEÑAL ANTERIOR YA EJECUTADA (Esperar)";
+      confCheck4.className = "font-mono text-blue-400 font-bold text-[10px]";
+    }
+    if (confDot4) confDot4.className = "w-2 h-2 rounded-full bg-blue-400";
+
+    if (session.isInSession) {
+      if (confScore) {
+        confScore.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-600/80 font-bold flex items-center gap-1";
+        confScore.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span><span>🛡️ ESPERAR SIGUIENTE SETUP</span>';
+      }
+      if (confBanner) {
+        confBanner.className = "p-2 rounded-lg bg-blue-950/40 border border-blue-500/40 text-[10px] text-blue-200 font-medium leading-tight";
+        confBanner.innerHTML = analysis.status_banner || `🛡️ <strong>DISCIPLINA INSTITUCIONAL:</strong> La señal anterior ya se activó y el trade está en desarrollo. No perseguir el mercado; esperar pacientemente al siguiente setup.`;
+      }
+    }
+  }
+
+  // 3. ESTADO: CONFIRMADA AL CIERRE (Vela M5 recién cerrada en Tickmill. Ventana de entrada activa)
+  else {
     if (hasConfluence) {
-      card.className = "p-2.5 rounded-xl bg-gray-900/90 border border-emerald-500/60 shadow-lg shadow-emerald-950/20 space-y-2";
+      if (titleEl) {
+        titleEl.textContent = analysis.display_title || (isBuy ? "COMPRA CONFIRMADA (BUY M5)" : "VENTA CONFIRMADA (SELL M5)");
+        titleEl.className = isBuy ? "font-mono font-black text-xs text-emerald-400" : "font-mono font-black text-xs text-rose-400";
+      }
+      if (iconWrap) {
+        iconWrap.className = isBuy ? "w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold" : "w-5 h-5 rounded-md bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold";
+      }
+      if (iconEl) iconEl.setAttribute("data-lucide", isBuy ? "arrow-up-circle" : "arrow-down-circle");
+
+      if (timingEl) {
+        timingEl.textContent = analysis.display_timing || "✓ Cierre Confirmado · Ventana de Entrada Activa";
+        timingEl.className = "text-[9px] font-mono text-emerald-400 font-bold";
+      }
+      if (liveBadge) {
+        liveBadge.className = "text-[9px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-600/80 font-bold animate-pulse";
+        liveBadge.textContent = "CIERRE CONFIRMADO";
+      }
+
+      if (card) {
+        card.className = "p-2.5 rounded-xl bg-gray-900/90 border border-emerald-500/60 shadow-lg shadow-emerald-950/20 space-y-2";
+      }
       if (confPill) {
         confPill.innerHTML = '<i data-lucide="check-check" class="w-3 h-3 text-emerald-400"></i><span>4/4 CONFLUENCIA A+</span>';
         confPill.className = "text-emerald-400 font-bold flex items-center gap-1";
       }
-    } else {
-      card.className = "p-2.5 rounded-xl bg-gray-900/80 border border-gray-800 space-y-2";
-      if (confPill) {
-        confPill.innerHTML = '<i data-lucide="shield-alert" class="w-3 h-3 text-gray-500"></i><span>SIN CONFLUENCIA</span>';
-        confPill.className = "text-gray-500 font-bold flex items-center gap-1";
-      }
-    }
-  }
 
-  // Actualizar Item 4 del Radar de Confluencia
-  const confDot4 = document.getElementById("confluenceDot4");
-  const confCheck4 = document.getElementById("confluenceCheck4");
-  if (confCheck4) {
-    if (hasConfluence) {
-      confCheck4.textContent = `✓ GATILLO: ${analysis.indicator_signal} M5 @ $${analysis.current_price}`;
-      confCheck4.className = isBuy ? "font-mono text-emerald-400 font-bold text-[10px]" : "font-mono text-rose-400 font-bold text-[10px]";
+      // Actualizar Radar de Confluencia
+      if (confCheck4) {
+        confCheck4.textContent = `✓ GATILLO: ${analysis.indicator_signal} M5 @ $${analysis.current_price}`;
+        confCheck4.className = isBuy ? "font-mono text-emerald-400 font-bold text-[10px]" : "font-mono text-rose-400 font-bold text-[10px]";
+      }
       if (confDot4) confDot4.className = isBuy ? "w-2 h-2 rounded-full bg-emerald-400 animate-pulse" : "w-2 h-2 rounded-full bg-rose-400 animate-pulse";
+
+      if (session.isInSession) {
+        if (confScore) {
+          confScore.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500 font-bold flex items-center gap-1 animate-pulse";
+          confScore.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>4/4 SETUP A+ CONFIRMADO</span>';
+        }
+        if (confBanner) {
+          confBanner.className = "p-2 rounded-lg bg-emerald-950/60 border border-emerald-500/50 text-[10px] text-emerald-300 font-bold leading-tight";
+          confBanner.innerHTML = analysis.status_banner || `🔥 <strong>¡GATILLO CONFIRMADO AL CIERRE DE VELA!</strong> Señal de ${analysis.indicator_signal} M5 @ $${analysis.current_price} validada con confluencia 4/4 A+. Dispara en tu broker y anota el trade.`;
+        }
+
+        // Emitir alerta sonora solo 1 vez por confirmación de vela cerrada
+        const stamp = `${analysis.indicator_signal}_${analysis.current_price}`;
+        if (lastConfirmedCandleStamp !== stamp) {
+          lastConfirmedCandleStamp = stamp;
+          playTradeAlertSound(true);
+        }
+      }
     } else {
-      confCheck4.textContent = isBuy || isSell ? `⚠️ ${analysis.indicator_signal} (FILTRADO)` : "⏳ ESPERANDO VELA";
-      confCheck4.className = "font-mono text-yellow-400 font-bold text-[10px]";
+      // Señal al cierre pero filtrada contra el sesgo
+      if (titleEl) {
+        titleEl.textContent = analysis.display_title || `${analysis.indicator_signal} AL CIERRE (FILTRADO)`;
+        titleEl.className = "font-mono font-bold text-xs text-yellow-400";
+      }
+      if (iconWrap) iconWrap.className = "w-5 h-5 rounded-md bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-bold";
+      if (iconEl) iconEl.setAttribute("data-lucide", "shield-alert");
+
+      if (timingEl) {
+        timingEl.textContent = analysis.display_timing || "Descartado por ir contra el sesgo diario";
+        timingEl.className = "text-[9px] font-mono text-yellow-400/80";
+      }
+      if (liveBadge) {
+        liveBadge.className = "text-[9px] px-2 py-0.5 rounded-full bg-yellow-950 text-yellow-300 border border-yellow-600/80 font-bold";
+        liveBadge.textContent = "SEÑAL FILTRADA";
+      }
+
+      if (card) {
+        card.className = "p-2.5 rounded-xl bg-gray-900/80 border border-yellow-500/30 space-y-2";
+      }
+      if (confPill) {
+        confPill.innerHTML = '<i data-lucide="shield-alert" class="w-3 h-3 text-yellow-500"></i><span>FILTRADO CONTRA SESGO</span>';
+        confPill.className = "text-yellow-500 font-bold flex items-center gap-1";
+      }
+
+      if (confCheck4) {
+        confCheck4.textContent = `⚠️ ${analysis.indicator_signal} (FILTRADO CONTRA SESGO)`;
+        confCheck4.className = "font-mono text-yellow-400 font-bold text-[10px]";
+      }
       if (confDot4) confDot4.className = "w-2 h-2 rounded-full bg-yellow-400";
+
+      if (session.isInSession && confBanner) {
+        confBanner.className = "p-2 rounded-lg bg-yellow-950/40 border border-yellow-500/40 text-[10px] text-yellow-300 font-medium leading-tight";
+        confBanner.innerHTML = analysis.status_banner || `⚠️ <strong>SEÑAL FILTRADA:</strong> Señal técnica de ${analysis.indicator_signal} descartada por oponerse al sesgo macro.`;
+      }
     }
   }
 
   initIcons();
 
   if (isUserClick) {
-    showToast(`⚡ <strong>Motor Python M5:</strong> Análisis completado. Señal actual: <strong>${analysis.indicator_signal}</strong> @ $${analysis.current_price}`, hasConfluence ? "success" : "info", 4000);
+    showToast(`⚡ <strong>Motor Python M5:</strong> ${analysis.display_title || analysis.indicator_signal} @ $${analysis.current_price}`, hasConfluence ? "success" : "info", 4000);
   }
 }
 
