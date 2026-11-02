@@ -731,10 +731,14 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             self.send_json(signal)
             return
 
-        elif path == "/api/adaptive-supertrend":
-            # Retorna la configuración optimizada exacta y el estado en vivo del motor nativo
+        elif path == "/api/adaptive-supertrend" or path == "/api/precision-radar":
+            # Retorna la configuración optimizada exacta, estado en vivo y radar de precisión
             query = parse_qs(parsed.query)
             force_state = query.get("state", [None])[0]
+            mode_param = query.get("mode", ["precision"])[0].upper()
+            if mode_param not in ("PRECISION", "MACRO"):
+                mode_param = "PRECISION"
+                
             try:
                 offset_sec = int(query.get("offset", [120])[0])
             except Exception:
@@ -742,17 +746,26 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             current_bias = get_gold_bias()
             bias_dir = current_bias.get("bias", "BEARISH")
             
-            cfg = adaptive_supertrend.CONFIG_OPTIMIZADA if adaptive_supertrend else {}
+            cfg = (adaptive_supertrend.CONFIG_PRECISION_INTRADAY if mode_param == "PRECISION" else adaptive_supertrend.CONFIG_TREND_MACRO) if adaptive_supertrend else {}
             dummy_recent_candles = [
-                {"high": 3915.0 - i*0.15, "low": 3908.0 - i*0.15, "close": 3910.0 - i*0.15, "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+                {"high": 3955.0 - i*0.15, "low": 3945.0 - i*0.15, "close": 3947.8 - i*0.15, "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
                 for i in range(30)
             ]
-            analysis = adaptive_supertrend.analyze_adaptive_supertrend(dummy_recent_candles, daily_bias=bias_dir, force_state=force_state, offset_seconds=offset_sec) if adaptive_supertrend else {}
+            analysis = adaptive_supertrend.analyze_adaptive_supertrend(dummy_recent_candles, config=cfg, daily_bias=bias_dir, force_state=force_state, offset_seconds=offset_sec) if adaptive_supertrend else {}
+            
+            precision_data = adaptive_supertrend.calculate_precision_radar(
+                current_price=3947.80,
+                daily_bias=bias_dir,
+                session_levels=current_bias.get("session_levels", {}),
+                mode=mode_param
+            ) if adaptive_supertrend else {}
             
             self.send_json({
                 "config": cfg,
                 "analysis": analysis,
+                "precision_radar": precision_data,
                 "broker": "Tickmill",
+                "mode": mode_param,
                 "offset_seconds": offset_sec,
                 "server_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             })

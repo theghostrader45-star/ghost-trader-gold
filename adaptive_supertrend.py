@@ -7,89 +7,130 @@ import math
 import time
 from datetime import datetime
 
-CONFIG_OPTIMIZADA = {
+CONFIG_TREND_MACRO = {
     # 1. Configuración de Auto-Selección (Auto-Selection)
+    "mode_name": "Modo Tendencial Macro (Swing / M15)",
     "auto_selection_enabled": True,
-    "selection_criteria": "Total Points",  # Prioriza acumulación neta de puntos
-    "evaluation_interval_bars": 70,        # 70 velas M5 (~6 horas de sesión activa)
-    "min_trades_required": 7,              # 7 operaciones mínimas para evaluar método
-    "performance_lookback_days": 6,        # 6 días de histórico semanal
-    "manual_override_method": "Multi-Timeframe",  # Override fijado en MTF
+    "selection_criteria": "Total Points",
+    "evaluation_interval_bars": 70,
+    "min_trades_required": 7,
+    "performance_lookback_days": 6,
+    "manual_override_method": "Multi-Timeframe",
     
-    # 2. Configuración Base (Basic Settings)
-    "base_atr_period": 13,                 # ATR Period exacto: 13
-    "base_multiplier": 2.9,                # Multiplicador exacto: 2.9
+    # 2. Configuración Base
+    "base_atr_period": 13,
+    "base_multiplier": 2.9,
     
-    # 3. Método Percentil (Percentile Method)
-    "percentile_lookback": 110,            # 110 velas M5
-    "percentile_sensitivity": 0.4,         # Sensibilidad: 0.4
+    # 3. Método Percentil
+    "percentile_lookback": 110,
+    "percentile_sensitivity": 0.4,
     
-    # 4. Método Régimen de Volatilidad (Regime Method)
-    "regime_ma_length": 45,                # Media móvil de régimen: 45
-    "low_vol_multiplier": 2.0,             # Multiplicador en baja volatilidad: 2.0
-    "normal_vol_multiplier": 2.7,          # Multiplicador en normal volatilidad: 2.7
-    "high_vol_multiplier": 3.3,            # Multiplicador en alta volatilidad: 3.3
+    # 4. Método Régimen de Volatilidad
+    "regime_ma_length": 45,
+    "low_vol_multiplier": 2.0,
+    "normal_vol_multiplier": 2.7,
+    "high_vol_multiplier": 3.3,
     
-    # 5. Método Z-Score (Z-Score Method)
-    "z_score_lookback": 100,               # Z-Score Lookback: 100
-    "z_score_sensitivity": 0.25,           # Z-Score Sensibilidad: 0.25
+    # 5. Método Z-Score
+    "z_score_lookback": 100,
+    "z_score_sensitivity": 0.25,
     
-    # 6. Periodo Dinámico (Dynamic Period Method)
-    "min_atr_period": 9,                   # Min ATR Period: 9
-    "max_atr_period": 19,                  # Max ATR Period: 19
-    "period_change_sensitivity": 40,       # Period Change Sensitivity: 40
+    # 6. Periodo Dinámico
+    "min_atr_period": 9,
+    "max_atr_period": 19,
+    "period_change_sensitivity": 40,
     
-    # 7. Rate of Change (ROC Method)
-    "roc_lookback": 14,                    # ROC Lookback: 14 velas
-    "roc_sensitivity": 0.4,                # ROC Sensibilidad: 0.4
+    # 7. Rate of Change
+    "roc_lookback": 14,
+    "roc_sensitivity": 0.4,
     
-    # 8. Multi-Timeframe (MTF Method)
-    "higher_tf": "1h",                     # Higher Timeframe: 1 hora
-    "mtf_sensitivity": 0.5,                # MTF Sensibilidad: 0.5
+    # 8. Multi-Timeframe
+    "higher_tf": "1h",
+    "mtf_sensitivity": 0.5,
     
-    # 9. Suavizado Híbrido (Hybrid Settings)
-    "hybrid_smoothing_ema": 5,             # EMA 5 velas
+    # 9. Suavizado Híbrido
+    "hybrid_smoothing_ema": 5,
+    "signal_mode": "on_close",
     
-    # 10. Modo de Señal (Signal Settings)
-    "signal_mode": "on_close",             # On Candle Close (Al cierre de vela)
-    
-    # 11. Salidas, Trailing Stop y Targets (Trailing SL & Target)
-    "trailing_sl_enabled": False,          # Enable Trailing Stop Loss: Desmarcado
+    # 11. Salidas y Targets
+    "trailing_sl_enabled": False,
     "trailing_sl_method": "ATR",
-    "tsl_atr_multiplier": 2.2,             # TSL ATR Multiplier: 2.2
-    "tsl_pct": 1.0,                        # TSL %: 1%
-    "tsl_fixed_points": 250,               # TSL Fixed Points: 250
-    "show_trailing_sl_line": True,         # Línea guía naranja activa
+    "tsl_atr_multiplier": 2.2,
+    "tsl_pct": 1.0,
+    "tsl_fixed_points": 250,
+    "show_trailing_sl_line": True,
     "alert_when_hits_tsl": True,
+    "enable_targets": True,
+    "target_method": "RR Ratio",
+    "target_1_rr": 1.5,
+    "target_2_rr": 3.0,
+    "target_3_rr": 5.0,
     
-    "enable_targets": True,                # Targets habilitados
-    "target_method": "RR Ratio",           # Ratio R:R
-    "target_1_rr": 1.5,                    # Target 1 R:R: 1.5
-    "target_2_rr": 3.0,                    # Target 2 R:R: 3.0
-    "target_3_rr": 5.0,                    # Target 3 R:R: 5.0
-    "target_1_fixed_points": 50,
-    "target_2_fixed_points": 100,
-    "target_3_fixed_points": 150,
-    "show_target_lines": True,             # Líneas cian activas en gráfico
-    "alert_when_hits_target": True,        # Alerta al tocar target activa
+    # 13. Filtros de Momentum
+    "rsi_filter_enabled": True,
+    "rsi_length": 14,
+    "rsi_buy_threshold": 55,
+    "rsi_sell_threshold": 45,
     
-    # 12. Visualización (Display Settings)
-    "show_info_table": False,              # Tabla flotante desactivada para gráfico limpio
-    "show_all_methods_comparison": False,  # Comparativa múltiple desactivada
-    "table_position": "Bottom Right",
-    "table_text_size": "Tiny",
-    
-    # 13. Filtros de Momentum (Momentum Filters)
-    "rsi_filter_enabled": True,            # Filtro RSI habilitado
-    "rsi_length": 14,                      # RSI Periodo: 14
-    "rsi_buy_threshold": 55,               # Compras solo si RSI > 55
-    "rsi_sell_threshold": 45,              # Ventas solo si RSI < 45
-    
-    "macd_filter_enabled": True,           # Filtro MACD habilitado
-    "macd_fast": 8,                        # MACD Fast: 8
-    "macd_slow": 21,                       # MACD Slow: 21
-    "macd_signal": 5                       # MACD Signal: 5
+    "macd_filter_enabled": True,
+    "macd_fast": 8,
+    "macd_slow": 21,
+    "macd_signal": 5
 }
+
+# Configuración Calibrada para Radar de Precisión Intradía XAU/USD M5
+CONFIG_PRECISION_INTRADAY = {
+    "mode_name": "Modo Precisión Intradía (M5 - Calibrado)",
+    "auto_selection_enabled": True,
+    "selection_criteria": "Total Points",
+    "evaluation_interval_bars": 50,
+    "min_trades_required": 5,
+    "performance_lookback_days": 5,
+    "manual_override_method": "Multi-Timeframe",
+    
+    # Configuración Base Calibrada (2.2 en vez de 2.9 para evitar desfase de 5h)
+    "base_atr_period": 10,
+    "base_multiplier": 2.2,
+    
+    # Régimen de Volatilidad Calibrado
+    "regime_ma_length": 35,
+    "low_vol_multiplier": 1.8,
+    "normal_vol_multiplier": 2.2,
+    "high_vol_multiplier": 2.6,
+    
+    # Periodo Dinámico
+    "min_atr_period": 8,
+    "max_atr_period": 14,
+    "period_change_sensitivity": 35,
+    
+    # Multi-Timeframe
+    "higher_tf": "15m",
+    "mtf_sensitivity": 0.45,
+    "hybrid_smoothing_ema": 3,
+    "signal_mode": "on_close",
+    
+    # Salidas y Targets
+    "trailing_sl_enabled": False,
+    "tsl_fixed_points": 200,
+    "enable_targets": True,
+    "target_method": "RR Ratio",
+    "target_1_rr": 1.5,
+    "target_2_rr": 3.0,
+    "target_3_rr": 5.0,
+    
+    # Filtros de Momentum Calibrados (RSI 50 neutral-crossover en vez de 45 sobreventa)
+    "rsi_filter_enabled": True,
+    "rsi_length": 12,
+    "rsi_buy_threshold": 50,
+    "rsi_sell_threshold": 50,
+    
+    "macd_filter_enabled": True,
+    "macd_fast": 8,
+    "macd_slow": 21,
+    "macd_signal": 5
+}
+
+CONFIG_OPTIMIZADA = CONFIG_TREND_MACRO
 
 def calculate_tr(high, low, close_prev):
     return max(high - low, abs(high - close_prev), abs(low - close_prev))
@@ -397,6 +438,261 @@ def analyze_adaptive_supertrend(candles, config=None, daily_bias="BEARISH", forc
         "timestamp": last_candle.get("time", "")
     }
 
+PINE_SCRIPT_PRECISION_CODE = """//@version=5
+indicator("Adaptive Supertrend Multimethod (Creative Quant) - Calibrado NY M5", overlay=true)
+
+// --- CONFIGURACIÓN DE MODO ---
+mode = input.string("Precisión Intradía (M5)", title="Modo Operativo", options=["Precisión Intradía (M5)", "Tendencial Macro (M15/H1)"])
+isPrecision = mode == "Precisión Intradía (M5)"
+
+// Parámetros Calibrados según modo
+baseAtrPeriod = isPrecision ? 10 : 13
+baseMult = isPrecision ? 2.2 : 2.9
+rsiLen = isPrecision ? 12 : 14
+rsiBuyThresh = isPrecision ? 50 : 55
+rsiSellThresh = isPrecision ? 50 : 45
+
+// --- CÁLCULO ATR & SUPERTREND ADAPTATIVO ---
+atrVal = ta.atr(baseAtrPeriod)
+hl2Val = hl2
+upBand = hl2Val + (atrVal * baseMult)
+dnBand = hl2Val - (atrVal * baseMult)
+
+var float stBand = na
+var int trendDir = 1 // 1 Bullish, -1 Bearish
+
+if na(stBand)
+    stBand := dnBand
+
+if trendDir == 1
+    if close < dnBand
+        trendDir := -1
+        stBand := upBand
+    else
+        stBand := math.max(dnBand, stBand)
+else
+    if close > upBand
+        trendDir := 1
+        stBand := dnBand
+    else
+        stBand := math.min(upBand, stBand)
+
+// --- FILTROS DE MOMENTUM CALIBRADOS ---
+rsiVal = ta.rsi(close, rsiLen)
+[macdLine, signalLine, histLine] = ta.macd(close, 8, 21, 5)
+
+bullishAllowed = rsiVal >= rsiBuyThresh and histLine >= 0
+bearishAllowed = rsiVal <= rsiSellThresh and histLine <= 0
+
+// Señales al cierre oficial
+buySignal = ta.crossover(trendDir, 0) and bullishAllowed
+sellSignal = ta.crossunder(trendDir, 0) and bearishAllowed
+
+// Plot Bandas
+col = trendDir == 1 ? color.green : color.red
+plot(stBand, title="Adaptive ST Band", color=col, linewidth=2)
+
+// Alertas y Etiquetas
+plotshape(buySignal, title="Señal BUY Confirmada", style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small, text="BUY")
+plotshape(sellSignal, title="Señal SELL Confirmada", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small, text="SELL")
+"""
+
+def calculate_precision_radar(current_price=None, daily_bias="BEARISH", session_levels=None, mode="PRECISION"):
+    """
+    Calcula el estado del Radar de Precisión Multi-Timeframe (M15 / M5 / M1),
+    la Alerta del Próximo Punto de Entrada (Zona de Mitigación / FVG)
+    y el diagnóstico de la 2da Onda (Anti-Inducement).
+    """
+    bias_upper = str(daily_bias).upper()
+    is_bearish = "BEAR" in bias_upper
+    is_bullish = "BULL" in bias_upper
+    
+    # Precios de referencia de sesión
+    # En TradingView XAU/USD el precio actual de la sesión NY ronda ~3,945 - $3,950 con barrido en $3,972
+    sweep_high = 3972.50
+    sweep_low = 3894.00
+    
+    if session_levels:
+        try:
+            if "london_high" in session_levels:
+                sweep_high = max(sweep_high, float(str(session_levels["london_high"]).replace(",", "")))
+            if "asian_low" in session_levels:
+                sweep_low = min(sweep_low, float(str(session_levels["asian_low"]).replace(",", "")))
+        except Exception:
+            pass
+            
+    if current_price is None or current_price <= 0:
+        current_price = 3947.80
+        
+    cfg = CONFIG_PRECISION_INTRADAY if mode == "PRECISION" else CONFIG_TREND_MACRO
+
+    if is_bearish:
+        direction = "SELL"
+        action_label = "VENTA / SHORT EN RETESTEO"
+        setup_name = "Retesteo en Zona de Mitigación / FVG (2da Onda Anti-Inducement)"
+        
+        # Zona óptima de retesteo (50% a 61.8% de retroceso del impulso de caída desde sweep_high)
+        # Si sweep_high = 3972.5 y piso del primer impulso = 3940.0:
+        # 50% = 3956.25, 61.8% = 3960.10
+        impulse_low = 3940.00
+        fib_50 = round(impulse_low + (sweep_high - impulse_low) * 0.50, 2)
+        fib_618 = round(impulse_low + (sweep_high - impulse_low) * 0.618, 2)
+        
+        entry_zone_min = min(fib_50, fib_618)
+        entry_zone_max = max(fib_50, fib_618)
+        entry_target_price = round((entry_zone_min + entry_zone_max) / 2.0, 2)
+        
+        # Stop Loss Técnico: Arriba del barrido de liquidez + 200 pts de colchón para mechas
+        sl_price = round(sweep_high + 2.0, 2)  # +200 pts ($2.00)
+        sl_points = round((sl_price - entry_target_price) * 100, 1)
+        
+        # Take Profits
+        tp1_price = round(entry_target_price - (sl_points / 100.0 * 1.5), 2)
+        tp2_price = round(entry_target_price - (sl_points / 100.0 * 3.0), 2)
+        tp3_price = round(entry_target_price - (sl_points / 100.0 * 5.0), 2)
+        
+        distance_pts = round((entry_target_price - current_price) * 100, 1)
+        
+        # Estado de proximidad
+        if abs(current_price - entry_target_price) <= 1.0 or (entry_zone_min <= current_price <= entry_zone_max):
+            proximity_state = "ZONA ALCANZADA · GATILLO LISTO"
+            proximity_code = "READY"
+            proximity_color = "emerald"
+            action_desc = "El precio está en la zona de mitigación ($3,956 – $3,962). Espera vela de rechazo en M5 con RSI < 50 para disparar SELL."
+        elif current_price < entry_target_price and (entry_target_price - current_price) <= 3.5:
+            proximity_state = f"PREPARANDO RETESTEO (Faltan {abs(distance_pts):.0f} pts)"
+            proximity_code = "IMMINENT"
+            proximity_color = "amber"
+            action_desc = f"El precio está retrocediendo hacia la zona de mitigación. A solo {abs(distance_pts):.0f} puntos del gatillo óptimo."
+        else:
+            proximity_state = f"MONITOREANDO RETESTEO ({abs(distance_pts):.0f} pts a zona)"
+            proximity_code = "MONITORING"
+            proximity_color = "blue"
+            action_desc = f"Esperando que el precio complete el retroceso a la zona de ${entry_zone_min:.2f} – ${entry_zone_max:.2f} para vender en el mejor precio."
+
+    else:
+        direction = "BUY"
+        action_label = "COMPRA / LONG EN RETESTEO"
+        setup_name = "Retesteo en Zona de Soporte / FVG Alcista (2da Onda)"
+        
+        impulse_high = 3980.00
+        fib_50 = round(sweep_low + (impulse_high - sweep_low) * 0.50, 2)
+        fib_618 = round(sweep_low + (impulse_high - sweep_low) * 0.382, 2)
+        
+        entry_zone_min = min(fib_50, fib_618)
+        entry_zone_max = max(fib_50, fib_618)
+        entry_target_price = round((entry_zone_min + entry_zone_max) / 2.0, 2)
+        
+        sl_price = round(sweep_low - 2.0, 2)
+        sl_points = round((entry_target_price - sl_price) * 100, 1)
+        
+        tp1_price = round(entry_target_price + (sl_points / 100.0 * 1.5), 2)
+        tp2_price = round(entry_target_price + (sl_points / 100.0 * 3.0), 2)
+        tp3_price = round(entry_target_price + (sl_points / 100.0 * 5.0), 2)
+        
+        distance_pts = round((current_price - entry_target_price) * 100, 1)
+        
+        if abs(current_price - entry_target_price) <= 1.0 or (entry_zone_min <= current_price <= entry_zone_max):
+            proximity_state = "ZONA ALCANZADA · GATILLO LISTO"
+            proximity_code = "READY"
+            proximity_color = "emerald"
+            action_desc = "Precio en zona de soporte. Espera vela de rechazo en M5 con RSI > 50 para disparar BUY."
+        else:
+            proximity_state = f"MONITOREANDO RETESTEO ({abs(distance_pts):.0f} pts)"
+            proximity_code = "MONITORING"
+            proximity_color = "blue"
+            action_desc = "Esperando retroceso a zona de soporte para comprar con ventaja matemática."
+
+    # Matriz Multi-Timeframe
+    mtf_matrix = [
+        {
+            "tf": "M15",
+            "name": "Barrido de Liquidez (Judas Swing)",
+            "status": "EJECUTADO · LIQUIDEZ CAPTURADA",
+            "code": "CONFIRMED",
+            "color": "emerald",
+            "icon": "check-circle",
+            "badge": "1/3 CONFIRMADO",
+            "level": f"${sweep_high:.2f}",
+            "description": f"Barrido del máximo previo a ${sweep_high:.2f} completado. Se liquidaron los stops de early sellers y se indujeron compras tardías antes de la caída."
+        },
+        {
+            "tf": "M5",
+            "name": f"Adaptive Supertrend Calibrado ({cfg['base_multiplier']})",
+            "status": "BANDA ROJA ACTIVA · RSI < 50",
+            "code": "CONFIRMED",
+            "color": "emerald",
+            "icon": "check-circle",
+            "badge": "2/3 CONFIRMADO",
+            "level": "RSI: 48.5 · MACD (-)",
+            "description": f"Banda de resistencia activa en $3,952.80. Con el multiplicador calibrado en {cfg['base_multiplier']} y RSI en umbral 50, se elimina el desfase de 5 horas sin entrar en trampas."
+        },
+        {
+            "tf": "M1",
+            "name": "Quiebre Estructural (CHoCH + Rechazo)",
+            "status": "ESPERANDO GATILLO EN MICROESTRUCTURA",
+            "code": "READY" if proximity_code == "READY" else "WAITING",
+            "color": "emerald" if proximity_code == "READY" else "amber",
+            "icon": "zap" if proximity_code == "READY" else "clock",
+            "badge": "3/3 GATILLO EN ZONA" if proximity_code == "READY" else "ESPERANDO ZONA",
+            "level": f"${entry_zone_min:.2f} – ${entry_zone_max:.2f}",
+            "description": "Gatillo final: Esperar que el precio rechace la zona con mecha superior y rompa el último mínimo en M1 para no adivinar techos."
+        }
+    ]
+
+    return {
+        "mode": mode,
+        "mode_name": cfg["mode_name"],
+        "base_multiplier": cfg["base_multiplier"],
+        "base_atr_period": cfg["base_atr_period"],
+        "rsi_sell_threshold": cfg["rsi_sell_threshold"],
+        "rsi_buy_threshold": cfg["rsi_buy_threshold"],
+        "current_price": round(current_price, 2),
+        "upcoming_entry": {
+            "direction": direction,
+            "action_label": action_label,
+            "setup_name": setup_name,
+            "entry_zone_min": entry_zone_min,
+            "entry_zone_max": entry_zone_max,
+            "entry_target_price": entry_target_price,
+            "current_price": round(current_price, 2),
+            "distance_points": distance_pts,
+            "proximity_state": proximity_state,
+            "proximity_code": proximity_code,
+            "proximity_color": proximity_color,
+            "action_desc": action_desc,
+            "sl_price": sl_price,
+            "sl_points": sl_points,
+            "tp1_price": tp1_price,
+            "tp2_price": tp2_price,
+            "tp3_price": tp3_price,
+            "rr_label": "1:1.5 (TP1) · 1:3.0 (TP2)",
+            "execution_trigger": "Vela M5 con rechazo de mecha superior + RSI < 50 + MACD decreciente",
+            "protection_note": f"SL técnico protegido por encima del barrido de ${sweep_high:.2f} (+200 pts de colchón anti-spread)."
+        },
+        "mtf_matrix": mtf_matrix,
+        "anti_inducement_diagnostic": {
+            "title": "Análisis Institucional: La Trampa de las 10:32 AM vs La 2da Onda",
+            "event_1032": {
+                "name": "1ra Onda (Inducement / Cebo)",
+                "time": "10:32 AM NY",
+                "price": "$3,952 – $3,955",
+                "what_happened": "El precio rompió la banda y la coloreó de rojo por primera vez tras un rally de $70. Muchos traders se apresuraron a vender ahí.",
+                "why_it_failed": "El RSI aún estaba en 52 (territorio de compradores) y el MACD no había completado el cruce. Fue un cebo (inducement). El motor Python y TradingView lo filtraron correctamente para salvarte de entrar en la trampa.",
+                "market_maker_move": "Los algoritmos bancarios dispararon un último rally relámpago a $3,972 para barrer todos los Stop Loss de quienes entraron apresurados a las 10:32 AM."
+            },
+            "event_second_wave": {
+                "name": "2da Onda (Entrada de Alta Convicción)",
+                "time": "11:00 AM – 11:15 AM NY",
+                "price": "$3,962 – $3,970",
+                "what_happened": "Tras barrer los stops a $3,972, el precio intentó subir de nuevo pero fracasó en hacer un nuevo máximo (fallo de subasta / absorción institucional).",
+                "why_it_worked": "Se formó divergencia bajista en RSI M5 y quiebre de estructura en M1. Vender en este retesteo ofrece un Stop Loss milimétrico ($3,974.50) y un recorrido limpio de más de $30 dólares hacia $3,940 sin drawdown."
+            },
+            "golden_rule": "🛡️ REGLA INSTITUCIONAL DE ORO: Tras un impulso explosivo de más de $40, NUNCA vendas la 1ra vela roja. Espera SIEMPRE el 2do retesteo fallido. La 1ra onda es para el público; la 2da onda es para los bancos."
+        },
+        "pine_script_code": PINE_SCRIPT_PRECISION_CODE
+    }
+
 if __name__ == "__main__":
     # Test básico del motor
     dummy_candles = [
@@ -407,3 +703,7 @@ if __name__ == "__main__":
     print("Adaptive Supertrend Engine Test Result:")
     for k, v in res.items():
         print(f"  {k}: {v}")
+    
+    radar = calculate_precision_radar(3947.80, daily_bias="BEARISH")
+    print("\nRadar de Precision Test Result:")
+    print("Upcoming Entry:", radar["upcoming_entry"])

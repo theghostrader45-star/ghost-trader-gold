@@ -103,7 +103,7 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- NAVIGATION TABS: Macro Sesión / Calculadora / Bitácora -->
+    <!-- NAVIGATION TABS: Macro Sesión / Radar de Precisión / Calculadora / Bitácora -->
     <nav class="flex flex-wrap items-center gap-2 p-1 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl">
       <!-- Tab 1: Macro Sesión -->
       <button id="tabBtnGoldBias" class="tab-button flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition bg-yellow-500 text-black shadow-lg shadow-yellow-500/30">
@@ -112,17 +112,24 @@
         <span id="tabBadgeBias" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-red-950 text-red-300 border border-red-800">BAJISTA 85%</span>
       </button>
 
-      <!-- Tab 2: Calculadora -->
+      <!-- Tab 2: Radar de Precisión -->
+      <button id="tabBtnPrecisionRadar" class="tab-button flex-1 min-w-[150px] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
+        <i data-lucide="target" class="w-4 h-4 text-emerald-400"></i>
+        <span>2. Radar de Precisión</span>
+        <span id="tabBadgePrecision" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800">GATILLO M5</span>
+      </button>
+
+      <!-- Tab 3: Calculadora -->
       <button id="tabBtnCalculator" class="tab-button flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
         <i data-lucide="calculator" class="w-4 h-4 text-amber-400"></i>
-        <span>2. Calculadora</span>
+        <span>3. Calculadora</span>
         <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-950 text-amber-300 border border-amber-800">Oro XAU</span>
       </button>
 
-      <!-- Tab 3: Bitácora -->
+      <!-- Tab 4: Bitácora -->
       <button id="tabBtnRealJournal" class="tab-button flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
         <i data-lucide="book-open" class="w-4 h-4 text-emerald-400"></i>
-        <span>3. Bitácora</span>
+        <span>4. Bitácora</span>
         <span id="tabBadgeReal" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800">0 ops</span>
       </button>
     </nav>
@@ -921,8 +928,303 @@
     </div>
 
 
+    <!-- ============================================================== -->
+    <!-- VIEW 2: RADAR DE PRECISIÓN DE ENTRADAS & ALERTA DEL SETUP      -->
+    <!-- ============================================================== -->
+    <div id="viewPrecisionRadar" class="hidden space-y-6">
+
+      <!-- Header & Selector de Modo -->
+      <section class="bg-gradient-to-r from-emerald-950/40 via-gray-900 to-teal-950/40 border-2 border-emerald-500/40 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30">
+            <i data-lucide="crosshair" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 class="text-base sm:text-lg font-black text-white tracking-wide">Radar de Precisión de Entradas XAU/USD</h2>
+              <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-mono font-bold">M5 / M1 Institucional</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-0.5">Identificación algorítmica de zonas de mitigación, cálculo de proximidad y confirmación de la 2da onda (Anti-Inducement).</p>
+          </div>
+        </div>
+
+        <!-- Mode Toggle & Refresh Button -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="bg-gray-950 p-1 rounded-xl border border-gray-800 flex items-center gap-1">
+            <button type="button" id="btnRadarModePrecision" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-emerald-600 text-white shadow-md shadow-emerald-600/30">
+              <i data-lucide="zap" class="w-3.5 h-3.5 text-yellow-300"></i>
+              <span>Modo Precisión (M5 · 2.2)</span>
+            </button>
+            <button type="button" id="btnRadarModeMacro" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-gray-400 hover:text-white hover:bg-gray-800/60">
+              <i data-lucide="compass" class="w-3.5 h-3.5 text-blue-400"></i>
+              <span>Modo Tendencial (M15 · 2.9)</span>
+            </button>
+          </div>
+
+          <button type="button" id="btnRefreshPrecisionRadar" class="p-2 bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white rounded-xl border border-gray-700 transition" title="Refrescar Radar">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- CARD 1: ALERTA DEL PRÓXIMO PUNTO DE ENTRADA -->
+      <section class="bg-gradient-to-b from-gray-900 to-gray-950 border-2 border-emerald-500/50 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-5 relative overflow-hidden">
+        <div class="absolute -right-16 -top-16 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Top Status & Proximity Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800/80 pb-4">
+          <div class="flex items-center gap-3">
+            <span id="radarActionBadge" class="px-3 py-1 rounded-xl text-xs font-black tracking-wider uppercase font-mono bg-rose-950 text-rose-300 border border-rose-600 flex items-center gap-1.5 shadow-lg shadow-rose-950/40">
+              <i data-lucide="arrow-down-circle" class="w-4 h-4"></i>
+              <span>VENTA / SHORT EN RETESTEO</span>
+            </span>
+            <span id="radarProximityBadge" class="px-3 py-1 rounded-xl text-xs font-bold font-mono bg-blue-950 text-blue-300 border border-blue-600/80 flex items-center gap-1.5 animate-pulse">
+              <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+              <span id="radarProximityText">MONITOREANDO RETESTEO</span>
+            </span>
+          </div>
+
+          <div class="text-right">
+            <span class="text-[10px] text-gray-400 uppercase tracking-widest block font-mono">Patrón Operativo</span>
+            <span id="radarSetupName" class="text-xs font-bold text-gray-200">Retesteo en Zona de Mitigación / FVG (2da Onda Anti-Inducement)</span>
+          </div>
+        </div>
+
+        <!-- 4-Grid Key Setup Metrics -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <!-- Metric 1: Zona de Entrada Óptima -->
+          <div class="bg-gray-900/90 border border-emerald-500/30 rounded-xl p-3.5 space-y-1 shadow-inner">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] text-emerald-400 font-mono font-bold tracking-wider uppercase">Zona de Entrada Óptima</span>
+              <i data-lucide="target" class="w-3.5 h-3.5 text-emerald-400"></i>
+            </div>
+            <div class="text-lg font-black font-mono text-white" id="radarEntryZone">$3,956.25 – $3,960.10</div>
+            <div class="text-[11px] text-gray-400 font-mono flex items-center justify-between">
+              <span>Nivel Gatillo:</span>
+              <span class="text-emerald-300 font-bold" id="radarEntryTarget">$3,958.20</span>
+            </div>
+          </div>
+
+          <!-- Metric 2: Precio Actual & Distancia -->
+          <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3.5 space-y-1 shadow-inner">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] text-gray-400 font-mono font-bold tracking-wider uppercase">Precio Actual & Distancia</span>
+              <i data-lucide="navigation" class="w-3.5 h-3.5 text-yellow-400"></i>
+            </div>
+            <div class="text-lg font-black font-mono text-white" id="radarCurrentPrice">$3,947.80</div>
+            <div class="text-[11px] text-yellow-300 font-mono font-bold flex items-center justify-between">
+              <span>Distancia a Zona:</span>
+              <span id="radarDistancePts">104 pts ($10.40)</span>
+            </div>
+          </div>
+
+          <!-- Metric 3: Stop Loss Técnico -->
+          <div class="bg-gray-900/90 border border-rose-500/30 rounded-xl p-3.5 space-y-1 shadow-inner">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] text-rose-400 font-mono font-bold tracking-wider uppercase">Stop Loss Técnico</span>
+              <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-rose-400"></i>
+            </div>
+            <div class="text-lg font-black font-mono text-rose-300" id="radarSlPrice">$3,974.50</div>
+            <div class="text-[11px] text-rose-400 font-mono font-bold flex items-center justify-between">
+              <span>Riesgo en Puntos:</span>
+              <span id="radarSlPoints">163.0 pts</span>
+            </div>
+          </div>
+
+          <!-- Metric 4: Take Profits (R:R 1.5 & 3.0) -->
+          <div class="bg-gray-900/90 border border-blue-500/30 rounded-xl p-3.5 space-y-1 shadow-inner">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] text-blue-400 font-mono font-bold tracking-wider uppercase">Objetivos de Ganancia (TP)</span>
+              <i data-lucide="trending-down" class="w-3.5 h-3.5 text-blue-400"></i>
+            </div>
+            <div class="flex items-center justify-between text-xs font-mono font-bold text-white pt-0.5">
+              <span class="text-gray-400">TP1 (1.5 R:R):</span>
+              <span class="text-emerald-400" id="radarTp1Price">$3,933.70</span>
+            </div>
+            <div class="flex items-center justify-between text-xs font-mono font-bold text-white">
+              <span class="text-gray-400">TP2 (3.0 R:R):</span>
+              <span class="text-emerald-300" id="radarTp2Price">$3,909.20</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Action Banner & One-Click Calculator Transfer -->
+        <div class="p-3.5 rounded-xl bg-gray-950/80 border border-gray-800 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 max-w-2xl">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+              <i data-lucide="check-check" class="w-4 h-4"></i>
+            </div>
+            <div class="text-xs">
+              <span class="text-gray-300 font-medium block" id="radarActionDesc">Esperando que el precio complete el retroceso a la zona de $3,956.25 – $3,960.10 para vender en el mejor precio.</span>
+              <span class="text-[11px] text-gray-500 font-mono" id="radarProtectionNote">SL técnico protegido por encima del barrido de $3,972.50 (+200 pts de colchón anti-spread).</span>
+            </div>
+          </div>
+
+          <button type="button" id="btnCopySetupToCalculator" class="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black font-black text-xs rounded-xl shadow-lg shadow-yellow-500/20 flex items-center gap-2 transition cursor-pointer shrink-0">
+            <i data-lucide="calculator" class="w-4 h-4"></i>
+            <span>Cargar Parámetros en Calculadora →</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- CARD 2: MATRIZ DE CONFLUENCIA MULTI-TIMEFRAME (M15 / M5 / M1) -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i data-lucide="layers" class="w-5 h-5 text-emerald-400"></i>
+            <h3 class="text-sm sm:text-base font-bold text-white">Matriz de Confluencia Multi-Timeframe (MTF)</h3>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">3 Filtros Cuantitativos</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="mtfMatrixContainer">
+          
+          <!-- M15 Card -->
+          <div class="p-4 rounded-xl bg-gray-900/90 border border-emerald-500/40 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600">1/3 M15 · BARRIDO</span>
+              <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+            </div>
+            <div class="font-bold text-white text-xs">Barrido de Liquidez (Judas Swing)</div>
+            <div class="text-[11px] font-mono text-emerald-400 font-bold" id="mtfM15Level">$3,972.50</div>
+            <p class="text-[11px] text-gray-400 leading-relaxed" id="mtfM15Desc">Barrido del máximo previo a $3,972.50 completado. Se liquidaron los stops de early sellers y se indujeron compras tardías antes de la caída.</p>
+          </div>
+
+          <!-- M5 Card -->
+          <div class="p-4 rounded-xl bg-gray-900/90 border border-emerald-500/40 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600">2/3 M5 · SUPERTREND</span>
+              <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+            </div>
+            <div class="font-bold text-white text-xs">Adaptive Supertrend Calibrado (2.2)</div>
+            <div class="text-[11px] font-mono text-emerald-400 font-bold" id="mtfM5Level">RSI: 48.5 · MACD (-)</div>
+            <p class="text-[11px] text-gray-400 leading-relaxed" id="mtfM5Desc">Banda de resistencia activa en $3,952.80. Multiplicador 2.2 y umbral RSI 50 eliminan el desfase de 5 horas sin entrar en trampas.</p>
+          </div>
+
+          <!-- M1 Card -->
+          <div class="p-4 rounded-xl bg-gray-900/90 border border-amber-500/40 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-600">3/3 M1 · GATILLO</span>
+              <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
+            </div>
+            <div class="font-bold text-white text-xs">Quiebre Estructural (CHoCH + Rechazo)</div>
+            <div class="text-[11px] font-mono text-amber-400 font-bold" id="mtfM1Level">$3,956.25 – $3,960.10</div>
+            <p class="text-[11px] text-gray-400 leading-relaxed" id="mtfM1Desc">Gatillo final: Esperar que el precio rechace la zona con mecha superior y rompa el último mínimo en M1 para no adivinar techos.</p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- CARD 3: REGLA INSTITUCIONAL DE LA 2DA ONDA (ANTI-INDUCEMENT) -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i data-lucide="shield" class="w-5 h-5 text-yellow-400"></i>
+            <h3 class="text-sm sm:text-base font-bold text-white">Anatomía Institucional: La Trampa de las 10:32 AM vs La 2da Onda</h3>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-yellow-950 text-yellow-300 border border-yellow-800 font-bold">Psicología de Mesa Bancaria</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- Box Left: 1ra Onda (Trampa) -->
+          <div class="p-4 rounded-xl bg-gray-900/90 border border-rose-500/40 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black font-mono text-rose-400 flex items-center gap-1.5">
+                <i data-lucide="x-circle" class="w-4 h-4"></i>
+                <span>1ra ONDA (Inducement / Trampa de 10:32 AM)</span>
+              </span>
+              <span class="text-[10px] font-mono text-gray-400">10:32 AM NY</span>
+            </div>
+            <p class="text-xs text-gray-300 leading-relaxed">
+              <strong>Qué ocurrió:</strong> El precio cerró bajo la banda por primera vez tras una subida vertical de $70. Muchos traders vendieron ahí por impulso.
+            </p>
+            <p class="text-xs text-rose-300/90 leading-relaxed">
+              <strong>Por qué falló:</strong> El RSI aún estaba en 52 (territorio comprador) y los creadores de mercado necesitaban un último spike a <strong>$3,972</strong> para liquidar a los vendedores impacientes.
+            </p>
+            <div class="text-[11px] p-2 rounded-lg bg-rose-950/40 border border-rose-600/30 text-rose-300 font-mono">
+              🛡️ El motor Python y TradingView filtraron la señal correctamente, protegiéndote de una pérdida garantizada.
+            </div>
+          </div>
+
+          <!-- Box Right: 2da Onda (Entrada de Alta Convicción) -->
+          <div class="p-4 rounded-xl bg-gray-900/90 border border-emerald-500/40 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black font-mono text-emerald-400 flex items-center gap-1.5">
+                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                <span>2da ONDA (Entrada de Alta Convicción)</span>
+              </span>
+              <span class="text-[10px] font-mono text-gray-400">11:00 AM – 11:15 AM NY</span>
+            </div>
+            <p class="text-xs text-gray-300 leading-relaxed">
+              <strong>Qué ocurrió:</strong> Tras barrer los stops en $3,972, el precio intentó subir de nuevo pero fracasó en hacer nuevo máximo (fallo de subasta).
+            </p>
+            <p class="text-xs text-emerald-300/90 leading-relaxed">
+              <strong>Por qué funcionó:</strong> Se formó divergencia bajista en RSI M5 y quiebre de estructura M1. Vender en este retesteo ($3,962 – $3,968) permitió un SL milimétrico ($3,974.50).
+            </p>
+            <div class="text-[11px] p-2 rounded-lg bg-emerald-950/40 border border-emerald-600/30 text-emerald-300 font-mono">
+              🎯 Resultado: Caída libre limpia de más de $30 dólares hacia $3,940 sin pasar por drawdown.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Golden Rule Banner -->
+        <div class="p-3.5 rounded-xl bg-gradient-to-r from-yellow-950/40 via-gray-900 to-amber-950/40 border border-yellow-500/40 flex items-center gap-3">
+          <i data-lucide="lightbulb" class="w-5 h-5 text-yellow-400 shrink-0"></i>
+          <p class="text-xs text-yellow-200/95 leading-relaxed font-medium">
+            <strong>REGLA INSTITUCIONAL DE ORO:</strong> Tras un impulso violento de más de $40 en Oro, <strong>NUNCA vendas la 1ra vela roja</strong> que rompe la banda. Espera SIEMPRE el 2do retesteo fallido. La 1ra onda es la trampa para el público; la 2da onda es la entrada de los fondos institucionales.
+          </p>
+        </div>
+      </section>
+
+      <!-- CARD 4: CALIBRACIÓN DEL ADAPTIVE SUPERTREND & PINE SCRIPT PARA TRADINGVIEW -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <i data-lucide="sliders" class="w-5 h-5 text-emerald-400"></i>
+            <h3 class="text-sm sm:text-base font-bold text-white">Calibración de Parámetros & Código Pine Script TradingView</h3>
+          </div>
+          <button type="button" id="btnCopyPineScript" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copiar Pine Script Calibrado</span>
+          </button>
+        </div>
+
+        <!-- Explanation Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div class="p-3.5 rounded-xl bg-gray-900/80 border border-gray-800 space-y-1.5">
+            <span class="font-bold text-yellow-400 block font-mono">¿Por qué el Multiplicador 2.9 tardó 5 horas?</span>
+            <p class="text-gray-400 leading-relaxed">
+              En un rally vertical de $70, el ATR saltó de 2.5 a 8.5. Con un multiplicador de 2.9, la banda exigía una corrección de casi $25 dólares antes de rotar. Además, el filtro de RSI exigía bajar de 45 (sobreventa extrema tras un rally).
+            </p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-gray-900/80 border border-emerald-500/30 space-y-1.5">
+            <span class="font-bold text-emerald-400 block font-mono">Solución Calibrada (Modo Precisión 2.2):</span>
+            <p class="text-gray-400 leading-relaxed">
+              1. <strong>Multiplicador 2.2</strong> y <strong>ATR Period 10</strong>: Reacciona 3 veces más rápido a cambios de estructura intradía.<br>
+              2. <strong>Umbral RSI en 50</strong>: Detecta el cruce neutral-bajista sin esperar que el precio caiga $30 dólares tarde.
+            </p>
+          </div>
+        </div>
+
+        <!-- Pine Script Pre Box -->
+        <div class="relative rounded-xl overflow-hidden border border-gray-800 bg-gray-950">
+          <div class="bg-gray-900 px-4 py-2 border-b border-gray-800 flex items-center justify-between text-[11px] font-mono text-gray-400">
+            <span>TradingView Pine Editor (v5) · Adaptive Supertrend Calibrado NY M5</span>
+            <span class="text-emerald-400 font-bold">100% Sincronizado</span>
+          </div>
+          <pre id="pineScriptDisplay" class="p-4 text-[11px] font-mono text-gray-300 overflow-x-auto max-h-60 leading-relaxed"></pre>
+        </div>
+      </section>
+
+    </div>
+
+
   <!-- ============================================================== -->
-    <!-- VIEW 2: CALCULADORA MYFXBOOK (Oro XAU/USD en Puntos)          -->
+    <!-- VIEW 3: CALCULADORA MYFXBOOK (Oro XAU/USD en Puntos)          -->
     <!-- ============================================================== -->
     <div id="viewCalculator" class="hidden space-y-6">
       

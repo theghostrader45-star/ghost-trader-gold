@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initIcons();
   setupTabNavigation();
   setupEventListeners();
+  setupPrecisionRadarEvents();
   setupCollapsibleSections();
   setupMacroGuideModalEvents();
   setupTradingViewWebhookEvents();
@@ -58,6 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   runMyfxbookCalculator();
   setupGoldBiasDashboard();
   loadGoldBiasData();
+  loadPrecisionRadarData();
   loadWeeklyNews();
   renderRealJournalDashboard();
 });
@@ -116,14 +118,16 @@ function roundNum(val, decimals = 2) {
 }
 
 // ----------------------------------------------------
-// TAB NAVIGATION: 1. Macro Sesión | 2. Calculadora | 3. Bitácora
+// TAB NAVIGATION: 1. Macro Sesión | 2. Radar Precisión | 3. Calculadora | 4. Bitácora
 // ----------------------------------------------------
 function setupTabNavigation() {
   const btnGoldBias = document.getElementById('tabBtnGoldBias');
+  const btnPrecision = document.getElementById('tabBtnPrecisionRadar');
   const btnCalc = document.getElementById('tabBtnCalculator');
   const btnReal = document.getElementById('tabBtnRealJournal');
 
   const viewGoldBias = document.getElementById('viewGoldBias');
+  const viewPrecision = document.getElementById('viewPrecisionRadar');
   const viewCalc = document.getElementById('viewCalculator');
   const viewReal = document.getElementById('viewRealJournal');
 
@@ -139,7 +143,7 @@ function setupTabNavigation() {
     const activeClasses = ['bg-emerald-600', 'bg-gold-500', 'bg-yellow-500', 'text-white', 'text-black', 'shadow-lg', 'shadow-emerald-600/30', 'shadow-gold-500/30', 'shadow-yellow-500/30', 'font-bold', 'font-black'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnGoldBias, btnCalc, btnReal].forEach(btn => {
+    [btnGoldBias, btnPrecision, btnCalc, btnReal].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
@@ -147,6 +151,7 @@ function setupTabNavigation() {
     });
 
     if (viewGoldBias) viewGoldBias.classList.add('hidden');
+    if (viewPrecision) viewPrecision.classList.add('hidden');
     if (viewCalc) viewCalc.classList.add('hidden');
     if (viewReal) viewReal.classList.add('hidden');
 
@@ -158,6 +163,13 @@ function setupTabNavigation() {
       if (viewGoldBias) viewGoldBias.classList.remove('hidden');
       loadGoldBiasData();
       loadWeeklyNews();
+    } else if (tab === 'precision_radar') {
+      if (btnPrecision) {
+        btnPrecision.classList.remove(...inactiveClasses);
+        btnPrecision.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-black');
+      }
+      if (viewPrecision) viewPrecision.classList.remove('hidden');
+      loadPrecisionRadarData();
     } else if (tab === 'calculator') {
       if (btnCalc) {
         btnCalc.classList.remove(...inactiveClasses);
@@ -178,7 +190,10 @@ function setupTabNavigation() {
     initIcons();
   }
 
+  window.switchTabTo = switchTab;
+
   if (btnGoldBias) btnGoldBias.addEventListener('click', () => switchTab('gold_bias'));
+  if (btnPrecision) btnPrecision.addEventListener('click', () => switchTab('precision_radar'));
   if (btnCalc) btnCalc.addEventListener('click', () => switchTab('calculator'));
   if (btnReal) btnReal.addEventListener('click', () => switchTab('real'));
 
@@ -4080,4 +4095,219 @@ function setupWeeklyNewsEventListeners() {
       renderWeeklyNews();
     });
   }
+}
+
+// ----------------------------------------------------
+// RADAR DE PRECISIÓN DE ENTRADAS & ALERTA DEL SETUP
+// ----------------------------------------------------
+let currentRadarMode = 'PRECISION';
+let currentPrecisionRadarData = null;
+
+async function loadPrecisionRadarData(mode = null) {
+  if (mode) currentRadarMode = mode;
+  const refreshBtn = document.getElementById('btnRefreshPrecisionRadar');
+  if (refreshBtn) {
+    refreshBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin text-emerald-400"></i>';
+    initIcons();
+  }
+
+  try {
+    const res = await fetch(`/api/precision-radar?mode=${currentRadarMode.toLowerCase()}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    currentPrecisionRadarData = data;
+    renderPrecisionRadarUI(data);
+  } catch (err) {
+    console.warn("Error cargando radar de precisión:", err);
+  } finally {
+    if (refreshBtn) {
+      setTimeout(() => {
+        refreshBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i>';
+        initIcons();
+      }, 500);
+    }
+  }
+}
+
+function renderPrecisionRadarUI(data) {
+  if (!data || !data.precision_radar) return;
+  const radar = data.precision_radar;
+  const entry = radar.upcoming_entry;
+  if (!entry) return;
+
+  // 1. Badge Direction & Action
+  const actBadge = document.getElementById('radarActionBadge');
+  if (actBadge) {
+    const isSell = entry.direction === 'SELL';
+    actBadge.className = isSell 
+      ? "px-3 py-1 rounded-xl text-xs font-black tracking-wider uppercase font-mono bg-rose-950 text-rose-300 border border-rose-600 flex items-center gap-1.5 shadow-lg shadow-rose-950/40"
+      : "px-3 py-1 rounded-xl text-xs font-black tracking-wider uppercase font-mono bg-emerald-950 text-emerald-300 border border-emerald-600 flex items-center gap-1.5 shadow-lg shadow-emerald-950/40";
+    actBadge.innerHTML = `<i data-lucide="${isSell ? 'arrow-down-circle' : 'arrow-up-circle'}" class="w-4 h-4"></i><span>${entry.action_label}</span>`;
+  }
+
+  // 2. Proximity Badge
+  const proxBadge = document.getElementById('radarProximityBadge');
+  const proxText = document.getElementById('radarProximityText');
+  if (proxBadge && proxText) {
+    proxText.textContent = entry.proximity_state;
+    if (entry.proximity_code === 'READY') {
+      proxBadge.className = "px-3 py-1 rounded-xl text-xs font-bold font-mono bg-emerald-950 text-emerald-300 border border-emerald-500 flex items-center gap-1.5 animate-pulse shadow-md shadow-emerald-950/50";
+    } else if (entry.proximity_code === 'IMMINENT') {
+      proxBadge.className = "px-3 py-1 rounded-xl text-xs font-bold font-mono bg-amber-950 text-amber-300 border border-amber-600 flex items-center gap-1.5 animate-pulse";
+    } else {
+      proxBadge.className = "px-3 py-1 rounded-xl text-xs font-bold font-mono bg-blue-950 text-blue-300 border border-blue-600/80 flex items-center gap-1.5";
+    }
+  }
+
+  // 3. Tab Badge
+  const tabBadge = document.getElementById('tabBadgePrecision');
+  if (tabBadge) {
+    if (entry.proximity_code === 'READY') {
+      tabBadge.textContent = "GATILLO LISTO";
+      tabBadge.className = "px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-500 font-bold animate-pulse";
+    } else if (entry.proximity_code === 'IMMINENT') {
+      tabBadge.textContent = "RETESTEO CERCA";
+      tabBadge.className = "px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-950 text-amber-300 border border-amber-600 font-bold";
+    } else {
+      tabBadge.textContent = "MONITOREO M5";
+      tabBadge.className = "px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-950 text-blue-300 border border-blue-800 font-bold";
+    }
+  }
+
+  // 4. Setup Name & Key Metrics
+  const nameEl = document.getElementById('radarSetupName');
+  if (nameEl) nameEl.textContent = entry.setup_name;
+
+  const zoneEl = document.getElementById('radarEntryZone');
+  if (zoneEl) zoneEl.textContent = `$${entry.entry_zone_min.toFixed(2)} – $${entry.entry_zone_max.toFixed(2)}`;
+
+  const targetEl = document.getElementById('radarEntryTarget');
+  if (targetEl) targetEl.textContent = `$${entry.entry_target_price.toFixed(2)}`;
+
+  const curPriceEl = document.getElementById('radarCurrentPrice');
+  if (curPriceEl) curPriceEl.textContent = `$${entry.current_price.toFixed(2)}`;
+
+  const distEl = document.getElementById('radarDistancePts');
+  if (distEl) {
+    distEl.textContent = `${Math.abs(entry.distance_points).toFixed(0)} pts ($${(Math.abs(entry.distance_points)/100).toFixed(2)})`;
+    distEl.className = entry.proximity_code === 'READY' ? "text-emerald-400 font-bold" : "text-yellow-300 font-bold";
+  }
+
+  const slPriceEl = document.getElementById('radarSlPrice');
+  if (slPriceEl) slPriceEl.textContent = `$${entry.sl_price.toFixed(2)}`;
+
+  const slPtsEl = document.getElementById('radarSlPoints');
+  if (slPtsEl) slPtsEl.textContent = `${entry.sl_points.toFixed(0)} pts ($${(entry.sl_points/100).toFixed(2)})`;
+
+  const tp1El = document.getElementById('radarTp1Price');
+  if (tp1El) tp1El.textContent = `$${entry.tp1_price.toFixed(2)}`;
+
+  const tp2El = document.getElementById('radarTp2Price');
+  if (tp2El) tp2El.textContent = `$${entry.tp2_price.toFixed(2)}`;
+
+  const descEl = document.getElementById('radarActionDesc');
+  if (descEl) descEl.textContent = entry.action_desc;
+
+  const noteEl = document.getElementById('radarProtectionNote');
+  if (noteEl) noteEl.textContent = entry.protection_note;
+
+  // 5. Pine Script Code Box
+  const pineEl = document.getElementById('pineScriptDisplay');
+  if (pineEl && radar.pine_script_code) {
+    pineEl.textContent = radar.pine_script_code;
+  }
+
+  // 6. Mode Buttons State
+  const btnPrecision = document.getElementById('btnRadarModePrecision');
+  const btnMacro = document.getElementById('btnRadarModeMacro');
+  if (btnPrecision && btnMacro) {
+    if (currentRadarMode === 'PRECISION') {
+      btnPrecision.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-emerald-600 text-white shadow-md shadow-emerald-600/30";
+      btnMacro.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-gray-400 hover:text-white hover:bg-gray-800/60";
+    } else {
+      btnMacro.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-blue-600 text-white shadow-md shadow-blue-600/30";
+      btnPrecision.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-gray-400 hover:text-white hover:bg-gray-800/60";
+    }
+  }
+
+  initIcons();
+}
+
+function setupPrecisionRadarEvents() {
+  const btnPrecision = document.getElementById('btnRadarModePrecision');
+  const btnMacro = document.getElementById('btnRadarModeMacro');
+  const refreshBtn = document.getElementById('btnRefreshPrecisionRadar');
+  const btnCopyCalc = document.getElementById('btnCopySetupToCalculator');
+  const btnCopyPine = document.getElementById('btnCopyPineScript');
+
+  if (btnPrecision) {
+    btnPrecision.addEventListener('click', () => loadPrecisionRadarData('PRECISION'));
+  }
+  if (btnMacro) {
+    btnMacro.addEventListener('click', () => loadPrecisionRadarData('MACRO'));
+  }
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => loadPrecisionRadarData());
+  }
+  if (btnCopyCalc) {
+    btnCopyCalc.addEventListener('click', copyRadarSetupToCalculator);
+  }
+  if (btnCopyPine) {
+    btnCopyPine.addEventListener('click', copyPineScriptToClipboard);
+  }
+}
+
+function copyRadarSetupToCalculator() {
+  if (!currentPrecisionRadarData || !currentPrecisionRadarData.precision_radar) {
+    showToast("⚠️ Radar no cargado aún. Por favor espera un momento.", "warning");
+    return;
+  }
+  const entry = currentPrecisionRadarData.precision_radar.upcoming_entry;
+  if (!entry) return;
+
+  const slPtsInput = document.getElementById('calcSlPoints');
+  const goldPriceInput = document.getElementById('calcGoldPrice');
+
+  const slPts = Math.round(entry.sl_points);
+  const targetPrice = entry.entry_target_price;
+
+  if (slPtsInput) slPtsInput.value = slPts;
+  if (goldPriceInput) goldPriceInput.value = targetPrice;
+
+  appState.calculator.sl_points = slPts;
+  appState.calculator.gold_price = targetPrice;
+
+  runMyfxbookCalculator();
+
+  if (window.switchTabTo) {
+    window.switchTabTo('calculator');
+  }
+
+  showToast(`🎯 ¡Parámetros transferidos a la Calculadora! SL: ${slPts} pts ($${(slPts/100).toFixed(2)}) @ $${targetPrice}`, 'success', 3500);
+}
+
+function copyPineScriptToClipboard() {
+  const pineEl = document.getElementById('pineScriptDisplay');
+  const code = pineEl ? pineEl.textContent : "";
+  if (!code) {
+    showToast("⚠️ No hay código para copiar.", "warning");
+    return;
+  }
+
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.getElementById('btnCopyPineScript');
+    if (btn) {
+      const origHtml = btn.innerHTML;
+      btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i><span>¡Copiado!</span>';
+      initIcons();
+      setTimeout(() => {
+        btn.innerHTML = origHtml;
+        initIcons();
+      }, 2000);
+    }
+    showToast("📋 ¡Código Pine Script copiado! Pégalo en el Pine Editor de TradingView.", "success", 3000);
+  }).catch(err => {
+    console.error("Error copiando Pine Script:", err);
+    showToast("Error copiando código al portapapeles", "error");
+  });
 }
