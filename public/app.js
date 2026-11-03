@@ -97,13 +97,13 @@ function setupCollapsibleSections() {
   });
 }
 
-function setCurrentDateTime() {
+function setCurrentDateTime(force = false) {
   const now = new Date();
   const pad = (n) => String(n).padStart(2, '0');
   const formatted = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
   
   const realDateField = document.getElementById('realTradeDate');
-  if (realDateField) {
+  if (realDateField && (!realDateField.value || force)) {
     realDateField.value = formatted;
   }
   const autoDisplay = document.getElementById('realTradeAutoDateDisplay');
@@ -1362,6 +1362,14 @@ function setupEventListeners() {
     });
   }
 
+  // Botón para fijar fecha y hora actual en la Bitácora Real
+  const btnSetRealDate = document.getElementById('btnSetRealTradeDateNow');
+  if (btnSetRealDate) {
+    btnSetRealDate.addEventListener('click', () => {
+      setCurrentDateTime(true);
+    });
+  }
+
   // Backtest points change (if present)
   const tvPtsInput = document.getElementById('tradeTvPoints');
   const tvRRInput = document.getElementById('tradeSpecificRR');
@@ -1700,7 +1708,9 @@ async function handleAddRealTrade(e) {
 
   const now = new Date();
   const pad = (n) => String(n).padStart(2, '0');
-  const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const defaultDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const inputDate = document.getElementById('realTradeDate')?.value?.trim();
+  const date = inputDate || defaultDate;
   const session = 'New York';
   const direction = document.getElementById('realTradeDirection')?.value || 'BUY';
 
@@ -1795,7 +1805,7 @@ async function handleAddRealTrade(e) {
       appState.real.trades = data.analytics.trades;
       
       renderRealJournalDashboard();
-      setCurrentDateTime();
+      setCurrentDateTime(true);
       if (manualLotInput) manualLotInput.value = '';
       const chartUrlEl = document.getElementById('realTradeChartUrl');
       if (chartUrlEl) chartUrlEl.value = '';
@@ -1843,6 +1853,8 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
   const pts = trade.tv_points || trade.sl_points || (trade.sl_distance ? Math.round(trade.sl_distance * 100) : 250);
   document.getElementById('editTradeId').value = trade.id;
   document.getElementById('editTradeMode').value = mode;
+  const dateEl = document.getElementById('editTradeDate');
+  if (dateEl) dateEl.value = trade.date || '';
   document.getElementById('editTradeTvPoints').value = pts;
   document.getElementById('editTradeRR').value = Number(trade.rr || 1.0).toFixed(1);
   document.getElementById('editTradeDirection').value = trade.direction || 'BUY';
@@ -1917,6 +1929,12 @@ async function handleSaveEditedTrade() {
   }
   if (commVal !== null) {
     payload.commission = commVal;
+  }
+
+  const dateEl = document.getElementById('editTradeDate');
+  const dateVal = dateEl && dateEl.value ? dateEl.value.trim() : null;
+  if (dateVal) {
+    payload.date = dateVal;
   }
 
   try {
