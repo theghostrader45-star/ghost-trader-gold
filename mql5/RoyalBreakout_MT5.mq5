@@ -565,7 +565,7 @@ void CancelPendingOrder(ulong ticket)
    if(ticket <= 0) return;
    if(m_order.Select(ticket))
      {
-      ENUM_ORDER_STATE state = m_order.OrderState();
+      ENUM_ORDER_STATE state = m_order.State();
       if(state == ORDER_STATE_PLACED)
         {
          m_trade.OrderDelete(ticket);
