@@ -245,7 +245,7 @@ def get_config():
             config[k] = v
     return config
 
-def recalculate_trade_history(trades, config):
+def recalculate_trade_history(trades, config, mode="backtest"):
     """
     Recalculates the entire trade history sequentially using dynamic compound interest
     and the given risk_pct and rr_ratio, without losing any trade or outcome fact.
@@ -292,10 +292,38 @@ def recalculate_trade_history(trades, config):
         else:
             ret_pct = 0.0
             
-        if "pnl" in t and t["pnl"] is not None and str(t["pnl"]).strip() != "":
-            pnl = round(float(str(t["pnl"]).replace(",", ".")), 2)
+        trade_mode = t.get("mode") or mode
+        if trade_mode == "backtest":
+            pnl = round(curr_bal * (ret_pct / 100.0), 2)
         else:
-            pnl = round(curr_bal * (ret_pct / 100.0) - commission, 2)
+            raw_pnl = None
+            if "pnl" in t and t["pnl"] is not None and str(t["pnl"]).strip() != "":
+                try:
+                    raw_pnl = round(float(str(t["pnl"]).replace(",", ".")), 2)
+                except (ValueError, TypeError):
+                    raw_pnl = None
+
+            if raw_pnl is not None:
+                if status == "win" and raw_pnl > 0:
+                    pnl = raw_pnl
+                elif status == "loss" and raw_pnl < 0:
+                    pnl = raw_pnl
+                elif status == "be" and abs(raw_pnl) < 1.0:
+                    pnl = raw_pnl
+                else:
+                    if status == "win":
+                        pnl = round(curr_bal * (ret_pct / 100.0) - commission, 2)
+                    elif status == "loss":
+                        pnl = -round(curr_bal * (trade_risk / 100.0) + commission, 2)
+                    else:
+                        pnl = -commission
+            else:
+                if status == "win":
+                    pnl = round(curr_bal * (ret_pct / 100.0) - commission, 2)
+                elif status == "loss":
+                    pnl = -round(curr_bal * (trade_risk / 100.0) + commission, 2)
+                else:
+                    pnl = -commission
         
         # Reference lot size for MT4/MT5 based on Gold SL points
         dollar_risk = curr_bal * (trade_risk / 100.0)
@@ -339,7 +367,7 @@ def recalculate_trade_history(trades, config):
         
     return updated_trades
 
-def calculate_analytics(trades, config):
+def calculate_analytics(trades, config, mode="backtest"):
     initial_balance = float(config.get("initial_balance", 110.0))
     leverage = float(config.get("leverage", 300))
     
@@ -389,10 +417,39 @@ def calculate_analytics(trades, config):
 
         raw_comm = t.get("commission", 0.0)
         commission = round(abs(float(str(raw_comm).replace(",", "."))), 2)
-        if "pnl" in t and t["pnl"] is not None and str(t["pnl"]).strip() != "":
-            pnl = round(float(str(t["pnl"]).replace(",", ".")), 2)
+
+        trade_mode = t.get("mode") or mode
+        if trade_mode == "backtest":
+            pnl = round(current_balance * (ret_pct / 100.0), 2)
         else:
-            pnl = round(current_balance * (ret_pct / 100.0) - commission, 2)
+            raw_pnl = None
+            if "pnl" in t and t["pnl"] is not None and str(t["pnl"]).strip() != "":
+                try:
+                    raw_pnl = round(float(str(t["pnl"]).replace(",", ".")), 2)
+                except (ValueError, TypeError):
+                    raw_pnl = None
+
+            if raw_pnl is not None:
+                if status == "win" and raw_pnl > 0:
+                    pnl = raw_pnl
+                elif status == "loss" and raw_pnl < 0:
+                    pnl = raw_pnl
+                elif status == "be" and abs(raw_pnl) < 1.0:
+                    pnl = raw_pnl
+                else:
+                    if status == "win":
+                        pnl = round(current_balance * (ret_pct / 100.0) - commission, 2)
+                    elif status == "loss":
+                        pnl = -round(current_balance * (trade_risk / 100.0) + commission, 2)
+                    else:
+                        pnl = -commission
+            else:
+                if status == "win":
+                    pnl = round(current_balance * (ret_pct / 100.0) - commission, 2)
+                elif status == "loss":
+                    pnl = -round(current_balance * (trade_risk / 100.0) + commission, 2)
+                else:
+                    pnl = -commission
         
         # Track SL points for average calculation
         if t.get("tv_points") is not None and float(t.get("tv_points")) >= 20.0:
@@ -452,7 +509,9 @@ def calculate_analytics(trades, config):
         t_copy = dict(t)
         t_copy["balance_before"] = round(balance_before, 2)
         t_copy["balance_after"] = round(current_balance, 2)
-        t_copy["risk_budget"] = round(balance_before * (float(config.get("risk_pct", 5.0)) / 100.0), 2)
+        t_copy["pnl"] = round(pnl, 2)
+        t_copy["ret_pct"] = round(ret_pct, 2)
+        t_copy["risk_budget"] = round(balance_before * (trade_risk / 100.0), 2)
         processed_trades.append(t_copy)
 
     total_closed = wins + losses + breakevens
@@ -868,7 +927,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             mode = query.get("mode", ["backtest"])[0]
             config = get_config()
             trades = get_trades(mode)
-            analytics = calculate_analytics(trades, config)
+            analytics = calculate_analytics(trades, config, mode=mode)
             analytics["mode"] = mode
             self.send_json(analytics)
             return
@@ -938,12 +997,15 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             config.update(payload)
             save_json(CONFIG_FILE, config)
             
-            # If risk_pct, rr_ratio, or initial_balance was updated, recalculate all existing trades!
-            trades = get_trades()
-            if trades:
-                trades = recalculate_trade_history(trades, config)
-                save_json(TRADES_FILE, trades)
-            analytics = calculate_analytics(trades, config)
+            # Recalculate all trades across both modes with updated config
+            for m in ["backtest", "real"]:
+                m_trades = get_trades(m)
+                if m_trades:
+                    m_recalculated = recalculate_trade_history(m_trades, config, mode=m)
+                    save_trades(m_recalculated, m)
+            
+            active_trades = get_trades("backtest")
+            analytics = calculate_analytics(active_trades, config, mode="backtest")
             self.send_json({"config": config, "analytics": analytics})
             return
 
@@ -1017,9 +1079,9 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             save_json(CONFIG_FILE, config)
             
             trades = get_trades(mode)
-            recalculated = recalculate_trade_history(trades, config)
+            recalculated = recalculate_trade_history(trades, config, mode=mode)
             save_trades(recalculated, mode)
-            analytics = calculate_analytics(recalculated, config)
+            analytics = calculate_analytics(recalculated, config, mode=mode)
             analytics["mode"] = mode
             self.send_json(analytics)
             return
@@ -1030,7 +1092,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             trades = get_trades(mode)
 
             # Current compound balance before this trade
-            analytics = calculate_analytics(trades, config)
+            analytics = calculate_analytics(trades, config, mode=mode)
             cur_bal = analytics["summary"]["current_balance"]
 
             direction = payload.get("direction", "BUY").upper()
@@ -1116,18 +1178,19 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             }
 
             trades.append(trade)
-            save_trades(trades, mode)
+            recalculated = recalculate_trade_history(trades, config, mode=mode)
+            save_trades(recalculated, mode)
 
-            updated_analytics = calculate_analytics(trades, config)
+            updated_analytics = calculate_analytics(recalculated, config, mode=mode)
             updated_analytics["mode"] = mode
-            self.send_json({"trade": trade, "analytics": updated_analytics})
+            self.send_json({"trade": recalculated[-1] if recalculated else trade, "analytics": updated_analytics})
             return
 
         elif path == "/api/trades/clear":
             mode = payload.get("mode", "backtest")
             save_trades([], mode)
             config = get_config()
-            ana = calculate_analytics([], config)
+            ana = calculate_analytics([], config, mode=mode)
             ana["mode"] = mode
             self.send_json(ana)
             return
@@ -1229,9 +1292,9 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             trades = get_trades(mode)
             new_trades = [t for t in trades if t.get("id") != trade_id]
             config = get_config()
-            recalculated = recalculate_trade_history(new_trades, config)
+            recalculated = recalculate_trade_history(new_trades, config, mode=mode)
             save_trades(recalculated, mode)
-            ana = calculate_analytics(recalculated, config)
+            ana = calculate_analytics(recalculated, config, mode=mode)
             ana["mode"] = mode
             self.send_json(ana)
             return
@@ -1266,9 +1329,9 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                     break
 
             if updated:
-                recalculated = recalculate_trade_history(trades, config)
+                recalculated = recalculate_trade_history(trades, config, mode=mode)
                 save_trades(recalculated, mode)
-                ana = calculate_analytics(recalculated, config)
+                ana = calculate_analytics(recalculated, config, mode=mode)
                 ana["mode"] = mode
                 self.send_json(ana)
             else:

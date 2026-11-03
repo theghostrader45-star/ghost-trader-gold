@@ -767,63 +767,16 @@ function updateCalculatorBalances() {
     ? appState.real.summary.current_balance 
     : (parseFloat(appState.config.initial_balance) || 115.64);
 
-  const curBtBal = (appState.backtest.summary && appState.backtest.summary.current_balance !== undefined) 
-    ? appState.backtest.summary.current_balance 
-    : (parseFloat(appState.config.initial_balance) || 112.24);
-
-  // Update badges in tabs & labels
-  const bReal = document.getElementById('badgeCalcRealBal');
-  if (bReal) bReal.textContent = `$${curRealBal.toFixed(2)}`;
   const lReal = document.getElementById('labelSyncRealBal');
   if (lReal) lReal.textContent = curRealBal.toFixed(2);
 
-  const bBt = document.getElementById('badgeCalcBacktestBal');
-  if (bBt) bBt.textContent = `$${curBtBal.toFixed(2)}`;
-  const lBt = document.getElementById('labelSyncBtBal');
-  if (lBt) lBt.textContent = curBtBal.toFixed(2);
-
-  // Auto-sync input values if not focused
+  // Auto-sync input value if not focused
   const inReal = document.getElementById('calcBalInput');
   if (inReal && document.activeElement !== inReal) {
     inReal.value = curRealBal.toFixed(2);
   }
-  const inBt = document.getElementById('calcBtBalInput');
-  if (inBt && document.activeElement !== inBt) {
-    inBt.value = curBtBal.toFixed(2);
-  }
 
   runRealCalculator();
-  runBacktestCalculator();
-}
-
-function switchCalculatorTab(mode) {
-  const tabReal = document.getElementById('calcSubTabReal');
-  const tabBt = document.getElementById('calcSubTabBacktest');
-  const panelReal = document.getElementById('calcPanelReal');
-  const panelBt = document.getElementById('calcPanelBacktest');
-
-  if (mode === 'backtest') {
-    if (tabReal) {
-      tabReal.className = 'flex-1 min-w-[200px] py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60 cursor-pointer';
-    }
-    if (tabBt) {
-      tabBt.className = 'flex-1 min-w-[200px] py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition bg-blue-600 text-white shadow-lg shadow-blue-600/30 cursor-pointer';
-    }
-    if (panelReal) panelReal.classList.add('hidden');
-    if (panelBt) panelBt.classList.remove('hidden');
-    runBacktestCalculator();
-  } else {
-    if (tabReal) {
-      tabReal.className = 'flex-1 min-w-[200px] py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 cursor-pointer';
-    }
-    if (tabBt) {
-      tabBt.className = 'flex-1 min-w-[200px] py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60 cursor-pointer';
-    }
-    if (panelReal) panelReal.classList.remove('hidden');
-    if (panelBt) panelBt.classList.add('hidden');
-    runRealCalculator();
-  }
-  initIcons();
 }
 
 function runRealCalculator() {
@@ -901,74 +854,8 @@ function runRealCalculator() {
   initIcons();
 }
 
-function runBacktestCalculator() {
-  const curBtBal = (appState.backtest.summary && appState.backtest.summary.current_balance !== undefined) 
-    ? appState.backtest.summary.current_balance 
-    : 112.24;
-
-  const balInput = document.getElementById('calcBtBalInput');
-  const balance = balInput && balInput.value !== '' && !isNaN(parseFloat(String(balInput.value).replace(',', '.')))
-    ? parseFloat(String(balInput.value).replace(',', '.'))
-    : curBtBal;
-  const riskInput = document.getElementById('calcBtRiskPctInput');
-  const riskPct = riskInput && riskInput.value !== '' && !isNaN(parseFloat(String(riskInput.value).replace(',', '.')))
-    ? parseFloat(String(riskInput.value).replace(',', '.'))
-    : 5.0;
-  const rawSl = document.getElementById('calcBtSlPointsInput')?.value || '250';
-  const { points, price } = parseTradingViewInput(rawSl);
-  const leverage = parseFloat(document.getElementById('calcBtLeverageInput')?.value) || 300;
-  const goldPrice = 2720.0;
-
-  // Dollar Risk purely based on balance x % de riesgo
-  const dollarRisk = roundNum(balance * (riskPct / 100.0), 2);
-
-  // Position Sizing: Suggested Lot = Dollar Risk / Points
-  const rawLot = points > 0 ? (dollarRisk / points) : 0.01;
-  const suggestedLot = Math.max(0.01, roundNum(rawLot, 2));
-
-  // Margin at given leverage
-  const notional = goldPrice * 100 * suggestedLot;
-  const marginReq = roundNum(notional / leverage, 2);
-  const marginPct = balance > 0 ? roundNum((marginReq / balance) * 100.0, 1) : 0.0;
-
-  // Update UI Labels
-  const balLabel = document.getElementById('btBalLabel');
-  if (balLabel) balLabel.textContent = `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  const riskLabel = document.getElementById('btRiskLabel');
-  if (riskLabel) riskLabel.textContent = `${formatRiskPctText(riskPct)}%`;
-  const slLabel = document.getElementById('btSlLabel');
-  if (slLabel) slLabel.textContent = `${points} pts ($${price})`;
-  const slText = document.getElementById('btSlText');
-  if (slText) slText.textContent = `${points} puntos ($${price})`;
-
-  // Hero Lot Card
-  const heroLot = document.getElementById('btHeroLot');
-  if (heroLot) heroLot.textContent = suggestedLot.toFixed(2);
-  const heroRaw = document.getElementById('btHeroRawLot');
-  if (heroRaw) heroRaw.textContent = `Lote exacto sin redondeo: ${rawLot.toFixed(4)}`;
-
-  // Breakdown Cards
-  const riskUsd = document.getElementById('btRiskUsd');
-  if (riskUsd) riskUsd.textContent = `-$${dollarRisk.toFixed(2)}`;
-  const riskPctText = document.getElementById('btRiskPctText');
-  if (riskPctText) riskPctText.textContent = `${formatRiskPctText(riskPct)}% de backtest`;
-
-  const priceDist = document.getElementById('btPriceDist');
-  if (priceDist) priceDist.textContent = `$${price}`;
-  const pointsDist = document.getElementById('btPointsDist');
-  if (pointsDist) pointsDist.textContent = `${points} puntos`;
-
-  const marginReqEl = document.getElementById('btMarginReq');
-  if (marginReqEl) marginReqEl.textContent = `~$${marginReq.toFixed(2)}`;
-  const marginPctEl = document.getElementById('btMarginPct');
-  if (marginPctEl) marginPctEl.textContent = `${marginPct}% del balance`;
-
-  initIcons();
-}
-
 function runMyfxbookCalculator() {
   runRealCalculator();
-  runBacktestCalculator();
 }
 
 // ----------------------------------------------------
@@ -1698,11 +1585,10 @@ function updateBacktestCharts() {
 }
 
 function updateCharts() {
-  const isReal = (appState.activeTab === 'real') || (appState.real.trades && appState.real.trades.length > 0) || !appState.backtest.trades.length;
-  const targetState = isReal ? appState.real : appState.backtest;
+  const targetState = appState.real;
   const curve = targetState.equityCurve || [];
   const s = targetState.summary || {};
-  const initial = appState.config.initial_balance || 110;
+  const initial = s.initial_balance !== undefined ? s.initial_balance : (appState.config.initial_balance || 110);
   const wins = s.wins || 0;
   const losses = s.losses || 0;
   const be = s.breakevens || 0;
@@ -2019,17 +1905,7 @@ function setupEventListeners() {
     btnExportRealJson.addEventListener('click', () => exportTradesToJson('real'));
   }
 
-  // Calculator Sub-tabs: 1. Bitácora Real vs 2. Backtesting
-  const subTabReal = document.getElementById('calcSubTabReal');
-  if (subTabReal) {
-    subTabReal.addEventListener('click', () => switchCalculatorTab('real'));
-  }
-  const subTabBt = document.getElementById('calcSubTabBacktest');
-  if (subTabBt) {
-    subTabBt.addEventListener('click', () => switchCalculatorTab('backtest'));
-  }
-
-  // 1. Real Calculator Listeners
+  // Calculator Listeners (Bitácora Real)
   const calcBal = document.getElementById('calcBalInput');
   const calcRisk = document.getElementById('calcRiskPctInput');
   const calcSl = document.getElementById('calcSlPointsInput');
@@ -2087,42 +1963,6 @@ function setupEventListeners() {
       switchTab('real');
       recalculateRealJournalPreview();
       showToast('📋 Parámetros transferidos a la Bitácora Real.', 'success', 3500);
-    });
-  }
-
-  // 2. Backtest Calculator Listeners (Sin R:R)
-  const calcBtBal = document.getElementById('calcBtBalInput');
-  const calcBtRisk = document.getElementById('calcBtRiskPctInput');
-  const calcBtSl = document.getElementById('calcBtSlPointsInput');
-
-  if (calcBtBal) calcBtBal.addEventListener('input', runBacktestCalculator);
-  if (calcBtRisk) calcBtRisk.addEventListener('input', runBacktestCalculator);
-  if (calcBtSl) calcBtSl.addEventListener('input', runBacktestCalculator);
-
-  const btnSyncBtBal = document.getElementById('btnSyncBtBalToCalc');
-  if (btnSyncBtBal) {
-    btnSyncBtBal.addEventListener('click', () => {
-      const btBal = (appState.backtest.summary && appState.backtest.summary.current_balance !== undefined) 
-        ? appState.backtest.summary.current_balance 
-        : (parseFloat(appState.config.initial_balance) || 112.24);
-      if (calcBtBal) calcBtBal.value = Number(btBal).toFixed(2);
-      runBacktestCalculator();
-      showToast(`Balance backtest ($${btBal.toFixed(2)}) sincronizado.`, 'success', 2000);
-    });
-  }
-
-  const btnCopyBtLot = document.getElementById('btnCopyBtLot');
-  if (btnCopyBtLot) {
-    btnCopyBtLot.addEventListener('click', () => {
-      const lotVal = document.getElementById('btHeroLot')?.textContent || '0.01';
-      navigator.clipboard.writeText(lotVal).then(() => {
-        const textSpan = document.getElementById('btnCopyBtLotText');
-        if (textSpan) {
-          const orig = textSpan.textContent;
-          textSpan.textContent = '¡Copiado!';
-          setTimeout(() => { textSpan.textContent = orig; }, 1800);
-        }
-      }).catch(err => console.warn('Clipboard failed:', err));
     });
   }
 
@@ -2424,6 +2264,45 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
   if (emoEl) emoEl.value = trade.emotion || '';
   document.getElementById('editTradeChartUrl').value = trade.tv_chart_url || '';
 
+  // Setup live dynamic preview calculation on modal inputs
+  const recalculateModalPnlPreview = () => {
+    const curStatus = document.getElementById('editTradeStatus').value;
+    const curRR = parseFloat(String(document.getElementById('editTradeRR').value).replace(',', '.')) || 1.0;
+    const curRisk = parseFloat(String(document.getElementById('editTradeRiskPct').value).replace(',', '.')) || 5.0;
+    const curPts = parseFloat(String(document.getElementById('editTradeTvPoints').value).replace(',', '.')) || 250;
+    const curComm = Math.abs(parseFloat(String(document.getElementById('editTradeCommission').value).replace(',', '.')) || 0.0);
+    const balBefore = trade.balance_before !== undefined ? Number(trade.balance_before) : (Number(appState.config.initial_balance) || 110.0);
+    
+    let ret = 0.0;
+    if (curStatus === 'win') {
+      ret = curRisk * curRR;
+    } else if (curStatus === 'loss') {
+      ret = -curRisk;
+    }
+    const computedPnl = mode === 'backtest' 
+      ? roundNum(balBefore * (ret / 100.0), 2)
+      : roundNum(balBefore * (ret / 100.0) - (curStatus === 'win' ? curComm : (curStatus === 'loss' ? curComm : 0)), 2);
+    
+    if (pnlEl) {
+      pnlEl.value = computedPnl >= 0 ? `+${computedPnl.toFixed(2)}` : `${computedPnl.toFixed(2)}`;
+    }
+    if (lotEl && curPts > 0) {
+      const dRisk = balBefore * (curRisk / 100.0);
+      const sLot = Math.max(0.01, roundNum(dRisk / curPts, 2));
+      lotEl.value = sLot.toFixed(2);
+    }
+  };
+
+  const statusEl = document.getElementById('editTradeStatus');
+  const rrInputEl = document.getElementById('editTradeRR');
+  const riskInputEl = document.getElementById('editTradeRiskPct');
+  const ptsInputEl = document.getElementById('editTradeTvPoints');
+
+  if (statusEl) statusEl.onchange = recalculateModalPnlPreview;
+  if (rrInputEl) rrInputEl.oninput = recalculateModalPnlPreview;
+  if (riskInputEl) riskInputEl.oninput = recalculateModalPnlPreview;
+  if (ptsInputEl) ptsInputEl.oninput = recalculateModalPnlPreview;
+
   document.getElementById('modalEditTrade').classList.remove('hidden');
   initIcons();
 };
@@ -2483,15 +2362,19 @@ async function handleSaveEditedTrade() {
     tv_chart_url: tvChartUrl
   };
 
-  if (pnlVal !== null) {
-    payload.pnl = pnlVal;
+  if (mode === 'real') {
+    if (pnlVal !== null) {
+      payload.pnl = pnlVal;
+    }
+    if (commVal !== null) {
+      payload.commission = commVal;
+    }
   }
+  // In backtest mode, do not freeze PnL so backend computes dynamic compounding
+
   if (riskVal !== null) {
     payload.risk_pct = riskVal;
     payload.risk_pct_custom = riskVal;
-  }
-  if (commVal !== null) {
-    payload.commission = commVal;
   }
 
   const dateEl = document.getElementById('editTradeDate');
@@ -2517,14 +2400,18 @@ async function handleSaveEditedTrade() {
           localStorage.setItem('cached_real_trades_v2', JSON.stringify(appState.real.trades));
         } catch (e) {}
         renderRealJournalDashboard();
+        updateCharts();
       } else {
         appState.backtest.summary = data.summary;
         appState.backtest.equityCurve = data.equity_curve;
         appState.backtest.trades = data.trades;
         renderBacktestDashboard();
+        updateBacktestCharts();
         recalculateTradingViewValues();
       }
+      updateCalculatorBalances();
       document.getElementById('modalEditTrade').classList.add('hidden');
+      showToast('Operación actualizada y gráficos recalculados.', 'success', 2500);
     }
   } catch (err) {
     console.error('Error editando trade:', err);
