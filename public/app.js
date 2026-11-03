@@ -210,7 +210,7 @@ function setupTabNavigation() {
 
   // Predeterminado: Calculadora de Riesgo & Lotaje
   let savedTab = localStorage.getItem('activeTab_v5');
-  if (!savedTab || savedTab === 'precision_radar' || savedTab === 'gold_bias') {
+  if (!savedTab || savedTab === 'precision_radar' || savedTab === 'gold_bias' || savedTab === 'manual_guide') {
     savedTab = 'calculator';
   }
   switchTab(savedTab);

@@ -103,27 +103,20 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- NAVIGATION TABS: 1. Calculadora / 2. Bitácora / 3. Manual -->
-    <nav class="flex flex-wrap items-center gap-2.5 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-4xl mx-auto">
+    <!-- NAVIGATION TABS: 1. Calculadora de Riesgo & Lotaje / 2. Bitácora Real -->
+    <nav class="flex flex-wrap items-center gap-3 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-2xl mx-auto">
       <!-- Tab 1: Calculadora (CENTRO OPERATIVO) -->
-      <button id="tabBtnCalculator" class="tab-button flex-1 min-w-[170px] px-5 py-3 rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition bg-gold-500 text-black shadow-lg shadow-gold-500/30">
+      <button id="tabBtnCalculator" class="tab-button flex-1 min-w-[180px] px-6 py-3.5 rounded-xl text-sm font-black flex items-center justify-center gap-2.5 transition bg-gold-500 text-black shadow-lg shadow-gold-500/30">
         <i data-lucide="calculator" class="w-4 h-4 text-black"></i>
         <span>1. Calculadora de Riesgo & Lotaje</span>
         <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/20 text-black border border-black/30 font-bold">Oro XAU</span>
       </button>
 
       <!-- Tab 2: Bitácora Real -->
-      <button id="tabBtnRealJournal" class="tab-button flex-1 min-w-[170px] px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
+      <button id="tabBtnRealJournal" class="tab-button flex-1 min-w-[180px] px-6 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
         <i data-lucide="book-open" class="w-4 h-4 text-purple-400"></i>
         <span>2. Bitácora Real</span>
         <span id="tabBadgeReal" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">En Vivo</span>
-      </button>
-
-      <!-- Tab 3: Manual del Terminal -->
-      <button id="tabBtnManualGuide" class="tab-button flex-1 min-w-[170px] px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
-        <i data-lucide="book-open-check" class="w-4 h-4 text-amber-400"></i>
-        <span>3. Manual del Terminal</span>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-950 text-amber-300 border border-amber-800 font-bold">GUÍA</span>
       </button>
     </nav>
 
@@ -1791,7 +1784,7 @@
     <!-- ============================================================== -->
     <!-- VIEW 5: MANUAL DEL TERMINAL & GUÍA OPERATIVA (COMPLETO)       -->
     <!-- ============================================================== -->
-    <div id="viewManualGuide" class="hidden space-y-6">
+    <div id="viewManualGuide" class="hidden" style="display:none !important;">
 
       <!-- Header & Top Action Bar -->
       <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
