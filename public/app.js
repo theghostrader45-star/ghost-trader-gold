@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   startMarketClock();
   initIcons();
   setupTabNavigation();
+  initCharts();
   setupEventListeners();
   setupPrecisionRadarEvents();
   setupCollapsibleSections();
@@ -188,6 +189,12 @@ function setupTabNavigation() {
       }
       if (viewReal) viewReal.classList.remove('hidden');
       renderRealJournalDashboard();
+      setTimeout(() => {
+        if (equityChart) equityChart.resize();
+        if (distributionChart) distributionChart.resize();
+        if (drawdownChart) drawdownChart.resize();
+        updateCharts();
+      }, 50);
     } else if (tab === 'manual_guide') {
       if (btnManual) {
         btnManual.classList.remove(...inactiveClasses);
@@ -1057,6 +1064,72 @@ function renderRealJournalDashboard() {
   document.getElementById('realStatDD').textContent = `${maxDd.toFixed(1)}%`;
   document.getElementById('realStatDDUsd').textContent = `-$${maxDdUsd.toFixed(2)}`;
 
+  // Cálculos de Mediciones Cuantitativas Avanzadas
+  let ev = 0.0;
+  if (total > 0) {
+    const winRateDec = wins / total;
+    const lossRateDec = losses / total;
+    const avgWin = wins > 0 ? ((s.total_gain || 0) / wins) : 0;
+    const avgLoss = losses > 0 ? ((s.total_loss || 0) / losses) : 0;
+    ev = (winRateDec * avgWin) - (lossRateDec * avgLoss);
+  }
+  const evEl = document.getElementById('metricEV');
+  if (evEl) {
+    const evSign = ev >= 0 ? '+' : '';
+    evEl.textContent = `${evSign}$${ev.toFixed(2)}`;
+    evEl.className = ev >= 0 ? 'text-base sm:text-lg font-black text-emerald-400 mt-1' : 'text-base sm:text-lg font-black text-rose-400 mt-1';
+  }
+
+  let avgRR = 0.0;
+  if (total > 0) {
+    const sumRR = trades.reduce((acc, t) => acc + (Number(t.rr) || 1.0), 0);
+    avgRR = sumRR / total;
+  }
+  const avgRREl = document.getElementById('metricAvgRR');
+  if (avgRREl) avgRREl.textContent = `1:${avgRR.toFixed(1)}`;
+
+  let bestTradePnl = 0.0;
+  let worstTradePnl = 0.0;
+  if (trades.length > 0) {
+    const pnls = trades.map(t => Number(t.pnl) || 0);
+    bestTradePnl = Math.max(...pnls);
+    worstTradePnl = Math.min(...pnls);
+  }
+  const bestEl = document.getElementById('metricBestTrade');
+  if (bestEl) bestEl.textContent = bestTradePnl > 0 ? `+$${bestTradePnl.toFixed(2)}` : '$0.00';
+  const worstEl = document.getElementById('metricWorstTrade');
+  if (worstEl) worstEl.textContent = worstTradePnl < 0 ? `-$${Math.abs(worstTradePnl).toFixed(2)}` : '$0.00';
+
+  let maxWins = 0, maxLosses = 0, curW = 0, curL = 0;
+  trades.forEach(t => {
+    if (t.status === 'win') {
+      curW++;
+      curL = 0;
+      if (curW > maxWins) maxWins = curW;
+    } else if (t.status === 'loss') {
+      curL++;
+      curW = 0;
+      if (curL > maxLosses) maxLosses = curL;
+    } else {
+      curW = 0;
+      curL = 0;
+    }
+  });
+  const streaksEl = document.getElementById('metricStreaks');
+  if (streaksEl) streaksEl.textContent = `${maxWins}W / ${maxLosses}L`;
+
+  let recFactor = 0.0;
+  if (netPnl > 0 && maxDdUsd > 0) {
+    recFactor = netPnl / maxDdUsd;
+  }
+  const recEl = document.getElementById('metricRecoveryFactor');
+  if (recEl) recEl.textContent = Number(recFactor).toFixed(2);
+
+  const curDDEl = document.getElementById('currentDrawdownDisplay');
+  if (curDDEl) curDDEl.textContent = `${maxDd.toFixed(1)}%`;
+
+  updateCharts();
+
   renderRealTradesTable();
   recalculateRealJournalPreview();
   syncRealBalanceToCalculator();
@@ -1275,11 +1348,14 @@ function initCharts() {
 }
 
 function updateCharts() {
-  const curve = appState.backtest.equityCurve || [];
+  const isReal = (appState.activeTab === 'real') || (appState.real.trades && appState.real.trades.length > 0) || !appState.backtest.trades.length;
+  const targetState = isReal ? appState.real : appState.backtest;
+  const curve = targetState.equityCurve || [];
+  const s = targetState.summary || {};
   const initial = appState.config.initial_balance || 110;
-  const wins = appState.backtest.summary.wins || 0;
-  const losses = appState.backtest.summary.losses || 0;
-  const be = appState.backtest.summary.breakevens || 0;
+  const wins = s.wins || 0;
+  const losses = s.losses || 0;
+  const be = s.breakevens || 0;
 
   if (equityChart) {
     if (curve.length === 0) {

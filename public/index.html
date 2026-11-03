@@ -1509,6 +1509,118 @@
           </div>
           </div>
 
+          <!-- GRÁFICOS INTERACTIVOS EN TIEMPO REAL -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 pt-2">
+            
+            <!-- Curva de Capital Real (8 cols) -->
+            <div class="lg:col-span-8 bg-gray-950/70 border border-gray-800/80 rounded-xl p-4 sm:p-5 flex flex-col justify-between">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+                      <span>Curva de Capital Real</span>
+                      <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">En Vivo</span>
+                    </h3>
+                    <p class="text-[10px] text-gray-400">Evolución del balance trade a trade vs. depósito inicial</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 text-xs font-mono">
+                  <span class="flex items-center gap-1.5 text-emerald-400">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Balance Real
+                  </span>
+                  <span class="flex items-center gap-1.5 text-gray-400">
+                    <span class="w-2.5 h-0.5 bg-gray-500"></span> Base Inicial ($110)
+                  </span>
+                </div>
+              </div>
+              <div class="h-56 sm:h-64 w-full relative">
+                <canvas id="equityChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Distribución de Trades & Drawdown (4 cols) -->
+            <div class="lg:col-span-4 bg-gray-950/70 border border-gray-800/80 rounded-xl p-4 sm:p-5 flex flex-col justify-between space-y-4">
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+                    <i data-lucide="pie-chart" class="w-4 h-4 text-gold-400"></i>
+                    <span>Distribución de Resultados</span>
+                  </h3>
+                  <span class="text-[10px] font-mono text-gray-400" id="donutTotalCount">0 trades</span>
+                </div>
+                <div class="h-36 w-full relative flex items-center justify-center">
+                  <canvas id="distributionChart"></canvas>
+                </div>
+              </div>
+
+              <div class="border-t border-gray-800/80 pt-3">
+                <div class="flex items-center justify-between text-xs mb-1">
+                  <span class="text-gray-400 font-medium">Drawdown Histórico (%)</span>
+                  <span class="text-rose-400 font-mono text-[11px] font-bold" id="currentDrawdownDisplay">0.0%</span>
+                </div>
+                <div class="h-14 w-full relative">
+                  <canvas id="drawdownChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- MEDICIONES CUANTITATIVAS AVANZADAS -->
+          <div class="pt-2 border-t border-gray-800/60">
+            <div class="flex items-center justify-between text-xs mb-2.5 px-1">
+              <span class="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Mediciones Institucionales de Rendimiento:</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              
+              <!-- M1: Esperanza Matemática (EV) -->
+              <div class="bg-gray-950/50 border border-gray-800/70 rounded-xl p-3">
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">EV / Trade</span>
+                <div class="text-base sm:text-lg font-black text-emerald-400 mt-1" id="metricEV">+$0.00</div>
+                <div class="text-[9px] text-gray-500 mt-1">Expectativa matemática</div>
+              </div>
+
+              <!-- M2: R:R Promedio Real -->
+              <div class="bg-gray-950/50 border border-gray-800/70 rounded-xl p-3">
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">R:R Promedio</span>
+                <div class="text-base sm:text-lg font-black text-blue-400 mt-1" id="metricAvgRR">1:0.0</div>
+                <div class="text-[9px] text-gray-500 mt-1">Asimetría estadística</div>
+              </div>
+
+              <!-- M3: Mejor Trade -->
+              <div class="bg-gray-950/50 border border-gray-800/70 rounded-xl p-3">
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">Mejor Trade</span>
+                <div class="text-base sm:text-lg font-black text-emerald-400 mt-1" id="metricBestTrade">+$0.00</div>
+                <div class="text-[9px] text-gray-500 mt-1">Mayor ganancia neta</div>
+              </div>
+
+              <!-- M4: Peor Trade -->
+              <div class="bg-gray-950/50 border border-gray-800/70 rounded-xl p-3">
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">Peor Trade</span>
+                <div class="text-base sm:text-lg font-black text-rose-400 mt-1" id="metricWorstTrade">-$0.00</div>
+                <div class="text-[9px] text-gray-500 mt-1">Mayor pérdida neta</div>
+              </div>
+
+              <!-- M5: Racha Máxima -->
+              <div class="bg-gray-950/50 border border-gray-800/70 rounded-xl p-3">
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">Racha Actual</span>
+                <div class="text-base sm:text-lg font-black text-purple-400 mt-1" id="metricStreaks">0W / 0L</div>
+                <div class="text-[9px] text-gray-500 mt-1">Consistencia operativa</div>
+              </div>
+
+              <!-- M6: Factor de Recuperación -->
+              <div class="bg-gray-950/50 border border-gray-800/70 rounded-xl p-3">
+                <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">Recuperación</span>
+                <div class="text-base sm:text-lg font-black text-amber-400 mt-1" id="metricRecoveryFactor">0.00</div>
+                <div class="text-[9px] text-gray-500 mt-1">Ganancia neta / Max DD</div>
+              </div>
+
+            </div>
+          </div>
+
         </div>
       </section>
 
