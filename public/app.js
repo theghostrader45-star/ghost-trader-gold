@@ -57,10 +57,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   setCurrentDateTime();
   syncRealBalanceToCalculator();
   runMyfxbookCalculator();
-  setupGoldBiasDashboard();
-  loadGoldBiasData();
-  loadPrecisionRadarData();
-  loadWeeklyNews();
   renderRealJournalDashboard();
 });
 
@@ -212,8 +208,11 @@ function setupTabNavigation() {
   if (btnManual) btnManual.addEventListener('click', () => switchTab('manual_guide'));
   if (btnTabPrintManual) btnTabPrintManual.addEventListener('click', () => window.print());
 
-  // Predeterminado al Centro Operativo: Radar de Precisión
-  const savedTab = localStorage.getItem('activeTab_v4') || 'precision_radar';
+  // Predeterminado: Calculadora de Riesgo & Lotaje
+  let savedTab = localStorage.getItem('activeTab_v5');
+  if (!savedTab || savedTab === 'precision_radar' || savedTab === 'gold_bias') {
+    savedTab = 'calculator';
+  }
   switchTab(savedTab);
 }
 
