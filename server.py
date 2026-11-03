@@ -1036,7 +1036,11 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             direction = payload.get("direction", "BUY").upper()
             
             # TradingView Exact Position Tool Points & Price Distance
-            raw_val = float(payload.get("tv_points", payload.get("sl_points", payload.get("sl_distance", 250.0))))
+            raw_val_input = payload.get("tv_points") or payload.get("sl_points") or payload.get("sl_distance") or 250.0
+            try:
+                raw_val = float(str(raw_val_input).replace(",", "."))
+            except Exception:
+                raw_val = 250.0
             if raw_val <= 0:
                 raw_val = 250.0
             if raw_val >= 20.0:

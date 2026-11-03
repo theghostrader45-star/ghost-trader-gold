@@ -1162,6 +1162,9 @@
   <!-- ============================================================== -->
     <!-- VIEW 3: CALCULADORA MYFXBOOK (Oro XAU/USD en Puntos)          -->
     <!-- ============================================================== -->
+    <!-- ============================================================== -->
+    <!-- VIEW 3: CALCULADORAS (Bitácora Real con R:R vs Backtesting sin R:R) -->
+    <!-- ============================================================== -->
     <div id="viewCalculator" class="space-y-6">
       
       <!-- Banner / Title -->
@@ -1172,220 +1175,338 @@
           </div>
           <div>
             <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-              <span>Calculadora de Posición Estilo Myfxbook</span>
+              <span>Calculadora de Posición & Lotaje</span>
               <span class="text-xs bg-gold-500/20 text-gold-300 border border-gold-500/40 px-2 py-0.5 rounded-full font-mono font-bold">Oro (XAU/USD)</span>
             </h2>
-            <p class="text-xs text-gray-400">Calcula el lote exacto de MetaTrader, margen y ganancia sin precios de entrada ni salida: solo <strong>puntos de SL</strong> y <strong>porcentaje de riesgo</strong></p>
+            <p class="text-xs text-gray-400">Calculadoras dedicadas para tu <strong>Bitácora Real</strong> (con R:R) y para tu <strong>Backtesting</strong> (sin R:R, cálculo directo de lote por SL y % riesgo).</p>
           </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <button id="btnSyncBalToCalc" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs font-semibold rounded-xl border border-gray-700 text-gold-300 flex items-center gap-1.5 transition">
-            <i data-lucide="wallet" class="w-3.5 h-3.5"></i>
-            <span>Sincronizar Balance de Cuenta</span>
-          </button>
         </div>
       </section>
 
-      <!-- Calculator Main Grid: Inputs vs Results -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- Left: Inputs Column (5 cols) -->
-        <div class="lg:col-span-5 bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-9 h-9 rounded-xl bg-gold-500/15 border border-gold-500/30 flex items-center justify-center text-gold-400 shrink-0">
-                <i data-lucide="sliders" class="w-5 h-5"></i>
-              </div>
-              <div>
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
-                  <span>Parámetros de Entrada</span>
-                </h3>
-                <p class="text-xs text-gray-400 mt-0.5">1 Lote estándar = 100 onzas troy de oro (XAU/USD)</p>
-              </div>
-            </div>
+      <!-- Sub-tabs Selector: 1. Bitácora Real vs 2. Backtesting -->
+      <div class="flex flex-wrap items-center justify-center gap-3 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-2xl mx-auto">
+        <button type="button" id="calcSubTabReal" class="flex-1 min-w-[200px] py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 cursor-pointer">
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+          <span>1. Calculadora Bitácora Real</span>
+          <span id="badgeCalcRealBal" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">$115.64</span>
+        </button>
+        <button type="button" id="calcSubTabBacktest" class="flex-1 min-w-[200px] py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60 cursor-pointer">
+          <i data-lucide="history" class="w-4 h-4 text-blue-400"></i>
+          <span>2. Calculadora Backtesting</span>
+          <span id="badgeCalcBacktestBal" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-950 text-blue-300 border border-blue-800 font-bold">$112.24</span>
+          <span class="text-[9px] uppercase px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded font-semibold">Sin R:R</span>
+        </button>
+      </div>
 
-            <!-- Botón Contraer / Expandir a la Derecha -->
-            <div class="flex items-center gap-2.5 shrink-0">
-              <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#calcInputsBody" title="Contraer / Expandir parámetros">
-                <span class="btn-collapse-label">Contraer</span>
-                <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
-              </button>
-            </div>
-          </div>
-
-          <div id="calcInputsBody" class="mt-4 pt-4 border-t border-gray-800/80 space-y-4 text-xs">
-            
-            <!-- Input 1: Balance de Cuenta (Independiente y Modificable) -->
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between">
-                <label class="font-bold text-gray-300 flex items-center gap-1.5">
-                  <span>Balance de Cálculo ($ USD)</span>
-                  <span class="text-[10px] text-amber-400 font-mono bg-amber-950/60 border border-amber-800/60 px-2 py-0.5 rounded-full flex items-center gap-1 font-semibold">
-                    <i data-lucide="unlock" class="w-2.5 h-2.5"></i>
-                    <span>Independiente</span>
-                  </span>
-                </label>
-                <span class="font-mono text-amber-400 font-bold" id="myfxBalLabel">$1,000.00</span>
-              </div>
-              <div class="relative">
-                <span class="absolute left-3 top-2.5 text-gray-500 font-bold text-sm">$</span>
-                <input type="number" id="calcBalInput" min="1" step="any" class="w-full bg-gray-950/80 border border-gray-700 focus:border-gold-500 rounded-xl pl-7 pr-3 py-2 text-white font-mono font-bold text-base focus:outline-none" value="1000">
-              </div>
-              <p class="text-[11px] text-gray-400">Modificable libremente. Es independiente de tu bitácora real (simula cualquier capital).</p>
-            </div>
-
-            <!-- Input 2: Porcentaje de Riesgo (Manual) -->
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between">
-                <label class="font-bold text-gray-300">Porcentaje de Riesgo (%)</label>
-                <span class="font-mono text-amber-400 font-bold" id="myfxRiskLabel">1.0%</span>
-              </div>
-              <div class="relative">
-                <input type="number" id="calcRiskPctInput" min="0.01" max="100" step="any" class="w-full bg-gray-950 border border-gray-800 focus:border-gold-500 rounded-xl px-3 py-2 text-white font-mono font-bold text-base focus:outline-none" placeholder="Ingresa % manual ej. 1.0" value="1.0">
-                <span class="absolute right-3 top-2.5 text-gray-500 font-bold text-sm">%</span>
-              </div>
-              <p class="text-[11px] text-gray-500">Ingreso manual del porcentaje de riesgo deseado por operación.</p>
-            </div>
-
-            <!-- Input 3: Stop Loss en Puntos de Oro (Manual) -->
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between">
-                <label class="font-bold text-gray-300">Stop Loss en Puntos (Oro)</label>
-                <span class="font-mono text-blue-400 font-bold" id="myfxSlLabel">250 pts ($2.50)</span>
-              </div>
-              <div class="relative">
-                <input type="number" id="calcSlPointsInput" min="1" step="any" class="w-full bg-gray-950 border-2 border-gold-500/50 focus:border-gold-400 rounded-xl px-3.5 py-2 text-white font-mono font-black text-lg focus:outline-none" placeholder="Ingresa puntos manual ej. 250" value="250">
-                <span class="absolute right-3 top-2.5 text-xs text-gray-400 font-bold uppercase">puntos</span>
-              </div>
-              <p class="text-[11px] text-gray-500">Puntos de distancia en TradingView / MT5 (ej. 250 pts = $2.50, 965 pts = $9.65).</p>
-            </div>
-
-            <!-- Input 4: Ratio Riesgo : Recompensa (R:R) -->
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between">
-                <label class="font-bold text-gray-300">Ratio Riesgo : Recompensa (R:R)</label>
-                <span class="font-mono text-emerald-400 font-bold" id="myfxRRLabel">1:2.0</span>
-              </div>
-              <div class="relative">
-                <span class="absolute left-3 top-2.5 text-gray-500 font-bold text-sm">1:</span>
-                <input type="number" id="calcRRInput" min="0.1" max="100" step="any" class="w-full bg-gray-950 border border-gray-800 focus:border-gold-500 rounded-xl pl-8 pr-3 py-2 text-white font-mono font-bold text-base focus:outline-none" placeholder="2.99" value="2.0">
-              </div>
-              <p class="text-[11px] text-gray-500">Proyección de beneficio (ej. 1:1, 1:1.5, 1:2.0, 1:3.0).</p>
-            </div>
-
-            <!-- Apalancamiento -->
-            <input type="hidden" id="calcLeverageInput" value="300">
-
-          </div>
-
-          </div>
-        </div>
-
-        <!-- Right: Myfxbook Results Dashboard (7 cols) -->
-        <div class="lg:col-span-7 bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-9 h-9 rounded-xl bg-gold-500/15 border border-gold-500/30 flex items-center justify-center text-gold-400 shrink-0">
-                <i data-lucide="shield-check" class="w-5 h-5"></i>
-              </div>
-              <div>
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
-                  <span>Resultados de Gestión de Posición</span>
-                </h3>
-                <p class="text-xs text-gray-400 mt-0.5">Cálculo de lotaje exacto, riesgo monetario y margen requerido</p>
-              </div>
-            </div>
-
-            <!-- Botón Contraer / Expandir a la Derecha -->
-            <div class="flex items-center gap-2.5 shrink-0">
-              <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#calcResultsBody" title="Contraer / Expandir resultados">
-                <span class="btn-collapse-label">Contraer</span>
-                <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
-              </button>
-            </div>
-          </div>
-
-          <div id="calcResultsBody" class="mt-4 pt-4 border-t border-gray-800/80 space-y-4">
+      <!-- ============================================================== -->
+      <!-- PANEL 1: CALCULADORA BITÁCORA REAL (CON R:R Y SALDO REAL)       -->
+      <!-- ============================================================== -->
+      <div id="calcPanelReal" class="space-y-4">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
-          <!-- Hero Card: Suggested MT4 Lot Size -->
-          <div class="bg-gradient-to-br from-amber-950/60 via-gray-900 to-yellow-950/40 border-2 border-gold-500/60 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs uppercase font-bold tracking-wider text-gold-400 flex items-center gap-1.5">
-                <i data-lucide="shield-check" class="w-4 h-4"></i>
-                <span>Lote Sugerido para MetaTrader (MT4/MT5)</span>
-              </span>
-              <span class="text-xs bg-gold-500/20 text-gold-300 border border-gold-500/40 px-2 py-0.5 rounded-full font-mono font-bold">Oro XAU/USD</span>
-            </div>
-
-            <div class="flex flex-wrap items-baseline justify-between gap-4 my-2">
-              <div>
-                <div class="text-4xl sm:text-5xl font-black text-gold-400 font-mono tracking-tight" id="myfxHeroLot">0.02</div>
-                <div class="text-xs text-gray-400 mt-1 font-mono" id="myfxHeroRawLot">Lote exacto sin redondeo: 0.0220</div>
+          <!-- Left: Inputs Column (5 cols) -->
+          <div class="lg:col-span-5 bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
+            <div class="flex items-center justify-between border-b border-gray-800/80 pb-3 mb-4">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                  <i data-lucide="sliders" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold text-white">Parámetros Bitácora Real</h3>
+                  <p class="text-[11px] text-gray-400">Gestión para operaciones en vivo con Take Profit</p>
+                </div>
               </div>
-
-              <!-- Action: Copy Lot to Clipboard -->
-              <button type="button" id="btnCopyLot" class="px-4 py-2.5 bg-gold-500 hover:bg-gold-400 text-black font-black text-xs rounded-xl shadow-lg shadow-gold-500/20 flex items-center gap-2 transition cursor-pointer">
-                <i data-lucide="copy" class="w-4 h-4"></i>
-                <span id="btnCopyLotText">Copiar Lote</span>
+              <button type="button" id="btnSyncBalToCalc" class="px-2.5 py-1 bg-emerald-950/60 hover:bg-emerald-900 border border-emerald-800/80 text-emerald-300 rounded-lg text-[10px] font-bold flex items-center gap-1 transition" title="Restablecer al balance actual de la bitácora real">
+                <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                <span>Sincronizar ($<span id="labelSyncRealBal">115.64</span>)</span>
               </button>
             </div>
 
-            <p class="text-xs text-gray-300 mt-2">
-              Con este lote en MT4 arriesgas exactamente el presupuesto configurado en función del Stop Loss de <span class="text-gold-300 font-bold" id="myfxSlText">250 puntos ($2.50)</span>.
-            </p>
+            <div class="space-y-4 text-xs">
+              <!-- Input 1: Balance Real -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <label class="font-bold text-gray-300 flex items-center gap-1.5">
+                    <span>Saldo Bitácora Real ($ USD)</span>
+                    <span class="text-[10px] text-emerald-400 font-mono bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-full flex items-center gap-1 font-semibold">
+                      <i data-lucide="check-circle" class="w-2.5 h-2.5"></i>
+                      <span>En Vivo</span>
+                    </span>
+                  </label>
+                  <span class="font-mono text-emerald-400 font-bold" id="myfxBalLabel">$115.64</span>
+                </div>
+                <div class="relative">
+                  <span class="absolute left-3 top-2.5 text-gray-500 font-bold text-sm">$</span>
+                  <input type="number" id="calcBalInput" min="1" step="any" class="w-full bg-gray-950/80 border border-gray-700 focus:border-emerald-500 rounded-xl pl-7 pr-3 py-2 text-white font-mono font-bold text-base focus:outline-none" value="115.64">
+                </div>
+                <p class="text-[11px] text-gray-400">Actualizado automáticamente con el saldo real de tu cuenta.</p>
+              </div>
+
+              <!-- Input 2: Porcentaje de Riesgo -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <label class="font-bold text-gray-300">Porcentaje de Riesgo (%)</label>
+                  <span class="font-mono text-amber-400 font-bold" id="myfxRiskLabel">10.0%</span>
+                </div>
+                <div class="relative">
+                  <input type="number" id="calcRiskPctInput" min="0.01" max="100" step="any" class="w-full bg-gray-950 border border-gray-800 focus:border-gold-500 rounded-xl px-3 py-2 text-white font-mono font-bold text-base focus:outline-none" placeholder="ej. 5.0 o 2.99" value="10.0">
+                  <span class="absolute right-3 top-2.5 text-gray-500 font-bold text-sm">%</span>
+                </div>
+              </div>
+
+              <!-- Input 3: Stop Loss en Puntos -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <label class="font-bold text-gray-300">Stop Loss en Puntos (Oro)</label>
+                  <span class="font-mono text-blue-400 font-bold" id="myfxSlLabel">250 pts ($2.50)</span>
+                </div>
+                <div class="relative">
+                  <input type="number" id="calcSlPointsInput" min="1" step="any" class="w-full bg-gray-950 border-2 border-gold-500/50 focus:border-gold-400 rounded-xl px-3.5 py-2 text-white font-mono font-black text-lg focus:outline-none" placeholder="ej. 250" value="250">
+                  <span class="absolute right-3 top-2.5 text-xs text-gray-400 font-bold uppercase">puntos</span>
+                </div>
+                <p class="text-[11px] text-gray-500">Distancia de Stop Loss en TradingView (ej. 250 pts = $2.50).</p>
+              </div>
+
+              <!-- Input 4: Ratio R:R -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <label class="font-bold text-gray-300">Ratio Riesgo : Recompensa (R:R)</label>
+                  <span class="font-mono text-emerald-400 font-bold" id="myfxRRLabel">1:2.0</span>
+                </div>
+                <div class="relative">
+                  <span class="absolute left-3 top-2.5 text-gray-500 font-bold text-sm">1:</span>
+                  <input type="number" id="calcRRInput" min="0.01" max="100" step="any" class="w-full bg-gray-950 border border-gray-800 focus:border-gold-500 rounded-xl pl-8 pr-3 py-2 text-white font-mono font-bold text-base focus:outline-none" placeholder="2.0 o 2.99" value="2.0">
+                </div>
+                <p class="text-[11px] text-gray-500">Proyección de beneficio hacia el Take Profit (soporta decimales ej. 2.99).</p>
+              </div>
+
+              <input type="hidden" id="calcLeverageInput" value="300">
+            </div>
           </div>
 
-          <!-- Myfxbook Detailed Breakdown Grid (Clean & Direct) -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            
-            <!-- Dinero en Riesgo -->
-            <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
-              <span class="text-[11px] text-gray-400 uppercase font-semibold">Dinero en Riesgo</span>
-              <div class="text-xl font-black text-rose-400 font-mono" id="myfxRiskUsd">-$10.00</div>
-              <div class="text-[10px] text-gray-500 font-mono" id="myfxRiskPctText">1.0% de la cuenta</div>
+          <!-- Right: Results Column (7 cols) -->
+          <div class="lg:col-span-7 bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all space-y-4">
+            <div class="flex items-center justify-between border-b border-gray-800/80 pb-3">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-gold-500/15 border border-gold-500/30 flex items-center justify-center text-gold-400">
+                  <i data-lucide="shield-check" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold text-white">Resultados de Posición (Cuenta Real)</h3>
+                  <p class="text-[11px] text-gray-400">Lote MT4/MT5, riesgo monetario y Take Profit proyectado</p>
+                </div>
+              </div>
             </div>
 
-            <!-- Ganancia Proyectada -->
-            <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
-              <span class="text-[11px] text-gray-400 uppercase font-semibold">Ganancia (TP)</span>
-              <div class="text-xl font-black text-emerald-400 font-mono" id="myfxRewardUsd">+$20.00</div>
-              <div class="text-[10px] text-gray-500 font-mono" id="myfxRewardPctText">2.0% (1:2.0 RR)</div>
+            <!-- Hero Card: Lot Size -->
+            <div class="bg-gradient-to-br from-amber-950/60 via-gray-900 to-yellow-950/40 border-2 border-gold-500/60 rounded-2xl p-5 shadow-2xl relative overflow-hidden">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs uppercase font-bold tracking-wider text-gold-400 flex items-center gap-1.5">
+                  <i data-lucide="shield-check" class="w-4 h-4"></i>
+                  <span>Lote Sugerido para MetaTrader (MT4/MT5)</span>
+                </span>
+                <span class="text-xs bg-gold-500/20 text-gold-300 border border-gold-500/40 px-2 py-0.5 rounded-full font-mono font-bold">Oro XAU/USD</span>
+              </div>
+
+              <div class="flex flex-wrap items-baseline justify-between gap-4 my-2">
+                <div>
+                  <div class="text-4xl sm:text-5xl font-black text-gold-400 font-mono tracking-tight" id="myfxHeroLot">0.05</div>
+                  <div class="text-xs text-gray-400 mt-1 font-mono" id="myfxHeroRawLot">Lote exacto sin redondeo: 0.0463</div>
+                </div>
+
+                <button type="button" id="btnCopyLot" class="px-4 py-2.5 bg-gold-500 hover:bg-gold-400 text-black font-black text-xs rounded-xl shadow-lg shadow-gold-500/20 flex items-center gap-2 transition cursor-pointer">
+                  <i data-lucide="copy" class="w-4 h-4"></i>
+                  <span id="btnCopyLotText">Copiar Lote</span>
+                </button>
+              </div>
+
+              <p class="text-xs text-gray-300 mt-2">
+                Arriesgas el presupuesto configurado en función del Stop Loss de <span class="text-gold-300 font-bold" id="myfxSlText">250 puntos ($2.50)</span>.
+              </p>
             </div>
 
-            <!-- Distancia en Precio -->
-            <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
-              <span class="text-[11px] text-gray-400 uppercase font-semibold">Distancia SL</span>
-              <div class="text-xl font-black text-blue-400 font-mono" id="myfxPriceDist">$2.50</div>
-              <div class="text-[10px] text-gray-500 font-mono" id="myfxPointsDist">250 puntos TV</div>
+            <!-- Breakdown Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
+                <span class="text-[11px] text-gray-400 uppercase font-semibold">Dinero en Riesgo</span>
+                <div class="text-xl font-black text-rose-400 font-mono" id="myfxRiskUsd">-$11.56</div>
+                <div class="text-[10px] text-gray-500 font-mono" id="myfxRiskPctText">10.0% de la cuenta</div>
+              </div>
+
+              <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
+                <span class="text-[11px] text-gray-400 uppercase font-semibold">Ganancia (TP)</span>
+                <div class="text-xl font-black text-emerald-400 font-mono" id="myfxRewardUsd">+$23.13</div>
+                <div class="text-[10px] text-gray-500 font-mono" id="myfxRewardPctText">20.0% (1:2.0 RR)</div>
+              </div>
+
+              <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
+                <span class="text-[11px] text-gray-400 uppercase font-semibold">Distancia SL</span>
+                <div class="text-xl font-black text-blue-400 font-mono" id="myfxPriceDist">$2.50</div>
+                <div class="text-[10px] text-gray-500 font-mono" id="myfxPointsDist">250 puntos TV</div>
+              </div>
+
+              <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
+                <span class="text-[11px] text-gray-400 uppercase font-semibold">Margen Requerido</span>
+                <div class="text-xl font-black text-purple-300 font-mono" id="myfxMarginReq">~$45.00</div>
+                <div class="text-[10px] text-gray-500 font-mono" id="myfxMarginPct">38.9% del balance</div>
+              </div>
             </div>
 
-            <!-- Margen Requerido -->
-            <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
-              <span class="text-[11px] text-gray-400 uppercase font-semibold">Margen Requerido</span>
-              <div class="text-xl font-black text-purple-300 font-mono" id="myfxMarginReq">~$18.00</div>
-              <div class="text-[10px] text-gray-500 font-mono" id="myfxMarginPct">1.8% del balance</div>
+            <!-- Botón Copiar a Bitácora Real -->
+            <div class="pt-2">
+              <button type="button" id="btnCopyCalcToJournal" class="w-full py-3 bg-gradient-to-r from-emerald-600/30 via-emerald-500/20 to-teal-600/30 hover:from-emerald-600/40 hover:to-teal-600/40 border border-emerald-500/40 text-emerald-300 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-md">
+                <i data-lucide="arrow-right-circle" class="w-4 h-4 text-emerald-400"></i>
+                <span>📋 Copiar Parámetros (SL, Riesgo %, Lotaje, R:R) a la Bitácora Real</span>
+              </button>
             </div>
-
           </div>
 
-          <!-- Botón de Acción: Copiar Parámetros de la Calculadora a la Bitácora Real -->
-          <div class="pt-2">
-            <button type="button" id="btnCopyCalcToJournal" class="w-full py-3 bg-gradient-to-r from-gold-500/20 via-amber-500/20 to-yellow-500/20 hover:from-gold-500/30 hover:to-amber-500/30 border border-gold-500/40 text-gold-300 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-md">
-              <i data-lucide="arrow-right-circle" class="w-4 h-4 text-gold-400"></i>
-              <span>📋 Copiar Parámetros (SL, Riesgo %, Lotaje, R:R) a la Bitácora Real</span>
-            </button>
-          </div>
-
-          <!-- Dynamic Notice / Warning -->
-          <div id="myfxWarningBox" class="hidden text-xs p-3.5 rounded-xl bg-amber-950/60 border border-amber-800 text-amber-200 flex items-center gap-2.5">
-            <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400 shrink-0"></i>
-            <span id="myfxWarningText">Aviso</span>
-          </div>
-
-          </div>
         </div>
+      </div>
 
+      <!-- ============================================================== -->
+      <!-- PANEL 2: CALCULADORA BACKTESTING (SIN R:R, SALDO BACKTEST)      -->
+      <!-- ============================================================== -->
+      <div id="calcPanelBacktest" class="space-y-4 hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- Left: Inputs Column (5 cols) -->
+          <div class="lg:col-span-5 bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
+            <div class="flex items-center justify-between border-b border-gray-800/80 pb-3 mb-4">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                  <i data-lucide="sliders" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold text-white">Parámetros Backtesting</h3>
+                  <p class="text-[11px] text-blue-300 font-medium">Modo Puro de Lote (Sin R:R)</p>
+                </div>
+              </div>
+              <button type="button" id="btnSyncBtBalToCalc" class="px-2.5 py-1 bg-blue-950/60 hover:bg-blue-900 border border-blue-800/80 text-blue-300 rounded-lg text-[10px] font-bold flex items-center gap-1 transition" title="Restablecer al balance actual de backtesting">
+                <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                <span>Sincronizar ($<span id="labelSyncBtBal">112.24</span>)</span>
+              </button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+              <!-- Input 1: Balance Backtest -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <label class="font-bold text-gray-300 flex items-center gap-1.5">
+                    <span>Saldo de Backtesting ($ USD)</span>
+                    <span class="text-[10px] text-blue-400 font-mono bg-blue-950/60 border border-blue-800/60 px-2 py-0.5 rounded-full flex items-center gap-1 font-semibold">
+                      <i data-lucide="database" class="w-2.5 h-2.5"></i>
+                      <span>Simulado</span>
+                    </span>
+                  </label>
+                  <span class="font-mono text-blue-400 font-bold" id="btBalLabel">$112.24</span>
+                </div>
+                <div class="relative">
+                  <span class="absolute left-3 top-2.5 text-gray-500 font-bold text-sm">$</span>
+                  <input type="number" id="calcBtBalInput" min="1" step="any" class="w-full bg-gray-950/80 border border-gray-700 focus:border-blue-500 rounded-xl pl-7 pr-3 py-2 text-white font-mono font-bold text-base focus:outline-none" value="112.24">
+                </div>
+                <p class="text-[11px] text-gray-400">Actualizado automáticamente con el saldo acumulado de tu backtesting.</p>
+              </div>
+
+              <!-- Input 2: Porcentaje de Riesgo -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <label class="font-bold text-gray-300">Porcentaje de Riesgo (%)</label>
+                  <span class="font-mono text-amber-400 font-bold" id="btRiskLabel">5.0%</span>
+                </div>
+                <div class="relative">
+                  <input type="number" id="calcBtRiskPctInput" min="0.01" max="100" step="any" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl px-3 py-2 text-white font-mono font-bold text-base focus:outline-none" placeholder="ej. 5.0 o 2.99" value="5.0">
+                  <span class="absolute right-3 top-2.5 text-gray-500 font-bold text-sm">%</span>
+                </div>
+                <p class="text-[11px] text-gray-500">% de capital a comprometer en cada test histórico.</p>
+              </div>
+
+              <!-- Input 3: Stop Loss en Puntos -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <label class="font-bold text-gray-300">Stop Loss en Puntos (Oro)</label>
+                  <span class="font-mono text-blue-400 font-bold" id="btSlLabel">250 pts ($2.50)</span>
+                </div>
+                <div class="relative">
+                  <input type="number" id="calcBtSlPointsInput" min="1" step="any" class="w-full bg-gray-950 border-2 border-blue-500/50 focus:border-blue-400 rounded-xl px-3.5 py-2 text-white font-mono font-black text-lg focus:outline-none" placeholder="ej. 250" value="250">
+                  <span class="absolute right-3 top-2.5 text-xs text-gray-400 font-bold uppercase">puntos</span>
+                </div>
+                <p class="text-[11px] text-gray-500">Puntos de SL. Esta calculadora no requiere R:R; calcula el lote exacto directamente.</p>
+              </div>
+
+              <input type="hidden" id="calcBtLeverageInput" value="300">
+            </div>
+          </div>
+
+          <!-- Right: Results Column (7 cols) -->
+          <div class="lg:col-span-7 bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all space-y-4">
+            <div class="flex items-center justify-between border-b border-gray-800/80 pb-3">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                  <i data-lucide="scale" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold text-white">Dimensionamiento de Lote (Backtesting)</h3>
+                  <p class="text-[11px] text-gray-400">Cálculo exacto para MetaTrader basado en puntos de SL y % de riesgo</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hero Card: Lot Size -->
+            <div class="bg-gradient-to-br from-blue-950/60 via-gray-900 to-indigo-950/40 border-2 border-blue-500/60 rounded-2xl p-5 shadow-2xl relative overflow-hidden">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs uppercase font-bold tracking-wider text-blue-400 flex items-center gap-1.5">
+                  <i data-lucide="scale" class="w-4 h-4"></i>
+                  <span>Lote MT4 / MT5 para Backtesting</span>
+                </span>
+                <span class="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/40 px-2 py-0.5 rounded-full font-mono font-bold">Sin R:R</span>
+              </div>
+
+              <div class="flex flex-wrap items-baseline justify-between gap-4 my-2">
+                <div>
+                  <div class="text-4xl sm:text-5xl font-black text-blue-400 font-mono tracking-tight" id="btHeroLot">0.02</div>
+                  <div class="text-xs text-gray-400 mt-1 font-mono" id="btHeroRawLot">Lote exacto sin redondeo: 0.0224</div>
+                </div>
+
+                <button type="button" id="btnCopyBtLot" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow-lg shadow-blue-600/20 flex items-center gap-2 transition cursor-pointer">
+                  <i data-lucide="copy" class="w-4 h-4"></i>
+                  <span id="btnCopyBtLotText">Copiar Lote</span>
+                </button>
+              </div>
+
+              <p class="text-xs text-gray-300 mt-2">
+                Con este lote en MT4 arriesgas exactamente el presupuesto según el Stop Loss de <span class="text-blue-300 font-bold" id="btSlText">250 puntos ($2.50)</span> sobre el balance de Backtesting.
+              </p>
+            </div>
+
+            <!-- Breakdown Grid (3 cards: Riesgo, Distancia SL, Margen) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
+                <span class="text-[11px] text-gray-400 uppercase font-semibold">Dinero en Riesgo</span>
+                <div class="text-xl font-black text-rose-400 font-mono" id="btRiskUsd">-$5.61</div>
+                <div class="text-[10px] text-gray-500 font-mono" id="btRiskPctText">5.0% de backtest</div>
+              </div>
+
+              <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
+                <span class="text-[11px] text-gray-400 uppercase font-semibold">Distancia SL</span>
+                <div class="text-xl font-black text-blue-400 font-mono" id="btPriceDist">$2.50</div>
+                <div class="text-[10px] text-gray-500 font-mono" id="btPointsDist">250 puntos TV</div>
+              </div>
+
+              <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
+                <span class="text-[11px] text-gray-400 uppercase font-semibold">Margen Requerido</span>
+                <div class="text-xl font-black text-purple-300 font-mono" id="btMarginReq">~$18.00</div>
+                <div class="text-[10px] text-gray-500 font-mono" id="btMarginPct">16.0% del balance</div>
+              </div>
+            </div>
+
+            <div class="p-3.5 bg-blue-950/40 border border-blue-800/50 rounded-xl text-xs text-gray-300 flex items-center gap-2">
+              <i data-lucide="info" class="w-4 h-4 text-blue-400 shrink-0"></i>
+              <span>Esta calculadora opera sin ratio R:R para ofrecerte un cálculo veloz y directo de lotaje para cualquier prueba de backtesting.</span>
+            </div>
+          </div>
+
+        </div>
       </div>
 
     </div>
@@ -2110,109 +2231,59 @@
         <form id="tradeForm" class="space-y-4">
           <!-- Balance Actual y Resumen de Simulación -->
           <div class="flex items-center justify-between text-xs px-1 pb-1">
-            <span class="text-gray-400 font-medium">Parámetros de la simulación histórica:</span>
+            <span class="text-gray-400 font-medium">Cálculo 100% automático basado en Saldo x % de Riesgo:</span>
             <div class="h-7 px-3 rounded-xl bg-blue-950/50 border border-blue-800/50 text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm">
               <span class="text-gray-400">Balance Backtest actual:</span>
               <span class="font-mono font-bold text-blue-400" id="backtestFormCurrentBalDisplay">$112.24</span>
             </div>
           </div>
 
-          <!-- Row 1: Fecha/Hora, Dirección, SL (Puntos), Riesgo (%), Lotaje, R:R -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5 text-xs">
-            <!-- Fecha y Hora -->
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <label for="tradeDate" class="text-gray-300 font-bold flex items-center gap-1">
-                  <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400"></i>
-                  <span>Fecha / Hora</span>
-                </label>
-                <button type="button" id="btnSetBacktestDateNow" class="text-[10px] text-blue-400 hover:text-blue-300 font-mono font-bold underline cursor-pointer" title="Fijar a fecha y hora actual">
-                  Ahora
-                </button>
-              </div>
-              <input type="text" id="tradeDate" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none shadow-inner" placeholder="YYYY-MM-DD HH:MM">
-            </div>
-
+          <!-- Grid de Parámetros: Dirección, Riesgo (%), Ratio R:R, Resultado -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
             <!-- Dirección -->
             <div>
               <label for="tradeDirection" class="block text-gray-300 font-bold mb-1">Dirección</label>
-              <select id="tradeDirection" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white font-semibold focus:border-blue-500 focus:outline-none cursor-pointer">
+              <select id="tradeDirection" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2.5 text-white font-semibold focus:border-blue-500 focus:outline-none cursor-pointer">
                 <option value="BUY">🟢 BUY (Compra)</option>
                 <option value="SELL">🔴 SELL (Venta)</option>
               </select>
-            </div>
-
-            <!-- Stop Loss (Puntos TV) -->
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <label for="tradeTvPoints" class="text-gray-300 font-bold">Stop Loss (Puntos TV)</label>
-                <span class="text-blue-400 text-[10px] font-mono" id="backtestSlExplain">250 ($2.50)</span>
-              </div>
-              <div class="relative">
-                <input type="number" id="tradeTvPoints" value="250" step="any" min="1" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl px-3 py-2 text-white font-mono font-bold focus:outline-none" placeholder="250">
-                <span class="absolute right-3 top-2 text-[11px] text-gray-500 font-mono font-bold uppercase">pts</span>
-              </div>
             </div>
 
             <!-- Riesgo en Porcentaje (%) -->
             <div>
               <div class="flex items-center justify-between mb-1">
                 <label for="tradeRiskPct" class="text-gray-300 font-bold">Riesgo (%)</label>
-                <span class="text-amber-400 text-[10px] font-mono" id="backtestRiskUsdPreview">$5.61</span>
+                <span class="text-amber-400 text-[10px] font-mono font-bold" id="backtestRiskUsdPreview">-$5.61</span>
               </div>
               <div class="relative">
-                <input type="number" id="tradeRiskPct" value="5.0" step="any" min="0.01" max="100" class="w-full bg-gray-950 border border-gray-800 focus:border-amber-500 rounded-xl px-3 py-2 text-amber-400 font-mono font-bold focus:outline-none text-center" placeholder="2.99">
+                <input type="number" id="tradeRiskPct" value="5.0" step="any" min="0.01" max="100" class="w-full bg-gray-950 border border-gray-800 focus:border-amber-500 rounded-xl px-3 py-2 text-amber-400 font-mono font-bold focus:outline-none text-center" placeholder="5.0">
                 <span class="absolute right-3 top-2 text-[11px] text-gray-500 font-mono font-bold">%</span>
-              </div>
-            </div>
-
-            <!-- Lotaje -->
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <label for="tradeManualLot" class="text-gray-300 font-bold">Lotaje</label>
-                <span class="text-gold-400 text-[10px] font-mono">Sug: <b id="tradeSuggestedLotBadge">0.02</b></span>
-              </div>
-              <div class="relative">
-                <input type="number" id="tradeManualLot" value="0.02" step="any" min="0.01" class="w-full bg-gray-950 border-2 border-gold-500/50 focus:border-gold-400 rounded-xl px-3 py-2 text-gold-300 font-mono font-bold focus:outline-none text-center" placeholder="0.01">
-                <span class="absolute right-2.5 top-2 text-[10px] text-gray-500 font-mono font-bold uppercase">LOT</span>
               </div>
             </div>
 
             <!-- Ratio R:R -->
             <div>
-              <label for="tradeSpecificRR" class="block text-gray-300 font-bold mb-1">Ratio R:R</label>
+              <div class="flex items-center justify-between mb-1">
+                <label for="tradeSpecificRR" class="text-gray-300 font-bold">Ratio R:R</label>
+                <span class="text-emerald-400 text-[10px] font-mono font-bold" id="backtestRewardUsdPreview">+$11.22</span>
+              </div>
               <div class="relative">
-                <input type="number" id="tradeSpecificRR" value="2.0" step="any" min="0.01" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl px-3 py-2 text-blue-400 font-mono font-bold focus:outline-none text-center" placeholder="2.99">
+                <input type="number" id="tradeSpecificRR" value="2.0" step="any" min="0.01" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl px-3 py-2 text-blue-400 font-mono font-bold focus:outline-none text-center" placeholder="2.0">
                 <span class="absolute right-3 top-2 text-[11px] text-gray-500 font-mono font-bold">R</span>
               </div>
             </div>
-          </div>
 
-          <!-- Row 2: Link TradingView + Resultado Radio -->
-          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5 text-xs items-end">
-            <!-- Link TradingView (6 cols) -->
-            <div class="sm:col-span-6">
-              <label for="tradeTvChartUrl" class="block text-gray-300 font-semibold mb-1 flex items-center gap-1.5">
-                <i data-lucide="link" class="w-3.5 h-3.5 text-blue-400"></i>
-                <span>Enlace Captura TradingView (Opcional)</span>
-              </label>
-              <div class="relative">
-                <input type="url" id="tradeTvChartUrl" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl px-3.5 py-2 text-blue-300 font-mono text-xs focus:outline-none" placeholder="https://www.tradingview.com/x/...">
-                <span class="absolute right-3 top-2 text-gray-500"><i data-lucide="external-link" class="w-3.5 h-3.5"></i></span>
-              </div>
-            </div>
-
-            <!-- Resultado Radio (6 cols) -->
-            <div class="sm:col-span-6">
-              <label class="block text-gray-300 font-semibold mb-1">Resultado de la Operación</label>
-              <div class="grid grid-cols-3 gap-2 bg-gray-950 p-1 rounded-xl border border-gray-800">
-                <label class="flex items-center justify-center gap-1.5 py-1.5 rounded-lg font-bold text-xs cursor-pointer text-emerald-400 hover:bg-emerald-950/40 transition">
+            <!-- Resultado Radio (WIN / LOSS / BE) -->
+            <div>
+              <label class="block text-gray-300 font-semibold mb-1">Resultado</label>
+              <div class="grid grid-cols-3 gap-1.5 bg-gray-950 p-1 rounded-xl border border-gray-800 h-[38px] items-center">
+                <label class="flex items-center justify-center gap-1 py-1 rounded-lg font-bold text-xs cursor-pointer text-emerald-400 hover:bg-emerald-950/40 transition">
                   <input type="radio" name="tradeResult" value="win" checked class="text-emerald-500 focus:ring-0"> WIN
                 </label>
-                <label class="flex items-center justify-center gap-1.5 py-1.5 rounded-lg font-bold text-xs cursor-pointer text-rose-400 hover:bg-rose-950/40 transition">
+                <label class="flex items-center justify-center gap-1 py-1 rounded-lg font-bold text-xs cursor-pointer text-rose-400 hover:bg-rose-950/40 transition">
                   <input type="radio" name="tradeResult" value="loss" class="text-rose-500 focus:ring-0"> LOSS
                 </label>
-                <label class="flex items-center justify-center gap-1.5 py-1.5 rounded-lg font-bold text-xs cursor-pointer text-gray-400 hover:bg-gray-800/60 transition">
+                <label class="flex items-center justify-center gap-1 py-1 rounded-lg font-bold text-xs cursor-pointer text-gray-400 hover:bg-gray-800/60 transition">
                   <input type="radio" name="tradeResult" value="be" class="text-gray-500 focus:ring-0"> BE
                 </label>
               </div>
@@ -2235,7 +2306,7 @@
             </div>
             <div>
               <h3 class="text-sm font-bold text-white">Historial de Operaciones de Backtesting</h3>
-              <p class="text-[11px] text-gray-400">Registro cronológico de simulación</p>
+              <p class="text-[11px] text-gray-400">Registro cuantitativo simplificado (compuesto trade a trade)</p>
             </div>
           </div>
 
@@ -2260,25 +2331,18 @@
             <thead class="bg-gray-950/70 uppercase text-[10px] text-gray-400 tracking-wider">
               <tr>
                 <th class="py-2.5 px-3">#</th>
-                <th class="py-2.5 px-3">Fecha</th>
-                <th class="py-2.5 px-3">Tipo</th>
-                <th class="py-2.5 px-3">Stop Loss</th>
-                <th class="py-2.5 px-3">Take Profit</th>
-                <th class="py-2.5 px-3">R:R</th>
+                <th class="py-2.5 px-3">Dirección</th>
+                <th class="py-2.5 px-3">Ratio R:R</th>
                 <th class="py-2.5 px-3">Riesgo ($) (%)</th>
-                <th class="py-2.5 px-3">Lote</th>
-                <th class="py-2.5 px-3">Margen</th>
                 <th class="py-2.5 px-3">Resultado</th>
-                <th class="py-2.5 px-3">Comisión</th>
                 <th class="py-2.5 px-3">PnL ($)</th>
-                <th class="py-2.5 px-3">Balance</th>
-                <th class="py-2.5 px-3">Gráfico</th>
+                <th class="py-2.5 px-3">Balance Acumulado</th>
                 <th class="py-2.5 px-3 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody id="tradesTableBody" class="divide-y divide-gray-800/60 font-mono">
               <tr>
-                <td colspan="15" class="py-12 text-center text-gray-500 font-sans">
+                <td colspan="8" class="py-12 text-center text-gray-500 font-sans">
                   Cargando operaciones de backtesting...
                 </td>
               </tr>
@@ -3695,6 +3759,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261103_v11_custom_decimals"></script>
+<script src="app.js?v=20261103_v12_dual_calc_clean_backtest"></script>
 </body>
 </html>

@@ -74,10 +74,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadTrades('real');
   await loadTrades('backtest');
   setCurrentDateTime();
-  initCalculatorBalance();
-  runMyfxbookCalculator();
   renderRealJournalDashboard();
   renderBacktestDashboard();
+  recalculateTradingViewValues();
+  updateCalculatorBalances();
 });
 
 function initIcons() {
@@ -638,116 +638,36 @@ function parseTradingViewInput(rawVal) {
 // Form 1: Backtest Widget Calculations
 // ----------------------------------------------------
 function recalculateTradingViewValues() {
-  const pointsEl = document.getElementById('tradeTvPoints');
-  if (!pointsEl) return;
-
   const curBal = (appState.backtest.summary && appState.backtest.summary.current_balance !== undefined) 
     ? appState.backtest.summary.current_balance 
-    : appState.config.initial_balance;
+    : (parseFloat(appState.config.initial_balance) || 110.0);
 
   const riskInput = document.getElementById('tradeRiskPct');
-  const riskPct = riskInput ? (parseFloat(String(riskInput.value).replace(',', '.')) || 5.0) : (parseFloat(appState.config.risk_pct) || 5.0);
-  const leverage = parseFloat(appState.config.leverage) || 300;
-
-  const rawInput = pointsEl.value;
-  const { points, price } = parseTradingViewInput(rawInput);
+  const riskPct = riskInput ? (parseFloat(String(riskInput.value).replace(',', '.')) || 5.0) : 5.0;
 
   const rrInput = document.getElementById('tradeSpecificRR');
-  const tradeRR = rrInput ? (parseFloat(String(rrInput.value).replace(',', '.')) || 1.0) : (parseFloat(appState.config.rr_ratio) || 1.0);
+  const tradeRR = rrInput ? (parseFloat(String(rrInput.value).replace(',', '.')) || 2.0) : 2.0;
 
-  const tvSlFormatted = `${points} pts TV ($${price})`;
-  const tpPoints = Math.round(points * tradeRR);
-  const tpPrice = (tpPoints / 100).toFixed(2);
-  const tvTpFormatted = `${tpPoints} pts TV ($${tpPrice})`;
-
-  const slExplainEl = document.getElementById('backtestSlExplain');
-  if (slExplainEl) slExplainEl.textContent = `${points} pts ($${price})`;
-
-  const tvPointsExplain = document.getElementById('tvPointsExplain');
-  if (tvPointsExplain) tvPointsExplain.textContent = `Stop: ${points} pts TV ($${price})`;
-  const tvWidgetSlPoints = document.getElementById('tvWidgetSlPoints');
-  if (tvWidgetSlPoints) tvWidgetSlPoints.textContent = tvSlFormatted;
-  const tvWidgetTpPoints = document.getElementById('tvWidgetTpPoints');
-  if (tvWidgetTpPoints) tvWidgetTpPoints.textContent = `${tvTpFormatted} (1:${formatRRText(tradeRR)})`;
-  const tvWidgetRRRatio = document.getElementById('tvWidgetRRRatio');
-  if (tvWidgetRRRatio) tvWidgetRRRatio.textContent = `1:${formatRRText(tradeRR)}`;
-
-  // Pure % Compounding dollar target
+  // Pure % Compounding based on balance x % de riesgo
   const dollarRisk = roundNum(curBal * (riskPct / 100.0), 2);
   const dollarReward = roundNum(dollarRisk * tradeRR, 2);
-  const rewardPct = roundNum(riskPct * tradeRR, 2);
-
-  // Suggested lot for MetaTrader
-  const rawLot = dollarRisk / points;
-  const roundedLot = Math.max(0.01, roundNum(rawLot, 2));
-
-  // Margin at 1:300 leverage
-  const notional = 2720.0 * 100 * roundedLot;
-  const marginReq = notional / leverage;
-  const marginPct = (marginReq / curBal) * 100.0;
 
   // Update Backtest form preview elements
   const riskUsdPreview = document.getElementById('backtestRiskUsdPreview');
-  if (riskUsdPreview) riskUsdPreview.textContent = `$${dollarRisk.toFixed(2)}`;
+  if (riskUsdPreview) riskUsdPreview.textContent = `-$${dollarRisk.toFixed(2)}`;
 
-  const suggestedLotBadge = document.getElementById('tradeSuggestedLotBadge');
-  if (suggestedLotBadge) suggestedLotBadge.textContent = roundedLot.toFixed(2);
-
-  const manualLotInput = document.getElementById('tradeManualLot');
-  if (manualLotInput && (!manualLotInput.value || document.activeElement !== manualLotInput)) {
-    manualLotInput.value = roundedLot.toFixed(2);
-  }
+  const rewardUsdPreview = document.getElementById('backtestRewardUsdPreview');
+  if (rewardUsdPreview) rewardUsdPreview.textContent = `+$${dollarReward.toFixed(2)}`;
 
   const backtestBalDisplay = document.getElementById('backtestFormCurrentBalDisplay');
   if (backtestBalDisplay) backtestBalDisplay.textContent = `$${curBal.toFixed(2)}`;
 
-  // Safe checks for existing widgets
   const badgeCurrentRiskUsd = document.getElementById('badgeCurrentRiskUsd');
   if (badgeCurrentRiskUsd) badgeCurrentRiskUsd.textContent = `$${dollarRisk.toFixed(2)}`;
   const formCurrentBalanceDisplay = document.getElementById('formCurrentBalanceDisplay');
   if (formCurrentBalanceDisplay) formCurrentBalanceDisplay.textContent = `$${curBal.toFixed(2)}`;
   const formCurrentRiskBudgetDisplay = document.getElementById('formCurrentRiskBudgetDisplay');
   if (formCurrentRiskBudgetDisplay) formCurrentRiskBudgetDisplay.textContent = `$${dollarRisk.toFixed(2)}`;
-
-  const calcOutLot = document.getElementById('calcOutLot');
-  if (calcOutLot) calcOutLot.textContent = roundedLot.toFixed(2);
-  const tradeLot = document.getElementById('tradeLot');
-  if (tradeLot) tradeLot.value = roundedLot.toFixed(2);
-  const tvRawLotText = document.getElementById('tvRawLotText');
-  if (tvRawLotText) tvRawLotText.textContent = `(raw: ${rawLot.toFixed(4)})`;
-
-  const calcOutMargin = document.getElementById('calcOutMargin');
-  if (calcOutMargin) calcOutMargin.textContent = `~$${marginReq.toFixed(2)} (${marginPct.toFixed(1)}%)`;
-
-  // Dollar Labels (Pure %)
-  const tvWidgetRiskUsd = document.getElementById('tvWidgetRiskUsd');
-  if (tvWidgetRiskUsd) tvWidgetRiskUsd.textContent = `-$${dollarRisk.toFixed(2)} (-${formatRiskPctText(riskPct)}%)`;
-  const tvWidgetRewardUsd = document.getElementById('tvWidgetRewardUsd');
-  if (tvWidgetRewardUsd) tvWidgetRewardUsd.textContent = `+$${dollarReward.toFixed(2)} (+${formatRiskPctText(rewardPct)}%)`;
-
-  // Preview radio badges
-  const formPreviewGain = document.getElementById('formPreviewGain');
-  if (formPreviewGain) formPreviewGain.textContent = `+$${dollarReward.toFixed(2)}`;
-  const formPreviewLoss = document.getElementById('formPreviewLoss');
-  if (formPreviewLoss) formPreviewLoss.textContent = `-$${dollarRisk.toFixed(2)}`;
-
-  // Warning check
-  const warningBox = document.getElementById('calcWarningBox');
-  const warningText = document.getElementById('calcWarningText');
-  if (warningBox && warningText) {
-    if (marginReq > curBal) {
-      warningBox.classList.remove('hidden');
-      warningText.innerHTML = `<strong>Margen alto:</strong> Requiere ~$${marginReq.toFixed(2)} (supera tu balance de $${curBal.toFixed(2)}).`;
-    } else if (roundedLot === 0.01 && (0.01 * points) > dollarRisk * 1.5) {
-      const actualRisk = roundNum(0.01 * points, 2);
-      warningBox.classList.remove('hidden');
-      warningText.innerHTML = `<strong>SL amplio en MT4:</strong> El lote mínimo de tu broker (0.01) movería $${actualRisk.toFixed(2)} en lugar de $${dollarRisk.toFixed(2)}.`;
-    } else {
-      warningBox.classList.add('hidden');
-    }
-  }
-
-  initIcons();
 }
 
 // ----------------------------------------------------
@@ -842,19 +762,83 @@ function initCalculatorBalance() {
   }
 }
 
-function syncRealBalanceToCalculator() {
-  // Mantener independiente por petición del usuario: no sobreescribir automáticamente
+function updateCalculatorBalances() {
+  const curRealBal = (appState.real.summary && appState.real.summary.current_balance !== undefined) 
+    ? appState.real.summary.current_balance 
+    : (parseFloat(appState.config.initial_balance) || 115.64);
+
+  const curBtBal = (appState.backtest.summary && appState.backtest.summary.current_balance !== undefined) 
+    ? appState.backtest.summary.current_balance 
+    : (parseFloat(appState.config.initial_balance) || 112.24);
+
+  // Update badges in tabs & labels
+  const bReal = document.getElementById('badgeCalcRealBal');
+  if (bReal) bReal.textContent = `$${curRealBal.toFixed(2)}`;
+  const lReal = document.getElementById('labelSyncRealBal');
+  if (lReal) lReal.textContent = curRealBal.toFixed(2);
+
+  const bBt = document.getElementById('badgeCalcBacktestBal');
+  if (bBt) bBt.textContent = `$${curBtBal.toFixed(2)}`;
+  const lBt = document.getElementById('labelSyncBtBal');
+  if (lBt) lBt.textContent = curBtBal.toFixed(2);
+
+  // Auto-sync input values if not focused
+  const inReal = document.getElementById('calcBalInput');
+  if (inReal && document.activeElement !== inReal) {
+    inReal.value = curRealBal.toFixed(2);
+  }
+  const inBt = document.getElementById('calcBtBalInput');
+  if (inBt && document.activeElement !== inBt) {
+    inBt.value = curBtBal.toFixed(2);
+  }
+
+  runRealCalculator();
+  runBacktestCalculator();
 }
 
-function runMyfxbookCalculator() {
+function switchCalculatorTab(mode) {
+  const tabReal = document.getElementById('calcSubTabReal');
+  const tabBt = document.getElementById('calcSubTabBacktest');
+  const panelReal = document.getElementById('calcPanelReal');
+  const panelBt = document.getElementById('calcPanelBacktest');
+
+  if (mode === 'backtest') {
+    if (tabReal) {
+      tabReal.className = 'flex-1 min-w-[200px] py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60 cursor-pointer';
+    }
+    if (tabBt) {
+      tabBt.className = 'flex-1 min-w-[200px] py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition bg-blue-600 text-white shadow-lg shadow-blue-600/30 cursor-pointer';
+    }
+    if (panelReal) panelReal.classList.add('hidden');
+    if (panelBt) panelBt.classList.remove('hidden');
+    runBacktestCalculator();
+  } else {
+    if (tabReal) {
+      tabReal.className = 'flex-1 min-w-[200px] py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 cursor-pointer';
+    }
+    if (tabBt) {
+      tabBt.className = 'flex-1 min-w-[200px] py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60 cursor-pointer';
+    }
+    if (panelReal) panelReal.classList.remove('hidden');
+    if (panelBt) panelBt.classList.add('hidden');
+    runRealCalculator();
+  }
+  initIcons();
+}
+
+function runRealCalculator() {
+  const curRealBal = (appState.real.summary && appState.real.summary.current_balance !== undefined) 
+    ? appState.real.summary.current_balance 
+    : 115.64;
+
   const balInput = document.getElementById('calcBalInput');
   const balance = balInput && balInput.value !== '' && !isNaN(parseFloat(String(balInput.value).replace(',', '.')))
     ? parseFloat(String(balInput.value).replace(',', '.'))
-    : 1000.0;
+    : curRealBal;
   const riskInput = document.getElementById('calcRiskPctInput');
   const riskPct = riskInput && riskInput.value !== '' && !isNaN(parseFloat(String(riskInput.value).replace(',', '.')))
     ? parseFloat(String(riskInput.value).replace(',', '.'))
-    : 1.0;
+    : 10.0;
   const rawSl = document.getElementById('calcSlPointsInput')?.value || '250';
   const { points, price } = parseTradingViewInput(rawSl);
   const rr = parseFloat(String(document.getElementById('calcRRInput')?.value).replace(',', '.')) || 2.0;
@@ -866,8 +850,7 @@ function runMyfxbookCalculator() {
   const dollarReward = roundNum(dollarRisk * rr, 2);
   const rewardPct = roundNum(riskPct * rr, 2);
 
-  // Position Sizing: 1.00 lot Gold = 100 oz. 1 TV Point = $1.00 USD on 1.00 lot.
-  // Suggested Lot = Dollar Risk / Points
+  // Position Sizing: Suggested Lot = Dollar Risk / Points
   const rawLot = points > 0 ? (dollarRisk / points) : 0.01;
   const suggestedLot = Math.max(0.01, roundNum(rawLot, 2));
 
@@ -876,10 +859,7 @@ function runMyfxbookCalculator() {
   const marginReq = roundNum(notional / leverage, 2);
   const marginPct = balance > 0 ? roundNum((marginReq / balance) * 100.0, 1) : 0.0;
 
-  // Contract volume in troy oz
-  const contractOz = roundNum(suggestedLot * 100, 1);
-
-  // Update Calculator UI
+  // Update UI Labels
   const balLabel = document.getElementById('myfxBalLabel');
   if (balLabel) balLabel.textContent = `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const riskLabel = document.getElementById('myfxRiskLabel');
@@ -918,29 +898,77 @@ function runMyfxbookCalculator() {
   const marginPctEl = document.getElementById('myfxMarginPct');
   if (marginPctEl) marginPctEl.textContent = `${marginPct}% del balance`;
 
-  const contractUnits = document.getElementById('myfxContractUnits');
-  if (contractUnits) contractUnits.textContent = `${contractOz} oz`;
-  const ratioOut = document.getElementById('myfxRatioOut');
-  if (ratioOut) ratioOut.textContent = `1:${formatRRText(rr)}`;
+  initIcons();
+}
 
-  // Warnings
-  const warnBox = document.getElementById('myfxWarningBox');
-  const warnText = document.getElementById('myfxWarningText');
-  if (warnBox && warnText) {
-    if (marginReq > balance) {
-      warnBox.classList.remove('hidden');
-      warnText.innerHTML = `<strong>Aviso de Margen:</strong> Se requiere $${marginReq.toFixed(2)} de margen pero el balance es de $${balance.toFixed(2)}. Considera reducir el riesgo o SL.`;
-    } else if (suggestedLot === 0.01 && rawLot < 0.007) {
-      const actualRisk = roundNum(0.01 * points, 2);
-      const actualPct = roundNum((actualRisk / balance) * 100.0, 1);
-      warnBox.classList.remove('hidden');
-      warnText.innerHTML = `<strong>Lote Mínimo de Broker (0.01):</strong> Para arriesgar solo $${dollarRisk.toFixed(2)} (${riskPct}%) necesitarías ${rawLot.toFixed(4)} lotes. Con 0.01 arriesgarías $${actualRisk.toFixed(2)} (${actualPct}%).`;
-    } else {
-      warnBox.classList.add('hidden');
-    }
-  }
+function runBacktestCalculator() {
+  const curBtBal = (appState.backtest.summary && appState.backtest.summary.current_balance !== undefined) 
+    ? appState.backtest.summary.current_balance 
+    : 112.24;
+
+  const balInput = document.getElementById('calcBtBalInput');
+  const balance = balInput && balInput.value !== '' && !isNaN(parseFloat(String(balInput.value).replace(',', '.')))
+    ? parseFloat(String(balInput.value).replace(',', '.'))
+    : curBtBal;
+  const riskInput = document.getElementById('calcBtRiskPctInput');
+  const riskPct = riskInput && riskInput.value !== '' && !isNaN(parseFloat(String(riskInput.value).replace(',', '.')))
+    ? parseFloat(String(riskInput.value).replace(',', '.'))
+    : 5.0;
+  const rawSl = document.getElementById('calcBtSlPointsInput')?.value || '250';
+  const { points, price } = parseTradingViewInput(rawSl);
+  const leverage = parseFloat(document.getElementById('calcBtLeverageInput')?.value) || 300;
+  const goldPrice = 2720.0;
+
+  // Dollar Risk purely based on balance x % de riesgo
+  const dollarRisk = roundNum(balance * (riskPct / 100.0), 2);
+
+  // Position Sizing: Suggested Lot = Dollar Risk / Points
+  const rawLot = points > 0 ? (dollarRisk / points) : 0.01;
+  const suggestedLot = Math.max(0.01, roundNum(rawLot, 2));
+
+  // Margin at given leverage
+  const notional = goldPrice * 100 * suggestedLot;
+  const marginReq = roundNum(notional / leverage, 2);
+  const marginPct = balance > 0 ? roundNum((marginReq / balance) * 100.0, 1) : 0.0;
+
+  // Update UI Labels
+  const balLabel = document.getElementById('btBalLabel');
+  if (balLabel) balLabel.textContent = `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const riskLabel = document.getElementById('btRiskLabel');
+  if (riskLabel) riskLabel.textContent = `${formatRiskPctText(riskPct)}%`;
+  const slLabel = document.getElementById('btSlLabel');
+  if (slLabel) slLabel.textContent = `${points} pts ($${price})`;
+  const slText = document.getElementById('btSlText');
+  if (slText) slText.textContent = `${points} puntos ($${price})`;
+
+  // Hero Lot Card
+  const heroLot = document.getElementById('btHeroLot');
+  if (heroLot) heroLot.textContent = suggestedLot.toFixed(2);
+  const heroRaw = document.getElementById('btHeroRawLot');
+  if (heroRaw) heroRaw.textContent = `Lote exacto sin redondeo: ${rawLot.toFixed(4)}`;
+
+  // Breakdown Cards
+  const riskUsd = document.getElementById('btRiskUsd');
+  if (riskUsd) riskUsd.textContent = `-$${dollarRisk.toFixed(2)}`;
+  const riskPctText = document.getElementById('btRiskPctText');
+  if (riskPctText) riskPctText.textContent = `${formatRiskPctText(riskPct)}% de backtest`;
+
+  const priceDist = document.getElementById('btPriceDist');
+  if (priceDist) priceDist.textContent = `$${price}`;
+  const pointsDist = document.getElementById('btPointsDist');
+  if (pointsDist) pointsDist.textContent = `${points} puntos`;
+
+  const marginReqEl = document.getElementById('btMarginReq');
+  if (marginReqEl) marginReqEl.textContent = `~$${marginReq.toFixed(2)}`;
+  const marginPctEl = document.getElementById('btMarginPct');
+  if (marginPctEl) marginPctEl.textContent = `${marginPct}% del balance`;
 
   initIcons();
+}
+
+function runMyfxbookCalculator() {
+  runRealCalculator();
+  runBacktestCalculator();
 }
 
 // ----------------------------------------------------
@@ -1065,6 +1093,7 @@ function renderBacktestDashboard() {
   updateCharts();
   updateBacktestCharts();
   renderBacktestTradesTable();
+  updateCalculatorBalances();
   initIcons();
 }
 
@@ -1116,43 +1145,20 @@ function renderBacktestTradesTable() {
           : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-800 text-gray-400">BE (0)</span>');
 
     const dirBadge = t.direction === 'BUY'
-      ? '<span class="text-tvGreen font-bold flex items-center gap-0.5"><i data-lucide="arrow-up-right" class="w-3 h-3"></i> Larga</span>'
-      : '<span class="text-tvRed font-bold flex items-center gap-0.5"><i data-lucide="arrow-down-right" class="w-3 h-3"></i> Corta</span>';
-
-    let pts = t.tv_points || t.sl_points;
-    if (!pts && t.sl_distance) pts = Math.round(t.sl_distance * 100);
-    if (!pts) pts = 250;
-    const priceVal = (pts / 100).toFixed(2);
-    const tvLabel = `${pts} (${priceVal})`;
-
-    const tpPts = Math.round(pts * tradeRR);
-    const tpPriceVal = (tpPts / 100).toFixed(2);
-    const tvTpLabel = `${tpPts} (${tpPriceVal})`;
+      ? '<span class="text-tvGreen font-bold flex items-center gap-0.5"><i data-lucide="arrow-up-right" class="w-3 h-3"></i> Compra</span>'
+      : '<span class="text-tvRed font-bold flex items-center gap-0.5"><i data-lucide="arrow-down-right" class="w-3 h-3"></i> Venta</span>';
 
     const riskBudget = t.risk_budget ? `$${Number(t.risk_budget).toFixed(2)}` : (t.dollar_risk ? `$${Number(t.dollar_risk).toFixed(2)}` : `$${(t.balance_before * (appState.config.risk_pct / 100)).toFixed(2)}`);
-
-    const chartBtn = t.tv_chart_url 
-      ? `<a href="${t.tv_chart_url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-950/70 hover:bg-blue-900 border border-blue-800/80 text-blue-300 text-[10px] font-medium transition" title="Ver captura en TradingView">
-           <i data-lucide="external-link" class="w-3 h-3"></i> Gráfico
-         </a>`
-      : `<span class="text-gray-600 text-[10px]">-</span>`;
 
     return `
       <tr class="transition hover:bg-gray-800/40">
         <td class="py-2.5 px-3 text-gray-500">${filtered.length - idx}</td>
-        <td class="py-2.5 px-3 text-gray-300 font-sans text-xs">${t.date || '-'}</td>
         <td class="py-2.5 px-3">${dirBadge}</td>
-        <td class="py-2.5 px-3 text-rose-300 font-bold">${tvLabel}</td>
-        <td class="py-2.5 px-3 text-emerald-300 font-bold">${tvTpLabel}</td>
         <td class="py-2.5 px-3 text-blue-300 font-bold font-mono">1:${formatRRText(tradeRR)}</td>
         <td class="py-2.5 px-3 text-amber-300 font-mono">${riskBudget} <span class="text-[10px] text-amber-400/90 font-bold">(${formatRiskPctText(t.risk_pct || t.risk_pct_custom || 5.0)}%)</span></td>
-        <td class="py-2.5 px-3 text-gold-400 font-bold font-mono">${Number(t.lot_size || t.suggested_lot || 0.01).toFixed(2)}</td>
-        <td class="py-2.5 px-3 text-purple-300 font-mono">$${Number(t.margin_used || 0).toFixed(2)}</td>
         <td class="py-2.5 px-3">${badgeOutcome}</td>
-        <td class="py-2.5 px-3 text-rose-400 font-mono font-bold">${t.commission ? '-$' + Number(Math.abs(t.commission)).toFixed(2) : '$0.00'}</td>
         <td class="py-2.5 px-3 ${pnlColor}">${pnlSign}$${Number(t.pnl).toFixed(2)}</td>
-        <td class="py-2.5 px-3 text-white font-bold">$${Number(t.balance_after || 0).toFixed(2)}</td>
-        <td class="py-2.5 px-3">${chartBtn}</td>
+        <td class="py-2.5 px-3 text-white font-bold font-mono">$${Number(t.balance_after || 0).toFixed(2)}</td>
         <td class="py-2.5 px-3 text-right">
           <div class="flex items-center justify-end gap-1.5">
             <button onclick="handleOpenEditModal('${t.id}', 'backtest')" class="p-1 rounded hover:bg-gray-800 text-gray-400 hover:text-gold-400 transition" title="Editar este trade">
@@ -1301,7 +1307,7 @@ function renderRealJournalDashboard() {
 
   renderRealTradesTable();
   recalculateRealJournalPreview();
-  runMyfxbookCalculator();
+  updateCalculatorBalances();
   initIcons();
 }
 
@@ -2013,81 +2019,110 @@ function setupEventListeners() {
     btnExportRealJson.addEventListener('click', () => exportTradesToJson('real'));
   }
 
-  // Calculator Listeners
+  // Calculator Sub-tabs: 1. Bitácora Real vs 2. Backtesting
+  const subTabReal = document.getElementById('calcSubTabReal');
+  if (subTabReal) {
+    subTabReal.addEventListener('click', () => switchCalculatorTab('real'));
+  }
+  const subTabBt = document.getElementById('calcSubTabBacktest');
+  if (subTabBt) {
+    subTabBt.addEventListener('click', () => switchCalculatorTab('backtest'));
+  }
+
+  // 1. Real Calculator Listeners
   const calcBal = document.getElementById('calcBalInput');
   const calcRisk = document.getElementById('calcRiskPctInput');
   const calcSl = document.getElementById('calcSlPointsInput');
   const calcRR = document.getElementById('calcRRInput');
-  const calcLev = document.getElementById('calcLeverageInput');
 
-  if (calcBal) {
-    calcBal.addEventListener('input', () => {
-      const val = parseFloat(calcBal.value);
-      if (!isNaN(val)) {
-        localStorage.setItem('calc_independent_balance', val);
-      }
-      runMyfxbookCalculator();
+  if (calcBal) calcBal.addEventListener('input', runRealCalculator);
+  if (calcRisk) calcRisk.addEventListener('input', runRealCalculator);
+  if (calcSl) calcSl.addEventListener('input', runRealCalculator);
+  if (calcRR) calcRR.addEventListener('input', runRealCalculator);
+
+  const btnSyncBal = document.getElementById('btnSyncBalToCalc');
+  if (btnSyncBal) {
+    btnSyncBal.addEventListener('click', () => {
+      const realBal = (appState.real.summary && appState.real.summary.current_balance !== undefined) 
+        ? appState.real.summary.current_balance 
+        : (parseFloat(appState.config.initial_balance) || 115.64);
+      if (calcBal) calcBal.value = Number(realBal).toFixed(2);
+      runRealCalculator();
+      showToast(`Balance real ($${realBal.toFixed(2)}) sincronizado.`, 'success', 2000);
     });
   }
-  if (calcRisk) calcRisk.addEventListener('input', runMyfxbookCalculator);
-  if (calcSl) calcSl.addEventListener('input', runMyfxbookCalculator);
-  if (calcRR) calcRR.addEventListener('input', runMyfxbookCalculator);
-  if (calcLev) calcLev.addEventListener('change', runMyfxbookCalculator);
 
-  // Botón: Copiar Parámetros de la Calculadora a la Bitácora Real
+  const btnCopyLot = document.getElementById('btnCopyLot');
+  if (btnCopyLot) {
+    btnCopyLot.addEventListener('click', () => {
+      const lotVal = document.getElementById('myfxHeroLot')?.textContent || '0.01';
+      navigator.clipboard.writeText(lotVal).then(() => {
+        const textSpan = document.getElementById('btnCopyLotText');
+        if (textSpan) {
+          const orig = textSpan.textContent;
+          textSpan.textContent = '¡Copiado!';
+          setTimeout(() => { textSpan.textContent = orig; }, 1800);
+        }
+      }).catch(err => console.warn('Clipboard failed:', err));
+    });
+  }
+
   const btnCopyCalc = document.getElementById('btnCopyCalcToJournal');
   if (btnCopyCalc) {
     btnCopyCalc.addEventListener('click', () => {
       const pts = document.getElementById('calcSlPointsInput')?.value || '250';
-      const risk = document.getElementById('calcRiskPctInput')?.value || '1.0';
+      const risk = document.getElementById('calcRiskPctInput')?.value || '10.0';
       const rr = document.getElementById('calcRRInput')?.value || '2.0';
       const heroLot = document.getElementById('myfxHeroLot')?.textContent || '0.01';
 
       const realPts = document.getElementById('realTradeTvPoints');
       if (realPts) realPts.value = pts;
-
       const realRisk = document.getElementById('realTradeRiskPct');
       if (realRisk) realRisk.value = risk;
-
       const realRR = document.getElementById('realTradeRR');
       if (realRR) realRR.value = rr;
-
       const realLot = document.getElementById('realTradeManualLot');
       if (realLot) realLot.value = heroLot;
 
       switchTab('real');
       recalculateRealJournalPreview();
-      showToast('📋 Parámetros copiados a la Bitácora Real (SL, Riesgo %, Lote, R:R).', 'success', 3500);
+      showToast('📋 Parámetros transferidos a la Bitácora Real.', 'success', 3500);
     });
   }
 
-  // Copy Lot Button
-  const btnCopyLot = document.getElementById('btnCopyLot');
-  if (btnCopyLot) {
-    btnCopyLot.addEventListener('click', () => {
-      const lotVal = document.getElementById('myfxHeroLot').textContent;
+  // 2. Backtest Calculator Listeners (Sin R:R)
+  const calcBtBal = document.getElementById('calcBtBalInput');
+  const calcBtRisk = document.getElementById('calcBtRiskPctInput');
+  const calcBtSl = document.getElementById('calcBtSlPointsInput');
+
+  if (calcBtBal) calcBtBal.addEventListener('input', runBacktestCalculator);
+  if (calcBtRisk) calcBtRisk.addEventListener('input', runBacktestCalculator);
+  if (calcBtSl) calcBtSl.addEventListener('input', runBacktestCalculator);
+
+  const btnSyncBtBal = document.getElementById('btnSyncBtBalToCalc');
+  if (btnSyncBtBal) {
+    btnSyncBtBal.addEventListener('click', () => {
+      const btBal = (appState.backtest.summary && appState.backtest.summary.current_balance !== undefined) 
+        ? appState.backtest.summary.current_balance 
+        : (parseFloat(appState.config.initial_balance) || 112.24);
+      if (calcBtBal) calcBtBal.value = Number(btBal).toFixed(2);
+      runBacktestCalculator();
+      showToast(`Balance backtest ($${btBal.toFixed(2)}) sincronizado.`, 'success', 2000);
+    });
+  }
+
+  const btnCopyBtLot = document.getElementById('btnCopyBtLot');
+  if (btnCopyBtLot) {
+    btnCopyBtLot.addEventListener('click', () => {
+      const lotVal = document.getElementById('btHeroLot')?.textContent || '0.01';
       navigator.clipboard.writeText(lotVal).then(() => {
-        const textSpan = document.getElementById('btnCopyLotText');
-        const orig = textSpan.textContent;
-        textSpan.textContent = '¡Copiado!';
-        setTimeout(() => { textSpan.textContent = orig; }, 1800);
-      }).catch(err => {
-        console.warn('Clipboard failed:', err);
-      });
-    });
-  }
-
-  // Sync Balance to Calculator Button (Voluntario)
-  const btnSyncBal = document.getElementById('btnSyncBalToCalc');
-  if (btnSyncBal) {
-    btnSyncBal.addEventListener('click', () => {
-      const realBal = getRealAccountBalance();
-      if (calcBal) {
-        calcBal.value = Number(realBal).toFixed(2);
-        localStorage.setItem('calc_independent_balance', realBal);
-      }
-      runMyfxbookCalculator();
-      showToast(`Balance real ($${realBal.toFixed(2)}) copiado a la calculadora.`);
+        const textSpan = document.getElementById('btnCopyBtLotText');
+        if (textSpan) {
+          const orig = textSpan.textContent;
+          textSpan.textContent = '¡Copiado!';
+          setTimeout(() => { textSpan.textContent = orig; }, 1800);
+        }
+      }).catch(err => console.warn('Clipboard failed:', err));
     });
   }
 
@@ -2124,6 +2159,7 @@ function setBacktestFilter(filter) {
     : 'px-2.5 py-1 rounded text-gray-400 hover:text-rose-400';
 
   renderBacktestTradesTable();
+  updateCalculatorBalances();
   initIcons();
 }
 
@@ -2135,61 +2171,35 @@ async function handleAddBacktestTrade(e) {
 
   const curBal = (appState.backtest.summary && appState.backtest.summary.current_balance !== undefined) 
     ? appState.backtest.summary.current_balance 
-    : appState.config.initial_balance;
+    : (parseFloat(appState.config.initial_balance) || 110.0);
 
-  const date = document.getElementById('tradeDate')?.value || new Date().toISOString().slice(0, 16).replace('T', ' ');
   const direction = document.getElementById('tradeDirection')?.value || 'BUY';
-  
-  const rawInput = document.getElementById('tradeTvPoints')?.value || '250';
-  const { points, price } = parseTradingViewInput(rawInput);
-  
-  const tradeRR = roundNum(parseFloat(String(document.getElementById('tradeSpecificRR')?.value).replace(',', '.')) || parseFloat(appState.config.rr_ratio) || 1.0, 2);
+  const tradeRR = roundNum(parseFloat(String(document.getElementById('tradeSpecificRR')?.value).replace(',', '.')) || parseFloat(appState.config.rr_ratio) || 2.0, 2);
   const riskPct = roundNum(parseFloat(String(document.getElementById('tradeRiskPct')?.value).replace(',', '.')) || parseFloat(appState.config.risk_pct) || 5.0, 2);
-  
-  const manualLotInput = document.getElementById('tradeManualLot')?.value;
-  const manualLot = manualLotInput ? roundNum(parseFloat(String(manualLotInput).replace(',', '.')), 2) : 0;
-
-  const tvChartUrl = document.getElementById('tradeTvChartUrl')?.value?.trim() || '';
 
   const statusRadio = document.querySelector('input[name="tradeResult"]:checked');
   const status = statusRadio ? statusRadio.value : 'win';
 
-  // Pure % Compounding
+  // Pure % Compounding: balance x % de riesgo
   let retPct = 0.0;
   if (status === 'win') {
     retPct = roundNum(riskPct * tradeRR, 2);
   } else if (status === 'loss') {
     retPct = -roundNum(riskPct, 2);
   }
-  const pnl = roundNum(curBal * (retPct / 100.0), 2);
   const dollarRisk = roundNum(curBal * (riskPct / 100.0), 2);
-  const rawLot = dollarRisk / points;
-  const suggestedLot = Math.max(0.01, roundNum(rawLot, 2));
-  const lot_size = (manualLot && manualLot > 0) ? manualLot : suggestedLot;
-  const leverage = parseFloat(appState.config.leverage) || 300;
-  const margin_used = roundNum((2720.0 * 100 * lot_size / leverage), 2);
+  const pnl = roundNum(curBal * (retPct / 100.0), 2);
 
   const payload = {
     mode: 'backtest',
-    date,
     direction,
-    tv_points: points,
-    price_dist: price,
-    sl_points: points,
-    tp_points: Math.round(points * tradeRR),
-    sl_distance: price,
     risk_pct: riskPct,
     risk_pct_custom: riskPct,
     ret_pct: retPct,
     dollar_risk: dollarRisk,
-    lot_size,
-    suggested_lot: suggestedLot,
-    manual_lot: (manualLot && manualLot > 0) ? manualLot : null,
-    margin_used,
     status,
     pnl,
-    rr: tradeRR,
-    tv_chart_url: tvChartUrl
+    rr: tradeRR
   };
 
   try {
@@ -2207,9 +2217,8 @@ async function handleAddBacktestTrade(e) {
       
       renderBacktestDashboard();
       recalculateTradingViewValues();
-      setCurrentDateTime();
-      const chartInput = document.getElementById('tradeTvChartUrl');
-      if (chartInput) chartInput.value = '';
+      updateCalculatorBalances();
+      showToast('✅ Operación registrada al Backtest con éxito.', 'success', 2500);
     }
   } catch (err) {
     console.error('Error al guardar trade:', err);
@@ -2610,7 +2619,7 @@ function exportTradesToCsv(mode = 'backtest') {
 
   const headers = mode === 'real'
     ? ['#', 'Fecha', 'Sesion', 'Direccion', 'StopLoss_Pts', 'TakeProfit_Pts', 'Ratio_RR', 'Riesgo_USD', 'Lote_MT4', 'Resultado', 'PnL_USD', 'Balance', 'URL_TradingView']
-    : ['#', 'Fecha', 'Direccion', 'StopLoss_Pts', 'TakeProfit_Pts', 'Ratio_RR', 'Riesgo_Compuesto_USD', 'Lote_Sugerido', 'Margen', 'Resultado', 'PnL_USD', 'Balance_Compuesto', 'Estrategia', 'Notas'];
+    : ['#', 'Direccion', 'Ratio_RR', 'Riesgo_Compuesto_USD', 'Riesgo_Pct', 'Resultado', 'PnL_USD', 'Balance_Compuesto'];
 
   const rows = trades.map((t, idx) => {
     let pts = t.tv_points || t.sl_points || 250;
@@ -2638,19 +2647,13 @@ function exportTradesToCsv(mode = 'backtest') {
     } else {
       return [
         idx + 1,
-        `"${t.date || ''}"`,
         t.direction,
-        `"${pts} ($${priceVal})"`,
-        `"${tpPts} ($${tpPriceVal})"`,
         `"1:${formatRRText(tradeRR)}"`,
         t.risk_budget || t.dollar_risk || 0,
-        t.lot_size || 0.01,
-        t.margin_used || 0,
+        `"${formatRiskPctText(t.risk_pct || t.risk_pct_custom || 5.0)}%"`,
         t.status,
         t.pnl,
-        t.balance_after,
-        `"${t.strategy || ''}"`,
-        `"${(t.notes || '').replace(/"/g, '""')}"`
+        t.balance_after
       ];
     }
   });
