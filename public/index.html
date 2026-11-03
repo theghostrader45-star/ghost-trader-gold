@@ -103,20 +103,20 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- NAVIGATION TABS: Macro Sesión / Radar de Precisión / Calculadora / Bitácora -->
+    <!-- NAVIGATION TABS: Radar de Precisión / Macro Sesión / Calculadora / Bitácora -->
     <nav class="flex flex-wrap items-center gap-2 p-1 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl">
-      <!-- Tab 1: Macro Sesión -->
-      <button id="tabBtnGoldBias" class="tab-button flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition bg-yellow-500 text-black shadow-lg shadow-yellow-500/30">
-        <i data-lucide="compass" class="w-4 h-4"></i>
-        <span>1. Macro Sesión</span>
-        <span id="tabBadgeBias" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-red-950 text-red-300 border border-red-800">BAJISTA 85%</span>
+      <!-- Tab 1: Radar de Precisión (CENTRO OPERATIVO PRINCIPAL) -->
+      <button id="tabBtnPrecisionRadar" class="tab-button flex-1 min-w-[150px] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
+        <i data-lucide="target" class="w-4 h-4 text-white"></i>
+        <span>1. Radar de Precisión</span>
+        <span id="tabBadgePrecision" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-500 font-bold animate-pulse">GATILLO M5</span>
       </button>
 
-      <!-- Tab 2: Radar de Precisión -->
-      <button id="tabBtnPrecisionRadar" class="tab-button flex-1 min-w-[150px] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
-        <i data-lucide="target" class="w-4 h-4 text-emerald-400"></i>
-        <span>2. Radar de Precisión</span>
-        <span id="tabBadgePrecision" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800">GATILLO M5</span>
+      <!-- Tab 2: Macro Sesión -->
+      <button id="tabBtnGoldBias" class="tab-button flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
+        <i data-lucide="compass" class="w-4 h-4 text-yellow-400"></i>
+        <span>2. Macro Sesión & Bias</span>
+        <span id="tabBadgeBias" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-red-950 text-red-300 border border-red-800 font-bold">BAJISTA 85%</span>
       </button>
 
       <!-- Tab 3: Calculadora -->
@@ -128,8 +128,8 @@
 
       <!-- Tab 4: Bitácora -->
       <button id="tabBtnRealJournal" class="tab-button flex-1 min-w-[140px] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
-        <i data-lucide="book-open" class="w-4 h-4 text-emerald-400"></i>
-        <span>4. Bitácora</span>
+        <i data-lucide="book-open" class="w-4 h-4 text-purple-400"></i>
+        <span>4. Bitácora Real</span>
         <span id="tabBadgeReal" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800">0 ops</span>
       </button>
     </nav>
@@ -138,7 +138,7 @@
     <!-- ============================================================== -->
     <!-- VIEW 1: MACRO SESIÓN & SESGO INSTITUCIONAL ORO (XAU/USD)      -->
     <!-- ============================================================== -->
-    <div id="viewGoldBias" class="space-y-6">
+    <div id="viewGoldBias" class="hidden space-y-6">
 
       <!-- Header & Status Bar -->
       <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
@@ -800,7 +800,7 @@
     <!-- ============================================================== -->
     <!-- VIEW 2: RADAR DE PRECISIÓN DE ENTRADAS & ALERTA DEL SETUP      -->
     <!-- ============================================================== -->
-    <div id="viewPrecisionRadar" class="hidden space-y-6">
+    <div id="viewPrecisionRadar" class="space-y-6">
 
       <!-- Header & Selector de Modo -->
       <section class="bg-gradient-to-r from-emerald-950/40 via-gray-900 to-teal-950/40 border-2 border-emerald-500/40 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-wrap items-center justify-between gap-4">
@@ -861,6 +861,87 @@
           <span class="text-xs font-black text-amber-400 font-mono block">🇺🇸 08:00 AM – 11:30 AM NY</span>
           <span class="text-[10px] text-emerald-400 font-mono block">1 Solo Trade A+ al Día</span>
         </div>
+      </section>
+
+      <!-- TRIADA OPERATIVA M5: SESGO MACRO + NEWS SHIELD + MARGEN ADR -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+        
+        <!-- Tarjeta 1: Sesgo Diario & Convicción -->
+        <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-2 shadow-inner">
+          <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+            <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+              <i data-lucide="compass" class="w-4 h-4 text-red-400"></i>
+              <span>Sesgo Institucional</span>
+            </span>
+            <span id="precBiasBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-600 font-bold">
+              🔴 BAJISTA 85%
+            </span>
+          </div>
+          <div class="space-y-1">
+            <div class="text-sm font-black text-rose-400 font-mono" id="precBiasRuleText">VENTA / SELL-ONLY</div>
+            <p class="text-[11px] text-gray-400 leading-tight" id="precBiasDxyText">
+              DXY alcista (104.25) + TIPS 10Y positivos (+1.98%). Prohibido buscar compras contra la liquidez interbancaria.
+            </p>
+          </div>
+          <div class="pt-1 border-t border-gray-800/80 flex items-center justify-between text-[10px] text-gray-500 font-mono">
+            <span>Régimen: Tendencia D1</span>
+            <span class="text-rose-400 font-bold">100% Sell</span>
+          </div>
+        </div>
+
+        <!-- Tarjeta 2: Semáforo Dinámico News Risk Shield -->
+        <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-2 shadow-inner">
+          <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+            <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+              <i data-lucide="shield-alert" class="w-4 h-4 text-emerald-400"></i>
+              <span>News Risk Shield</span>
+            </span>
+            <span id="precNewsShieldBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="precNewsShieldStatusText">🟢 VÍA LIBRE</span>
+            </span>
+          </div>
+          <div class="space-y-1">
+            <div id="precNewsShieldHeadline" class="text-xs font-bold text-white">Sin noticias de alto impacto próximas</div>
+            <p id="precNewsShieldAdvice" class="text-[11px] text-gray-400 leading-tight">
+              Operativa autorizada con lotaje y Stop Loss normal. Spreads estables en el broker.
+            </p>
+          </div>
+          <div class="pt-1 border-t border-gray-800/80 flex items-center justify-between text-[10px] text-gray-500 font-mono">
+            <span>Regla de Congelamiento:</span>
+            <span class="text-amber-400 font-bold">±15 min por impacto</span>
+          </div>
+        </div>
+
+        <!-- Tarjeta 3: Recorrido y Espacio ADR (TradingView) -->
+        <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-2 shadow-inner">
+          <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+            <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+              <i data-lucide="bar-chart-3" class="w-4 h-4 text-purple-400"></i>
+              <span>Rango Diario ADR</span>
+            </span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800 font-bold">
+              5,500 pts ($55)
+            </span>
+          </div>
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-xs font-mono">
+              <span class="text-gray-400">Margen libre para NY:</span>
+              <span class="font-bold text-emerald-400 text-sm" id="precAdrRemainingDisplay">2,850 pts ($28.50)</span>
+            </div>
+            <div class="w-full bg-gray-900 rounded-full h-1.5 overflow-hidden border border-gray-800">
+              <div id="precAdrProgressBar" class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400" style="width: 52%;"></div>
+            </div>
+            <p class="text-[11px] text-gray-400 leading-tight" id="precAdrDiagnosticText">
+              🟢 Margen óptimo: Espacio suficiente para que la orden corra hacia TP1 y TP2 sin agotamiento.
+            </p>
+          </div>
+          <div class="pt-1 border-t border-gray-800/80 flex items-center justify-between text-[10px] text-gray-500 font-mono">
+            <span>Volatilidad NY:</span>
+            <span class="text-emerald-400 font-bold">Expansión Disponible</span>
+          </div>
+        </div>
+
       </section>
 
       <!-- CARD 1: ALERTA DEL PRÓXIMO PUNTO DE ENTRADA -->
@@ -1346,15 +1427,21 @@
 
         <!-- Instrucción Clara y Específica: Qué Hacer Paso a Paso -->
         <div class="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-3">
-          <div class="flex items-center justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="text-xs font-bold font-mono text-yellow-400 flex items-center gap-1.5">
               <i data-lucide="compass" class="w-4 h-4"></i>
               <span>Instrucción Operativa Exacta (¿Qué hago en este momento?):</span>
             </div>
-            <button type="button" id="btnCopyTicketParams" class="px-3 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-yellow-500/60 text-gray-300 hover:text-white rounded-lg text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
-              <i data-lucide="copy" class="w-3.5 h-3.5 text-yellow-400"></i>
-              <span id="btnCopyTicketText">Copiar Datos de Orden MT5</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <button type="button" id="btnTransferTicketToJournal" class="px-3 py-1 bg-emerald-600/30 hover:bg-emerald-600 border border-emerald-500/60 text-emerald-300 hover:text-white rounded-lg text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+                <i data-lucide="book-plus" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span>Pre-cargar en Bitácora</span>
+              </button>
+              <button type="button" id="btnCopyTicketParams" class="px-3 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-yellow-500/60 text-gray-300 hover:text-white rounded-lg text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+                <i data-lucide="copy" class="w-3.5 h-3.5 text-yellow-400"></i>
+                <span id="btnCopyTicketText">Copiar Orden MT5</span>
+              </button>
+            </div>
           </div>
 
           <div class="space-y-2 text-xs leading-relaxed text-gray-300" id="ticketInstructionsContainer">

@@ -136,7 +136,7 @@ function setupTabNavigation() {
     appState.activeTab = tab;
     try {
       localStorage.setItem('activeTab', tab);
-      localStorage.setItem('activeTab_v3', tab);
+      localStorage.setItem('activeTab_v4', tab);
     } catch (e) {}
 
     // Reset tab button styles
@@ -155,7 +155,16 @@ function setupTabNavigation() {
     if (viewCalc) viewCalc.classList.add('hidden');
     if (viewReal) viewReal.classList.add('hidden');
 
-    if (tab === 'gold_bias') {
+    if (tab === 'precision_radar') {
+      if (btnPrecision) {
+        btnPrecision.classList.remove(...inactiveClasses);
+        btnPrecision.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-black');
+      }
+      if (viewPrecision) viewPrecision.classList.remove('hidden');
+      loadPrecisionRadarData();
+      loadGoldBiasData();
+      loadWeeklyNews();
+    } else if (tab === 'gold_bias') {
       if (btnGoldBias) {
         btnGoldBias.classList.remove(...inactiveClasses);
         btnGoldBias.classList.add('bg-yellow-500', 'text-black', 'shadow-lg', 'shadow-yellow-500/30', 'font-black');
@@ -163,13 +172,6 @@ function setupTabNavigation() {
       if (viewGoldBias) viewGoldBias.classList.remove('hidden');
       loadGoldBiasData();
       loadWeeklyNews();
-    } else if (tab === 'precision_radar') {
-      if (btnPrecision) {
-        btnPrecision.classList.remove(...inactiveClasses);
-        btnPrecision.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-black');
-      }
-      if (viewPrecision) viewPrecision.classList.remove('hidden');
-      loadPrecisionRadarData();
     } else if (tab === 'calculator') {
       if (btnCalc) {
         btnCalc.classList.remove(...inactiveClasses);
@@ -197,8 +199,8 @@ function setupTabNavigation() {
   if (btnCalc) btnCalc.addEventListener('click', () => switchTab('calculator'));
   if (btnReal) btnReal.addEventListener('click', () => switchTab('real'));
 
-  // Default to gold_bias (Macro Sesión) or saved tab
-  const savedTab = localStorage.getItem('activeTab_v3') || 'gold_bias';
+  // Predeterminado al Centro Operativo: Radar de Precisión
+  const savedTab = localStorage.getItem('activeTab_v4') || 'precision_radar';
   switchTab(savedTab);
 }
 
@@ -2419,6 +2421,41 @@ function updateMacroQuantIntelligence(data) {
   if (adrDiag) {
     adrDiag.innerHTML = `🟢 <strong>Margen Óptimo:</strong> El oro aún tiene ~${remPts.toLocaleString("en-US")} puntos ($${(remPts/100).toFixed(2)}) de recorrido libre esperado en Nueva York. Espacio suficiente para buscar Take Profits de 1,500 a 2,500 pts sin riesgo de agotamiento.`;
   }
+
+  // Reflejar métricas en Tab 2 (Radar de Precisión)
+  const precAdrRemaining = document.getElementById("precAdrRemainingDisplay");
+  const precAdrBar = document.getElementById("precAdrProgressBar");
+  const precAdrDiag = document.getElementById("precAdrDiagnosticText");
+  if (precAdrRemaining) precAdrRemaining.textContent = `${remPts.toLocaleString("en-US")} pts ($${(remPts/100).toFixed(2)})`;
+  if (precAdrBar) precAdrBar.style.width = `${pctConsumed}%`;
+  if (precAdrDiag) {
+    precAdrDiag.innerHTML = `🟢 <strong>Margen Óptimo:</strong> El oro aún tiene ~${remPts.toLocaleString("en-US")} puntos ($${(remPts/100).toFixed(2)}) de recorrido libre esperado en Nueva York. Espacio suficiente para buscar TP1 y TP2 sin agotamiento.`;
+  }
+
+  const precBiasBadge = document.getElementById("precBiasBadge");
+  const precBiasRule = document.getElementById("precBiasRuleText");
+  const precBiasDxy = document.getElementById("precBiasDxyText");
+  const isBearBias = data.bias === "BEARISH";
+  const isBullBias = data.bias === "BULLISH";
+  const biasConfVal = data.conviction_score || data.confidence || 85;
+
+  if (precBiasBadge) {
+    precBiasBadge.textContent = isBearBias ? `🔴 BAJISTA ${biasConfVal}%` : (isBullBias ? `🟢 ALCISTA ${biasConfVal}%` : `🟡 NEUTRAL ${biasConfVal}%`);
+    precBiasBadge.className = isBearBias 
+      ? "text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-600 font-bold"
+      : (isBullBias ? "text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-600 font-bold" : "text-[10px] font-mono px-2 py-0.5 rounded-full bg-yellow-950 text-yellow-300 border border-yellow-600 font-bold");
+  }
+  if (precBiasRule) {
+    precBiasRule.textContent = isBearBias ? "VENTA / SELL-ONLY" : (isBullBias ? "COMPRA / BUY-ONLY" : "RANGO / ESPERA");
+    precBiasRule.className = isBearBias ? "text-sm font-black text-rose-400 font-mono" : (isBullBias ? "text-sm font-black text-emerald-400 font-mono" : "text-sm font-black text-yellow-400 font-mono");
+  }
+  if (precBiasDxy) {
+    precBiasDxy.textContent = isBearBias 
+      ? "DXY alcista + TIPS 10Y positivos. Prohibido buscar compras contra la liquidez interbancaria."
+      : (isBullBias 
+          ? "DXY en debilidad + TIPS a la baja. Prohibido buscar ventas contra la tendencia."
+          : "DXY lateral sin dirección clara. Paciencia.");
+  }
 }
 
 // -------------------------------------------------------------
@@ -2714,6 +2751,11 @@ function evaluateDynamicNewsShield() {
   const confDot3 = document.getElementById("confluenceDot3");
   const confCheck3 = document.getElementById("confluenceCheck3");
 
+  const precBadgeEl = document.getElementById("precNewsShieldBadge");
+  const precTextEl = document.getElementById("precNewsShieldStatusText");
+  const precHeadlineEl = document.getElementById("precNewsShieldHeadline");
+  const precAdviceEl = document.getElementById("precNewsShieldAdvice");
+
   if (activeBlock) {
     const { event, diffMinutes } = activeBlock;
     const isPre = diffMinutes > 0;
@@ -2742,6 +2784,11 @@ function evaluateDynamicNewsShield() {
     if (headlineEl) headlineEl.innerHTML = `<span class="text-rose-400 font-black">${lastNewsShieldStatus.headline}</span>`;
     if (adviceEl) adviceEl.textContent = lastNewsShieldStatus.advice;
 
+    if (precBadgeEl) precBadgeEl.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-600 font-bold flex items-center gap-1 animate-pulse";
+    if (precTextEl) precTextEl.textContent = lastNewsShieldStatus.statusText;
+    if (precHeadlineEl) precHeadlineEl.innerHTML = `<span class="text-rose-400 font-black">${lastNewsShieldStatus.headline}</span>`;
+    if (precAdviceEl) precAdviceEl.textContent = lastNewsShieldStatus.advice;
+
     if (confDot3) confDot3.className = "w-2 h-2 rounded-full bg-rose-500 animate-pulse";
     if (confCheck3) {
       confCheck3.textContent = isPre ? `✗ BLOQUEO: ${event.title} (-${absMin}m)` : `✗ SHOCK: ${event.title} (+${absMin}m)`;
@@ -2766,6 +2813,11 @@ function evaluateDynamicNewsShield() {
     if (headlineEl) headlineEl.innerHTML = `<span class="text-yellow-300 font-bold">${lastNewsShieldStatus.headline}</span>`;
     if (adviceEl) adviceEl.textContent = lastNewsShieldStatus.advice;
 
+    if (precBadgeEl) precBadgeEl.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-yellow-950 text-yellow-300 border border-yellow-600 font-bold flex items-center gap-1";
+    if (precTextEl) precTextEl.textContent = lastNewsShieldStatus.statusText;
+    if (precHeadlineEl) precHeadlineEl.innerHTML = `<span class="text-yellow-300 font-bold">${lastNewsShieldStatus.headline}</span>`;
+    if (precAdviceEl) precAdviceEl.textContent = lastNewsShieldStatus.advice;
+
     if (confDot3) confDot3.className = "w-2 h-2 rounded-full bg-yellow-400";
     if (confCheck3) {
       confCheck3.textContent = `✓ VÍA LIBRE (${event.title} en ${diffMinutes}m)`;
@@ -2788,6 +2840,11 @@ function evaluateDynamicNewsShield() {
     if (textEl) textEl.textContent = "🟢 VÍA LIBRE";
     if (headlineEl) headlineEl.textContent = lastNewsShieldStatus.headline;
     if (adviceEl) adviceEl.textContent = lastNewsShieldStatus.advice;
+
+    if (precBadgeEl) precBadgeEl.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold flex items-center gap-1";
+    if (precTextEl) precTextEl.textContent = "🟢 VÍA LIBRE";
+    if (precHeadlineEl) precHeadlineEl.textContent = lastNewsShieldStatus.headline;
+    if (precAdviceEl) precAdviceEl.textContent = lastNewsShieldStatus.advice;
 
     if (confDot3) confDot3.className = "w-2 h-2 rounded-full bg-emerald-400";
     if (confCheck3) {
@@ -4448,6 +4505,56 @@ function setupPrecisionRadarEvents() {
   if (btnCopyTicket) {
     btnCopyTicket.addEventListener('click', copyTicketParamsToClipboard);
   }
+  const btnTransfer = document.getElementById('btnTransferTicketToJournal');
+  if (btnTransfer) {
+    btnTransfer.addEventListener('click', transferRadarTicketToJournal);
+  }
+}
+
+function transferRadarTicketToJournal() {
+  if (!currentPrecisionRadarData || !currentPrecisionRadarData.precision_radar) {
+    showToast("⚠️ Ficha no cargada aún. Espera un momento.", "warning");
+    return;
+  }
+  const t = currentPrecisionRadarData.precision_radar.execution_ticket;
+  if (!t) return;
+
+  if (typeof window.switchTabTo === 'function') {
+    window.switchTabTo('real');
+  }
+
+  const dir = t.action === 'SELL' ? 'SELL' : 'BUY';
+  const btnBuy = document.getElementById('btnRealDirBuy');
+  const btnSell = document.getElementById('btnRealDirSell');
+  const dirInput = document.getElementById('realTradeDirection');
+  if (dir === 'SELL') {
+    if (btnSell) btnSell.className = "py-1.5 rounded-lg text-center font-bold text-xs bg-tvRed text-white shadow transition flex items-center justify-center";
+    if (btnBuy) btnBuy.className = "py-1.5 rounded-lg text-center font-bold text-xs text-gray-400 hover:text-white transition flex items-center justify-center";
+    if (dirInput) dirInput.value = "SELL";
+  } else {
+    if (btnBuy) btnBuy.className = "py-1.5 rounded-lg text-center font-bold text-xs bg-tvGreen text-white shadow transition flex items-center justify-center";
+    if (btnSell) btnSell.className = "py-1.5 rounded-lg text-center font-bold text-xs text-gray-400 hover:text-white transition flex items-center justify-center";
+    if (dirInput) dirInput.value = "BUY";
+  }
+
+  const ptsInput = document.getElementById('realTradeTvPoints');
+  if (ptsInput) ptsInput.value = t.sl_points.toFixed(0);
+
+  const riskInput = document.getElementById('realTradeRiskPct');
+  if (riskInput) riskInput.value = "1.70";
+
+  const rrInput = document.getElementById('realTradeRR');
+  if (rrInput) rrInput.value = "2.0";
+
+  const lotInput = document.getElementById('realTradeManualLot');
+  if (lotInput) lotInput.value = Number(t.lot_recommended || 0.01).toFixed(2);
+
+  const commInput = document.getElementById('realTradeCommission');
+  if (commInput) commInput.value = "-0.06";
+
+  recalculateRealJournalPreview();
+
+  showToast(`📋 <strong>Orden MT5 pre-cargada:</strong> ${dir} en Oro, SL ${t.sl_points.toFixed(0)} pts, Riesgo 1.70%, Lote 0.01 y Comisión -$0.06.`, "success", 5000);
 }
 
 function copyTicketParamsToClipboard() {
