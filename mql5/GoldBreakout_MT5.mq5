@@ -1,14 +1,14 @@
 //+------------------------------------------------------------------+
-//|                                            RoyalBreakout_MT5.mq5 |
-//|                             Institutional Session Breakout Engine|
-//|               Replicación del Sistema RoyalBreakout (Asia & Ldn) |
-//|                                       https://www.royalprince.org|
+//|                                             GoldBreakout_MT5.mq5 |
+//|                               Institutional Gold Breakout Engine |
+//|                  Replicación Fiel del Sistema Breakout Original  |
+//|                    (Cajas Azul Eléctrico + Filtro Tendencial)    |
 //+------------------------------------------------------------------+
-#property copyright   "RoyalBreakout EA MT5 - Institutional Framework"
+#property copyright   "Gold Breakout EA MT5 - Institutional Framework"
 #property link        "https://www.royalprince.org/royalbreakout.html"
-#property version     "1.00"
+#property version     "2.00"
 #property description "Expert Advisor de Ruptura de Sesiones (Asia & Londres)"
-#property description "Rangos matemáticos, buffers inteligentes, OCO, Break-Even y R:R 1:2 / 1:3+"
+#property description "Cajas Azul Eléctrico, Línea Tendencial Verde/Roja, OCO y R:R 1:2 / 1:3+"
 
 //--- Includes Oficiales de MQL5
 #include <Trade\Trade.mqh>
@@ -27,7 +27,7 @@ enum ENUM_DIRECTION_MODE
 enum ENUM_SL_MODE
   {
    SL_OPPOSITE_RANGE = 0, // Extremo Opuesto del Rango
-   SL_MIDPOINT_50    = 1, // Punto Medio 50% del Rango
+   SL_MIDPOINT_50    = 1, // Punto Medio 50% del Rango (Recomendado)
    SL_FIXED_POINTS   = 2  // Puntos Fijos Personalizados
   };
 
@@ -41,52 +41,52 @@ enum ENUM_TP_MODE
 enum ENUM_LOT_MODE
   {
    LOT_FIXED         = 0, // Lote Fijo (ej. 0.01)
-   LOT_RISK_PERCENT  = 1, // Porcentaje de Riesgo sobre Balance (ej. 5% o 10%)
+   LOT_RISK_PERCENT  = 1, // Porcentaje de Riesgo sobre Balance
    LOT_RISK_CASH_USD = 2  // Monto Fijo en Dólares ($ USD por Trade)
   };
 
 //====================================================================
-// INPUT PARAMETERS (CONFIGURACIÓN DEL ROBOT)
+// INPUT PARAMETERS (CONFIGURACIÓN INSTITUCIONAL DEL ROBOT)
 //====================================================================
 
-//--- 1. CONFIGURACIÓN GENERAL & FILTRO DE SPREAD
+//--- 1. CONFIGURACIÓN GENERAL & SEGURIDAD
 input group "=== 1. CONFIGURACIÓN GENERAL & SEGURIDAD ==="
 input ulong                InpMagicNumber          = 778899;              // Magic Number (Identificador Único)
-input string               InpTradeComment         = "RoyalBreakout EA";  // Comentario de Órdenes
+input string               InpTradeComment         = "Gold Breakout EA";  // Comentario de Órdenes
 input int                  InpSlippage             = 30;                  // Deslizamiento Máximo (Slippage en Puntos)
 input int                  InpMaxSpreadPoints      = 60;                  // Spread Máximo Permitido (Puntos)
-input ENUM_DIRECTION_MODE  InpDirectionMode        = DIR_BOTH;            // Dirección Permitida
+input ENUM_DIRECTION_MODE  InpDirectionMode        = DIR_BOTH;            // Dirección Base Permitida
 input bool                 InpOCO                  = true;                // One-Cancels-Other (Al activarse una, cancelar la otra)
-input int                  InpOrderBufferPoints    = 30;                  // Buffer de Entrada por fuera del Rango (Puntos)
+input int                  InpOrderBufferPoints    = 50;                  // Buffer de Entrada por fuera del Rango (Puntos en H1)
 
 //--- 2. SESIÓN 1: RANGO ASIÁTICO (Ruptura en Londres)
 input group "=== 2. SESIÓN 1: RANGO ASIÁTICO (Breakout Londres) ==="
 input bool                 InpEnableAsia           = true;                // Activar Rango Asiático
-input string               InpAsiaRangeStart       = "00:00";             // Inicio del Rango Asia (Hora Servidor Broker)
-input string               InpAsiaRangeEnd         = "07:00";             // Fin del Rango Asia
-input string               InpAsiaOrderPlacement   = "07:05";             // Hora de Colocar Órdenes Pendientes
-input string               InpAsiaOrderExpiration  = "12:00";             // Hora de Cancelar Órdenes si no se activaron
-input int                  InpAsiaMinRangePoints   = 150;                 // Rango Mínimo Válido (Filtro Anti-Rango Muerto)
+input string               InpAsiaRangeStart       = "02:00";             // Inicio del Rango Asia (Hora Servidor Broker)
+input string               InpAsiaRangeEnd         = "09:00";             // Fin del Rango Asia (7 velas H1)
+input string               InpAsiaOrderPlacement   = "09:02";             // Hora de Colocar Órdenes (Apertura Frankfurt/Londres)
+input string               InpAsiaOrderExpiration  = "14:00";             // Hora de Cancelar Órdenes si no se activaron
+input int                  InpAsiaMinRangePoints   = 350;                 // Rango Mínimo Válido (Filtro Anti-Rango Muerto)
 input int                  InpAsiaMaxRangePoints   = 2500;                // Rango Máximo Válido (Filtro Anti-Sobreextensión)
 
 //--- 3. SESIÓN 2: RANGO DE LONDRES (Ruptura en New York)
 input group "=== 3. SESIÓN 2: RANGO DE LONDRES (Breakout New York) ==="
 input bool                 InpEnableLondon         = true;                // Activar Rango de Londres
-input string               InpLondonRangeStart     = "08:00";             // Inicio del Rango Londres (Hora Servidor Broker)
-input string               InpLondonRangeEnd       = "12:30";             // Fin del Rango Londres
-input string               InpLondonOrderPlacement = "13:00";             // Hora de Colocar Órdenes Pendientes (Apertura NY)
-input string               InpLondonOrderExpiration= "17:30";             // Hora de Cancelar Órdenes si no se activaron
-input int                  InpLondonMinRangePoints = 250;                 // Rango Mínimo Válido Londres
+input string               InpLondonRangeStart     = "10:00";             // Inicio del Rango Londres (Hora Servidor Broker)
+input string               InpLondonRangeEnd       = "14:00";             // Fin del Rango Londres (4 velas H1)
+input string               InpLondonOrderPlacement = "14:30";             // Hora de Colocar Órdenes (Apertura New York)
+input string               InpLondonOrderExpiration= "19:00";             // Hora de Cancelar Órdenes si no se activaron
+input int                  InpLondonMinRangePoints = 500;                 // Rango Mínimo Válido Londres
 input int                  InpLondonMaxRangePoints = 3500;                // Rango Máximo Válido Londres
 
-//--- 4. GESTIÓN DE RIESGO & MONEDA (MONEY MANAGEMENT)
+//--- 4. GESTIÓN DE CAPITAL & LOTAJE
 input group "=== 4. GESTIÓN DE CAPITAL & LOTAJE ==="
 input ENUM_LOT_MODE        InpLotMode              = LOT_FIXED;           // Modo de Dimensionamiento del Lote
 input double               InpFixedLot             = 0.01;                // Lote Fijo (0.01 recomendado para cuentas < $250)
 input double               InpRiskPercent          = 10.0;                // Riesgo % sobre Balance (Fase 1: 10% / Fase 2: 5%)
 input double               InpRiskCashUSD          = 10.0;                // Riesgo Fijo en Dinero ($ USD por trade)
 
-//--- 5. STOP LOSS & TAKE PROFIT (RATIOS INSTITUCIONALES)
+//--- 5. STOP LOSS & TAKE PROFIT
 input group "=== 5. SALIDAS: STOP LOSS & TAKE PROFIT ==="
 input ENUM_SL_MODE         InpSLMode               = SL_MIDPOINT_50;      // Modo de Stop Loss (50% Midpoint o Extremo)
 input int                  InpCustomSLPoints       = 1000;                // SL Fijo en Puntos (si se usa modo personalizado)
@@ -95,23 +95,31 @@ input double               InpRR_Ratio             = 2.0;                 // Rat
 input double               InpRangeMultiplier      = 1.5;                 // Multiplicador de Rango (si se usa TP Range)
 input int                  InpCustomTPPoints       = 2000;                // TP Fijo en Puntos (si se usa modo personalizado)
 
-//--- 6. GESTIÓN EN VIVO: BREAK-EVEN & TRAILING STOP
+//--- 6. DEFENSA DE CAPITAL: BREAK-EVEN & TRAILING STOP
 input group "=== 6. DEFENSA DE CAPITAL (BREAK-EVEN & TRAILING) ==="
 input bool                 InpEnableBreakEven      = true;                // Activar Mover a Breakeven Automático
-input int                  InpBETriggerPoints      = 300;                 // Ganancia en Puntos para Mover a Breakeven
-input int                  InpBELockPoints         = 10;                  // Puntos de Ganancia Bloqueados (para comisiones)
+input int                  InpBETriggerPoints      = 350;                 // Ganancia en Puntos para Mover a Breakeven ($3.50)
+input int                  InpBELockPoints         = 15;                  // Puntos de Ganancia Bloqueados (para comisiones)
 input bool                 InpEnableTrailing       = false;               // Activar Trailing Stop Dinámico
 input int                  InpTrailingStartPoints  = 500;                 // Puntos de Ganancia para Iniciar Trailing
 input int                  InpTrailingDistance     = 250;                 // Distancia del Trailing Stop (Puntos)
 input int                  InpTrailingStep         = 50;                  // Paso de Trailing Stop (Puntos)
 
-//--- 7. ESTÉTICA VISUAL & HUD EN GRÁFICO
-input group "=== 7. VISUALIZACIÓN EN PANTALLA ==="
+//--- 7. FILTRO DE TENDENCIA (LÍNEA VERDE / ROJA DEL SISTEMA ORIGINAL)
+input group "=== 7. FILTRO DE TENDENCIA INSTITUCIONAL ==="
+input bool                 InpUseTrendFilter       = true;                // Filtrar Rupturas: Solo BUY si Verde / Solo SELL si Roja
+input bool                 InpShowTrendLine        = true;                // Dibujar Línea de Tendencia en Pantalla (Verde/Roja)
+input int                  InpTrendMAPeriod        = 21;                  // Período de Media Tendencial (21 en H1)
+input ENUM_MA_METHOD       InpTrendMAMethod        = MODE_EMA;            // Método de Media Tendencial (EMA)
+
+//--- 8. ESTÉTICA VISUAL & HUD PROFESIONAL (ESTILO ORIGINAL)
+input group "=== 8. VISUALIZACIÓN EN PANTALLA (ESTILO ORIGINAL) ==="
 input bool                 InpShowVisualBoxes      = true;                // Dibujar Cajas de Rangos en el Gráfico
-input color                InpColorAsiaBox         = C'25,40,75';         // Color Caja Rango Asiático (Azul Marino)
-input color                InpColorLondonBox       = C'65,45,15';         // Color Caja Rango Londres (Dorado/Ámbar)
+input color                InpColorAsiaBox         = C'0,122,255';        // Color Caja Asia (Azul Eléctrico / Dodger Blue)
+input color                InpColorLondonBox       = C'0,95,215';         // Color Caja Londres (Azul Real Intenso)
 input bool                 InpShowHUD              = true;                // Mostrar Ficha Táctica en Pantalla
-input color                InpHUDTextColor         = clrWhite;            // Color Texto de Ficha
+input int                  InpHUDX                 = 20;                  // Posición X del Panel (Píxeles)
+input int                  InpHUDY                 = 30;                  // Posición Y del Panel (Píxeles)
 
 //====================================================================
 // VARIABLES GLOBALES DE ESTADO DEL EXPERT ADVISOR
@@ -120,6 +128,8 @@ CTrade         m_trade;
 CPositionInfo  m_position;
 COrderInfo     m_order;
 CAccountInfo   m_account;
+
+int            g_ma_handle = INVALID_HANDLE;
 
 // Estructura de Control para cada Sesión
 struct SSessionState
@@ -150,18 +160,26 @@ int OnInit()
    // Inicializar estados
    ZeroMemory(g_asia);
    ZeroMemory(g_london);
-   g_asia.box_name   = "RB_AsiaBox_";
-   g_london.box_name = "RB_LondonBox_";
+   g_asia.box_name   = "GB_AsiaBox_";
+   g_london.box_name = "GB_LondonBox_";
+
+   // Inicializar Indicador de Tendencia (EMA)
+   g_ma_handle = iMA(_Symbol, PERIOD_CURRENT, InpTrendMAPeriod, 0, InpTrendMAMethod, PRICE_CLOSE);
+   if(g_ma_handle == INVALID_HANDLE)
+      Print("⚠️ Advertencia: No se pudo crear el handle de la EMA tendencial.");
 
    Print("=========================================================");
-   Print("🚀 RoyalBreakout EA MT5 Inicializado Exitosamente!");
+   Print("🥇 Gold Breakout EA MT5 Inicializado Exitosamente!");
    Print("Símbolo: ", _Symbol, " | MagicNumber: ", InpMagicNumber);
-   Print("Sesión Asia: ", InpEnableAsia ? "ACTIVADA" : "DESACTIVADA");
-   Print("Sesión Londres: ", InpEnableLondon ? "ACTIVADA" : "DESACTIVADA");
+   Print("Filtro de Tendencia (Verde/Roja): ", InpUseTrendFilter ? "ACTIVADO" : "DESACTIVADO");
+   Print("Sesión Asia: [", InpAsiaRangeStart, " - ", InpAsiaRangeEnd, "] -> Coloca: ", InpAsiaOrderPlacement);
+   Print("Sesión Londres: [", InpLondonRangeStart, " - ", InpLondonRangeEnd, "] -> Coloca: ", InpLondonOrderPlacement);
    Print("=========================================================");
 
+   // Limpiar comentarios antiguos y crear HUD
+   Comment("");
    if(InpShowHUD)
-      CreateHUDObjects();
+      CreateHUDCard();
 
    return(INIT_SUCCEEDED);
   }
@@ -171,9 +189,12 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
   {
-   // Eliminar objetos visuales creados por el EA
-   ObjectsDeleteAll(0, "RB_");
+   // Eliminar todos los objetos visuales creados por el EA
+   ObjectsDeleteAll(0, "GB_");
    Comment("");
+
+   if(g_ma_handle != INVALID_HANDLE)
+      IndicatorRelease(g_ma_handle);
   }
 
 //+------------------------------------------------------------------+
@@ -207,9 +228,28 @@ void OnTick()
                      InpLondonOrderExpiration, InpLondonMinRangePoints, InpLondonMaxRangePoints, 
                      InpColorLondonBox, "Londres", dt);
 
-   // 5. Actualizar HUD en Gráfico
+   // 5. Actualizar Línea de Tendencia Estilo Original (Verde/Roja)
+   if(InpShowTrendLine)
+      UpdateTrendLineVisual();
+
+   // 6. Actualizar HUD Profesional en Gráfico
    if(InpShowHUD)
       UpdateHUD(dt);
+  }
+
+//+------------------------------------------------------------------+
+//| Evalúa si la tendencia actual es Alcista (Verde) o Bajista (Roja)|
+//+------------------------------------------------------------------+
+bool IsTrendBullish()
+  {
+   if(g_ma_handle == INVALID_HANDLE) return(true);
+
+   double ma_val[2];
+   ArraySetAsSeries(ma_val, true);
+   if(CopyBuffer(g_ma_handle, 0, 0, 2, ma_val) < 2)
+      return(true);
+
+   return(ma_val[0] >= ma_val[1]);
   }
 
 //+------------------------------------------------------------------+
@@ -238,7 +278,7 @@ void ProcessSession(SSessionState &sess, string start_time, string end_time, str
       sess.last_date_traded    = today_midnight;
      }
 
-   // FASE A: Durante la sesión, dibujar y actualizar la caja del rango
+   // FASE A: Durante la sesión, dibujar y actualizar la caja del rango en vivo
    if(now >= t_start && now < t_place)
      {
       double cur_high, cur_low;
@@ -268,7 +308,7 @@ void ProcessSession(SSessionState &sess, string start_time, string end_time, str
       if(sess.range_points < min_pts)
         {
          Print("⚠️ Rango ", session_label, " rechazado por ser muy estrecho (", DoubleToString(sess.range_points, 1), " pts < ", min_pts, " pts)");
-         sess.orders_placed_today = true; // Marcar para no repetir
+         sess.orders_placed_today = true;
          return;
         }
 
@@ -291,7 +331,16 @@ void ProcessSession(SSessionState &sess, string start_time, string end_time, str
       if(InpShowVisualBoxes)
          DrawSessionBox(sess.box_name + TimeToString(today_midnight, TIME_DATE), t_start, sess.range_high, t_end, sess.range_low, box_col);
 
-      // 5. Calcular Precios de Entrada, SL y TP
+      // 5. Determinar Dirección Permitida con Filtro Tendencial
+      ENUM_DIRECTION_MODE effective_dir = InpDirectionMode;
+      if(InpUseTrendFilter)
+        {
+         bool bullish = IsTrendBullish();
+         effective_dir = bullish ? DIR_BUY_ONLY : DIR_SELL_ONLY;
+         Print("🎯 Filtro Tendencial: Sesión ", session_label, " configurada en: ", bullish ? "SOLO COMPRAS (Línea Verde)" : "SOLO VENTAS (Línea Roja)");
+        }
+
+      // 6. Calcular Precios de Entrada, SL y TP
       double buffer = InpOrderBufferPoints * _Point;
       double buy_entry  = NormalizeDouble(sess.range_high + buffer, _Digits);
       double sell_entry = NormalizeDouble(sess.range_low - buffer, _Digits);
@@ -337,12 +386,12 @@ void ProcessSession(SSessionState &sess, string start_time, string end_time, str
          sell_tp = NormalizeDouble(sell_entry - (InpCustomTPPoints * _Point), _Digits);
         }
 
-      // 6. Calcular Lotaje Exacto
+      // 7. Calcular Lotaje Exacto
       double buy_lots  = CalculateLotSize(buy_entry, buy_sl);
       double sell_lots = CalculateLotSize(sell_entry, sell_sl);
 
-      // 7. Colocar Órdenes Pendientes según InpDirectionMode
-      if(InpDirectionMode == DIR_BOTH || InpDirectionMode == DIR_BUY_ONLY)
+      // 8. Colocar Órdenes Pendientes según Dirección Permitida
+      if(effective_dir == DIR_BOTH || effective_dir == DIR_BUY_ONLY)
         {
          if(m_trade.BuyStop(buy_lots, buy_entry, _Symbol, buy_sl, buy_tp, ORDER_TIME_SPECIFIED, t_expire, InpTradeComment + " [BUY]"))
            {
@@ -353,7 +402,7 @@ void ProcessSession(SSessionState &sess, string start_time, string end_time, str
             Print("❌ Error colocando BUY STOP: ", m_trade.ResultRetcodeDescription());
         }
 
-      if(InpDirectionMode == DIR_BOTH || InpDirectionMode == DIR_SELL_ONLY)
+      if(effective_dir == DIR_BOTH || effective_dir == DIR_SELL_ONLY)
         {
          if(m_trade.SellStop(sell_lots, sell_entry, _Symbol, sell_sl, sell_tp, ORDER_TIME_SPECIFIED, t_expire, InpTradeComment + " [SELL]"))
            {
@@ -399,7 +448,7 @@ bool GetRangeExtremes(datetime t_start, datetime t_end, double &out_high, double
   }
 
 //+------------------------------------------------------------------+
-//| Calcula el tamaño del lote según el modo de riesgo seleccionado |
+//| Calcula el tamaño del lote según el modo de riesgo seleccionado  |
 //+------------------------------------------------------------------+
 double CalculateLotSize(double entry, double sl)
   {
@@ -519,7 +568,7 @@ void ManageOpenPositions()
   }
 
 //+------------------------------------------------------------------+
-//| One-Cancels-Other (OCO): Cancela la orden pendiente contraria   |
+//| One-Cancels-Other (OCO): Cancela la orden pendiente contraria    |
 //+------------------------------------------------------------------+
 void CheckAndHandleOCO(SSessionState &sess)
   {
@@ -527,7 +576,6 @@ void CheckAndHandleOCO(SSessionState &sess)
 
    bool buy_filled = false, sell_filled = false;
 
-   // Revisar si BUY se convirtió en posición activa
    for(int i = PositionsTotal() - 1; i >= 0; i--)
      {
       if(m_position.SelectByIndex(i))
@@ -540,7 +588,6 @@ void CheckAndHandleOCO(SSessionState &sess)
         }
      }
 
-   // Si Buy se activó, cancelar el Sell Stop pendiente
    if(buy_filled && sess.sell_ticket > 0)
      {
       CancelPendingOrder(sess.sell_ticket);
@@ -548,7 +595,6 @@ void CheckAndHandleOCO(SSessionState &sess)
       Print("⚡ OCO: BUY activado. SELL STOP cancelado.");
      }
 
-   // Si Sell se activó, cancelar el Buy Stop pendiente
    if(sell_filled && sess.buy_ticket > 0)
      {
       CancelPendingOrder(sess.buy_ticket);
@@ -575,7 +621,7 @@ void CancelPendingOrder(ulong ticket)
   }
 
 //+------------------------------------------------------------------+
-//| Dibuja una caja rectangular sombreada para el rango de la sesión |
+//| Dibuja una caja rectangular con estilo Azul Eléctrico (Original) |
 //+------------------------------------------------------------------+
 void DrawSessionBox(string name, datetime t1, double p1, datetime t2, double p2, color col)
   {
@@ -584,9 +630,10 @@ void DrawSessionBox(string name, datetime t1, double p1, datetime t2, double p2,
       ObjectCreate(0, name, OBJ_RECTANGLE, 0, t1, p1, t2, p2);
       ObjectSetInteger(0, name, OBJPROP_COLOR, col);
       ObjectSetInteger(0, name, OBJPROP_STYLE, STYLE_SOLID);
-      ObjectSetInteger(0, name, OBJPROP_WIDTH, 1);
+      ObjectSetInteger(0, name, OBJPROP_WIDTH, 2);
       ObjectSetInteger(0, name, OBJPROP_BACK, true);
       ObjectSetInteger(0, name, OBJPROP_FILL, true);
+      ObjectSetInteger(0, name, OBJPROP_SELECTABLE, false);
      }
    else
      {
@@ -594,11 +641,60 @@ void DrawSessionBox(string name, datetime t1, double p1, datetime t2, double p2,
       ObjectSetDouble(0, name, OBJPROP_PRICE, 0, p1);
       ObjectSetInteger(0, name, OBJPROP_TIME, 1, t2);
       ObjectSetDouble(0, name, OBJPROP_PRICE, 1, p2);
+      ObjectSetInteger(0, name, OBJPROP_COLOR, col);
      }
   }
 
 //+------------------------------------------------------------------+
-//| Convierte string "HH:MM" a segundos desde la medianoche          |
+//| Dibuja la Línea de Tendencia Dinámica Verde / Roja del Original  |
+//+------------------------------------------------------------------+
+void UpdateTrendLineVisual()
+  {
+   if(g_ma_handle == INVALID_HANDLE) return;
+
+   int bars_to_draw = 70;
+   double ma_val[];
+   datetime time_val[];
+   ArraySetAsSeries(ma_val, true);
+   ArraySetAsSeries(time_val, true);
+
+   if(CopyBuffer(g_ma_handle, 0, 0, bars_to_draw + 1, ma_val) <= bars_to_draw) return;
+   if(CopyTime(_Symbol, PERIOD_CURRENT, 0, bars_to_draw + 1, time_val) <= bars_to_draw) return;
+
+   for(int i = 0; i < bars_to_draw; i++)
+     {
+      string seg_name = "GB_TrendLine_" + IntegerToString(i);
+      datetime t1 = time_val[i + 1];
+      double   p1 = ma_val[i + 1];
+      datetime t2 = time_val[i];
+      double   p2 = ma_val[i];
+
+      // Verde si sube, Roja si baja
+      color col = (p2 >= p1) ? clrLimeGreen : clrCrimson;
+
+      if(ObjectFind(0, seg_name) < 0)
+        {
+         ObjectCreate(0, seg_name, OBJ_TREND, 0, t1, p1, t2, p2);
+         ObjectSetInteger(0, seg_name, OBJPROP_COLOR, col);
+         ObjectSetInteger(0, seg_name, OBJPROP_WIDTH, 3);
+         ObjectSetInteger(0, seg_name, OBJPROP_STYLE, STYLE_SOLID);
+         ObjectSetInteger(0, seg_name, OBJPROP_RAY_RIGHT, false);
+         ObjectSetInteger(0, seg_name, OBJPROP_BACK, false);
+         ObjectSetInteger(0, seg_name, OBJPROP_SELECTABLE, false);
+        }
+      else
+        {
+         ObjectSetInteger(0, seg_name, OBJPROP_TIME, 0, t1);
+         ObjectSetDouble(0, seg_name, OBJPROP_PRICE, 0, p1);
+         ObjectSetInteger(0, seg_name, OBJPROP_TIME, 1, t2);
+         ObjectSetDouble(0, seg_name, OBJPROP_PRICE, 1, p2);
+         ObjectSetInteger(0, seg_name, OBJPROP_COLOR, col);
+        }
+     }
+  }
+
+//+------------------------------------------------------------------+
+//| Convierte string "HH:MM" a segundos desde medianoche             |
 //+------------------------------------------------------------------+
 int TimeStringToSeconds(string time_str)
   {
@@ -614,46 +710,86 @@ int TimeStringToSeconds(string time_str)
   }
 
 //+------------------------------------------------------------------+
-//| Crea la Ficha Táctica (HUD) en el gráfico                       |
+//| Crea la Tarjeta de Control Profesional (HUD) sin superposiciones |
 //+------------------------------------------------------------------+
-void CreateHUDObjects()
+void CreateHUDCard()
   {
-   string name = "RB_HUD_Panel";
-   if(ObjectFind(0, name) < 0)
+   string panel = "GB_HUD_Panel";
+   if(ObjectFind(0, panel) < 0)
      {
-      ObjectCreate(0, name, OBJ_RECTANGLE_LABEL, 0, 0, 0);
-      ObjectSetInteger(0, name, OBJPROP_XDISTANCE, 20);
-      ObjectSetInteger(0, name, OBJPROP_YDISTANCE, 30);
-      ObjectSetInteger(0, name, OBJPROP_XSIZE, 300);
-      ObjectSetInteger(0, name, OBJPROP_YSIZE, 140);
-      ObjectSetInteger(0, name, OBJPROP_BGCOLOR, C'10,15,25');
-      ObjectSetInteger(0, name, OBJPROP_BORDER_COLOR, C'212,175,55'); // Gold
-      ObjectSetInteger(0, name, OBJPROP_CORNER, CORNER_LEFT_UPPER);
-      ObjectSetInteger(0, name, OBJPROP_BORDER_TYPE, BORDER_FLAT);
+      ObjectCreate(0, panel, OBJ_RECTANGLE_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, panel, OBJPROP_XDISTANCE, InpHUDX);
+      ObjectSetInteger(0, panel, OBJPROP_YDISTANCE, InpHUDY);
+      ObjectSetInteger(0, panel, OBJPROP_XSIZE, 290);
+      ObjectSetInteger(0, panel, OBJPROP_YSIZE, 155);
+      ObjectSetInteger(0, panel, OBJPROP_BGCOLOR, C'10,16,28');
+      ObjectSetInteger(0, panel, OBJPROP_BORDER_COLOR, C'212,175,55'); // Borde Dorado
+      ObjectSetInteger(0, panel, OBJPROP_CORNER, CORNER_LEFT_UPPER);
+      ObjectSetInteger(0, panel, OBJPROP_BORDER_TYPE, BORDER_FLAT);
+      ObjectSetInteger(0, panel, OBJPROP_BACK, false);
+      ObjectSetInteger(0, panel, OBJPROP_SELECTABLE, false);
      }
   }
 
 //+------------------------------------------------------------------+
-//| Actualiza la información del HUD en tiempo real                  |
+//| Función auxiliar para crear y actualizar etiquetas de texto      |
+//+------------------------------------------------------------------+
+void SetHUDLabel(string name, int x, int y, string text, color col, int font_size=8, bool bold=false)
+  {
+   if(ObjectFind(0, name) < 0)
+     {
+      ObjectCreate(0, name, OBJ_LABEL, 0, 0, 0);
+      ObjectSetInteger(0, name, OBJPROP_CORNER, CORNER_LEFT_UPPER);
+      ObjectSetInteger(0, name, OBJPROP_XDISTANCE, x);
+      ObjectSetInteger(0, name, OBJPROP_YDISTANCE, y);
+      ObjectSetString(0, name, OBJPROP_FONT, bold ? "Arial Bold" : "Arial");
+      ObjectSetInteger(0, name, OBJPROP_FONTSIZE, font_size);
+      ObjectSetInteger(0, name, OBJPROP_SELECTABLE, false);
+      ObjectSetInteger(0, name, OBJPROP_BACK, false);
+     }
+   ObjectSetString(0, name, OBJPROP_TEXT, text);
+   ObjectSetInteger(0, name, OBJPROP_COLOR, col);
+  }
+
+//+------------------------------------------------------------------+
+//| Actualiza la Ficha Táctica en Tiempo Real con texto nítido       |
 //+------------------------------------------------------------------+
 void UpdateHUD(const MqlDateTime &dt)
   {
-   string text = StringFormat(
-      "👑 ROYAL BREAKOUT EA · MT5\n" +
-      "----------------------------------------\n" +
-      "Hora Broker: %02d:%02d:%02d | Spread: %d pts\n" +
-      "Rango Asia: %s (%.0f pts)\n" +
-      "Rango Londres: %s (%.0f pts)\n" +
-      "Balance: $%.2f | Riesgo: %.1f%%\n" +
-      "Lote Sugerido: %.2f | OCO: %s",
-      dt.hour, dt.min, dt.sec, (int)SymbolInfoInteger(_Symbol, SYMBOL_SPREAD),
-      g_asia.orders_placed_today ? "Ordenes Puestas" : "Monitoreando", g_asia.range_points,
-      g_london.orders_placed_today ? "Ordenes Puestas" : "Monitoreando", g_london.range_points,
-      AccountInfoDouble(ACCOUNT_BALANCE), InpRiskPercent,
-      CalculateLotSize(SymbolInfoDouble(_Symbol, SYMBOL_BID), SymbolInfoDouble(_Symbol, SYMBOL_BID) - 1000 * _Point),
-      InpOCO ? "Activo" : "Inactivo"
-   );
+   int base_x = InpHUDX + 12;
+   int base_y = InpHUDY + 10;
 
-   Comment(text);
+   // 1. Título y Subtítulo
+   SetHUDLabel("GB_L_Title", base_x, base_y, "🥇 GOLD BREAKOUT EA · MT5", C'255,215,0', 9, true);
+   SetHUDLabel("GB_L_Sub", base_x, base_y + 18, "Session Breakout & Trend Engine", C'140,160,185', 7);
+
+   // 2. Reloj del Servidor & Spread
+   int cur_spread = (int)SymbolInfoInteger(_Symbol, SYMBOL_SPREAD);
+   string s_clock = StringFormat("🕒 Servidor: %02d:%02d:%02d | Spread: %d pts", dt.hour, dt.min, dt.sec, cur_spread);
+   SetHUDLabel("GB_L_Clock", base_x, base_y + 36, s_clock, clrWhite, 8);
+
+   // 3. Estado de la Tendencia (Línea Verde / Roja)
+   bool is_bull = IsTrendBullish();
+   string s_trend = is_bull ? "📈 Tendencia H1: [ALCISTA] (Solo Compras)" : "📉 Tendencia H1: [BAJISTA] (Solo Ventas)";
+   color  c_trend = is_bull ? clrLimeGreen : clrCrimson;
+   SetHUDLabel("GB_L_Trend", base_x, base_y + 54, s_trend, c_trend, 8, true);
+
+   // 4. Estado de Sesión Asia
+   string s_asia = StringFormat("🌏 Asia (%s-%s): %s (%.0f pts)", 
+      InpAsiaRangeStart, InpAsiaRangeEnd,
+      g_asia.orders_placed_today ? "Ordenes Puestas" : "Monitoreando", g_asia.range_points);
+   SetHUDLabel("GB_L_Asia", base_x, base_y + 72, s_asia, C'50,170,255', 8);
+
+   // 5. Estado de Sesión Londres
+   string s_london = StringFormat("🏛️ Londres (%s-%s): %s (%.0f pts)", 
+      InpLondonRangeStart, InpLondonRangeEnd,
+      g_london.orders_placed_today ? "Ordenes Puestas" : "Monitoreando", g_london.range_points);
+   SetHUDLabel("GB_L_London", base_x, base_y + 90, s_london, C'235,185,60', 8);
+
+   // 6. Capital, Lotaje y OCO
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   string s_acc = StringFormat("💰 Balance: $%.2f | Lote: %.2f | OCO: %s",
+      balance, InpFixedLot, InpOCO ? "ON" : "OFF");
+   SetHUDLabel("GB_L_Acc", base_x, base_y + 110, s_acc, clrCyan, 8);
   }
 //+------------------------------------------------------------------+
