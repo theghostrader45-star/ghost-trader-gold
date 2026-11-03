@@ -441,8 +441,8 @@
 
           </div>
 
-          <!-- Fila 2: 3 Mejoras de Máxima Precisión (Semáforo Noticias, Radar A+, Proyección ADR Puntos TV) -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <!-- Fila 2: 2 Mejoras de Máxima Precisión (Semáforo Noticias & Proyección ADR Puntos TV) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             
             <!-- Mejora 1: Semáforo Dinámico de Noticias en Vivo ("News Risk Shield") -->
             <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-2.5 shadow-inner">
@@ -473,138 +473,7 @@
               </div>
             </div>
 
-            <!-- Mejora 2: Radar de Confluencia "A+ Setup" (4 Semáforos Pre-Trade) -->
-            <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-2.5 shadow-inner">
-              <div class="flex items-center justify-between border-b border-gray-800/80 pb-2">
-                <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                    <i data-lucide="check-check" class="w-4 h-4"></i>
-                  </div>
-                  <span class="text-xs font-bold text-white uppercase tracking-wider">Radar Confluencia A+</span>
-                </div>
-                <span id="confluenceScoreBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-700 font-bold">
-                  3/4 CONDICIONES
-                </span>
-              </div>
-
-              <div class="space-y-1.5 text-[11px]">
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-300 flex items-center gap-1.5">
-                    <span id="confluenceDot1" class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    <span>1. Sesgo Macro (>70% Convicción)</span>
-                  </span>
-                  <span id="confluenceCheck1" class="font-mono text-emerald-400 font-bold text-[10px]">✓ ALINEADO</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-300 flex items-center gap-1.5">
-                    <span id="confluenceDot2" class="w-2 h-2 rounded-full bg-rose-500"></span>
-                    <span>2. Horario Sesión NY (08:00–11:30)</span>
-                  </span>
-                  <span id="confluenceCheck2" class="font-mono text-rose-400 font-bold text-[10px]">✗ FUERA DE SESIÓN</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-300 flex items-center gap-1.5">
-                    <span id="confluenceDot3" class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    <span>3. Semáforo de Noticias (News Shield)</span>
-                  </span>
-                  <span id="confluenceCheck3" class="font-mono text-emerald-400 font-bold text-[10px]">✓ VÍA LIBRE</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-300 flex items-center gap-1.5">
-                    <span id="confluenceDot4" class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
-                    <span>4. Gatillo M5 Adaptive Supertrend</span>
-                  </span>
-                  <span id="confluenceCheck4" class="font-mono text-yellow-400 font-bold text-[10px]">⏳ ESPERANDO VELA</span>
-                </div>
-              </div>
-
-              <div class="px-2.5 py-1.5 rounded-lg bg-gray-900/90 border border-gray-800 text-[10px] text-gray-400 flex flex-wrap items-center justify-between gap-1 font-mono shadow-inner">
-                <span class="text-yellow-400 font-bold flex items-center gap-1">
-                  <i data-lucide="cpu" class="w-3 h-3 text-yellow-400"></i>
-                  <span>Adaptive ST (M5 Tickmill):</span>
-                </span>
-                <span class="text-emerald-400 font-semibold">ATR 13 • Mult 2.9 • MA 45 • RSI 14 (55/45) • TP 1.5/3/5 R:R</span>
-              </div>
-
-              <div id="confluenceVerdictBanner" class="p-2 rounded-lg bg-amber-950/40 border border-amber-500/30 text-[10px] text-amber-300 font-medium leading-tight">
-                Esperando cierre de vela en M5 para confirmación de ejecución de máxima probabilidad.
-              </div>
-
-              <!-- Monitor del Motor Python M5 en Vivo (Creative Quant) -->
-              <div class="pt-2.5 border-t border-gray-800 space-y-2 text-xs">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <span class="relative flex h-2.5 w-2.5">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                    </span>
-                    <span class="text-xs font-bold text-white flex items-center gap-1.5 font-mono">
-                      <span>Motor Python M5</span>
-                      <span id="pythonEngineLiveStatus" class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700/80 font-bold">
-                        ESCANEANDO EN VIVO
-                      </span>
-                    </span>
-                  </div>
-                  <button type="button" id="btnRunPythonScan" class="px-2.5 py-1 bg-yellow-500/15 hover:bg-yellow-500/25 border border-yellow-500/30 text-yellow-300 rounded-lg text-[10px] font-bold font-mono transition flex items-center gap-1 cursor-pointer" title="Forzar re-cálculo inmediato del motor Python en velas M5 de Tickmill">
-                    <i data-lucide="refresh-cw" class="w-3 h-3 text-yellow-400"></i>
-                    <span>Escanear M5 Ahora</span>
-                  </button>
-                </div>
-
-                <!-- Tarjeta de Señal Emitida por el Motor Python -->
-                <div id="pythonEngineSignalCard" class="p-2.5 rounded-xl bg-gray-900/90 border border-amber-500/40 space-y-2 shadow-inner">
-                  <div class="flex flex-wrap items-center justify-between gap-1.5">
-                    <div class="flex items-center gap-1.5">
-                      <span id="pythonSignalIconWrap" class="w-5 h-5 rounded-md bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
-                        <i data-lucide="clock" class="w-3.5 h-3.5" id="pythonSignalIcon"></i>
-                      </span>
-                      <span id="pythonSignalTitle" class="font-mono font-black text-xs text-amber-400">
-                        VENTA EN DESARROLLO (Esperar)
-                      </span>
-                    </div>
-                    <span id="pythonSignalTiming" class="text-[9px] font-mono text-amber-400/90 font-bold">
-                      Vela en formación Tickmill
-                    </span>
-                  </div>
-
-                  <!-- Grid de Niveles Institucionales Calculados por el Motor -->
-                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-center font-mono text-[10px]">
-                    <div class="bg-gray-950/80 p-1.5 rounded-lg border border-gray-800">
-                      <span class="text-gray-500 block text-[8px] uppercase tracking-wider font-sans">Precio Entrada</span>
-                      <span id="pythonSigPrice" class="text-white font-bold">$3,907.80</span>
-                    </div>
-                    <div class="bg-gray-950/80 p-1.5 rounded-lg border border-gray-800">
-                      <span class="text-gray-500 block text-[8px] uppercase tracking-wider font-sans">Stop Loss</span>
-                      <span id="pythonSigSl" class="text-rose-400 font-bold">$3,925.00</span>
-                      <span id="pythonSigSlPts" class="text-[8px] text-gray-400 block">250 pts</span>
-                    </div>
-                    <div class="bg-gray-950/80 p-1.5 rounded-lg border border-gray-800">
-                      <span class="text-gray-500 block text-[8px] uppercase tracking-wider font-sans">Target 1 (1.5 R:R)</span>
-                      <span id="pythonSigTp1" class="text-cyan-400 font-bold">$3,870.30</span>
-                      <span class="text-[8px] text-emerald-400 block">+375 pts (BE)</span>
-                    </div>
-                    <div class="bg-gray-950/80 p-1.5 rounded-lg border border-gray-800">
-                      <span class="text-gray-500 block text-[8px] uppercase tracking-wider font-sans">Target 2 (3.0 R:R)</span>
-                      <span id="pythonSigTp2" class="text-cyan-400 font-bold">$3,832.80</span>
-                      <span class="text-[8px] text-emerald-400 block">+750 pts</span>
-                    </div>
-                  </div>
-
-                  <!-- Métricas Algorítmicas de Confluencia -->
-                  <div class="flex flex-wrap items-center justify-between text-[9px] font-mono text-gray-400 pt-1 border-t border-gray-800/80">
-                    <span id="pythonSigMetrics">
-                      RSI(14): <strong class="text-emerald-400" id="pythonSigRsi">41.2</strong> (&lt;45 ✓) · MACD: <strong class="text-emerald-400" id="pythonSigMacd">Bajista</strong> · Régimen: <strong class="text-yellow-400" id="pythonSigRegime">Normal (2.7)</strong>
-                    </span>
-                    <span id="pythonSigConfluencePill" class="text-emerald-400 font-bold flex items-center gap-1">
-                      <i data-lucide="check-check" class="w-3 h-3 text-emerald-400"></i>
-                      <span>4/4 CONFLUENCIA A+</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Mejora 3: Proyección de Rango Volátil Diario (ADR Oro - Escala Real TradingView) -->
+            <!-- Mejora 2: Proyección de Rango Volátil Diario (ADR Oro - Escala Real TradingView) -->
             <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-2.5 shadow-inner">
               <div class="flex items-center justify-between border-b border-gray-800/80 pb-2">
                 <div class="flex items-center gap-2">
