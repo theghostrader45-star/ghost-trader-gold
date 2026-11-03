@@ -69,10 +69,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 2. Cargar configuración y datos autoritativos del servidor
   await loadConfig();
   await loadTrades('real');
+  await loadTrades('backtest');
   setCurrentDateTime();
   initCalculatorBalance();
   runMyfxbookCalculator();
   renderRealJournalDashboard();
+  renderBacktestDashboard();
 });
 
 function initIcons() {
@@ -136,18 +138,19 @@ function setupTabNavigation() {
   const btnPrecision = document.getElementById('tabBtnPrecisionRadar');
   const btnCalc = document.getElementById('tabBtnCalculator');
   const btnReal = document.getElementById('tabBtnRealJournal');
+  const btnBacktest = document.getElementById('tabBtnBacktest');
   const btnManual = document.getElementById('tabBtnManualGuide');
 
   const viewGoldBias = document.getElementById('viewGoldBias');
   const viewPrecision = document.getElementById('viewPrecisionRadar');
   const viewCalc = document.getElementById('viewCalculator');
   const viewReal = document.getElementById('viewRealJournal');
+  const viewBacktest = document.getElementById('viewBacktest');
   const viewManual = document.getElementById('viewManualGuide');
 
   const btnTabPrintManual = document.getElementById('btnTabPrintManual');
 
   function switchTab(tab) {
-    if (tab === 'backtest') tab = 'real';
     appState.activeTab = tab;
     try {
       localStorage.setItem('activeTab', tab);
@@ -156,10 +159,10 @@ function setupTabNavigation() {
     } catch (e) {}
 
     // Reset tab button styles
-    const activeClasses = ['bg-emerald-600', 'bg-gold-500', 'bg-yellow-500', 'bg-amber-500', 'text-white', 'text-black', 'shadow-lg', 'shadow-emerald-600/30', 'shadow-gold-500/30', 'shadow-yellow-500/30', 'shadow-amber-500/30', 'font-bold', 'font-black'];
+    const activeClasses = ['bg-emerald-600', 'bg-gold-500', 'bg-yellow-500', 'bg-amber-500', 'bg-blue-600', 'text-white', 'text-black', 'shadow-lg', 'shadow-emerald-600/30', 'shadow-gold-500/30', 'shadow-yellow-500/30', 'shadow-amber-500/30', 'shadow-blue-600/30', 'font-bold', 'font-black'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnGoldBias, btnPrecision, btnCalc, btnReal, btnManual].forEach(btn => {
+    [btnGoldBias, btnPrecision, btnCalc, btnReal, btnBacktest, btnManual].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
@@ -170,6 +173,7 @@ function setupTabNavigation() {
     if (viewPrecision) viewPrecision.classList.add('hidden');
     if (viewCalc) viewCalc.classList.add('hidden');
     if (viewReal) viewReal.classList.add('hidden');
+    if (viewBacktest) viewBacktest.classList.add('hidden');
     if (viewManual) viewManual.classList.add('hidden');
 
     if (tab === 'precision_radar') {
@@ -209,6 +213,13 @@ function setupTabNavigation() {
         if (drawdownChart) drawdownChart.resize();
         updateCharts();
       }, 50);
+    } else if (tab === 'backtest') {
+      if (btnBacktest) {
+        btnBacktest.classList.remove(...inactiveClasses);
+        btnBacktest.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-600/30', 'font-bold');
+      }
+      if (viewBacktest) viewBacktest.classList.remove('hidden');
+      renderBacktestDashboard();
     } else if (tab === 'manual_guide') {
       if (btnManual) {
         btnManual.classList.remove(...inactiveClasses);
@@ -226,13 +237,14 @@ function setupTabNavigation() {
   if (btnPrecision) btnPrecision.addEventListener('click', () => switchTab('precision_radar'));
   if (btnCalc) btnCalc.addEventListener('click', () => switchTab('calculator'));
   if (btnReal) btnReal.addEventListener('click', () => switchTab('real'));
+  if (btnBacktest) btnBacktest.addEventListener('click', () => switchTab('backtest'));
   if (btnManual) btnManual.addEventListener('click', () => switchTab('manual_guide'));
   if (btnTabPrintManual) btnTabPrintManual.addEventListener('click', () => window.print());
 
-  // Recordar pestaña anterior de forma fiable. Si ya tiene operaciones reales, priorizar Bitácora Real.
+  // Recordar pestaña anterior de forma fiable.
   let savedTab = localStorage.getItem('activeTab_current') || localStorage.getItem('activeTab_v5') || localStorage.getItem('activeTab');
-  if (!savedTab || !['calculator', 'real'].includes(savedTab)) {
-    savedTab = (appState.real.trades && appState.real.trades.length > 0) ? 'real' : 'calculator';
+  if (!savedTab || !['calculator', 'real', 'backtest'].includes(savedTab)) {
+    savedTab = 'real';
   }
   switchTab(savedTab);
 }

@@ -103,20 +103,27 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- NAVIGATION TABS: 1. Calculadora de Riesgo & Lotaje / 2. Bitácora Real -->
-    <nav class="flex flex-wrap items-center gap-3 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-2xl mx-auto">
+    <!-- NAVIGATION TABS: 1. Calculadora / 2. Bitácora Real / 3. Backtesting -->
+    <nav class="flex flex-wrap items-center gap-3 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-4xl mx-auto">
       <!-- Tab 1: Calculadora (CENTRO OPERATIVO) -->
-      <button id="tabBtnCalculator" class="tab-button flex-1 min-w-[180px] px-6 py-3.5 rounded-xl text-sm font-black flex items-center justify-center gap-2.5 transition bg-gold-500 text-black shadow-lg shadow-gold-500/30">
-        <i data-lucide="calculator" class="w-4 h-4 text-black"></i>
-        <span>1. Calculadora de Riesgo & Lotaje</span>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/20 text-black border border-black/30 font-bold">Oro XAU</span>
+      <button id="tabBtnCalculator" class="tab-button flex-1 min-w-[170px] px-5 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
+        <i data-lucide="calculator" class="w-4 h-4 text-amber-400"></i>
+        <span>1. Calculadora</span>
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/20 text-gray-300 border border-gray-700 font-bold">Oro XAU</span>
       </button>
 
       <!-- Tab 2: Bitácora Real -->
-      <button id="tabBtnRealJournal" class="tab-button flex-1 min-w-[180px] px-6 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
-        <i data-lucide="book-open" class="w-4 h-4 text-purple-400"></i>
+      <button id="tabBtnRealJournal" class="tab-button flex-1 min-w-[170px] px-5 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2.5 transition bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
+        <i data-lucide="book-open" class="w-4 h-4 text-white"></i>
         <span>2. Bitácora Real</span>
-        <span id="tabBadgeReal" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">En Vivo</span>
+        <span id="tabBadgeReal" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">2 ops</span>
+      </button>
+
+      <!-- Tab 3: Backtesting -->
+      <button id="tabBtnBacktest" class="tab-button flex-1 min-w-[170px] px-5 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
+        <i data-lucide="history" class="w-4 h-4 text-blue-400"></i>
+        <span>3. Backtesting</span>
+        <span id="tabBadgeBacktest" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-950 text-blue-300 border border-blue-800 font-bold">8 ops</span>
       </button>
     </nav>
 
@@ -1928,6 +1935,243 @@
 
 
     <!-- ============================================================== -->
+    <!-- VIEW 4: BACKTESTING & SIMULACIÓN HISTÓRICA                    -->
+    <!-- ============================================================== -->
+    <div id="viewBacktest" class="hidden space-y-6">
+      <!-- Top Banner Backtest -->
+      <section class="bg-gradient-to-r from-blue-950/40 via-gray-900 to-indigo-950/40 border-2 border-blue-500/40 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 bg-blue-500/20 text-blue-400 rounded-xl border border-blue-500/30">
+            <i data-lucide="history" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <span>Backtesting & Simulación Cuantitativa</span>
+              <span class="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/40 px-2 py-0.5 rounded-full font-mono font-bold">Simulación Histórica</span>
+            </h2>
+            <p class="text-xs text-gray-400">Prueba y optimiza tus estrategias en Oro (XAU/USD) con interés compuesto dinámico sin arriesgar capital real</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-mono bg-gray-800 border border-gray-700 px-3 py-1.5 rounded-xl text-blue-300 font-bold">
+            Total Operaciones Backtest: <strong id="recalcTradesCount" class="text-white">8</strong>
+          </span>
+        </div>
+      </section>
+
+      <!-- Métricas & KPIs de Backtest -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-4 mb-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+              <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Métricas de Rendimiento del Backtest</h3>
+              <p class="text-[11px] text-gray-400">Rendimiento acumulado de tus pruebas históricas</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Grid 5 cols -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+          <!-- Balance -->
+          <div class="bg-gray-950/60 border border-gray-800/80 rounded-xl p-3.5 space-y-1">
+            <span class="text-[11px] text-gray-400 uppercase font-semibold">Balance Backtest</span>
+            <div class="text-xl font-black text-white font-mono" id="statCurrentBalance">$112.24</div>
+            <div class="text-[11px]" id="statNetPnL">+$2.24 (+2.0%)</div>
+            <div id="statReturnBadge" class="hidden"></div>
+          </div>
+
+          <!-- Win Rate -->
+          <div class="bg-gray-950/60 border border-gray-800/80 rounded-xl p-3.5 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] text-gray-400 uppercase font-semibold">Win Rate</span>
+              <span id="winRateBadge" class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">37.5%</span>
+            </div>
+            <div class="text-xl font-black text-emerald-400 font-mono" id="statWinRate">37.5%</div>
+            <div class="text-[11px] text-gray-400 font-mono"><span id="statWins" class="text-emerald-400 font-bold">3</span>W / <span id="statLosses" class="text-rose-400 font-bold">5</span>L</div>
+            <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden mt-1">
+              <div id="statWinRateBar" class="bg-emerald-500 h-full rounded-full" style="width: 37.5%"></div>
+            </div>
+          </div>
+
+          <!-- Profit Factor -->
+          <div class="bg-gray-950/60 border border-gray-800/80 rounded-xl p-3.5 space-y-1">
+            <span class="text-[11px] text-gray-400 uppercase font-semibold">Profit Factor</span>
+            <div class="text-xl font-black text-gold-400 font-mono" id="statProfitFactor">1.04</div>
+            <div class="text-[11px] text-gray-400 font-mono">+$<span id="statTotalGain">64.47</span> / -$<span id="statTotalLoss">62.23</span></div>
+            <div id="breakevenTargetText" class="text-[10px] text-gray-500 font-mono">BE objetivo: 33.3%</div>
+          </div>
+
+          <!-- SL Promedio -->
+          <div class="bg-gray-950/60 border border-gray-800/80 rounded-xl p-3.5 space-y-1">
+            <span class="text-[11px] text-gray-400 uppercase font-semibold">SL Promedio</span>
+            <div class="text-xl font-black text-blue-400 font-mono" id="recalcAvgSlBadge">1270 pts ($12.70)</div>
+            <div class="text-[10px] text-gray-400 font-mono">Rango: <span id="statMinMaxSl">720 - 2444 pts</span></div>
+          </div>
+
+          <!-- Max Drawdown -->
+          <div class="bg-gray-950/60 border border-gray-800/80 rounded-xl p-3.5 space-y-1">
+            <span class="text-[11px] text-gray-400 uppercase font-semibold">Max Drawdown</span>
+            <div class="text-xl font-black text-rose-400 font-mono" id="statMaxDD">34.4%</div>
+            <div class="text-[11px] text-rose-400 font-mono" id="statMaxDDUsd">-$49.03</div>
+          </div>
+        </div>
+
+        <div class="hidden">
+          <span id="statMaxWinStreak">1</span>
+          <span id="statMaxLossStreak">4</span>
+          <span id="statExpectancy">+0.28</span>
+          <span id="statTotalTrades">8</span>
+          <span id="statAvgSlPoints">1270</span>
+          <span id="statAvgSlPrice">12.70</span>
+          <span id="badgeCurrentRiskUsd">$11.22</span>
+          <span id="labelFormAvgSl">1270</span>
+        </div>
+      </section>
+
+      <!-- Formulario de Registro de Backtest -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
+        <div class="flex items-center gap-2.5 border-b border-gray-800 pb-3 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white">Registrar Operación al Backtest</h3>
+            <p class="text-[11px] text-gray-400">Simulación basada en puntos de SL y porcentaje de riesgo compuesto</p>
+          </div>
+        </div>
+
+        <form id="tradeForm" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 text-xs">
+            <!-- Fecha -->
+            <div>
+              <label class="block text-gray-300 font-semibold mb-1">Fecha / Hora</label>
+              <input type="text" id="tradeDate" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono focus:border-blue-500 focus:outline-none">
+            </div>
+
+            <!-- Dirección -->
+            <div>
+              <label class="block text-gray-300 font-semibold mb-1">Dirección</label>
+              <select id="tradeDirection" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white font-semibold focus:border-blue-500 focus:outline-none cursor-pointer">
+                <option value="BUY">🟢 BUY (Compra)</option>
+                <option value="SELL">🔴 SELL (Venta)</option>
+              </select>
+            </div>
+
+            <!-- Puntos de SL TradingView -->
+            <div>
+              <label class="block text-gray-300 font-semibold mb-1">Stop Loss (Puntos TV)</label>
+              <input type="number" id="tradeTvPoints" value="250" step="any" min="1" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-blue-500 focus:outline-none">
+            </div>
+
+            <!-- Ratio R:R -->
+            <div>
+              <label class="block text-gray-300 font-semibold mb-1">Ratio R:R</label>
+              <input type="number" id="tradeSpecificRR" value="2.0" step="0.1" min="0.1" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-blue-500 focus:outline-none">
+            </div>
+
+            <!-- Resultado Radio -->
+            <div>
+              <label class="block text-gray-300 font-semibold mb-1">Resultado</label>
+              <div class="flex items-center gap-2 pt-1.5">
+                <label class="flex items-center gap-1.5 text-emerald-400 font-bold cursor-pointer">
+                  <input type="radio" name="tradeResult" value="win" checked class="text-emerald-500 focus:ring-0"> WIN
+                </label>
+                <label class="flex items-center gap-1.5 text-rose-400 font-bold cursor-pointer">
+                  <input type="radio" name="tradeResult" value="loss" class="text-rose-500 focus:ring-0"> LOSS
+                </label>
+                <label class="flex items-center gap-1.5 text-gray-400 font-bold cursor-pointer">
+                  <input type="radio" name="tradeResult" value="be" class="text-gray-500 focus:ring-0"> BE
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+            <div>
+              <label class="block text-gray-300 font-semibold mb-1">Estrategia / Setup</label>
+              <input type="text" id="tradeStrategy" value="Adaptive Supertrend M5" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-300 font-semibold mb-1">Notas / Observaciones</label>
+              <input type="text" id="tradeNotes" placeholder="ej. Entrada en confluencia M5 con tendencia H1..." class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none">
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 text-xs">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>REGISTRAR OPERACIÓN AL BACKTEST</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- Tabla de Operaciones de Backtesting -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800 pb-4 mb-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+              <i data-lucide="list" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Historial de Operaciones de Backtesting</h3>
+              <p class="text-[11px] text-gray-400">Registro cronológico de simulación</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 text-xs">
+            <!-- Filtros -->
+            <div class="flex items-center bg-gray-950 p-1 rounded-xl border border-gray-800">
+              <button type="button" id="filterAll" class="px-2.5 py-1 rounded text-white font-semibold bg-gray-800 transition">Todas (<span id="countAll">8</span>)</button>
+              <button type="button" id="filterWins" class="px-2.5 py-1 rounded text-gray-400 hover:text-emerald-400 font-semibold transition">Wins (<span id="countWins">3</span>)</button>
+              <button type="button" id="filterLosses" class="px-2.5 py-1 rounded text-gray-400 hover:text-rose-400 font-semibold transition">Losses (<span id="countLosses">5</span>)</button>
+            </div>
+
+            <!-- Exportar CSV -->
+            <button id="btnExportCsv" class="px-3 py-1.5 bg-gray-950 hover:bg-gray-800 text-gray-300 hover:text-white rounded-xl border border-gray-800 transition flex items-center gap-1.5 font-semibold cursor-pointer">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Exportar CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-300">
+            <thead class="bg-gray-950/70 uppercase text-[10px] text-gray-400 tracking-wider">
+              <tr>
+                <th class="py-2.5 px-3">#</th>
+                <th class="py-2.5 px-3">Fecha</th>
+                <th class="py-2.5 px-3">Tipo</th>
+                <th class="py-2.5 px-3">Stop Loss</th>
+                <th class="py-2.5 px-3">Take Profit</th>
+                <th class="py-2.5 px-3">R:R</th>
+                <th class="py-2.5 px-3">Riesgo ($)</th>
+                <th class="py-2.5 px-3">Lote</th>
+                <th class="py-2.5 px-3">Margen</th>
+                <th class="py-2.5 px-3">Resultado</th>
+                <th class="py-2.5 px-3">Comisión</th>
+                <th class="py-2.5 px-3">PnL ($)</th>
+                <th class="py-2.5 px-3">Balance</th>
+                <th class="py-2.5 px-3">Estrategia</th>
+                <th class="py-2.5 px-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tradesTableBody" class="divide-y divide-gray-800/60 font-mono">
+              <tr>
+                <td colspan="15" class="py-12 text-center text-gray-500 font-sans">
+                  Cargando operaciones de backtesting...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+
+    <!-- ============================================================== -->
     <!-- VIEW 5: MANUAL DEL TERMINAL & GUÍA OPERATIVA (COMPLETO)       -->
     <!-- ============================================================== -->
     <div id="viewManualGuide" class="hidden" style="display:none !important;">
@@ -3333,6 +3577,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261103_v6_real"></script>
+<script src="app.js?v=20261103_v8_backtest_full"></script>
 </body>
 </html>
