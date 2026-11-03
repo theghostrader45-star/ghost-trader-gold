@@ -1209,23 +1209,23 @@
 
           <div id="calcInputsBody" class="mt-4 pt-4 border-t border-gray-800/80 space-y-4 text-xs">
             
-            <!-- Input 1: Balance de Cuenta (Igual al de Bitácora Real) -->
+            <!-- Input 1: Balance de Cuenta (Independiente y Modificable) -->
             <div class="space-y-1.5">
               <div class="flex items-center justify-between">
                 <label class="font-bold text-gray-300 flex items-center gap-1.5">
-                  <span>Balance de la Cuenta ($ USD)</span>
-                  <span class="text-[10px] text-emerald-400 font-mono bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-full flex items-center gap-1 font-semibold">
-                    <i data-lucide="check-circle" class="w-2.5 h-2.5"></i>
-                    <span>Bitácora Real</span>
+                  <span>Balance de Cálculo ($ USD)</span>
+                  <span class="text-[10px] text-amber-400 font-mono bg-amber-950/60 border border-amber-800/60 px-2 py-0.5 rounded-full flex items-center gap-1 font-semibold">
+                    <i data-lucide="unlock" class="w-2.5 h-2.5"></i>
+                    <span>Independiente</span>
                   </span>
                 </label>
-                <span class="font-mono text-emerald-400 font-bold" id="myfxBalLabel">$110.00</span>
+                <span class="font-mono text-amber-400 font-bold" id="myfxBalLabel">$1,000.00</span>
               </div>
               <div class="relative">
                 <span class="absolute left-3 top-2.5 text-gray-500 font-bold text-sm">$</span>
-                <input type="number" id="calcBalInput" min="1" step="any" class="w-full bg-gray-950/80 border border-emerald-800/40 focus:border-emerald-500 rounded-xl pl-7 pr-3 py-2 text-white font-mono font-bold text-base focus:outline-none" value="110">
+                <input type="number" id="calcBalInput" min="1" step="any" class="w-full bg-gray-950/80 border border-gray-700 focus:border-gold-500 rounded-xl pl-7 pr-3 py-2 text-white font-mono font-bold text-base focus:outline-none" value="1000">
               </div>
-              <p class="text-[11px] text-gray-500">Sincronizado automáticamente con el balance actual de la bitácora real.</p>
+              <p class="text-[11px] text-gray-400">Modificable libremente. Es independiente de tu bitácora real (simula cualquier capital).</p>
             </div>
 
             <!-- Input 2: Porcentaje de Riesgo (Manual) -->
@@ -1251,12 +1251,26 @@
                 <input type="number" id="calcSlPointsInput" min="1" step="any" class="w-full bg-gray-950 border-2 border-gold-500/50 focus:border-gold-400 rounded-xl px-3.5 py-2 text-white font-mono font-black text-lg focus:outline-none" placeholder="Ingresa puntos manual ej. 250" value="250">
                 <span class="absolute right-3 top-2.5 text-xs text-gray-400 font-bold uppercase">puntos</span>
               </div>
-              <p class="text-[11px] text-gray-500">Ingreso manual de puntos de Stop Loss en TradingView (ej. 250 pts = $2.50 de distancia).</p>
+              <p class="text-[11px] text-gray-500">Puntos de distancia en TradingView / MT5 (ej. 250 pts = $2.50, 965 pts = $9.65).</p>
             </div>
 
-            <!-- Hidden Defaults for Background Margin / Calculation -->
-            <input type="hidden" id="calcRRInput" value="1.0">
+            <!-- Input 4: Ratio Riesgo : Recompensa (R:R) -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="font-bold text-gray-300">Ratio Riesgo : Recompensa (R:R)</label>
+                <span class="font-mono text-emerald-400 font-bold" id="myfxRRLabel">1:2.0</span>
+              </div>
+              <div class="relative">
+                <span class="absolute left-3 top-2.5 text-gray-500 font-bold text-sm">1:</span>
+                <input type="number" id="calcRRInput" min="0.1" max="100" step="0.1" class="w-full bg-gray-950 border border-gray-800 focus:border-gold-500 rounded-xl pl-8 pr-3 py-2 text-white font-mono font-bold text-base focus:outline-none" placeholder="2.0" value="2.0">
+              </div>
+              <p class="text-[11px] text-gray-500">Proyección de beneficio (ej. 1:1, 1:1.5, 1:2.0, 1:3.0).</p>
+            </div>
+
+            <!-- Apalancamiento -->
             <input type="hidden" id="calcLeverageInput" value="300">
+
+          </div>
 
           </div>
         </div>
@@ -1321,8 +1335,15 @@
             <!-- Dinero en Riesgo -->
             <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
               <span class="text-[11px] text-gray-400 uppercase font-semibold">Dinero en Riesgo</span>
-              <div class="text-xl font-black text-rose-400 font-mono" id="myfxRiskUsd">-$5.50</div>
-              <div class="text-[10px] text-gray-500 font-mono" id="myfxRiskPctText">5.0% de la cuenta</div>
+              <div class="text-xl font-black text-rose-400 font-mono" id="myfxRiskUsd">-$10.00</div>
+              <div class="text-[10px] text-gray-500 font-mono" id="myfxRiskPctText">1.0% de la cuenta</div>
+            </div>
+
+            <!-- Ganancia Proyectada -->
+            <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
+              <span class="text-[11px] text-gray-400 uppercase font-semibold">Ganancia (TP)</span>
+              <div class="text-xl font-black text-emerald-400 font-mono" id="myfxRewardUsd">+$20.00</div>
+              <div class="text-[10px] text-gray-500 font-mono" id="myfxRewardPctText">2.0% (1:2.0 RR)</div>
             </div>
 
             <!-- Distancia en Precio -->
@@ -1336,16 +1357,17 @@
             <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
               <span class="text-[11px] text-gray-400 uppercase font-semibold">Margen Requerido</span>
               <div class="text-xl font-black text-purple-300 font-mono" id="myfxMarginReq">~$18.00</div>
-              <div class="text-[10px] text-gray-500 font-mono" id="myfxMarginPct">16.4% del balance</div>
+              <div class="text-[10px] text-gray-500 font-mono" id="myfxMarginPct">1.8% del balance</div>
             </div>
 
-            <!-- Contrato / Unidades -->
-            <div class="bg-cardBg border border-cardBorder rounded-xl p-3.5 space-y-1">
-              <span class="text-[11px] text-gray-400 uppercase font-semibold">Volumen de Oro</span>
-              <div class="text-xl font-black text-white font-mono" id="myfxContractUnits">2.0 oz</div>
-              <div class="text-[10px] text-gray-500 font-mono">Onzas Troy</div>
-            </div>
+          </div>
 
+          <!-- Botón de Acción: Copiar Parámetros de la Calculadora a la Bitácora Real -->
+          <div class="pt-2">
+            <button type="button" id="btnCopyCalcToJournal" class="w-full py-3 bg-gradient-to-r from-gold-500/20 via-amber-500/20 to-yellow-500/20 hover:from-gold-500/30 hover:to-amber-500/30 border border-gold-500/40 text-gold-300 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-md">
+              <i data-lucide="arrow-right-circle" class="w-4 h-4 text-gold-400"></i>
+              <span>📋 Copiar Parámetros (SL, Riesgo %, Lotaje, R:R) a la Bitácora Real</span>
+            </button>
           </div>
 
           <!-- Dynamic Notice / Warning -->
@@ -1716,11 +1738,11 @@
 
           </div>
 
-          <!-- Row 2: Lotaje Manual, Comisión Broker & TradingView Chart Link -->
+          <!-- Row 2: Lotaje Manual, Beneficio Neto en $, Comisión Broker & TradingView Chart Link -->
           <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5 text-xs">
             
-            <!-- Lote Manual / Operado MT4/MT5 (4 cols) -->
-            <div class="md:col-span-4">
+            <!-- Lote Manual / Operado MT4/MT5 (3 cols) -->
+            <div class="md:col-span-3">
               <label class="block text-gray-400 mb-1.5 font-semibold flex items-center justify-between">
                 <span class="flex items-center gap-1.5">
                   <i data-lucide="layers" class="w-3.5 h-3.5 text-gold-400"></i>
@@ -1734,18 +1756,31 @@
               </div>
             </div>
 
-            <!-- Comisión Broker USD (4 cols) -->
-            <div class="md:col-span-4">
+            <!-- Beneficio Neto en $ (3 cols) -->
+            <div class="md:col-span-3">
+              <label class="block text-gray-400 mb-1.5 font-semibold flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                  <i data-lucide="dollar-sign" class="w-3.5 h-3.5 text-emerald-400"></i>
+                  <span>PnL Neto ($ Opcional)</span>
+                </span>
+                <span class="text-[10px] text-gray-500 font-mono">ej. +19.11</span>
+              </label>
+              <div class="relative">
+                <input type="text" inputmode="decimal" id="realTradeManualPnl" class="w-full bg-gray-950 border border-gray-800 focus:border-emerald-500 rounded-xl px-3.5 py-2 text-emerald-400 font-mono font-bold text-sm focus:outline-none" placeholder="Vacío = Auto">
+                <span class="absolute right-3 top-2 text-xs text-gray-500 font-mono font-bold uppercase">USD</span>
+              </div>
+            </div>
+
+            <!-- Comisión Broker USD (2 cols) -->
+            <div class="md:col-span-2">
               <label class="block text-gray-400 mb-1.5 font-semibold flex items-center justify-between">
                 <span class="flex items-center gap-1.5">
                   <i data-lucide="receipt" class="w-3.5 h-3.5 text-rose-400"></i>
-                  <span>Comisión Broker ($)</span>
+                  <span>Comisión ($)</span>
                 </span>
-                <span class="text-[10px] text-gray-500 font-mono">ej. -0.06 o -0,06</span>
               </label>
               <div class="relative">
-                <input type="text" inputmode="decimal" id="realTradeCommission" class="w-full bg-gray-950 border border-gray-800 focus:border-rose-500 rounded-xl px-3.5 py-2 text-rose-300 font-mono font-bold text-sm focus:outline-none" placeholder="-0.06" value="-0.00">
-                <span class="absolute right-3 top-2 text-xs text-gray-500 font-mono font-bold uppercase">USD</span>
+                <input type="text" inputmode="decimal" id="realTradeCommission" class="w-full bg-gray-950 border border-gray-800 focus:border-rose-500 rounded-xl px-2.5 py-2 text-rose-300 font-mono font-bold text-sm focus:outline-none" placeholder="-0.06" value="-0.06">
               </div>
             </div>
 
@@ -1753,9 +1788,9 @@
             <div class="md:col-span-4">
               <label class="block text-gray-400 mb-1.5 font-semibold flex items-center gap-1.5">
                 <i data-lucide="link" class="w-3.5 h-3.5 text-blue-400"></i>
-                <span>URL Gráfico (Opcional)</span>
+                <span>Link TradingView (Captura)</span>
               </label>
-              <input type="url" id="realTradeChartUrl" placeholder="https://www.tradingview.com/x/..." class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none">
+              <input type="url" id="realTradeChartUrl" placeholder="https://www.tradingview.com/x/..." class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-400 focus:outline-none">
             </div>
 
           </div>
@@ -2486,13 +2521,17 @@
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-gray-400 mb-1">Riesgo % (ej. 12.19)</label>
-            <input type="text" inputmode="decimal" id="editTradeRiskPct" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-amber-400 font-mono font-bold text-center" placeholder="12.19">
+            <label class="block text-gray-400 mb-1">Riesgo % (ej. 10.0)</label>
+            <input type="text" inputmode="decimal" id="editTradeRiskPct" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-amber-400 font-mono font-bold text-center" placeholder="10.0">
           </div>
           <div>
-            <label class="block text-gray-400 mb-1">Comisión ($ ej. -0.06)</label>
-            <input type="text" inputmode="decimal" id="editTradeCommission" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-rose-400 font-mono font-bold text-center" placeholder="-0.06">
+            <label class="block text-gray-400 mb-1">PnL Neto ($ ej. +19.11)</label>
+            <input type="text" inputmode="decimal" id="editTradePnl" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-emerald-400 font-mono font-bold text-center" placeholder="+19.11">
           </div>
+        </div>
+        <div>
+          <label class="block text-gray-400 mb-1">Comisión ($ ej. -0.06)</label>
+          <input type="text" inputmode="decimal" id="editTradeCommission" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-rose-400 font-mono font-bold" placeholder="-0.06">
         </div>
         <input type="hidden" id="editTradeStrategy" value="Adaptive Supertrend M5">
         <input type="hidden" id="editTradeEmotion" value="Plan Seguido 100%">

@@ -292,8 +292,8 @@ def recalculate_trade_history(trades, config):
         else:
             ret_pct = 0.0
             
-        if "pnl" in t and (t.get("manual_lot") is not None or commission > 0):
-            pnl = round(float(t["pnl"]), 2)
+        if "pnl" in t and t["pnl"] is not None and str(t["pnl"]).strip() != "":
+            pnl = round(float(str(t["pnl"]).replace(",", ".")), 2)
         else:
             pnl = round(curr_bal * (ret_pct / 100.0) - commission, 2)
         
@@ -383,8 +383,8 @@ def calculate_analytics(trades, config):
 
         raw_comm = t.get("commission", 0.0)
         commission = round(abs(float(str(raw_comm).replace(",", "."))), 2)
-        if "pnl" in t and (t.get("manual_lot") is not None or commission > 0):
-            pnl = round(float(t["pnl"]), 2)
+        if "pnl" in t and t["pnl"] is not None and str(t["pnl"]).strip() != "":
+            pnl = round(float(str(t["pnl"]).replace(",", ".")), 2)
         else:
             pnl = round(current_balance * (ret_pct / 100.0) - commission, 2)
         
@@ -1069,8 +1069,8 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
 
             raw_comm = payload.get("commission", 0.0)
             commission = round(abs(float(str(raw_comm).replace(",", "."))), 2)
-            # If client computed PnL with manual lot size or commission, respect it:
-            if "pnl" in payload and (manual_lot > 0 or commission > 0):
+            # If client computed PnL with manual lot size, commission, or explicit PnL, respect it:
+            if "pnl" in payload and payload["pnl"] is not None and str(payload["pnl"]).strip() != "":
                 pnl = round(float(str(payload["pnl"]).replace(",", ".")), 2)
                 dollar_risk = round(float(str(payload.get("dollar_risk", dollar_risk)).replace(",", ".")), 2)
             else:

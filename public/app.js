@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadConfig();
   await loadTrades('real');
   setCurrentDateTime();
-  syncRealBalanceToCalculator();
+  initCalculatorBalance();
   runMyfxbookCalculator();
   renderRealJournalDashboard();
 });
@@ -180,7 +180,6 @@ function setupTabNavigation() {
         btnCalc.classList.add('bg-gold-500', 'text-black', 'shadow-lg', 'shadow-gold-500/30', 'font-black');
       }
       if (viewCalc) viewCalc.classList.remove('hidden');
-      syncRealBalanceToCalculator();
       runMyfxbookCalculator();
     } else if (tab === 'real') {
       if (btnReal) {
@@ -689,27 +688,34 @@ function getRealAccountBalance() {
   return s.current_balance !== undefined ? s.current_balance : (cfg.initial_balance || 110.0);
 }
 
-function syncRealBalanceToCalculator() {
-  const curBal = getRealAccountBalance();
+function initCalculatorBalance() {
   const calcBal = document.getElementById('calcBalInput');
   if (calcBal) {
-    calcBal.value = Number(curBal).toFixed(2);
+    const saved = localStorage.getItem('calc_independent_balance');
+    if (saved && !isNaN(parseFloat(saved))) {
+      calcBal.value = parseFloat(saved).toFixed(2);
+    } else if (!calcBal.value || calcBal.value === '110') {
+      calcBal.value = '1000.00';
+    }
   }
 }
 
+function syncRealBalanceToCalculator() {
+  // Mantener independiente por petición del usuario: no sobreescribir automáticamente
+}
+
 function runMyfxbookCalculator() {
-  const realBal = getRealAccountBalance();
   const balInput = document.getElementById('calcBalInput');
-  const balance = balInput && balInput.value !== '' && !isNaN(balInput.value)
+  const balance = balInput && balInput.value !== '' && !isNaN(parseFloat(balInput.value))
     ? parseFloat(balInput.value)
-    : realBal;
+    : 1000.0;
   const riskInput = document.getElementById('calcRiskPctInput');
   const riskPct = riskInput && riskInput.value !== '' && !isNaN(riskInput.value)
     ? parseFloat(riskInput.value)
     : 1.0;
   const rawSl = document.getElementById('calcSlPointsInput')?.value || '250';
   const { points, price } = parseTradingViewInput(rawSl);
-  const rr = parseFloat(document.getElementById('calcRRInput')?.value) || 1.0;
+  const rr = parseFloat(document.getElementById('calcRRInput')?.value) || 2.0;
   const leverage = parseFloat(document.getElementById('calcLeverageInput')?.value) || 300;
   const goldPrice = 2720.0;
 
@@ -733,13 +739,15 @@ function runMyfxbookCalculator() {
 
   // Update Calculator UI
   const balLabel = document.getElementById('myfxBalLabel');
-  if (balLabel) balLabel.textContent = `$${balance.toFixed(2)}`;
+  if (balLabel) balLabel.textContent = `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const riskLabel = document.getElementById('myfxRiskLabel');
   if (riskLabel) riskLabel.textContent = `${riskPct.toFixed(1)}%`;
+  const rrLabel = document.getElementById('myfxRRLabel');
+  if (rrLabel) rrLabel.textContent = `1:${rr.toFixed(1)}`;
   const slLabel = document.getElementById('myfxSlLabel');
-  if (slLabel) slLabel.textContent = `${points} pts TV ($${price})`;
+  if (slLabel) slLabel.textContent = `${points} pts ($${price})`;
   const slText = document.getElementById('myfxSlText');
-  if (slText) slText.textContent = `${points} puntos TV ($${price})`;
+  if (slText) slText.textContent = `${points} puntos ($${price})`;
 
   // Hero Lot Card
   const heroLot = document.getElementById('myfxHeroLot');
@@ -756,12 +764,12 @@ function runMyfxbookCalculator() {
   const rewardUsd = document.getElementById('myfxRewardUsd');
   if (rewardUsd) rewardUsd.textContent = `+$${dollarReward.toFixed(2)}`;
   const rewardPctText = document.getElementById('myfxRewardPctText');
-  if (rewardPctText) rewardPctText.textContent = `+${rewardPct.toFixed(1)}% de la cuenta`;
+  if (rewardPctText) rewardPctText.textContent = `+${rewardPct.toFixed(1)}% (1:${rr.toFixed(1)} RR)`;
 
   const priceDist = document.getElementById('myfxPriceDist');
   if (priceDist) priceDist.textContent = `$${price}`;
   const pointsDist = document.getElementById('myfxPointsDist');
-  if (pointsDist) pointsDist.textContent = `${points} puntos TV`;
+  if (pointsDist) pointsDist.textContent = `${points} puntos`;
 
   const marginReqEl = document.getElementById('myfxMarginReq');
   if (marginReqEl) marginReqEl.textContent = `~$${marginReq.toFixed(2)}`;
@@ -1132,7 +1140,6 @@ function renderRealJournalDashboard() {
 
   renderRealTradesTable();
   recalculateRealJournalPreview();
-  syncRealBalanceToCalculator();
   runMyfxbookCalculator();
   initIcons();
 }
@@ -1623,11 +1630,46 @@ function setupEventListeners() {
   const calcRR = document.getElementById('calcRRInput');
   const calcLev = document.getElementById('calcLeverageInput');
 
-  if (calcBal) calcBal.addEventListener('input', runMyfxbookCalculator);
+  if (calcBal) {
+    calcBal.addEventListener('input', () => {
+      const val = parseFloat(calcBal.value);
+      if (!isNaN(val)) {
+        localStorage.setItem('calc_independent_balance', val);
+      }
+      runMyfxbookCalculator();
+    });
+  }
   if (calcRisk) calcRisk.addEventListener('input', runMyfxbookCalculator);
   if (calcSl) calcSl.addEventListener('input', runMyfxbookCalculator);
   if (calcRR) calcRR.addEventListener('input', runMyfxbookCalculator);
   if (calcLev) calcLev.addEventListener('change', runMyfxbookCalculator);
+
+  // Botón: Copiar Parámetros de la Calculadora a la Bitácora Real
+  const btnCopyCalc = document.getElementById('btnCopyCalcToJournal');
+  if (btnCopyCalc) {
+    btnCopyCalc.addEventListener('click', () => {
+      const pts = document.getElementById('calcSlPointsInput')?.value || '250';
+      const risk = document.getElementById('calcRiskPctInput')?.value || '1.0';
+      const rr = document.getElementById('calcRRInput')?.value || '2.0';
+      const heroLot = document.getElementById('myfxHeroLot')?.textContent || '0.01';
+
+      const realPts = document.getElementById('realTradeTvPoints');
+      if (realPts) realPts.value = pts;
+
+      const realRisk = document.getElementById('realTradeRiskPct');
+      if (realRisk) realRisk.value = risk;
+
+      const realRR = document.getElementById('realTradeRR');
+      if (realRR) realRR.value = rr;
+
+      const realLot = document.getElementById('realTradeManualLot');
+      if (realLot) realLot.value = heroLot;
+
+      switchTab('real');
+      recalculateRealJournalPreview();
+      showToast('📋 Parámetros copiados a la Bitácora Real (SL, Riesgo %, Lote, R:R).', 'success', 3500);
+    });
+  }
 
   // Copy Lot Button
   const btnCopyLot = document.getElementById('btnCopyLot');
@@ -1645,12 +1687,17 @@ function setupEventListeners() {
     });
   }
 
-  // Sync Balance to Calculator Button
+  // Sync Balance to Calculator Button (Voluntario)
   const btnSyncBal = document.getElementById('btnSyncBalToCalc');
   if (btnSyncBal) {
     btnSyncBal.addEventListener('click', () => {
-      syncRealBalanceToCalculator();
+      const realBal = getRealAccountBalance();
+      if (calcBal) {
+        calcBal.value = Number(realBal).toFixed(2);
+        localStorage.setItem('calc_independent_balance', realBal);
+      }
       runMyfxbookCalculator();
+      showToast(`Balance real ($${realBal.toFixed(2)}) copiado a la calculadora.`);
     });
   }
 
@@ -1821,19 +1868,34 @@ async function handleAddRealTrade(e) {
     }
   }
 
+  // PnL Neto Manual o Calculado Automático
+  const manualPnlInput = document.getElementById('realTradeManualPnl');
+  let manualPnlVal = null;
+  if (manualPnlInput && manualPnlInput.value && manualPnlInput.value.trim() !== '') {
+    const rawVal = parseFloat(String(manualPnlInput.value).replace(',', '.').trim());
+    if (!isNaN(rawVal)) {
+      manualPnlVal = roundNum(rawVal, 2);
+    }
+  }
+
   const actualDollarRisk = roundNum(points * lot_size, 2);
   let pnl = 0.0;
   let retPct = 0.0;
 
-  if (status === 'win') {
-    pnl = roundNum((points * lot_size * rr) - commission, 2);
-    retPct = curBal > 0 ? roundNum((pnl / curBal) * 100.0, 2) : (riskPct * rr);
-  } else if (status === 'loss') {
-    pnl = roundNum(-actualDollarRisk - commission, 2);
-    retPct = curBal > 0 ? roundNum((pnl / curBal) * 100.0, 2) : -riskPct;
-  } else {
-    pnl = roundNum(-commission, 2);
+  if (manualPnlVal !== null) {
+    pnl = manualPnlVal;
     retPct = curBal > 0 ? roundNum((pnl / curBal) * 100.0, 2) : 0.0;
+  } else {
+    if (status === 'win') {
+      pnl = roundNum((points * lot_size * rr) - commission, 2);
+      retPct = curBal > 0 ? roundNum((pnl / curBal) * 100.0, 2) : (riskPct * rr);
+    } else if (status === 'loss') {
+      pnl = roundNum(-actualDollarRisk - commission, 2);
+      retPct = curBal > 0 ? roundNum((pnl / curBal) * 100.0, 2) : -riskPct;
+    } else {
+      pnl = roundNum(-commission, 2);
+      retPct = curBal > 0 ? roundNum((pnl / curBal) * 100.0, 2) : 0.0;
+    }
   }
 
   const leverage = parseFloat(appState.config.leverage) || 300;
@@ -1882,6 +1944,7 @@ async function handleAddRealTrade(e) {
       renderRealJournalDashboard();
       setCurrentDateTime(true);
       if (manualLotInput) manualLotInput.value = '';
+      if (manualPnlInput) manualPnlInput.value = '';
       const chartUrlEl = document.getElementById('realTradeChartUrl');
       if (chartUrlEl) chartUrlEl.value = '';
     }
@@ -1938,6 +2001,8 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
   if (lotEl) lotEl.value = Number(trade.lot_size || trade.suggested_lot || 0.01).toFixed(2);
   const riskEl = document.getElementById('editTradeRiskPct');
   if (riskEl) riskEl.value = Number(trade.risk_pct || trade.risk_pct_custom || 5.0).toFixed(2);
+  const pnlEl = document.getElementById('editTradePnl');
+  if (pnlEl) pnlEl.value = trade.pnl !== undefined ? (trade.pnl >= 0 ? `+${Number(trade.pnl).toFixed(2)}` : `${Number(trade.pnl).toFixed(2)}`) : '';
   const commEl = document.getElementById('editTradeCommission');
   if (commEl) commEl.value = trade.commission ? `-${Math.abs(trade.commission).toFixed(2)}` : '-0.00';
   const stratEl = document.getElementById('editTradeStrategy');
@@ -1973,6 +2038,13 @@ async function handleSaveEditedTrade() {
     if (!isNaN(parsedRisk)) riskVal = roundNum(parsedRisk, 2);
   }
 
+  const pnlEl = document.getElementById('editTradePnl');
+  let pnlVal = null;
+  if (pnlEl && pnlEl.value && pnlEl.value.trim() !== '') {
+    const parsedPnl = parseFloat(String(pnlEl.value).replace(',', '.').trim());
+    if (!isNaN(parsedPnl)) pnlVal = roundNum(parsedPnl, 2);
+  }
+
   const commEl = document.getElementById('editTradeCommission');
   let commVal = null;
   if (commEl && commEl.value) {
@@ -1998,6 +2070,9 @@ async function handleSaveEditedTrade() {
     tv_chart_url: tvChartUrl
   };
 
+  if (pnlVal !== null) {
+    payload.pnl = pnlVal;
+  }
   if (riskVal !== null) {
     payload.risk_pct = riskVal;
     payload.risk_pct_custom = riskVal;
