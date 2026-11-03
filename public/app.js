@@ -137,6 +137,20 @@ function roundNum(val, decimals = 2) {
   return Math.round(val * factor) / factor;
 }
 
+function formatRRText(val) {
+  const num = parseFloat(String(val).replace(',', '.'));
+  if (isNaN(num)) return '1.0';
+  if (Number.isInteger(num)) return num.toFixed(1);
+  return num.toFixed(2).replace(/0$/, '');
+}
+
+function formatRiskPctText(val) {
+  const num = parseFloat(String(val).replace(',', '.'));
+  if (isNaN(num)) return '5.00';
+  if (Number.isInteger(num)) return num.toFixed(1);
+  return num.toFixed(2).replace(/0$/, '');
+}
+
 // ----------------------------------------------------
 // TAB NAVIGATION: 1. Radar Precisión | 2. Macro Sesión | 3. Calculadora | 4. Bitácora | 5. Manual
 // ----------------------------------------------------
@@ -353,8 +367,8 @@ function updateConfigUI() {
   const rr = Number(cfg.rr_ratio || 1.0);
 
   document.getElementById('badgeInitialBalance').textContent = initial.toFixed(2);
-  document.getElementById('badgeRiskPct').textContent = risk.toFixed(1);
-  document.getElementById('badgeCurrentRR').textContent = rr.toFixed(1);
+  document.getElementById('badgeRiskPct').textContent = formatRiskPctText(risk);
+  document.getElementById('badgeCurrentRR').textContent = formatRRText(rr);
   document.getElementById('statInitialLabel').textContent = initial.toFixed(2);
 
   // Recalculation Console inputs
@@ -363,17 +377,23 @@ function updateConfigUI() {
   const labelActiveInitial = document.getElementById('labelActiveInitialBal');
   if (labelActiveInitial) labelActiveInitial.textContent = `$${initial.toFixed(2)}`;
 
-  document.getElementById('globalRiskInput').value = risk.toFixed(1);
-  document.getElementById('globalRRInput').value = rr.toFixed(1);
-  document.getElementById('labelActiveRiskPct').textContent = `${risk.toFixed(1)}%`;
-  document.getElementById('labelActiveRR').textContent = `1:${rr.toFixed(1)}`;
+  const globRisk = document.getElementById('globalRiskInput');
+  if (globRisk) globRisk.value = formatRiskPctText(risk);
+  const globRR = document.getElementById('globalRRInput');
+  if (globRR) globRR.value = formatRRText(rr);
+  const lblRisk = document.getElementById('labelActiveRiskPct');
+  if (lblRisk) lblRisk.textContent = `${formatRiskPctText(risk)}%`;
+  const lblRR = document.getElementById('labelActiveRR');
+  if (lblRR) lblRR.textContent = `1:${formatRRText(rr)}`;
 
   // Trade form RR input
-  document.getElementById('tradeSpecificRR').value = rr.toFixed(1);
+  const specRR = document.getElementById('tradeSpecificRR');
+  if (specRR && !specRR.value) specRR.value = formatRRText(rr);
 
   // Settings modal
   document.getElementById('settingInitialBalance').value = initial;
-  document.getElementById('settingRiskPct').value = risk;
+  document.getElementById('settingRiskPct').value = formatRiskPctText(risk);
+  document.getElementById('settingRR').value = formatRRText(rr);
   document.getElementById('settingRR').value = rr;
   document.getElementById('settingLeverage').value = cfg.leverage || 300;
 }
@@ -397,13 +417,13 @@ async function triggerRecalculate(newRisk, newRR, newInitial) {
   const lblInit = document.getElementById('labelActiveInitialBal');
   if (lblInit) lblInit.textContent = `$${initial.toFixed(2)}`;
   const lblRisk = document.getElementById('labelActiveRiskPct');
-  if (lblRisk) lblRisk.textContent = `${newRisk.toFixed(1)}%`;
+  if (lblRisk) lblRisk.textContent = `${formatRiskPctText(newRisk)}%`;
   const lblRR = document.getElementById('labelActiveRR');
-  if (lblRR) lblRR.textContent = `1:${newRR.toFixed(1)}`;
+  if (lblRR) lblRR.textContent = `1:${formatRRText(newRR)}`;
 
   document.getElementById('badgeInitialBalance').textContent = initial.toFixed(2);
-  document.getElementById('badgeRiskPct').textContent = newRisk.toFixed(1);
-  document.getElementById('badgeCurrentRR').textContent = newRR.toFixed(1);
+  document.getElementById('badgeRiskPct').textContent = formatRiskPctText(newRisk);
+  document.getElementById('badgeCurrentRR').textContent = formatRRText(newRR);
   document.getElementById('statInitialLabel').textContent = initial.toFixed(2);
 
   // Immediate Client-Side Pure Percentage Compounding Recalculation
@@ -626,14 +646,14 @@ function recalculateTradingViewValues() {
     : appState.config.initial_balance;
 
   const riskInput = document.getElementById('tradeRiskPct');
-  const riskPct = riskInput ? (parseFloat(riskInput.value) || 5.0) : (parseFloat(appState.config.risk_pct) || 5.0);
+  const riskPct = riskInput ? (parseFloat(String(riskInput.value).replace(',', '.')) || 5.0) : (parseFloat(appState.config.risk_pct) || 5.0);
   const leverage = parseFloat(appState.config.leverage) || 300;
 
   const rawInput = pointsEl.value;
   const { points, price } = parseTradingViewInput(rawInput);
 
   const rrInput = document.getElementById('tradeSpecificRR');
-  const tradeRR = rrInput ? (parseFloat(rrInput.value) || 1.0) : (parseFloat(appState.config.rr_ratio) || 1.0);
+  const tradeRR = rrInput ? (parseFloat(String(rrInput.value).replace(',', '.')) || 1.0) : (parseFloat(appState.config.rr_ratio) || 1.0);
 
   const tvSlFormatted = `${points} pts TV ($${price})`;
   const tpPoints = Math.round(points * tradeRR);
@@ -648,14 +668,14 @@ function recalculateTradingViewValues() {
   const tvWidgetSlPoints = document.getElementById('tvWidgetSlPoints');
   if (tvWidgetSlPoints) tvWidgetSlPoints.textContent = tvSlFormatted;
   const tvWidgetTpPoints = document.getElementById('tvWidgetTpPoints');
-  if (tvWidgetTpPoints) tvWidgetTpPoints.textContent = `${tvTpFormatted} (1:${tradeRR.toFixed(1)})`;
+  if (tvWidgetTpPoints) tvWidgetTpPoints.textContent = `${tvTpFormatted} (1:${formatRRText(tradeRR)})`;
   const tvWidgetRRRatio = document.getElementById('tvWidgetRRRatio');
-  if (tvWidgetRRRatio) tvWidgetRRRatio.textContent = `1:${tradeRR.toFixed(1)}`;
+  if (tvWidgetRRRatio) tvWidgetRRRatio.textContent = `1:${formatRRText(tradeRR)}`;
 
   // Pure % Compounding dollar target
   const dollarRisk = roundNum(curBal * (riskPct / 100.0), 2);
   const dollarReward = roundNum(dollarRisk * tradeRR, 2);
-  const rewardPct = roundNum(riskPct * tradeRR, 1);
+  const rewardPct = roundNum(riskPct * tradeRR, 2);
 
   // Suggested lot for MetaTrader
   const rawLot = dollarRisk / points;
@@ -701,9 +721,9 @@ function recalculateTradingViewValues() {
 
   // Dollar Labels (Pure %)
   const tvWidgetRiskUsd = document.getElementById('tvWidgetRiskUsd');
-  if (tvWidgetRiskUsd) tvWidgetRiskUsd.textContent = `-$${dollarRisk.toFixed(2)} (-${riskPct.toFixed(1)}%)`;
+  if (tvWidgetRiskUsd) tvWidgetRiskUsd.textContent = `-$${dollarRisk.toFixed(2)} (-${formatRiskPctText(riskPct)}%)`;
   const tvWidgetRewardUsd = document.getElementById('tvWidgetRewardUsd');
-  if (tvWidgetRewardUsd) tvWidgetRewardUsd.textContent = `+$${dollarReward.toFixed(2)} (+${rewardPct.toFixed(1)}%)`;
+  if (tvWidgetRewardUsd) tvWidgetRewardUsd.textContent = `+$${dollarReward.toFixed(2)} (+${formatRiskPctText(rewardPct)}%)`;
 
   // Preview radio badges
   const formPreviewGain = document.getElementById('formPreviewGain');
@@ -828,23 +848,23 @@ function syncRealBalanceToCalculator() {
 
 function runMyfxbookCalculator() {
   const balInput = document.getElementById('calcBalInput');
-  const balance = balInput && balInput.value !== '' && !isNaN(parseFloat(balInput.value))
-    ? parseFloat(balInput.value)
+  const balance = balInput && balInput.value !== '' && !isNaN(parseFloat(String(balInput.value).replace(',', '.')))
+    ? parseFloat(String(balInput.value).replace(',', '.'))
     : 1000.0;
   const riskInput = document.getElementById('calcRiskPctInput');
-  const riskPct = riskInput && riskInput.value !== '' && !isNaN(riskInput.value)
-    ? parseFloat(riskInput.value)
+  const riskPct = riskInput && riskInput.value !== '' && !isNaN(parseFloat(String(riskInput.value).replace(',', '.')))
+    ? parseFloat(String(riskInput.value).replace(',', '.'))
     : 1.0;
   const rawSl = document.getElementById('calcSlPointsInput')?.value || '250';
   const { points, price } = parseTradingViewInput(rawSl);
-  const rr = parseFloat(document.getElementById('calcRRInput')?.value) || 2.0;
+  const rr = parseFloat(String(document.getElementById('calcRRInput')?.value).replace(',', '.')) || 2.0;
   const leverage = parseFloat(document.getElementById('calcLeverageInput')?.value) || 300;
   const goldPrice = 2720.0;
 
   // Dollar Risk & Reward
   const dollarRisk = roundNum(balance * (riskPct / 100.0), 2);
   const dollarReward = roundNum(dollarRisk * rr, 2);
-  const rewardPct = roundNum(riskPct * rr, 1);
+  const rewardPct = roundNum(riskPct * rr, 2);
 
   // Position Sizing: 1.00 lot Gold = 100 oz. 1 TV Point = $1.00 USD on 1.00 lot.
   // Suggested Lot = Dollar Risk / Points
@@ -863,9 +883,9 @@ function runMyfxbookCalculator() {
   const balLabel = document.getElementById('myfxBalLabel');
   if (balLabel) balLabel.textContent = `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const riskLabel = document.getElementById('myfxRiskLabel');
-  if (riskLabel) riskLabel.textContent = `${riskPct.toFixed(1)}%`;
+  if (riskLabel) riskLabel.textContent = `${formatRiskPctText(riskPct)}%`;
   const rrLabel = document.getElementById('myfxRRLabel');
-  if (rrLabel) rrLabel.textContent = `1:${rr.toFixed(1)}`;
+  if (rrLabel) rrLabel.textContent = `1:${formatRRText(rr)}`;
   const slLabel = document.getElementById('myfxSlLabel');
   if (slLabel) slLabel.textContent = `${points} pts ($${price})`;
   const slText = document.getElementById('myfxSlText');
@@ -881,12 +901,12 @@ function runMyfxbookCalculator() {
   const riskUsd = document.getElementById('myfxRiskUsd');
   if (riskUsd) riskUsd.textContent = `-$${dollarRisk.toFixed(2)}`;
   const riskPctText = document.getElementById('myfxRiskPctText');
-  if (riskPctText) riskPctText.textContent = `${riskPct.toFixed(1)}% de la cuenta`;
+  if (riskPctText) riskPctText.textContent = `${formatRiskPctText(riskPct)}% de la cuenta`;
 
   const rewardUsd = document.getElementById('myfxRewardUsd');
   if (rewardUsd) rewardUsd.textContent = `+$${dollarReward.toFixed(2)}`;
   const rewardPctText = document.getElementById('myfxRewardPctText');
-  if (rewardPctText) rewardPctText.textContent = `+${rewardPct.toFixed(1)}% (1:${rr.toFixed(1)} RR)`;
+  if (rewardPctText) rewardPctText.textContent = `+${formatRiskPctText(rewardPct)}% (1:${formatRRText(rr)} RR)`;
 
   const priceDist = document.getElementById('myfxPriceDist');
   if (priceDist) priceDist.textContent = `$${price}`;
@@ -901,7 +921,7 @@ function runMyfxbookCalculator() {
   const contractUnits = document.getElementById('myfxContractUnits');
   if (contractUnits) contractUnits.textContent = `${contractOz} oz`;
   const ratioOut = document.getElementById('myfxRatioOut');
-  if (ratioOut) ratioOut.textContent = `1:${rr.toFixed(1)}`;
+  if (ratioOut) ratioOut.textContent = `1:${formatRRText(rr)}`;
 
   // Warnings
   const warnBox = document.getElementById('myfxWarningBox');
@@ -983,7 +1003,7 @@ function renderBacktestDashboard() {
   document.getElementById('statProfitFactor').textContent = pf === '∞' ? '∞' : Number(pf).toFixed(2);
   document.getElementById('statTotalGain').textContent = Number(s.total_gain || 0).toFixed(2);
   document.getElementById('statTotalLoss').textContent = Number(s.total_loss || 0).toFixed(2);
-  document.getElementById('breakevenTargetText').textContent = `BE objetivo: ${beWinrate}% (R:R 1:${Number(cfg.rr_ratio || 1.0).toFixed(1)})`;
+  document.getElementById('breakevenTargetText').textContent = `BE objetivo: ${beWinrate}% (R:R 1:${formatRRText(cfg.rr_ratio || 1.0)})`;
 
   // Max DD Card
   document.getElementById('statMaxDD').textContent = `${maxDd.toFixed(1)}%`;
@@ -1090,7 +1110,7 @@ function renderBacktestTradesTable() {
     
     const tradeRR = Number(t.rr || appState.config.rr_ratio || 1.0);
     const badgeOutcome = isWin
-      ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">WIN (+${tradeRR}R)</span>`
+      ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">WIN (+${formatRRText(tradeRR)}R)</span>`
       : (isLoss 
           ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-800">LOSS (-1R)</span>'
           : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-800 text-gray-400">BE (0)</span>');
@@ -1124,8 +1144,8 @@ function renderBacktestTradesTable() {
         <td class="py-2.5 px-3">${dirBadge}</td>
         <td class="py-2.5 px-3 text-rose-300 font-bold">${tvLabel}</td>
         <td class="py-2.5 px-3 text-emerald-300 font-bold">${tvTpLabel}</td>
-        <td class="py-2.5 px-3 text-blue-300 font-bold font-mono">1:${tradeRR.toFixed(1)}</td>
-        <td class="py-2.5 px-3 text-amber-300 font-mono">${riskBudget} <span class="text-[10px] text-amber-400/90 font-bold">(${Number(t.risk_pct || t.risk_pct_custom || 5.0).toFixed(1)}%)</span></td>
+        <td class="py-2.5 px-3 text-blue-300 font-bold font-mono">1:${formatRRText(tradeRR)}</td>
+        <td class="py-2.5 px-3 text-amber-300 font-mono">${riskBudget} <span class="text-[10px] text-amber-400/90 font-bold">(${formatRiskPctText(t.risk_pct || t.risk_pct_custom || 5.0)}%)</span></td>
         <td class="py-2.5 px-3 text-gold-400 font-bold font-mono">${Number(t.lot_size || t.suggested_lot || 0.01).toFixed(2)}</td>
         <td class="py-2.5 px-3 text-purple-300 font-mono">$${Number(t.margin_used || 0).toFixed(2)}</td>
         <td class="py-2.5 px-3">${badgeOutcome}</td>
@@ -1235,7 +1255,7 @@ function renderRealJournalDashboard() {
     avgRR = sumRR / total;
   }
   const avgRREl = document.getElementById('metricAvgRR');
-  if (avgRREl) avgRREl.textContent = `1:${avgRR.toFixed(1)}`;
+  if (avgRREl) avgRREl.textContent = `1:${formatRRText(avgRR)}`;
 
   let bestTradePnl = 0.0;
   let worstTradePnl = 0.0;
@@ -1308,7 +1328,7 @@ function renderRealTradesTable() {
     const tradeRR = Number(t.rr || 1.0);
 
     const badgeOutcome = isWin
-      ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">WIN (+${tradeRR}R)</span>`
+      ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">WIN (+${formatRRText(tradeRR)}R)</span>`
       : (isLoss 
           ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-800">LOSS (-1R)</span>'
           : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-800 text-gray-400">BE (0)</span>');
@@ -1333,8 +1353,8 @@ function renderRealTradesTable() {
         <td class="py-2.5 px-3 text-gray-300 font-sans text-xs font-semibold">${t.session || 'New York'}</td>
         <td class="py-2.5 px-3">${dirBadge}</td>
         <td class="py-2.5 px-3 text-rose-300 font-bold">${pts} pts ($${priceVal})</td>
-        <td class="py-2.5 px-3 text-blue-300 font-bold font-mono">1:${tradeRR.toFixed(1)}</td>
-        <td class="py-2.5 px-3 text-amber-300 font-mono">$${Number(t.dollar_risk || t.risk_budget || 0).toFixed(2)} <span class="text-[10px] text-amber-400/90 font-bold">(${Number(t.risk_pct || t.risk_pct_custom || 0).toFixed(2)}%)</span></td>
+        <td class="py-2.5 px-3 text-blue-300 font-bold font-mono">1:${formatRRText(tradeRR)}</td>
+        <td class="py-2.5 px-3 text-amber-300 font-mono">$${Number(t.dollar_risk || t.risk_budget || 0).toFixed(2)} <span class="text-[10px] text-amber-400/90 font-bold">(${formatRiskPctText(t.risk_pct || t.risk_pct_custom || 0)}%)</span></td>
         <td class="py-2.5 px-3 text-gold-400 font-bold font-mono">${Number(t.lot_size || t.suggested_lot || 0.01).toFixed(2)}</td>
         <td class="py-2.5 px-3">${badgeOutcome}</td>
         <td class="py-2.5 px-3 text-rose-400 font-mono font-bold">${t.commission ? '-$' + Number(Math.abs(t.commission)).toFixed(2) : '$0.00'}</td>
@@ -2123,11 +2143,11 @@ async function handleAddBacktestTrade(e) {
   const rawInput = document.getElementById('tradeTvPoints')?.value || '250';
   const { points, price } = parseTradingViewInput(rawInput);
   
-  const tradeRR = parseFloat(document.getElementById('tradeSpecificRR')?.value) || parseFloat(appState.config.rr_ratio) || 1.0;
-  const riskPct = parseFloat(document.getElementById('tradeRiskPct')?.value) || parseFloat(appState.config.risk_pct) || 5.0;
+  const tradeRR = roundNum(parseFloat(String(document.getElementById('tradeSpecificRR')?.value).replace(',', '.')) || parseFloat(appState.config.rr_ratio) || 1.0, 2);
+  const riskPct = roundNum(parseFloat(String(document.getElementById('tradeRiskPct')?.value).replace(',', '.')) || parseFloat(appState.config.risk_pct) || 5.0, 2);
   
   const manualLotInput = document.getElementById('tradeManualLot')?.value;
-  const manualLot = manualLotInput ? parseFloat(manualLotInput) : 0;
+  const manualLot = manualLotInput ? roundNum(parseFloat(String(manualLotInput).replace(',', '.')), 2) : 0;
 
   const tvChartUrl = document.getElementById('tradeTvChartUrl')?.value?.trim() || '';
 
@@ -2137,9 +2157,9 @@ async function handleAddBacktestTrade(e) {
   // Pure % Compounding
   let retPct = 0.0;
   if (status === 'win') {
-    retPct = riskPct * tradeRR;
+    retPct = roundNum(riskPct * tradeRR, 2);
   } else if (status === 'loss') {
-    retPct = -riskPct;
+    retPct = -roundNum(riskPct, 2);
   }
   const pnl = roundNum(curBal * (retPct / 100.0), 2);
   const dollarRisk = roundNum(curBal * (riskPct / 100.0), 2);
@@ -2378,13 +2398,13 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
   const dateEl = document.getElementById('editTradeDate');
   if (dateEl) dateEl.value = trade.date || '';
   document.getElementById('editTradeTvPoints').value = pts;
-  document.getElementById('editTradeRR').value = Number(trade.rr || 1.0).toFixed(1);
+  document.getElementById('editTradeRR').value = trade.rr !== undefined ? formatRRText(trade.rr) : '1.0';
   document.getElementById('editTradeDirection').value = trade.direction || 'BUY';
   document.getElementById('editTradeStatus').value = trade.status || 'win';
   const lotEl = document.getElementById('editTradeLot');
   if (lotEl) lotEl.value = Number(trade.lot_size || trade.suggested_lot || 0.01).toFixed(2);
   const riskEl = document.getElementById('editTradeRiskPct');
-  if (riskEl) riskEl.value = Number(trade.risk_pct || trade.risk_pct_custom || 5.0).toFixed(2);
+  if (riskEl) riskEl.value = (trade.risk_pct !== undefined || trade.risk_pct_custom !== undefined) ? formatRiskPctText(trade.risk_pct || trade.risk_pct_custom) : '5.00';
   const pnlEl = document.getElementById('editTradePnl');
   if (pnlEl) pnlEl.value = trade.pnl !== undefined ? (trade.pnl >= 0 ? `+${Number(trade.pnl).toFixed(2)}` : `${Number(trade.pnl).toFixed(2)}`) : '';
   const commEl = document.getElementById('editTradeCommission');
@@ -2406,11 +2426,11 @@ async function handleSaveEditedTrade() {
 
   const rawInput = document.getElementById('editTradeTvPoints').value;
   const { points, price } = parseTradingViewInput(rawInput);
-  const tradeRR = parseFloat(document.getElementById('editTradeRR').value) || 1.0;
+  const tradeRR = roundNum(parseFloat(String(document.getElementById('editTradeRR').value).replace(',', '.')), 2) || 1.0;
   const status = document.getElementById('editTradeStatus').value;
   const direction = document.getElementById('editTradeDirection').value;
   const lotEl = document.getElementById('editTradeLot');
-  const manualLot = lotEl ? parseFloat(lotEl.value) : null;
+  const manualLot = (lotEl && lotEl.value) ? roundNum(parseFloat(String(lotEl.value).replace(',', '.')), 2) : null;
   const strategy = document.getElementById('editTradeStrategy')?.value || 'Adaptive Supertrend M5';
   const emotion = document.getElementById('editTradeEmotion')?.value || '';
   const tvChartUrl = document.getElementById('editTradeChartUrl')?.value || '';
@@ -2607,7 +2627,7 @@ function exportTradesToCsv(mode = 'backtest') {
         t.direction,
         `"${pts} ($${priceVal})"`,
         `"${tpPts} ($${tpPriceVal})"`,
-        `"1:${tradeRR.toFixed(1)}"`,
+        `"1:${formatRRText(tradeRR)}"`,
         t.dollar_risk || 0,
         t.lot_size || t.suggested_lot || 0.01,
         t.status,
@@ -2622,7 +2642,7 @@ function exportTradesToCsv(mode = 'backtest') {
         t.direction,
         `"${pts} ($${priceVal})"`,
         `"${tpPts} ($${tpPriceVal})"`,
-        `"1:${tradeRR.toFixed(1)}"`,
+        `"1:${formatRRText(tradeRR)}"`,
         t.risk_budget || t.dollar_risk || 0,
         t.lot_size || 0.01,
         t.margin_used || 0,

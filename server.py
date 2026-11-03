@@ -279,16 +279,16 @@ def recalculate_trade_history(trades, config):
             
         raw_risk = t.get("risk_pct_custom") or t.get("risk_pct") or risk_pct
         trade_risk = round(float(str(raw_risk).replace(",", ".")), 2)
-        trade_rr = float(str(t.get("rr_custom") or t.get("rr") or global_rr).replace(",", "."))
+        trade_rr = round(float(str(t.get("rr_custom") or t.get("rr") or global_rr).replace(",", ".")), 2)
         status = t.get("status", "win").lower()
         raw_comm = t.get("commission", 0.0)
         commission = round(abs(float(str(raw_comm).replace(",", "."))), 2)
         
         # Pure percentage compounding:
         if status == "win":
-            ret_pct = trade_risk * trade_rr
+            ret_pct = round(trade_risk * trade_rr, 2)
         elif status == "loss":
-            ret_pct = -trade_risk
+            ret_pct = -round(trade_risk, 2)
         else:
             ret_pct = 0.0
             
@@ -377,13 +377,13 @@ def calculate_analytics(trades, config):
         status = t.get("status", "win").lower()
         raw_risk = t.get("risk_pct_custom") or t.get("risk_pct") or global_risk
         trade_risk = round(float(str(raw_risk).replace(",", ".")), 2)
-        trade_rr = float(str(t.get("rr_custom") or t.get("rr") or global_rr).replace(",", "."))
+        trade_rr = round(float(str(t.get("rr_custom") or t.get("rr") or global_rr).replace(",", ".")), 2)
 
         # Pure percentage dynamic compounding
         if status == "win":
-            ret_pct = trade_risk * trade_rr
+            ret_pct = round(trade_risk * trade_rr, 2)
         elif status == "loss":
-            ret_pct = -trade_risk
+            ret_pct = -round(trade_risk, 2)
         else:
             ret_pct = 0.0
 
@@ -1048,14 +1048,14 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
 
             raw_risk = payload.get("risk_pct") or payload.get("risk_pct_custom") or config.get("risk_pct", 5.0)
             trade_risk_pct = round(float(str(raw_risk).replace(",", ".")), 2)
-            trade_rr = float(str(payload.get("rr") or config.get("rr_ratio", 1.0)).replace(",", "."))
+            trade_rr = round(float(str(payload.get("rr") or config.get("rr_ratio", 1.0)).replace(",", ".")), 2)
             status = payload.get("status", "win").lower()
             
             # Pure percentage calculation
             if status == "win":
-                ret_pct = trade_risk_pct * trade_rr
+                ret_pct = round(trade_risk_pct * trade_rr, 2)
             elif status == "loss":
-                ret_pct = -trade_risk_pct
+                ret_pct = -round(trade_risk_pct, 2)
             else:
                 ret_pct = 0.0
                 
