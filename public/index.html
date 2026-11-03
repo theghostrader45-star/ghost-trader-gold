@@ -1880,10 +1880,16 @@
         <div id="realTradesTableContainer" class="mt-4 pt-4 border-t border-gray-800/80 space-y-3">
           <div class="flex items-center justify-between text-xs px-1 pb-1">
             <span class="text-gray-400 font-medium">Listado cronológico de trades:</span>
-            <button id="btnExportRealCsv" class="h-7 px-3 bg-gray-950/80 hover:bg-gray-800 rounded-xl border border-gray-700/80 text-gray-300 hover:text-white font-semibold transition flex items-center gap-1.5 shadow-sm text-xs cursor-pointer" title="Exportar Bitácora">
-              <i data-lucide="download" class="w-3.5 h-3.5"></i>
-              <span>Exportar Bitácora CSV</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <button id="btnExportRealCsv" class="h-7 px-3 bg-gray-950/80 hover:bg-gray-800 rounded-xl border border-gray-700/80 text-gray-300 hover:text-white font-semibold transition flex items-center gap-1.5 shadow-sm text-xs cursor-pointer" title="Exportar Bitácora CSV">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                <span>Exportar CSV</span>
+              </button>
+              <button id="btnExportRealJson" class="h-7 px-3 bg-emerald-950/80 hover:bg-emerald-900 rounded-xl border border-emerald-700/80 text-emerald-300 hover:text-white font-semibold transition flex items-center gap-1.5 shadow-sm text-xs cursor-pointer" title="Descargar Respaldo JSON de Seguridad">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                <span>Copia Respaldo JSON</span>
+              </button>
+            </div>
           </div>
           <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-gray-300">

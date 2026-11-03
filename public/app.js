@@ -5,7 +5,7 @@
 
 // Global State
 let appState = {
-  activeTab: 'gold_bias', // 'gold_bias' | 'calculator' | 'real'
+  activeTab: 'real', // 'calculator' | 'real'
   config: {
     initial_balance: 110.0,
     risk_pct: 5.0,
@@ -46,6 +46,18 @@ let drawdownChart = null;
 document.addEventListener('DOMContentLoaded', async () => {
   startMarketClock();
   initIcons();
+
+  // 1. Recuperación instantánea de caché local de operaciones reales (espejo de seguridad inmediato)
+  try {
+    const cachedReal = localStorage.getItem('cached_real_trades_v2') || localStorage.getItem('cached_real_trades');
+    if (cachedReal) {
+      const parsed = JSON.parse(cachedReal);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        appState.real.trades = parsed;
+      }
+    }
+  } catch (e) {}
+
   setupTabNavigation();
   initCharts();
   setupEventListeners();
@@ -53,6 +65,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupCollapsibleSections();
   setupMacroGuideModalEvents();
   setupTradingViewWebhookEvents();
+
+  // 2. Cargar configuración y datos autoritativos del servidor
   await loadConfig();
   await loadTrades('real');
   setCurrentDateTime();
@@ -137,7 +151,8 @@ function setupTabNavigation() {
     appState.activeTab = tab;
     try {
       localStorage.setItem('activeTab', tab);
-      localStorage.setItem('activeTab_v4', tab);
+      localStorage.setItem('activeTab_current', tab);
+      localStorage.setItem('activeTab_v5', tab);
     } catch (e) {}
 
     // Reset tab button styles
@@ -214,10 +229,10 @@ function setupTabNavigation() {
   if (btnManual) btnManual.addEventListener('click', () => switchTab('manual_guide'));
   if (btnTabPrintManual) btnTabPrintManual.addEventListener('click', () => window.print());
 
-  // Predeterminado: Calculadora de Riesgo & Lotaje
-  let savedTab = localStorage.getItem('activeTab_v5');
-  if (!savedTab || savedTab === 'precision_radar' || savedTab === 'gold_bias' || savedTab === 'manual_guide') {
-    savedTab = 'calculator';
+  // Recordar pestaña anterior de forma fiable. Si ya tiene operaciones reales, priorizar Bitácora Real.
+  let savedTab = localStorage.getItem('activeTab_current') || localStorage.getItem('activeTab_v5') || localStorage.getItem('activeTab');
+  if (!savedTab || !['calculator', 'real'].includes(savedTab)) {
+    savedTab = (appState.real.trades && appState.real.trades.length > 0) ? 'real' : 'calculator';
   }
   switchTab(savedTab);
 }
@@ -239,14 +254,59 @@ async function loadConfig() {
 }
 
 async function loadTrades(mode = 'backtest') {
+  if (mode === 'real') {
+    // 1. Carga inmediata desde el respaldo de seguridad local (espejo anti-pérdida)
+    try {
+      const cached = localStorage.getItem('cached_real_trades_v2') || localStorage.getItem('cached_real_trades');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0 && (!appState.real.trades || appState.real.trades.length === 0)) {
+          appState.real.trades = parsed;
+          renderRealJournalDashboard();
+        }
+      }
+    } catch (e) {}
+  }
+
   try {
     const res = await fetch(`/api/trades?mode=${mode}`);
     if (res.ok) {
       const data = await res.json();
       if (mode === 'real') {
+        const serverTrades = data.trades || [];
         appState.real.summary = data.summary || {};
         appState.real.equityCurve = data.equity_curve || [];
-        appState.real.trades = data.trades || [];
+        
+        if (serverTrades.length > 0) {
+          appState.real.trades = serverTrades;
+          try {
+            localStorage.setItem('cached_real_trades_v2', JSON.stringify(serverTrades));
+          } catch (e) {}
+        } else {
+          // Si el servidor retornara array vacío por fallo temporal, verificar si localmente hay trades y auto-sincronizar
+          try {
+            const cached = localStorage.getItem('cached_real_trades_v2') || localStorage.getItem('cached_real_trades');
+            if (cached) {
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                appState.real.trades = parsed;
+                for (const t of parsed) {
+                  fetch('/api/trades?mode=real', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(t)
+                  }).catch(() => {});
+                }
+              } else {
+                appState.real.trades = [];
+              }
+            } else {
+              appState.real.trades = [];
+            }
+          } catch (e) {
+            appState.real.trades = [];
+          }
+        }
         renderRealJournalDashboard();
       } else {
         appState.backtest.summary = data.summary || {};
@@ -1040,7 +1100,10 @@ function renderRealJournalDashboard() {
   });
   const disciplinePct = total > 0 ? roundNum((disciplinedTrades.length / total) * 100.0, 1) : 100.0;
 
-  document.getElementById('tabBadgeReal').textContent = `${total} ops`;
+  const tabBadgeReal = document.getElementById('tabBadgeReal');
+  if (tabBadgeReal) {
+    tabBadgeReal.textContent = `${total} ops guardadas`;
+  }
   document.getElementById('realStatTotalOps').textContent = total;
   const realStatTotalOpsBadge = document.getElementById('realStatTotalOpsBadge');
   if (realStatTotalOpsBadge) realStatTotalOpsBadge.textContent = total;
@@ -1613,7 +1676,7 @@ function setupEventListeners() {
   const filterLosses = document.getElementById('filterLosses');
   if (filterLosses) filterLosses.addEventListener('click', () => setBacktestFilter('loss'));
 
-  // CSV Export Buttons
+  // CSV & JSON Export Buttons
   const btnExport = document.getElementById('btnExportCsv');
   if (btnExport) {
     btnExport.addEventListener('click', () => exportTradesToCsv('backtest'));
@@ -1621,6 +1684,10 @@ function setupEventListeners() {
   const btnExportReal = document.getElementById('btnExportRealCsv');
   if (btnExportReal) {
     btnExportReal.addEventListener('click', () => exportTradesToCsv('real'));
+  }
+  const btnExportRealJson = document.getElementById('btnExportRealJson');
+  if (btnExportRealJson) {
+    btnExportRealJson.addEventListener('click', () => exportTradesToJson('real'));
   }
 
   // Calculator Listeners
@@ -1941,6 +2008,11 @@ async function handleAddRealTrade(e) {
       appState.real.equityCurve = data.analytics.equity_curve;
       appState.real.trades = data.analytics.trades;
       
+      // Espejo de persistencia local inmediata
+      try {
+        localStorage.setItem('cached_real_trades_v2', JSON.stringify(appState.real.trades));
+      } catch (e) {}
+
       renderRealJournalDashboard();
       setCurrentDateTime(true);
       if (manualLotInput) manualLotInput.value = '';
@@ -1969,6 +2041,9 @@ window.handleDeleteTrade = async function(id, mode = 'backtest') {
         appState.real.summary = data.summary;
         appState.real.equityCurve = data.equity_curve;
         appState.real.trades = data.trades;
+        try {
+          localStorage.setItem('cached_real_trades_v2', JSON.stringify(appState.real.trades));
+        } catch (e) {}
         renderRealJournalDashboard();
       } else {
         appState.backtest.summary = data.summary;
@@ -2100,6 +2175,9 @@ async function handleSaveEditedTrade() {
         appState.real.summary = data.summary;
         appState.real.equityCurve = data.equity_curve;
         appState.real.trades = data.trades;
+        try {
+          localStorage.setItem('cached_real_trades_v2', JSON.stringify(appState.real.trades));
+        } catch (e) {}
         renderRealJournalDashboard();
       } else {
         appState.backtest.summary = data.summary;
@@ -2121,7 +2199,10 @@ async function handleClearData() {
   const mode = activeTab === 'real' ? 'real' : 'backtest';
   const label = mode === 'real' ? 'la BITÁCORA REAL' : 'el BACKTESTING';
 
-  if (!confirm(`⚠️ ¿Estás seguro de que deseas LIMPIAR TODAS las operaciones de ${label}?`)) return;
+  const userConfirm = prompt(`⚠️ ATENCIÓN: Esta acción eliminará permanentemente las operaciones de ${label}.\nPara proceder escribe "BORRAR":`);
+  if (userConfirm !== 'BORRAR') {
+    return;
+  }
 
   try {
     const res = await fetch('/api/trades/clear', { 
@@ -2135,6 +2216,10 @@ async function handleClearData() {
         appState.real.summary = data.summary;
         appState.real.equityCurve = data.equity_curve;
         appState.real.trades = data.trades;
+        try {
+          localStorage.removeItem('cached_real_trades_v2');
+          localStorage.removeItem('cached_real_trades');
+        } catch (e) {}
         renderRealJournalDashboard();
       } else {
         appState.backtest.summary = data.summary;
@@ -2249,6 +2334,25 @@ function exportTradesToCsv(mode = 'backtest') {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+
+function exportTradesToJson(mode = 'real') {
+  const trades = mode === 'real' ? appState.real.trades : appState.backtest.trades;
+  if (!trades || trades.length === 0) {
+    alert(`No hay operaciones en ${mode === 'real' ? 'la bitácora real' : 'el backtesting'} para exportar.`);
+    return;
+  }
+
+  const jsonStr = JSON.stringify(trades, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `trades_${mode}_backup_${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 
