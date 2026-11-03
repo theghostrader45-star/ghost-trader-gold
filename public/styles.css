@@ -113,11 +113,51 @@ table tbody tr:hover {
     color: #0f172a !important;
   }
   
-  /* Ocultar la interfaz oscura y dejar solo el manual */
-  header, nav, main, #modalEditTrade, #modalSettings, #modalUpdateMacroBias, .no-print {
+  /* Ocultar elementos no imprimibles */
+  header, nav, #modalEditTrade, #modalSettings, #modalUpdateMacroBias, .no-print,
+  #viewPrecisionRadar, #viewGoldBias, #viewCalculator, #viewRealJournal {
     display: none !important;
   }
   
+  /* Soporte de Impresión para Pestaña 5: Manual del Terminal */
+  #viewManualGuide {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: #0f172a !important;
+  }
+
+  #viewManualGuide section {
+    background-color: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    break-inside: avoid !important;
+    margin-bottom: 1.25rem !important;
+    border-radius: 12px !important;
+    padding: 1.25rem !important;
+    box-shadow: none !important;
+  }
+
+  #viewManualGuide h2,
+  #viewManualGuide h3, 
+  #viewManualGuide h4, 
+  #viewManualGuide strong {
+    color: #0f172a !important;
+  }
+  
+  #viewManualGuide p,
+  #viewManualGuide li,
+  #viewManualGuide span {
+    color: #334155 !important;
+  }
+
+  #viewManualGuide code {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+
+  /* Soporte de Impresión para Modal PDF */
   #modalMacroGuide {
     position: static !important;
     display: block !important;

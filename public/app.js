@@ -118,18 +118,22 @@ function roundNum(val, decimals = 2) {
 }
 
 // ----------------------------------------------------
-// TAB NAVIGATION: 1. Macro Sesión | 2. Radar Precisión | 3. Calculadora | 4. Bitácora
+// TAB NAVIGATION: 1. Radar Precisión | 2. Macro Sesión | 3. Calculadora | 4. Bitácora | 5. Manual
 // ----------------------------------------------------
 function setupTabNavigation() {
   const btnGoldBias = document.getElementById('tabBtnGoldBias');
   const btnPrecision = document.getElementById('tabBtnPrecisionRadar');
   const btnCalc = document.getElementById('tabBtnCalculator');
   const btnReal = document.getElementById('tabBtnRealJournal');
+  const btnManual = document.getElementById('tabBtnManualGuide');
 
   const viewGoldBias = document.getElementById('viewGoldBias');
   const viewPrecision = document.getElementById('viewPrecisionRadar');
   const viewCalc = document.getElementById('viewCalculator');
   const viewReal = document.getElementById('viewRealJournal');
+  const viewManual = document.getElementById('viewManualGuide');
+
+  const btnTabPrintManual = document.getElementById('btnTabPrintManual');
 
   function switchTab(tab) {
     if (tab === 'backtest') tab = 'real';
@@ -140,10 +144,10 @@ function setupTabNavigation() {
     } catch (e) {}
 
     // Reset tab button styles
-    const activeClasses = ['bg-emerald-600', 'bg-gold-500', 'bg-yellow-500', 'text-white', 'text-black', 'shadow-lg', 'shadow-emerald-600/30', 'shadow-gold-500/30', 'shadow-yellow-500/30', 'font-bold', 'font-black'];
+    const activeClasses = ['bg-emerald-600', 'bg-gold-500', 'bg-yellow-500', 'bg-amber-500', 'text-white', 'text-black', 'shadow-lg', 'shadow-emerald-600/30', 'shadow-gold-500/30', 'shadow-yellow-500/30', 'shadow-amber-500/30', 'font-bold', 'font-black'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnGoldBias, btnPrecision, btnCalc, btnReal].forEach(btn => {
+    [btnGoldBias, btnPrecision, btnCalc, btnReal, btnManual].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
@@ -154,6 +158,7 @@ function setupTabNavigation() {
     if (viewPrecision) viewPrecision.classList.add('hidden');
     if (viewCalc) viewCalc.classList.add('hidden');
     if (viewReal) viewReal.classList.add('hidden');
+    if (viewManual) viewManual.classList.add('hidden');
 
     if (tab === 'precision_radar') {
       if (btnPrecision) {
@@ -187,6 +192,12 @@ function setupTabNavigation() {
       }
       if (viewReal) viewReal.classList.remove('hidden');
       renderRealJournalDashboard();
+    } else if (tab === 'manual_guide') {
+      if (btnManual) {
+        btnManual.classList.remove(...inactiveClasses);
+        btnManual.classList.add('bg-amber-500', 'text-black', 'shadow-lg', 'shadow-amber-500/30', 'font-black');
+      }
+      if (viewManual) viewManual.classList.remove('hidden');
     }
 
     initIcons();
@@ -198,6 +209,8 @@ function setupTabNavigation() {
   if (btnPrecision) btnPrecision.addEventListener('click', () => switchTab('precision_radar'));
   if (btnCalc) btnCalc.addEventListener('click', () => switchTab('calculator'));
   if (btnReal) btnReal.addEventListener('click', () => switchTab('real'));
+  if (btnManual) btnManual.addEventListener('click', () => switchTab('manual_guide'));
+  if (btnTabPrintManual) btnTabPrintManual.addEventListener('click', () => window.print());
 
   // Predeterminado al Centro Operativo: Radar de Precisión
   const savedTab = localStorage.getItem('activeTab_v4') || 'precision_radar';
@@ -3894,8 +3907,14 @@ function setupMacroGuideModalEvents() {
   };
 
   if (btnOpenHeader) btnOpenHeader.addEventListener("click", openGuide);
-  if (btnOpenSection) btnOpenSection.addEventListener("click", openGuide);
-  if (btnOpenBanner) btnOpenBanner.addEventListener("click", openGuide);
+  if (btnOpenSection) btnOpenSection.addEventListener("click", () => {
+    if (window.switchTabTo) window.switchTabTo('manual_guide');
+    else openGuide();
+  });
+  if (btnOpenBanner) btnOpenBanner.addEventListener("click", () => {
+    if (window.switchTabTo) window.switchTabTo('manual_guide');
+    else openGuide();
+  });
 
   if (btnClose) btnClose.addEventListener("click", closeGuide);
   if (btnCloseBottom) btnCloseBottom.addEventListener("click", closeGuide);
