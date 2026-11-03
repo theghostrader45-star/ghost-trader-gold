@@ -41,6 +41,9 @@ let appState = {
 let equityChart = null;
 let distributionChart = null;
 let drawdownChart = null;
+let backtestEquityChart = null;
+let backtestDistributionChart = null;
+let backtestDrawdownChart = null;
 
 // Initialize on DOM Loaded
 document.addEventListener('DOMContentLoaded', async () => {
@@ -118,6 +121,10 @@ function setCurrentDateTime(force = false) {
   const realDateField = document.getElementById('realTradeDate');
   if (realDateField && (!realDateField.value || force)) {
     realDateField.value = formatted;
+  }
+  const backtestDateField = document.getElementById('tradeDate');
+  if (backtestDateField && (!backtestDateField.value || force)) {
+    backtestDateField.value = formatted;
   }
   const autoDisplay = document.getElementById('realTradeAutoDateDisplay');
   if (autoDisplay) {
@@ -220,6 +227,13 @@ function setupTabNavigation() {
       }
       if (viewBacktest) viewBacktest.classList.remove('hidden');
       renderBacktestDashboard();
+      recalculateTradingViewValues();
+      setTimeout(() => {
+        if (backtestEquityChart) backtestEquityChart.resize();
+        if (backtestDistributionChart) backtestDistributionChart.resize();
+        if (backtestDrawdownChart) backtestDrawdownChart.resize();
+        updateBacktestCharts();
+      }, 50);
     } else if (tab === 'manual_guide') {
       if (btnManual) {
         btnManual.classList.remove(...inactiveClasses);
@@ -611,23 +625,32 @@ function recalculateTradingViewValues() {
     ? appState.backtest.summary.current_balance 
     : appState.config.initial_balance;
 
-  const riskPct = parseFloat(appState.config.risk_pct) || 5.0;
+  const riskInput = document.getElementById('tradeRiskPct');
+  const riskPct = riskInput ? (parseFloat(riskInput.value) || 5.0) : (parseFloat(appState.config.risk_pct) || 5.0);
   const leverage = parseFloat(appState.config.leverage) || 300;
 
   const rawInput = pointsEl.value;
   const { points, price } = parseTradingViewInput(rawInput);
 
-  const tradeRR = parseFloat(document.getElementById('tradeSpecificRR').value) || parseFloat(appState.config.rr_ratio) || 1.0;
+  const rrInput = document.getElementById('tradeSpecificRR');
+  const tradeRR = rrInput ? (parseFloat(rrInput.value) || 1.0) : (parseFloat(appState.config.rr_ratio) || 1.0);
 
   const tvSlFormatted = `${points} pts TV ($${price})`;
   const tpPoints = Math.round(points * tradeRR);
   const tpPrice = (tpPoints / 100).toFixed(2);
   const tvTpFormatted = `${tpPoints} pts TV ($${tpPrice})`;
 
-  document.getElementById('tvPointsExplain').textContent = `Stop: ${points} pts TV ($${price})`;
-  document.getElementById('tvWidgetSlPoints').textContent = tvSlFormatted;
-  document.getElementById('tvWidgetTpPoints').textContent = `${tvTpFormatted} (1:${tradeRR.toFixed(1)})`;
-  document.getElementById('tvWidgetRRRatio').textContent = `1:${tradeRR.toFixed(1)}`;
+  const slExplainEl = document.getElementById('backtestSlExplain');
+  if (slExplainEl) slExplainEl.textContent = `${points} pts ($${price})`;
+
+  const tvPointsExplain = document.getElementById('tvPointsExplain');
+  if (tvPointsExplain) tvPointsExplain.textContent = `Stop: ${points} pts TV ($${price})`;
+  const tvWidgetSlPoints = document.getElementById('tvWidgetSlPoints');
+  if (tvWidgetSlPoints) tvWidgetSlPoints.textContent = tvSlFormatted;
+  const tvWidgetTpPoints = document.getElementById('tvWidgetTpPoints');
+  if (tvWidgetTpPoints) tvWidgetTpPoints.textContent = `${tvTpFormatted} (1:${tradeRR.toFixed(1)})`;
+  const tvWidgetRRRatio = document.getElementById('tvWidgetRRRatio');
+  if (tvWidgetRRRatio) tvWidgetRRRatio.textContent = `1:${tradeRR.toFixed(1)}`;
 
   // Pure % Compounding dollar target
   const dollarRisk = roundNum(curBal * (riskPct / 100.0), 2);
@@ -643,38 +666,65 @@ function recalculateTradingViewValues() {
   const marginReq = notional / leverage;
   const marginPct = (marginReq / curBal) * 100.0;
 
-  // Update UI Elements
-  document.getElementById('badgeCurrentRiskUsd').textContent = `$${dollarRisk.toFixed(2)}`;
-  document.getElementById('formCurrentBalanceDisplay').textContent = `$${curBal.toFixed(2)}`;
-  document.getElementById('formCurrentRiskBudgetDisplay').textContent = `$${dollarRisk.toFixed(2)}`;
+  // Update Backtest form preview elements
+  const riskUsdPreview = document.getElementById('backtestRiskUsdPreview');
+  if (riskUsdPreview) riskUsdPreview.textContent = `$${dollarRisk.toFixed(2)}`;
 
-  document.getElementById('calcOutLot').textContent = roundedLot.toFixed(2);
-  document.getElementById('tradeLot').value = roundedLot.toFixed(2);
-  document.getElementById('tvRawLotText').textContent = `(raw: ${rawLot.toFixed(4)})`;
+  const suggestedLotBadge = document.getElementById('tradeSuggestedLotBadge');
+  if (suggestedLotBadge) suggestedLotBadge.textContent = roundedLot.toFixed(2);
 
-  document.getElementById('calcOutMargin').textContent = `~$${marginReq.toFixed(2)} (${marginPct.toFixed(1)}%)`;
+  const manualLotInput = document.getElementById('tradeManualLot');
+  if (manualLotInput && (!manualLotInput.value || document.activeElement !== manualLotInput)) {
+    manualLotInput.value = roundedLot.toFixed(2);
+  }
+
+  const backtestBalDisplay = document.getElementById('backtestFormCurrentBalDisplay');
+  if (backtestBalDisplay) backtestBalDisplay.textContent = `$${curBal.toFixed(2)}`;
+
+  // Safe checks for existing widgets
+  const badgeCurrentRiskUsd = document.getElementById('badgeCurrentRiskUsd');
+  if (badgeCurrentRiskUsd) badgeCurrentRiskUsd.textContent = `$${dollarRisk.toFixed(2)}`;
+  const formCurrentBalanceDisplay = document.getElementById('formCurrentBalanceDisplay');
+  if (formCurrentBalanceDisplay) formCurrentBalanceDisplay.textContent = `$${curBal.toFixed(2)}`;
+  const formCurrentRiskBudgetDisplay = document.getElementById('formCurrentRiskBudgetDisplay');
+  if (formCurrentRiskBudgetDisplay) formCurrentRiskBudgetDisplay.textContent = `$${dollarRisk.toFixed(2)}`;
+
+  const calcOutLot = document.getElementById('calcOutLot');
+  if (calcOutLot) calcOutLot.textContent = roundedLot.toFixed(2);
+  const tradeLot = document.getElementById('tradeLot');
+  if (tradeLot) tradeLot.value = roundedLot.toFixed(2);
+  const tvRawLotText = document.getElementById('tvRawLotText');
+  if (tvRawLotText) tvRawLotText.textContent = `(raw: ${rawLot.toFixed(4)})`;
+
+  const calcOutMargin = document.getElementById('calcOutMargin');
+  if (calcOutMargin) calcOutMargin.textContent = `~$${marginReq.toFixed(2)} (${marginPct.toFixed(1)}%)`;
 
   // Dollar Labels (Pure %)
-  document.getElementById('tvWidgetRiskUsd').textContent = `-$${dollarRisk.toFixed(2)} (-${riskPct.toFixed(1)}%)`;
-  document.getElementById('tvWidgetRewardUsd').textContent = `+$${dollarReward.toFixed(2)} (+${rewardPct.toFixed(1)}%)`;
+  const tvWidgetRiskUsd = document.getElementById('tvWidgetRiskUsd');
+  if (tvWidgetRiskUsd) tvWidgetRiskUsd.textContent = `-$${dollarRisk.toFixed(2)} (-${riskPct.toFixed(1)}%)`;
+  const tvWidgetRewardUsd = document.getElementById('tvWidgetRewardUsd');
+  if (tvWidgetRewardUsd) tvWidgetRewardUsd.textContent = `+$${dollarReward.toFixed(2)} (+${rewardPct.toFixed(1)}%)`;
 
   // Preview radio badges
-  document.getElementById('formPreviewGain').textContent = `+$${dollarReward.toFixed(2)}`;
-  document.getElementById('formPreviewLoss').textContent = `-$${dollarRisk.toFixed(2)}`;
+  const formPreviewGain = document.getElementById('formPreviewGain');
+  if (formPreviewGain) formPreviewGain.textContent = `+$${dollarReward.toFixed(2)}`;
+  const formPreviewLoss = document.getElementById('formPreviewLoss');
+  if (formPreviewLoss) formPreviewLoss.textContent = `-$${dollarRisk.toFixed(2)}`;
 
   // Warning check
   const warningBox = document.getElementById('calcWarningBox');
   const warningText = document.getElementById('calcWarningText');
-  
-  if (marginReq > curBal) {
-    warningBox.classList.remove('hidden');
-    warningText.innerHTML = `<strong>Margen alto:</strong> Requiere ~$${marginReq.toFixed(2)} (supera tu balance de $${curBal.toFixed(2)}).`;
-  } else if (roundedLot === 0.01 && (0.01 * points) > dollarRisk * 1.5) {
-    const actualRisk = roundNum(0.01 * points, 2);
-    warningBox.classList.remove('hidden');
-    warningText.innerHTML = `<strong>SL amplio en MT4:</strong> El lote mínimo de tu broker (0.01) movería $${actualRisk.toFixed(2)} en lugar de $${dollarRisk.toFixed(2)}.`;
-  } else {
-    warningBox.classList.add('hidden');
+  if (warningBox && warningText) {
+    if (marginReq > curBal) {
+      warningBox.classList.remove('hidden');
+      warningText.innerHTML = `<strong>Margen alto:</strong> Requiere ~$${marginReq.toFixed(2)} (supera tu balance de $${curBal.toFixed(2)}).`;
+    } else if (roundedLot === 0.01 && (0.01 * points) > dollarRisk * 1.5) {
+      const actualRisk = roundNum(0.01 * points, 2);
+      warningBox.classList.remove('hidden');
+      warningText.innerHTML = `<strong>SL amplio en MT4:</strong> El lote mínimo de tu broker (0.01) movería $${actualRisk.toFixed(2)} en lugar de $${dollarRisk.toFixed(2)}.`;
+    } else {
+      warningBox.classList.add('hidden');
+    }
   }
 
   initIcons();
@@ -938,7 +988,16 @@ function renderBacktestDashboard() {
   // Max DD Card
   document.getElementById('statMaxDD').textContent = `${maxDd.toFixed(1)}%`;
   document.getElementById('statMaxDDUsd').textContent = `-$${maxDdUsd.toFixed(2)}`;
-  document.getElementById('currentDrawdownDisplay').textContent = `${maxDd.toFixed(1)}%`;
+  const btDdDisplay = document.getElementById('backtestCurrentDrawdownDisplay');
+  if (btDdDisplay) btDdDisplay.textContent = `${maxDd.toFixed(1)}%`;
+  const donutCount = document.getElementById('backtestDonutTotalCount');
+  if (donutCount) donutCount.textContent = `${total} trades`;
+  const btBalDisplay = document.getElementById('backtestFormCurrentBalDisplay');
+  if (btBalDisplay) btBalDisplay.textContent = `$${curBal.toFixed(2)}`;
+  const btInitInput = document.getElementById('backtestInitialBalInput');
+  if (btInitInput && (!btInitInput.value || document.activeElement !== btInitInput)) {
+    btInitInput.value = s.initial_balance !== undefined ? s.initial_balance : (cfg.initial_balance || 110.0);
+  }
 
   // Streaks Card
   document.getElementById('statMaxWinStreak').textContent = maxWinStreak;
@@ -984,6 +1043,7 @@ function renderBacktestDashboard() {
 
   // Update Charts & Table
   updateCharts();
+  updateBacktestCharts();
   renderBacktestTradesTable();
   initIcons();
 }
@@ -1049,7 +1109,13 @@ function renderBacktestTradesTable() {
     const tpPriceVal = (tpPts / 100).toFixed(2);
     const tvTpLabel = `${tpPts} (${tpPriceVal})`;
 
-    const riskBudget = t.risk_budget ? `$${Number(t.risk_budget).toFixed(2)}` : `$${(t.balance_before * (appState.config.risk_pct / 100)).toFixed(2)}`;
+    const riskBudget = t.risk_budget ? `$${Number(t.risk_budget).toFixed(2)}` : (t.dollar_risk ? `$${Number(t.dollar_risk).toFixed(2)}` : `$${(t.balance_before * (appState.config.risk_pct / 100)).toFixed(2)}`);
+
+    const chartBtn = t.tv_chart_url 
+      ? `<a href="${t.tv_chart_url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-950/70 hover:bg-blue-900 border border-blue-800/80 text-blue-300 text-[10px] font-medium transition" title="Ver captura en TradingView">
+           <i data-lucide="external-link" class="w-3 h-3"></i> Gráfico
+         </a>`
+      : `<span class="text-gray-600 text-[10px]">-</span>`;
 
     return `
       <tr class="transition hover:bg-gray-800/40">
@@ -1059,14 +1125,14 @@ function renderBacktestTradesTable() {
         <td class="py-2.5 px-3 text-rose-300 font-bold">${tvLabel}</td>
         <td class="py-2.5 px-3 text-emerald-300 font-bold">${tvTpLabel}</td>
         <td class="py-2.5 px-3 text-blue-300 font-bold font-mono">1:${tradeRR.toFixed(1)}</td>
-        <td class="py-2.5 px-3 text-amber-300 font-mono">${riskBudget} <span class="text-[10px] text-amber-400/90 font-bold">(${Number(t.risk_pct || t.risk_pct_custom || 5.0).toFixed(2)}%)</span></td>
-        <td class="py-2.5 px-3 text-gold-400 font-bold">${Number(t.lot_size || 0.01).toFixed(2)}</td>
+        <td class="py-2.5 px-3 text-amber-300 font-mono">${riskBudget} <span class="text-[10px] text-amber-400/90 font-bold">(${Number(t.risk_pct || t.risk_pct_custom || 5.0).toFixed(1)}%)</span></td>
+        <td class="py-2.5 px-3 text-gold-400 font-bold font-mono">${Number(t.lot_size || t.suggested_lot || 0.01).toFixed(2)}</td>
         <td class="py-2.5 px-3 text-purple-300 font-mono">$${Number(t.margin_used || 0).toFixed(2)}</td>
         <td class="py-2.5 px-3">${badgeOutcome}</td>
         <td class="py-2.5 px-3 text-rose-400 font-mono font-bold">${t.commission ? '-$' + Number(Math.abs(t.commission)).toFixed(2) : '$0.00'}</td>
         <td class="py-2.5 px-3 ${pnlColor}">${pnlSign}$${Number(t.pnl).toFixed(2)}</td>
         <td class="py-2.5 px-3 text-white font-bold">$${Number(t.balance_after || 0).toFixed(2)}</td>
-        <td class="py-2.5 px-3 text-gray-300 font-sans text-xs truncate max-w-[120px]" title="${t.notes || ''}">${t.strategy || 'General'}</td>
+        <td class="py-2.5 px-3">${chartBtn}</td>
         <td class="py-2.5 px-3 text-right">
           <div class="flex items-center justify-end gap-1.5">
             <button onclick="handleOpenEditModal('${t.id}', 'backtest')" class="p-1 rounded hover:bg-gray-800 text-gray-400 hover:text-gold-400 transition" title="Editar este trade">
@@ -1427,6 +1493,182 @@ function initCharts() {
       }
     }
   });
+
+  const btEquityCanvas = document.getElementById('backtestEquityChart');
+  const btDistCanvas = document.getElementById('backtestDistributionChart');
+  const btDdCanvas = document.getElementById('backtestDrawdownChart');
+
+  if (btEquityCanvas && btDistCanvas && btDdCanvas) {
+    const btEquityCtx = btEquityCanvas.getContext('2d');
+    const btDistCtx = btDistCanvas.getContext('2d');
+    const btDdCtx = btDdCanvas.getContext('2d');
+
+    backtestEquityChart = new Chart(btEquityCtx, {
+      type: 'line',
+      data: {
+        labels: ['Inicio'],
+        datasets: [
+          {
+            label: 'Balance Backtest ($)',
+            data: [110],
+            borderColor: '#3B82F6',
+            backgroundColor: 'rgba(59, 130, 246, 0.12)',
+            borderWidth: 2.5,
+            tension: 0.25,
+            fill: true,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: '#3B82F6'
+          },
+          {
+            label: 'Base Inicial',
+            data: [110],
+            borderColor: 'rgba(156, 163, 175, 0.35)',
+            borderWidth: 1.5,
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#111827',
+            borderColor: '#1E40AF',
+            borderWidth: 1,
+            padding: 10,
+            callbacks: {
+              label: (ctx) => ` Balance: $${Number(ctx.parsed.y).toFixed(2)}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(31, 41, 55, 0.5)' },
+            ticks: { color: '#6B7280', font: { size: 10 } }
+          },
+          y: {
+            grid: { color: 'rgba(31, 41, 55, 0.5)' },
+            ticks: {
+              color: '#6B7280',
+              font: { size: 10 },
+              callback: (val) => `$${val}`
+            }
+          }
+        }
+      }
+    });
+
+    backtestDistributionChart = new Chart(btDistCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Ganadas', 'Perdidas', 'Breakeven'],
+        datasets: [{
+          data: [0, 0, 0],
+          backgroundColor: ['#089981', '#F23645', '#4B5563'],
+          borderWidth: 2,
+          borderColor: '#111827'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#9CA3AF', font: { size: 10 }, boxWidth: 10 }
+          }
+        }
+      }
+    });
+
+    backtestDrawdownChart = new Chart(btDdCtx, {
+      type: 'line',
+      data: {
+        labels: ['Inicio'],
+        datasets: [{
+          label: 'Drawdown %',
+          data: [0],
+          borderColor: '#F23645',
+          backgroundColor: 'rgba(242, 54, 69, 0.15)',
+          borderWidth: 1.5,
+          fill: true,
+          pointRadius: 0,
+          tension: 0.2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { display: false },
+          y: {
+            reverse: true,
+            grid: { color: 'rgba(31, 41, 55, 0.4)' },
+            ticks: {
+              color: '#F23645',
+              font: { size: 9 },
+              callback: (v) => `-${v}%`
+            }
+          }
+        }
+      }
+    });
+  }
+}
+
+function updateBacktestCharts() {
+  const curve = appState.backtest.equityCurve || [];
+  const s = appState.backtest.summary || {};
+  const initial = s.initial_balance !== undefined ? s.initial_balance : (appState.config.initial_balance || 110);
+  const wins = s.wins || 0;
+  const losses = s.losses || 0;
+  const be = s.breakevens || 0;
+
+  if (backtestEquityChart) {
+    if (curve.length === 0) {
+      backtestEquityChart.data.labels = ['Inicio'];
+      backtestEquityChart.data.datasets[0].data = [initial];
+      backtestEquityChart.data.datasets[1].data = [initial];
+    } else {
+      backtestEquityChart.data.labels = curve.map(c => c.trade_num === 0 ? 'Inicio' : `T#${c.trade_num}`);
+      const balances = curve.map(c => c.balance);
+      backtestEquityChart.data.datasets[0].data = balances;
+      backtestEquityChart.data.datasets[1].data = curve.map(() => initial);
+
+      const current = balances[balances.length - 1];
+      const color = current >= initial ? '#3B82F6' : '#F23645';
+      const bg = current >= initial ? 'rgba(59, 130, 246, 0.15)' : 'rgba(242, 54, 69, 0.12)';
+      backtestEquityChart.data.datasets[0].borderColor = color;
+      backtestEquityChart.data.datasets[0].backgroundColor = bg;
+      backtestEquityChart.data.datasets[0].pointBackgroundColor = color;
+    }
+    backtestEquityChart.update();
+  }
+
+  if (backtestDistributionChart) {
+    backtestDistributionChart.data.datasets[0].data = [wins, losses, be];
+    const donutEl = document.getElementById('backtestDonutTotalCount');
+    if (donutEl) donutEl.textContent = `${wins + losses + be} trades`;
+    backtestDistributionChart.update();
+  }
+
+  if (backtestDrawdownChart) {
+    if (curve.length === 0) {
+      backtestDrawdownChart.data.labels = ['Inicio'];
+      backtestDrawdownChart.data.datasets[0].data = [0];
+    } else {
+      backtestDrawdownChart.data.labels = curve.map(c => c.trade_num);
+      backtestDrawdownChart.data.datasets[0].data = curve.map(c => c.drawdown_pct);
+    }
+    backtestDrawdownChart.update();
+  }
 }
 
 function updateCharts() {
@@ -1656,6 +1898,55 @@ function setupEventListeners() {
   const tradeForm = document.getElementById('tradeForm');
   if (tradeForm) {
     tradeForm.addEventListener('submit', handleAddBacktestTrade);
+
+    const bPts = document.getElementById('tradeTvPoints');
+    if (bPts) bPts.addEventListener('input', recalculateTradingViewValues);
+    const bRisk = document.getElementById('tradeRiskPct');
+    if (bRisk) bRisk.addEventListener('input', recalculateTradingViewValues);
+    const bRR = document.getElementById('tradeSpecificRR');
+    if (bRR) bRR.addEventListener('input', recalculateTradingViewValues);
+    const bLot = document.getElementById('tradeManualLot');
+    if (bLot) bLot.addEventListener('input', recalculateTradingViewValues);
+
+    const btnSetDate = document.getElementById('btnSetBacktestDateNow');
+    if (btnSetDate) {
+      btnSetDate.addEventListener('click', () => {
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        const formatted = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        const d = document.getElementById('tradeDate');
+        if (d) d.value = formatted;
+      });
+    }
+
+    const btnUpdateBtBal = document.getElementById('btnUpdateBacktestBal');
+    if (btnUpdateBtBal) {
+      btnUpdateBtBal.addEventListener('click', async () => {
+        const input = document.getElementById('backtestInitialBalInput');
+        const val = parseFloat(input?.value);
+        if (isNaN(val) || val <= 0) {
+          alert('Por favor ingresa un balance inicial válido');
+          return;
+        }
+        try {
+          const res = await fetch('/api/recalculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'backtest', initial_balance: val })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            appState.backtest.summary = data.summary;
+            appState.backtest.equityCurve = data.equity_curve;
+            appState.backtest.trades = data.trades;
+            renderBacktestDashboard();
+            recalculateTradingViewValues();
+          }
+        } catch (err) {
+          console.error('Error al actualizar balance backtest:', err);
+        }
+      });
+    }
   }
 
   // Real Journal Submit
@@ -1826,17 +2117,20 @@ async function handleAddBacktestTrade(e) {
     ? appState.backtest.summary.current_balance 
     : appState.config.initial_balance;
 
-  const date = document.getElementById('tradeDate').value || new Date().toISOString().slice(0, 16).replace('T', ' ');
-  const direction = document.getElementById('tradeDirection').value;
+  const date = document.getElementById('tradeDate')?.value || new Date().toISOString().slice(0, 16).replace('T', ' ');
+  const direction = document.getElementById('tradeDirection')?.value || 'BUY';
   
-  const rawInput = document.getElementById('tradeTvPoints').value;
+  const rawInput = document.getElementById('tradeTvPoints')?.value || '250';
   const { points, price } = parseTradingViewInput(rawInput);
   
-  const tradeRR = parseFloat(document.getElementById('tradeSpecificRR').value) || parseFloat(appState.config.rr_ratio) || 1.0;
-  const riskPct = parseFloat(appState.config.risk_pct) || 5.0;
-  const strategy = document.getElementById('tradeStrategy').value || 'General';
-  const notes = document.getElementById('tradeNotes').value || '';
+  const tradeRR = parseFloat(document.getElementById('tradeSpecificRR')?.value) || parseFloat(appState.config.rr_ratio) || 1.0;
+  const riskPct = parseFloat(document.getElementById('tradeRiskPct')?.value) || parseFloat(appState.config.risk_pct) || 5.0;
   
+  const manualLotInput = document.getElementById('tradeManualLot')?.value;
+  const manualLot = manualLotInput ? parseFloat(manualLotInput) : 0;
+
+  const tvChartUrl = document.getElementById('tradeTvChartUrl')?.value?.trim() || '';
+
   const statusRadio = document.querySelector('input[name="tradeResult"]:checked');
   const status = statusRadio ? statusRadio.value : 'win';
 
@@ -1850,7 +2144,8 @@ async function handleAddBacktestTrade(e) {
   const pnl = roundNum(curBal * (retPct / 100.0), 2);
   const dollarRisk = roundNum(curBal * (riskPct / 100.0), 2);
   const rawLot = dollarRisk / points;
-  const lot_size = Math.max(0.01, roundNum(rawLot, 2));
+  const suggestedLot = Math.max(0.01, roundNum(rawLot, 2));
+  const lot_size = (manualLot && manualLot > 0) ? manualLot : suggestedLot;
   const leverage = parseFloat(appState.config.leverage) || 300;
   const margin_used = roundNum((2720.0 * 100 * lot_size / leverage), 2);
 
@@ -1864,16 +2159,17 @@ async function handleAddBacktestTrade(e) {
     tp_points: Math.round(points * tradeRR),
     sl_distance: price,
     risk_pct: riskPct,
+    risk_pct_custom: riskPct,
     ret_pct: retPct,
     dollar_risk: dollarRisk,
     lot_size,
-    suggested_lot: lot_size,
+    suggested_lot: suggestedLot,
+    manual_lot: (manualLot && manualLot > 0) ? manualLot : null,
     margin_used,
     status,
     pnl,
     rr: tradeRR,
-    strategy,
-    notes
+    tv_chart_url: tvChartUrl
   };
 
   try {
@@ -1892,7 +2188,8 @@ async function handleAddBacktestTrade(e) {
       renderBacktestDashboard();
       recalculateTradingViewValues();
       setCurrentDateTime();
-      document.getElementById('tradeNotes').value = '';
+      const chartInput = document.getElementById('tradeTvChartUrl');
+      if (chartInput) chartInput.value = '';
     }
   } catch (err) {
     console.error('Error al guardar trade:', err);

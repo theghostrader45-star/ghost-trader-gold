@@ -1953,7 +1953,13 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 bg-gray-950/80 border border-blue-500/30 px-3 py-1.5 rounded-xl text-xs font-mono shadow-sm">
+            <span class="text-gray-400">Balance Inicial:</span>
+            <span class="text-gray-500">$</span>
+            <input type="number" id="backtestInitialBalInput" step="10" min="1" value="110" class="w-20 bg-gray-900 border border-gray-700 focus:border-blue-500 rounded-lg px-2 py-0.5 text-blue-400 font-bold text-center focus:outline-none">
+            <button type="button" id="btnUpdateBacktestBal" class="px-2.5 py-0.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-[11px] font-bold transition cursor-pointer">Aplicar</button>
+          </div>
           <span class="text-xs font-mono bg-gray-800 border border-gray-700 px-3 py-1.5 rounded-xl text-blue-300 font-bold">
             Total Operaciones Backtest: <strong id="recalcTradesCount" class="text-white">8</strong>
           </span>
@@ -2032,6 +2038,63 @@
         </div>
       </section>
 
+      <!-- Gráficos de Curva de Capital & Distribución de Backtesting -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <!-- Curva de Capital Backtest (8 cols) -->
+          <div class="lg:col-span-8 bg-gray-950/70 border border-gray-800/80 rounded-xl p-4 sm:p-5">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                  <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span>Curva de Capital Backtest</span>
+                    <span class="text-[9px] px-1.5 py-0.2 bg-blue-500/20 text-blue-300 rounded font-mono font-bold">Simulación</span>
+                  </h4>
+                  <p class="text-[10px] text-gray-500">Evolución del balance simulación trade a trade</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 text-[11px] font-mono text-gray-400">
+                <span class="flex items-center gap-1 text-blue-400 font-bold">
+                  <span class="w-2 h-2 rounded-full bg-blue-400"></span> Balance Backtest
+                </span>
+              </div>
+            </div>
+            <div class="h-56 sm:h-64 w-full relative">
+              <canvas id="backtestEquityChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Distribución de Resultados & Drawdown (4 cols) -->
+          <div class="lg:col-span-4 bg-gray-950/70 border border-gray-800/80 rounded-xl p-4 sm:p-5 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-gold-400"></i>
+                  <span>Distribución de Resultados</span>
+                </h4>
+                <span class="text-[10px] font-mono text-gray-400" id="backtestDonutTotalCount">8 trades</span>
+              </div>
+              <div class="h-36 w-full relative flex items-center justify-center">
+                <canvas id="backtestDistributionChart"></canvas>
+              </div>
+            </div>
+
+            <div class="border-t border-gray-800/80 pt-3">
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="text-gray-400 font-medium">Drawdown Histórico (%)</span>
+                <span class="text-rose-400 font-mono text-[11px] font-bold" id="backtestCurrentDrawdownDisplay">34.4%</span>
+              </div>
+              <div class="h-14 w-full relative">
+                <canvas id="backtestDrawdownChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Formulario de Registro de Backtest -->
       <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
         <div class="flex items-center gap-2.5 border-b border-gray-800 pb-3 mb-4">
@@ -2040,69 +2103,124 @@
           </div>
           <div>
             <h3 class="text-sm font-bold text-white">Registrar Operación al Backtest</h3>
-            <p class="text-[11px] text-gray-400">Simulación basada en puntos de SL y porcentaje de riesgo compuesto</p>
+            <p class="text-[11px] text-gray-400">Simulación cuantitativa con porcentaje de riesgo y lotaje manual o sugerido</p>
           </div>
         </div>
 
         <form id="tradeForm" class="space-y-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 text-xs">
-            <!-- Fecha -->
+          <!-- Balance Actual y Resumen de Simulación -->
+          <div class="flex items-center justify-between text-xs px-1 pb-1">
+            <span class="text-gray-400 font-medium">Parámetros de la simulación histórica:</span>
+            <div class="h-7 px-3 rounded-xl bg-blue-950/50 border border-blue-800/50 text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm">
+              <span class="text-gray-400">Balance Backtest actual:</span>
+              <span class="font-mono font-bold text-blue-400" id="backtestFormCurrentBalDisplay">$112.24</span>
+            </div>
+          </div>
+
+          <!-- Row 1: Fecha/Hora, Dirección, SL (Puntos), Riesgo (%), Lotaje, R:R -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5 text-xs">
+            <!-- Fecha y Hora -->
             <div>
-              <label class="block text-gray-300 font-semibold mb-1">Fecha / Hora</label>
-              <input type="text" id="tradeDate" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono focus:border-blue-500 focus:outline-none">
+              <div class="flex items-center justify-between mb-1">
+                <label for="tradeDate" class="text-gray-300 font-bold flex items-center gap-1">
+                  <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-400"></i>
+                  <span>Fecha / Hora</span>
+                </label>
+                <button type="button" id="btnSetBacktestDateNow" class="text-[10px] text-blue-400 hover:text-blue-300 font-mono font-bold underline cursor-pointer" title="Fijar a fecha y hora actual">
+                  Ahora
+                </button>
+              </div>
+              <input type="text" id="tradeDate" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none shadow-inner" placeholder="YYYY-MM-DD HH:MM">
             </div>
 
             <!-- Dirección -->
             <div>
-              <label class="block text-gray-300 font-semibold mb-1">Dirección</label>
+              <label for="tradeDirection" class="block text-gray-300 font-bold mb-1">Dirección</label>
               <select id="tradeDirection" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white font-semibold focus:border-blue-500 focus:outline-none cursor-pointer">
                 <option value="BUY">🟢 BUY (Compra)</option>
                 <option value="SELL">🔴 SELL (Venta)</option>
               </select>
             </div>
 
-            <!-- Puntos de SL TradingView -->
+            <!-- Stop Loss (Puntos TV) -->
             <div>
-              <label class="block text-gray-300 font-semibold mb-1">Stop Loss (Puntos TV)</label>
-              <input type="number" id="tradeTvPoints" value="250" step="any" min="1" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-blue-500 focus:outline-none">
+              <div class="flex items-center justify-between mb-1">
+                <label for="tradeTvPoints" class="text-gray-300 font-bold">Stop Loss (Puntos TV)</label>
+                <span class="text-blue-400 text-[10px] font-mono" id="backtestSlExplain">250 ($2.50)</span>
+              </div>
+              <div class="relative">
+                <input type="number" id="tradeTvPoints" value="250" step="any" min="1" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl px-3 py-2 text-white font-mono font-bold focus:outline-none" placeholder="250">
+                <span class="absolute right-3 top-2 text-[11px] text-gray-500 font-mono font-bold uppercase">pts</span>
+              </div>
+            </div>
+
+            <!-- Riesgo en Porcentaje (%) -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label for="tradeRiskPct" class="text-gray-300 font-bold">Riesgo (%)</label>
+                <span class="text-amber-400 text-[10px] font-mono" id="backtestRiskUsdPreview">$5.61</span>
+              </div>
+              <div class="relative">
+                <input type="number" id="tradeRiskPct" value="5.0" step="0.1" min="0.1" max="100" class="w-full bg-gray-950 border border-gray-800 focus:border-amber-500 rounded-xl px-3 py-2 text-amber-400 font-mono font-bold focus:outline-none text-center" placeholder="5.0">
+                <span class="absolute right-3 top-2 text-[11px] text-gray-500 font-mono font-bold">%</span>
+              </div>
+            </div>
+
+            <!-- Lotaje -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label for="tradeManualLot" class="text-gray-300 font-bold">Lotaje</label>
+                <span class="text-gold-400 text-[10px] font-mono">Sug: <b id="tradeSuggestedLotBadge">0.02</b></span>
+              </div>
+              <div class="relative">
+                <input type="number" id="tradeManualLot" value="0.02" step="0.01" min="0.01" class="w-full bg-gray-950 border-2 border-gold-500/50 focus:border-gold-400 rounded-xl px-3 py-2 text-gold-300 font-mono font-bold focus:outline-none text-center" placeholder="0.01">
+                <span class="absolute right-2.5 top-2 text-[10px] text-gray-500 font-mono font-bold uppercase">LOT</span>
+              </div>
             </div>
 
             <!-- Ratio R:R -->
             <div>
-              <label class="block text-gray-300 font-semibold mb-1">Ratio R:R</label>
-              <input type="number" id="tradeSpecificRR" value="2.0" step="0.1" min="0.1" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-blue-500 focus:outline-none">
+              <label for="tradeSpecificRR" class="block text-gray-300 font-bold mb-1">Ratio R:R</label>
+              <div class="relative">
+                <input type="number" id="tradeSpecificRR" value="2.0" step="0.1" min="0.1" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl px-3 py-2 text-blue-400 font-mono font-bold focus:outline-none text-center" placeholder="2.0">
+                <span class="absolute right-3 top-2 text-[11px] text-gray-500 font-mono font-bold">R</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2: Link TradingView + Resultado Radio -->
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5 text-xs items-end">
+            <!-- Link TradingView (6 cols) -->
+            <div class="sm:col-span-6">
+              <label for="tradeTvChartUrl" class="block text-gray-300 font-semibold mb-1 flex items-center gap-1.5">
+                <i data-lucide="link" class="w-3.5 h-3.5 text-blue-400"></i>
+                <span>Enlace Captura TradingView (Opcional)</span>
+              </label>
+              <div class="relative">
+                <input type="url" id="tradeTvChartUrl" class="w-full bg-gray-950 border border-gray-800 focus:border-blue-500 rounded-xl px-3.5 py-2 text-blue-300 font-mono text-xs focus:outline-none" placeholder="https://www.tradingview.com/x/...">
+                <span class="absolute right-3 top-2 text-gray-500"><i data-lucide="external-link" class="w-3.5 h-3.5"></i></span>
+              </div>
             </div>
 
-            <!-- Resultado Radio -->
-            <div>
-              <label class="block text-gray-300 font-semibold mb-1">Resultado</label>
-              <div class="flex items-center gap-2 pt-1.5">
-                <label class="flex items-center gap-1.5 text-emerald-400 font-bold cursor-pointer">
+            <!-- Resultado Radio (6 cols) -->
+            <div class="sm:col-span-6">
+              <label class="block text-gray-300 font-semibold mb-1">Resultado de la Operación</label>
+              <div class="grid grid-cols-3 gap-2 bg-gray-950 p-1 rounded-xl border border-gray-800">
+                <label class="flex items-center justify-center gap-1.5 py-1.5 rounded-lg font-bold text-xs cursor-pointer text-emerald-400 hover:bg-emerald-950/40 transition">
                   <input type="radio" name="tradeResult" value="win" checked class="text-emerald-500 focus:ring-0"> WIN
                 </label>
-                <label class="flex items-center gap-1.5 text-rose-400 font-bold cursor-pointer">
+                <label class="flex items-center justify-center gap-1.5 py-1.5 rounded-lg font-bold text-xs cursor-pointer text-rose-400 hover:bg-rose-950/40 transition">
                   <input type="radio" name="tradeResult" value="loss" class="text-rose-500 focus:ring-0"> LOSS
                 </label>
-                <label class="flex items-center gap-1.5 text-gray-400 font-bold cursor-pointer">
+                <label class="flex items-center justify-center gap-1.5 py-1.5 rounded-lg font-bold text-xs cursor-pointer text-gray-400 hover:bg-gray-800/60 transition">
                   <input type="radio" name="tradeResult" value="be" class="text-gray-500 focus:ring-0"> BE
                 </label>
               </div>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
-            <div>
-              <label class="block text-gray-300 font-semibold mb-1">Estrategia / Setup</label>
-              <input type="text" id="tradeStrategy" value="Adaptive Supertrend M5" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none">
-            </div>
-            <div>
-              <label class="block text-gray-300 font-semibold mb-1">Notas / Observaciones</label>
-              <input type="text" id="tradeNotes" placeholder="ej. Entrada en confluencia M5 con tendencia H1..." class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none">
-            </div>
-          </div>
-
           <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 text-xs">
-            <i data-lucide="plus" class="w-4 h-4"></i>
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
             <span>REGISTRAR OPERACIÓN AL BACKTEST</span>
           </button>
         </form>
@@ -2147,14 +2265,14 @@
                 <th class="py-2.5 px-3">Stop Loss</th>
                 <th class="py-2.5 px-3">Take Profit</th>
                 <th class="py-2.5 px-3">R:R</th>
-                <th class="py-2.5 px-3">Riesgo ($)</th>
+                <th class="py-2.5 px-3">Riesgo ($) (%)</th>
                 <th class="py-2.5 px-3">Lote</th>
                 <th class="py-2.5 px-3">Margen</th>
                 <th class="py-2.5 px-3">Resultado</th>
                 <th class="py-2.5 px-3">Comisión</th>
                 <th class="py-2.5 px-3">PnL ($)</th>
                 <th class="py-2.5 px-3">Balance</th>
-                <th class="py-2.5 px-3">Estrategia</th>
+                <th class="py-2.5 px-3">Gráfico</th>
                 <th class="py-2.5 px-3 text-right">Acciones</th>
               </tr>
             </thead>
@@ -3577,6 +3695,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261103_v8_backtest_full"></script>
+<script src="app.js?v=20261103_v10_custom_lot_risk"></script>
 </body>
 </html>

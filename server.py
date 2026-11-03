@@ -304,7 +304,13 @@ def recalculate_trade_history(trades, config):
         if suggested_lot < 0.01:
             suggested_lot = 0.01
             
-        margin_used = round((2700.0 * 100 * suggested_lot) / leverage, 2)
+        try:
+            user_lot = float(str(t.get("manual_lot") or t.get("lot_size") or 0).replace(",", "."))
+        except (ValueError, TypeError):
+            user_lot = 0.0
+        lot_size = round(user_lot, 2) if user_lot > 0 else suggested_lot
+            
+        margin_used = round((2700.0 * 100 * lot_size) / leverage, 2)
         
         t_new = dict(t)
         t_new["tv_points"] = tv_points
@@ -318,7 +324,7 @@ def recalculate_trade_history(trades, config):
         t_new["rr"] = trade_rr
         t_new["dollar_risk"] = round(dollar_risk, 2)
         t_new["suggested_lot"] = suggested_lot
-        t_new["lot_size"] = suggested_lot
+        t_new["lot_size"] = lot_size
         t_new["margin_used"] = margin_used
         t_new["commission"] = commission
         t_new["pnl"] = pnl
