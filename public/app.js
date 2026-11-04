@@ -3094,13 +3094,61 @@ function updateMacroQuantIntelligence(data) {
 }
 
 // -------------------------------------------------------------
-// Escáner Algorítmico M5 Autónomo en Tiempo Real (XAU/USD)
+// Laboratorio Técnico de Precisión & Escáner M5 Autónomo en Tiempo Real (XAU/USD)
 // -------------------------------------------------------------
 let m5ScanInterval = null;
 let autoScanActive = true;
 let currentM5StateKey = "in_range";
 let m5StateListenersAttached = false;
 let lastM5ScanData = null;
+let m5CandleCountdownSec = 300;
+let m5CountdownInterval = null;
+
+function startM5CountdownTicker() {
+  if (m5CountdownInterval) clearInterval(m5CountdownInterval);
+  m5CountdownInterval = setInterval(() => {
+    if (m5CandleCountdownSec > 0) {
+      m5CandleCountdownSec--;
+    } else {
+      m5CandleCountdownSec = 300;
+      if (autoScanActive) triggerM5Scan();
+    }
+    const mm = String(Math.floor(m5CandleCountdownSec / 60)).padStart(2, "0");
+    const ss = String(m5CandleCountdownSec % 60).padStart(2, "0");
+    const cdEl = document.getElementById("labCandleCountdown");
+    if (cdEl) cdEl.textContent = `${mm}:${ss}`;
+  }, 1000);
+}
+
+function updateTestingBayButtons(mode) {
+  const btnAuto = document.getElementById("btnLabAuto");
+  const btnRange = document.getElementById("btnLabRange");
+  const btnDown = document.getElementById("btnLabDown");
+  const btnUp = document.getElementById("btnLabUp");
+
+  const idle = "px-2.5 py-1 rounded-lg bg-gray-900 text-gray-400 border border-gray-800 flex items-center gap-1.5 cursor-pointer transition hover:bg-gray-800 hover:text-white";
+
+  if (btnAuto) {
+    btnAuto.className = mode === "auto" 
+      ? "px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center gap-1.5 cursor-pointer shadow-md"
+      : idle;
+  }
+  if (btnRange) {
+    btnRange.className = mode === "in_range"
+      ? "px-2.5 py-1 rounded-lg bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 flex items-center gap-1.5 cursor-pointer shadow-md"
+      : idle;
+  }
+  if (btnDown) {
+    btnDown.className = mode === "breakout_down"
+      ? "px-2.5 py-1 rounded-lg bg-red-500/20 text-red-300 border border-red-500/40 flex items-center gap-1.5 cursor-pointer shadow-md"
+      : idle;
+  }
+  if (btnUp) {
+    btnUp.className = mode === "breakout_up"
+      ? "px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5 cursor-pointer shadow-md"
+      : idle;
+  }
+}
 
 function setupM5StateListeners() {
   if (m5StateListenersAttached) return;
@@ -3116,6 +3164,7 @@ function setupM5StateListeners() {
           statusPill.className = "px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold border border-emerald-500/40";
           statusPill.textContent = "🟢 RASTREANDO CADA 5s";
         }
+        updateTestingBayButtons("auto");
         triggerM5Scan();
       } else {
         autoScanActive = false;
@@ -3124,8 +3173,74 @@ function setupM5StateListeners() {
           statusPill.className = "px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold border border-amber-500/40";
           statusPill.textContent = "🟡 MODO SIMULACIÓN MANUAL";
         }
+        updateTestingBayButtons(val);
         setM5MarketState(val);
       }
+    });
+  }
+
+  // Banco de Pruebas: Botones Interactivos
+  const btnAuto = document.getElementById("btnLabAuto");
+  if (btnAuto) {
+    btnAuto.addEventListener("click", () => {
+      autoScanActive = true;
+      const selectMode = document.getElementById("selectScannerMode");
+      if (selectMode) selectMode.value = "auto";
+      const statusPill = document.getElementById("scannerAutoStatus");
+      if (statusPill) {
+        statusPill.className = "px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold border border-emerald-500/40";
+        statusPill.textContent = "🟢 RASTREANDO CADA 5s";
+      }
+      updateTestingBayButtons("auto");
+      triggerM5Scan();
+    });
+  }
+
+  const btnRange = document.getElementById("btnLabRange");
+  if (btnRange) {
+    btnRange.addEventListener("click", () => {
+      autoScanActive = false;
+      const selectMode = document.getElementById("selectScannerMode");
+      if (selectMode) selectMode.value = "in_range";
+      const statusPill = document.getElementById("scannerAutoStatus");
+      if (statusPill) {
+        statusPill.className = "px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 font-mono text-[10px] font-bold border border-yellow-500/40";
+        statusPill.textContent = "🟡 SIMULACIÓN: EN RANGO";
+      }
+      updateTestingBayButtons("in_range");
+      setM5MarketState("in_range");
+    });
+  }
+
+  const btnDown = document.getElementById("btnLabDown");
+  if (btnDown) {
+    btnDown.addEventListener("click", () => {
+      autoScanActive = false;
+      const selectMode = document.getElementById("selectScannerMode");
+      if (selectMode) selectMode.value = "breakout_down";
+      const statusPill = document.getElementById("scannerAutoStatus");
+      if (statusPill) {
+        statusPill.className = "px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 font-mono text-[10px] font-bold border border-red-500/40";
+        statusPill.textContent = "🔴 SIMULACIÓN: SELL A+";
+      }
+      updateTestingBayButtons("breakout_down");
+      setM5MarketState("breakout_down");
+    });
+  }
+
+  const btnUp = document.getElementById("btnLabUp");
+  if (btnUp) {
+    btnUp.addEventListener("click", () => {
+      autoScanActive = false;
+      const selectMode = document.getElementById("selectScannerMode");
+      if (selectMode) selectMode.value = "breakout_up";
+      const statusPill = document.getElementById("scannerAutoStatus");
+      if (statusPill) {
+        statusPill.className = "px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold border border-emerald-500/40";
+        statusPill.textContent = "🟢 SIMULACIÓN: BUY B";
+      }
+      updateTestingBayButtons("breakout_up");
+      setM5MarketState("breakout_up");
     });
   }
 
@@ -3134,6 +3249,7 @@ function setupM5StateListeners() {
 
 function startM5RealTimeScanner() {
   setupM5StateListeners();
+  startM5CountdownTicker();
   if (m5ScanInterval) clearInterval(m5ScanInterval);
 
   // Ejecución inmediata inicial
@@ -3163,7 +3279,16 @@ async function triggerM5Scan() {
 function renderM5ScanResults(scan) {
   if (!scan) return;
 
-  // 1. Telemetría del Escáner
+  // 1. Cronómetro de Vela M5
+  if (scan.candle_remaining_sec !== undefined) {
+    m5CandleCountdownSec = scan.candle_remaining_sec;
+  }
+  const cdEl = document.getElementById("labCandleCountdown");
+  if (cdEl && scan.candle_countdown) {
+    cdEl.textContent = scan.candle_countdown;
+  }
+
+  // 2. Telemetría del Escáner
   const livePrice = document.getElementById("scannerLivePrice");
   const scanTime = document.getElementById("scannerScanTime");
   const zoneDesc = document.getElementById("scannerZoneDesc");
@@ -3194,7 +3319,7 @@ function renderM5ScanResults(scan) {
     }
   }
 
-  // 2. Card de Régimen M5
+  // 3. Card de Régimen M5 & Distancias de Liquidez
   const regimeBadge = document.getElementById("m5RegimeBadge");
   const regimeHeadline = document.getElementById("m5RegimeHeadline");
   const regimeSummary = document.getElementById("m5RegimeSummary");
@@ -3204,6 +3329,9 @@ function renderM5ScanResults(scan) {
   const rangeWidth = document.getElementById("m5RangeWidth");
   const rangeMarker = document.getElementById("m5RangeProgressMarker");
   const monitorCard = document.getElementById("m5RangeMonitorCard");
+  const distBsl = document.getElementById("labDistToBsl");
+  const distSsl = document.getElementById("labDistToSsl");
+  const nyVwapTop = document.getElementById("labNyVwapTop");
 
   if (regimeBadge && scan.detected_badge) {
     regimeBadge.textContent = scan.detected_badge;
@@ -3223,6 +3351,12 @@ function renderM5ScanResults(scan) {
     if (rangeEQ) rangeEQ.textContent = `$${scan.m5_range.range_eq.toFixed(2)}`;
     if (rangeWidth) {
       rangeWidth.textContent = `${scan.m5_range.range_width_pts.toLocaleString("en-US")} pts (${scan.m5_range.range_width_usd})`;
+    }
+    if (distBsl && scan.m5_range.dist_to_bsl_pts !== undefined) {
+      distBsl.textContent = `${scan.m5_range.dist_to_bsl_pts.toLocaleString()} pts`;
+    }
+    if (distSsl && scan.m5_range.dist_to_ssl_pts !== undefined) {
+      distSsl.textContent = `${scan.m5_range.dist_to_ssl_pts.toLocaleString()} pts`;
     }
     if (rangeMarker && scan.m5_range.pct_position !== undefined) {
       rangeMarker.style.left = `${scan.m5_range.pct_position}%`;
@@ -3249,7 +3383,7 @@ function renderM5ScanResults(scan) {
     }
   }
 
-  // 3. Tarjeta de Ruptura de Londres
+  // 4. Tarjeta de Ruptura de Londres
   const lbBadge = document.getElementById("londonStatusBadge");
   const lbDetail = document.getElementById("londonBreakoutDetail");
   const jsStatus = document.getElementById("judasSwingStatus");
@@ -3272,10 +3406,49 @@ function renderM5ScanResults(scan) {
     }
   }
 
-  // 4. Heikin Ashi M5 Escaneado en Vivo
+  // 5. Desviómetro NY Anchored VWAP (Z-Score)
+  if (scan.session_vwap) {
+    const v = scan.session_vwap;
+    const vwapBadge = document.getElementById("labVwapBadge");
+    const vwapZScore = document.getElementById("labVwapZScore");
+    const vwapDist = document.getElementById("labVwapDist");
+    const labNyVwap = document.getElementById("labNyVwap");
+    const vwapBandUp = document.getElementById("labVwapBandUp");
+    const vwapBandDown = document.getElementById("labVwapBandDown");
+    const vwapTp = document.getElementById("labVwapTp");
+
+    if (vwapBadge) {
+      vwapBadge.textContent = v.badge || `${v.z_score > 0 ? '+' : ''}${v.z_score}σ`;
+      vwapBadge.className = v.z_score < -0.5
+        ? "text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-bold"
+        : (v.z_score > 0.5
+            ? "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold"
+            : "text-[10px] font-mono px-2 py-0.5 rounded bg-yellow-950 text-yellow-300 border border-yellow-800 font-bold");
+    }
+    if (vwapZScore) {
+      vwapZScore.textContent = `${v.z_score > 0 ? '+' : ''}${v.z_score.toFixed(2)}σ (${v.status})`;
+      vwapZScore.className = v.z_score < -0.5 ? "font-black text-red-400 text-xs" : (v.z_score > 0.5 ? "font-black text-emerald-400 text-xs" : "font-black text-yellow-300 text-xs");
+    }
+    if (vwapDist) {
+      vwapDist.textContent = `${v.dist_pts > 0 ? '+' : ''}${v.dist_pts} pts (${v.dist_usd > 0 ? '+$' : '-$'}${Math.abs(v.dist_usd).toFixed(2)})`;
+    }
+    if (labNyVwap) labNyVwap.textContent = `$${v.ny_vwap.toFixed(2)}`;
+    if (nyVwapTop) nyVwapTop.textContent = `$${v.ny_vwap.toFixed(2)}`;
+    if (vwapBandUp) vwapBandUp.textContent = `$${(v.ny_vwap + 8.20).toFixed(2)}`;
+    if (vwapBandDown) vwapBandDown.textContent = `$${(v.ny_vwap - 8.20).toFixed(2)}`;
+    if (vwapTp) vwapTp.textContent = `$${(v.ny_vwap - 16.40).toFixed(2)}`;
+  }
+
+  // 6. Microscopio Anatómico Heikin Ashi M5
   const haBadge = document.getElementById("heikinAshiBadge");
   const haCandles = document.getElementById("heikinAshiCandles");
   const haDesc = document.getElementById("heikinAshiDesc");
+  const haUpper = document.getElementById("labHaUpperWick");
+  const haBody = document.getElementById("labHaBody");
+  const haLower = document.getElementById("labHaLowerWick");
+  const haRatio = document.getElementById("labHaRatio");
+  const haMicro = document.getElementById("labHaMicroscope");
+
   if (scan.heikin_ashi) {
     const ha = scan.heikin_ashi;
     if (haBadge && ha.badge) {
@@ -3293,14 +3466,35 @@ function renderM5ScanResults(scan) {
         : (ha.flat_bottom ? "font-mono text-emerald-400 font-black" : "font-mono text-yellow-400 font-black");
     }
     if (haDesc && ha.desc) {
-      haDesc.textContent = ha.desc + ` (Mecha sup: ${ha.upper_wick.toFixed(2)}, Mecha inf: ${ha.lower_wick.toFixed(2)})`;
+      haDesc.textContent = ha.desc;
+    }
+    if (haUpper) haUpper.textContent = `${ha.upper_wick_pts || 0} pts`;
+    if (haBody) haBody.textContent = `${ha.body_pts || 0} pts`;
+    if (haLower) haLower.textContent = `${ha.lower_wick_pts || 0} pts`;
+    if (haRatio) haRatio.textContent = `Mecha/Cuerpo: ${ha.wick_ratio || 0}%`;
+    if (haMicro) {
+      if (ha.flat_top) {
+        haMicro.textContent = `🔬 Microscopio: Cero mecha superior detectada (${ha.upper_wick_pts} pts). Desplazamiento institucional bajista limpio.`;
+        haMicro.className = "text-[9px] font-mono text-red-300 leading-tight";
+      } else if (ha.flat_bottom) {
+        haMicro.textContent = `🔬 Microscopio: Cero mecha inferior detectada (${ha.lower_wick_pts} pts). Desplazamiento institucional alcista limpio.`;
+        haMicro.className = "text-[9px] font-mono text-emerald-300 leading-tight";
+      } else {
+        haMicro.textContent = `🔬 Microscopio: Mechas duales activas (Sup ${ha.upper_wick_pts} pts / Inf ${ha.lower_wick_pts} pts). Vela Doji de indecisión.`;
+        haMicro.className = "text-[9px] font-mono text-yellow-300 leading-tight";
+      }
     }
   }
 
-  // 5. Squeeze Momentum LazyBear Escaneado en Vivo
+  // 7. Osciloscopio Squeeze Momentum (LazyBear)
   const sqBadge = document.getElementById("squeezeStatusBadge");
   const sqVal = document.getElementById("squeezeLinregVal");
   const sqDesc = document.getElementById("squeezeDesc");
+  const bbWidth = document.getElementById("labBbWidth");
+  const kcWidth = document.getElementById("labKcWidth");
+  const compRatio = document.getElementById("labCompressionRatio");
+  const linregVec = document.getElementById("labLinregVector");
+
   if (scan.squeeze_momentum) {
     const sq = scan.squeeze_momentum;
     if (sqBadge && sq.status_badge) {
@@ -3318,9 +3512,22 @@ function renderM5ScanResults(scan) {
         : (sq.linreg_val > 0 ? "font-mono text-emerald-400 font-black" : "font-mono text-yellow-400 font-black");
     }
     if (sqDesc && sq.desc) sqDesc.textContent = sq.desc;
+
+    if (bbWidth && sq.bb_width_pts) bbWidth.textContent = `${sq.bb_width_pts} pts`;
+    if (kcWidth && sq.kc_width_pts) kcWidth.textContent = `${sq.kc_width_pts} pts`;
+    if (compRatio && sq.compression_ratio) {
+      compRatio.textContent = `Compresión: ${sq.compression_ratio}%`;
+      compRatio.className = sq.sqz_on ? "text-yellow-400 font-bold" : "text-emerald-400 font-bold";
+    }
+    if (linregVec) {
+      linregVec.textContent = sq.sqz_on
+        ? `Resorte Acumulando (${sq.linreg_val > 0 ? '+' : ''}${sq.linreg_val} pts)`
+        : (sq.linreg_val < 0 ? `Inercia Bajista (${sq.linreg_val} pts)` : `Inercia Alcista (+${sq.linreg_val} pts)`);
+      linregVec.className = sq.sqz_on ? "text-yellow-400 font-bold" : (sq.linreg_val < 0 ? "text-red-400 font-bold" : "text-emerald-400 font-bold");
+    }
   }
 
-  // 6. Matriz de Confluencia: 4 Pills Dinámicos (Filtros 4, 5, 6, 7)
+  // 8. Matriz de Confluencia: 4 Pills Dinámicos (Filtros 4, 5, 6, 7)
   const p4Badge = document.getElementById("confPill4Badge");
   const p4Title = document.getElementById("confPill4Title");
   const p4Desc = document.getElementById("confPill4Desc");
@@ -3387,7 +3594,7 @@ function renderM5ScanResults(scan) {
     if (p7Desc) p7Desc.textContent = `Linreg ${scan.squeeze_momentum.linreg_val > 0 ? '+' : ''}${scan.squeeze_momentum.linreg_val} pts.`;
   }
 
-  // 7. Confluencia Institucional Maestra & Plan de Acción
+  // 9. Confluencia Institucional Maestra & Plan de Acción
   if (scan.confluence) {
     const c = scan.confluence;
     const masterBadge = document.getElementById("confluenceMasterBadge");
@@ -3431,6 +3638,7 @@ function renderM5ScanResults(scan) {
 
 function setM5MarketState(stateKey) {
   currentM5StateKey = stateKey;
+  updateTestingBayButtons(stateKey);
   if (!goldBiasState || !goldBiasState.m5_states) return;
 
   const st = goldBiasState.m5_states[stateKey];
@@ -3452,6 +3660,9 @@ function setM5MarketState(stateKey) {
   const rangeWidth = document.getElementById("m5RangeWidth");
   const rangeMarker = document.getElementById("m5RangeProgressMarker");
   const monitorCard = document.getElementById("m5RangeMonitorCard");
+  const distBsl = document.getElementById("labDistToBsl");
+  const distSsl = document.getElementById("labDistToSsl");
+  const nyVwapTop = document.getElementById("labNyVwapTop");
 
   if (regimeBadge && st.badge) {
     regimeBadge.textContent = st.badge;
@@ -3470,6 +3681,11 @@ function setM5MarketState(stateKey) {
   if (rangeWidth && st.range_width_pts) {
     rangeWidth.textContent = `${st.range_width_pts.toLocaleString("en-US")} pts (${st.range_width_usd || "$16.30"})`;
   }
+
+  if (distBsl) distBsl.textContent = stateKey === "breakout_down" ? "1,630 pts" : (stateKey === "breakout_up" ? "0 pts (PERFORADO)" : "815 pts");
+  if (distSsl) distSsl.textContent = stateKey === "breakout_down" ? "0 pts (PERFORADO)" : (stateKey === "breakout_up" ? "1,630 pts" : "815 pts");
+  if (nyVwapTop) nyVwapTop.textContent = "$3,916.40";
+
   if (rangeMarker && st.range_progress_pct !== undefined) {
     rangeMarker.style.left = `${st.range_progress_pct}%`;
     const innerDot = rangeMarker.querySelector("div");
@@ -3517,10 +3733,37 @@ function setM5MarketState(stateKey) {
     }
   }
 
-  // 4. Tarjeta Heikin Ashi M5
+  // 4. Desviómetro NY VWAP Z-Score
+  const vwapBadge = document.getElementById("labVwapBadge");
+  const vwapZScore = document.getElementById("labVwapZScore");
+  const vwapDist = document.getElementById("labVwapDist");
+  const labNyVwap = document.getElementById("labNyVwap");
+  if (labNyVwap) labNyVwap.textContent = "$3,916.40";
+
+  if (stateKey === "in_range") {
+    if (vwapBadge) { vwapBadge.textContent = "🟡 EQUILIBRIO (-0.1σ)"; vwapBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-yellow-950 text-yellow-300 border border-yellow-800 font-bold"; }
+    if (vwapZScore) { vwapZScore.textContent = "-0.15σ (ZONA DE EQUILIBRIO)"; vwapZScore.className = "font-black text-yellow-300 text-xs"; }
+    if (vwapDist) vwapDist.textContent = "-12 pts (-$0.12)";
+  } else if (stateKey === "breakout_down") {
+    if (vwapBadge) { vwapBadge.textContent = "🔴 BAJO VWAP (-1.8σ)"; vwapBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-bold"; }
+    if (vwapZScore) { vwapZScore.textContent = "-1.85σ (SOBREVENDIDO)"; vwapZScore.className = "font-black text-red-400 text-xs"; }
+    if (vwapDist) vwapDist.textContent = "-142 pts (-$1.42)";
+  } else {
+    if (vwapBadge) { vwapBadge.textContent = "🟢 SOBRE VWAP (+1.4σ)"; vwapBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold"; }
+    if (vwapZScore) { vwapZScore.textContent = "+1.40σ (SOBRECOMPRADO)"; vwapZScore.className = "font-black text-emerald-400 text-xs"; }
+    if (vwapDist) vwapDist.textContent = "+115 pts (+$1.15)";
+  }
+
+  // 5. Microscopio Anatómico Heikin Ashi M5
   const haBadge = document.getElementById("heikinAshiBadge");
   const haCandles = document.getElementById("heikinAshiCandles");
   const haDesc = document.getElementById("heikinAshiDesc");
+  const haUpper = document.getElementById("labHaUpperWick");
+  const haBody = document.getElementById("labHaBody");
+  const haLower = document.getElementById("labHaLowerWick");
+  const haRatio = document.getElementById("labHaRatio");
+  const haMicro = document.getElementById("labHaMicroscope");
+
   if (st.heikin_ashi) {
     if (haBadge && st.heikin_ashi.badge) {
       haBadge.textContent = st.heikin_ashi.badge;
@@ -3541,10 +3784,44 @@ function setM5MarketState(stateKey) {
     }
   }
 
-  // 5. Tarjeta Squeeze Momentum
+  if (stateKey === "in_range") {
+    if (haUpper) haUpper.textContent = "85 pts";
+    if (haBody) haBody.textContent = "120 pts";
+    if (haLower) haLower.textContent = "90 pts";
+    if (haRatio) haRatio.textContent = "Mecha/Cuerpo: 70.8%";
+    if (haMicro) {
+      haMicro.textContent = "🔬 Microscopio: Mechas duales activas (Sup 85 pts / Inf 90 pts). Indecisión Doji sin escape.";
+      haMicro.className = "text-[9px] font-mono text-yellow-300 leading-tight";
+    }
+  } else if (stateKey === "breakout_down") {
+    if (haUpper) haUpper.textContent = "0 pts";
+    if (haBody) haBody.textContent = "480 pts";
+    if (haLower) haLower.textContent = "110 pts";
+    if (haRatio) haRatio.textContent = "Mecha/Cuerpo: 0.0%";
+    if (haMicro) {
+      haMicro.textContent = "🔬 Microscopio: Cero mecha superior confirmada (0 pts). Venta institucional con desplazamiento pleno.";
+      haMicro.className = "text-[9px] font-mono text-red-300 leading-tight";
+    }
+  } else {
+    if (haUpper) haUpper.textContent = "120 pts";
+    if (haBody) haBody.textContent = "410 pts";
+    if (haLower) haLower.textContent = "0 pts";
+    if (haRatio) haRatio.textContent = "Mecha/Cuerpo: 0.0%";
+    if (haMicro) {
+      haMicro.textContent = "🔬 Microscopio: Cero mecha inferior confirmada (0 pts). Impulso comprador contratendencia.";
+      haMicro.className = "text-[9px] font-mono text-emerald-300 leading-tight";
+    }
+  }
+
+  // 6. Osciloscopio Squeeze Momentum
   const sqBadge = document.getElementById("squeezeStatusBadge");
   const sqVal = document.getElementById("squeezeLinregVal");
   const sqDesc = document.getElementById("squeezeDesc");
+  const bbWidth = document.getElementById("labBbWidth");
+  const kcWidth = document.getElementById("labKcWidth");
+  const compRatio = document.getElementById("labCompressionRatio");
+  const linregVec = document.getElementById("labLinregVector");
+
   if (st.squeeze_momentum) {
     if (sqBadge && st.squeeze_momentum.badge) {
       sqBadge.textContent = st.squeeze_momentum.badge;
@@ -3563,7 +3840,24 @@ function setM5MarketState(stateKey) {
     if (sqDesc && st.squeeze_momentum.desc) sqDesc.textContent = st.squeeze_momentum.desc;
   }
 
-  // 6. Matriz de Confluencia: 4 Pills Dinámicos (Filtros 4, 5, 6, 7)
+  if (stateKey === "in_range") {
+    if (bbWidth) bbWidth.textContent = "840 pts";
+    if (kcWidth) kcWidth.textContent = "1,140 pts";
+    if (compRatio) { compRatio.textContent = "Compresión: 73.7%"; compRatio.className = "text-yellow-400 font-bold"; }
+    if (linregVec) { linregVec.textContent = "Resorte Acumulando (-2.10 pts)"; linregVec.className = "text-yellow-400 font-bold"; }
+  } else if (stateKey === "breakout_down") {
+    if (bbWidth) bbWidth.textContent = "1,450 pts";
+    if (kcWidth) kcWidth.textContent = "1,120 pts";
+    if (compRatio) { compRatio.textContent = "Expansión: 129.5%"; compRatio.className = "text-red-400 font-bold"; }
+    if (linregVec) { linregVec.textContent = "Inercia Bajista (-14.85 pts)"; linregVec.className = "text-red-400 font-bold"; }
+  } else {
+    if (bbWidth) bbWidth.textContent = "1,380 pts";
+    if (kcWidth) kcWidth.textContent = "1,100 pts";
+    if (compRatio) { compRatio.textContent = "Expansión: 125.4%"; compRatio.className = "text-emerald-400 font-bold"; }
+    if (linregVec) { linregVec.textContent = "Inercia Alcista (+8.40 pts)"; linregVec.className = "text-emerald-400 font-bold"; }
+  }
+
+  // 7. Matriz de Confluencia: 4 Pills Dinámicos (Filtros 4, 5, 6, 7)
   const p4Badge = document.getElementById("confPill4Badge");
   const p4Title = document.getElementById("confPill4Title");
   const p4Desc = document.getElementById("confPill4Desc");
@@ -3630,7 +3924,7 @@ function setM5MarketState(stateKey) {
     if (p7Desc) p7Desc.textContent = "Linreg positivo (+8.40 pts).";
   }
 
-  // 7. Confluencia Institucional Maestra & Plan de Acción
+  // 8. Confluencia Institucional Maestra & Plan de Acción
   if (st.confluence) {
     const c = st.confluence;
     const masterBadge = document.getElementById("confluenceMasterBadge");

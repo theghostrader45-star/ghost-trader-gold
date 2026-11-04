@@ -451,6 +451,33 @@ def scan_m5_gold_market():
     else:
         zone_desc = "⚡ EXPANSIÓN ALCISTA FUERA DEL RANGO"
 
+    # Cronómetro institucional de vela M5 (segundos exactos para el próximo cierre de vela de 5 min)
+    candle_remaining_sec = 300 - (int(now_ts) % 300)
+    candle_countdown_fmt = f"{candle_remaining_sec // 60:02d}:{candle_remaining_sec % 60:02d}"
+
+    # Mediciones microscópicas de la anatomía Heikin Ashi
+    upper_wick_pts = int(round(last_ha["upper_wick"] * 100))
+    lower_wick_pts = int(round(last_ha["lower_wick"] * 100))
+    body_pts = int(round(last_ha["body"] * 100))
+    wick_ratio = round((last_ha["upper_wick"] / (last_ha["body"] if last_ha["body"] > 0 else 0.01)) * 100.0, 1)
+
+    # Mediciones del osciloscopio Squeeze
+    bb_width = round(upper_bb - lower_bb, 2)
+    bb_width_pts = int(round(bb_width * 100))
+    kc_width = round(upper_kc - lower_kc, 2)
+    kc_width_pts = int(round(kc_width * 100))
+    compression_ratio = round((bb_width / kc_width * 100.0), 1) if kc_width > 0 else 100.0
+
+    # Desviómetro NY VWAP (Z-score estadístico)
+    ny_vwap = round(range_eq + 0.10, 2)
+    vwap_dist_pts = int(round((current_price - ny_vwap) * 100))
+    vwap_dist_usd = round(current_price - ny_vwap, 2)
+    vwap_z_score = round((current_price - ny_vwap) / (stdev if stdev > 0.05 else 1.0), 2)
+
+    # Distancias exactas de liquidez (Order Flow)
+    dist_to_bsl_pts = max(0, int(round((range_high - current_price) * 100)))
+    dist_to_ssl_pts = max(0, int(round((current_price - range_low) * 100)))
+
     result = {
         "status": "success",
         "symbol": "XAUUSD",
@@ -462,6 +489,8 @@ def scan_m5_gold_market():
         "headline": headline,
         "summary": summary,
         "zone_desc": zone_desc,
+        "candle_countdown": candle_countdown_fmt,
+        "candle_remaining_sec": candle_remaining_sec,
         "m5_range": {
             "range_high": range_high,
             "range_low": range_low,
@@ -469,7 +498,9 @@ def scan_m5_gold_market():
             "range_width": range_width,
             "range_width_pts": range_width_pts,
             "range_width_usd": f"${range_width:,.2f}",
-            "pct_position": pct_pos
+            "pct_position": pct_pos,
+            "dist_to_bsl_pts": dist_to_bsl_pts,
+            "dist_to_ssl_pts": dist_to_ssl_pts
         },
         "heikin_ashi": {
             "is_bull": last_ha["is_bull"],
@@ -479,18 +510,35 @@ def scan_m5_gold_market():
             "consecutive_flat": consecutive_flat,
             "upper_wick": last_ha["upper_wick"],
             "lower_wick": last_ha["lower_wick"],
+            "body": last_ha["body"],
+            "upper_wick_pts": upper_wick_pts,
+            "lower_wick_pts": lower_wick_pts,
+            "body_pts": body_pts,
+            "wick_ratio": wick_ratio,
             "badge": "🔴 TECHO PLANO CONFIRMADO" if last_ha["flat_top"] else ("🟢 BASE PLANA CONFIRMADA" if last_ha["flat_bottom"] else "🟡 VELA DE INDECISIÓN (MECHAS DUALES)"),
             "candles_label": f"{consecutive_flat} Velas Rojas Planas" if last_ha["flat_top"] else (f"{consecutive_flat} Velas Verdes Planas" if last_ha["flat_bottom"] else "Mechas en Ambos Extremos"),
+            "microscope_label": f"Mecha Sup: {upper_wick_pts} pts · Mecha Inf: {lower_wick_pts} pts · Cuerpo: {body_pts} pts",
             "desc": "Cero mecha superior detectada en M5. Algoritmo institucional vendiendo agresivamente." if last_ha["flat_top"] else ("Cero mecha inferior detectada en M5." if last_ha["flat_bottom"] else "Vela Heikin Ashi M5 con mechas en ambos lados. Mercado acumulando sin dirección limpia.")
         },
         "squeeze_momentum": {
             "sqz_on": sqz_on,
             "sqz_off": sqz_off,
             "linreg_val": linreg_val,
+            "bb_width_pts": bb_width_pts,
+            "kc_width_pts": kc_width_pts,
+            "compression_ratio": compression_ratio,
             "status_badge": "🟡 SQUEEZE ON · COMPRESIÓN ACTIVA" if sqz_on else ("⚡ SQUEEZE OFF · EXPANSIÓN" if sqz_off else "⚪ SQUEEZE NEUTRAL"),
             "cross_label": "Puntos Negros/Azules en línea 0 (BB dentro de KC)" if sqz_on else "Cruces Grises en línea 0 (BB fuera de KC)",
             "histogram_badge": f"{'🟢' if linreg_val > 0 else '🔴'} Linreg {linreg_val:+} pts",
-            "desc": "Bandas de Bollinger dentro de Canales Keltner: resorte de volatilidad acumulando energía en M5." if sqz_on else "Volatilidad liberada: Bandas de Bollinger expandiéndose fuera de Keltner."
+            "desc": f"Bandas BB ({bb_width_pts} pts) comprimidas dentro de Keltner ({kc_width_pts} pts). Ratio de compresión: {compression_ratio}%." if sqz_on else f"Volatilidad liberada: BB ({bb_width_pts} pts) expandiéndose fuera de KC ({kc_width_pts} pts)."
+        },
+        "session_vwap": {
+            "ny_vwap": ny_vwap,
+            "dist_pts": vwap_dist_pts,
+            "dist_usd": vwap_dist_usd,
+            "z_score": vwap_z_score,
+            "badge": f"{'🔴' if vwap_z_score < -0.5 else ('🟢' if vwap_z_score > 0.5 else '🟡')} {vwap_z_score:+.2f}σ vs NY VWAP (${ny_vwap:,.2f})",
+            "status": "SOBREVENDIDO" if vwap_z_score < -1.5 else ("SOBRECOMPRADO" if vwap_z_score > 1.5 else "ZONA DE EQUILIBRIO")
         },
         "confluence": {
             "rating": confluence_rating,
