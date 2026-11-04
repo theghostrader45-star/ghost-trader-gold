@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Ghost Trader Gold Institutional"
 #property link      "https://ghost-trader-gold.onrender.com"
-#property version   "1.10"
+#property version   "1.20"
 #property description "Puente de transmisión en tiempo real de tick, velas M5/H1 y sincronización automática de operaciones hacia la Bitácora Real"
 #property description "IMPORTANTE: En MT5 ve a Herramientas -> Opciones -> Asesores Expertos y activa 'Permitir WebRequest' agregando tu URL."
 
@@ -19,7 +19,7 @@ input string   InpSymbolGold   = "XAUUSD"; // Símbolo del Oro en tu broker (ej:
 input string   InpSymbolEuro   = "EURUSD"; // Símbolo del Euro en tu broker (ej: EURUSD)
 input int      InpBarsCountM5  = 60;       // Velas M5 a enviar
 input int      InpBarsCountH1  = 30;       // Velas H1 a enviar
-input int      InpHistoryDays  = 14;       // Días de historial a sincronizar con la Bitácora
+input int      InpHistoryDays  = 365;      // Días de historial a sincronizar con la Bitácora (365 = 1 año)
 
 //--- Variables Globales
 datetime g_last_send = 0;
@@ -29,7 +29,7 @@ datetime g_last_send = 0;
 //+------------------------------------------------------------------+
 int OnInit()
 {
-   Print("🟢 [GhostBridge] Iniciando puente de datos y bitácora automática hacia: ", InpServerUrl);
+   Print("🟢 [GhostBridge v1.20] Iniciando puente de datos y bitácora automática hacia: ", InpServerUrl);
    EventSetTimer(InpTimerSeconds);
    
    // Verificar que los símbolos estén en Market Watch
@@ -100,28 +100,66 @@ string BuildCandlesJson(string symbol, ENUM_TIMEFRAMES tf, int count)
 }
 
 //+------------------------------------------------------------------+
+//| Extraer Depósito Inicial de la Cuenta                            |
+//+------------------------------------------------------------------+
+double GetAccountInitialDeposit()
+{
+   if(!HistorySelect(0, TimeCurrent() + 86400)) return 0.0;
+   int total = HistoryDealsTotal();
+   for(int i = 0; i < total; i++)
+   {
+      ulong t = HistoryDealGetTicket(i);
+      if(t > 0 && HistoryDealGetInteger(t, DEAL_TYPE) == DEAL_TYPE_BALANCE)
+      {
+         double p = HistoryDealGetDouble(t, DEAL_PROFIT);
+         if(p > 0) return p;
+      }
+   }
+   return 0.0;
+}
+
+//+------------------------------------------------------------------+
 //| Extraer Historial de Operaciones Cerradas para la Bitácora Real  |
 //+------------------------------------------------------------------+
 string BuildClosedDealsJson(int days_back)
 {
-   datetime from_time = TimeCurrent() - days_back * 86400;
-   datetime to_time   = TimeCurrent() + 60;
+   datetime from_time = (days_back > 0) ? (TimeCurrent() - (datetime)days_back * 86400) : 0;
+   datetime to_time   = TimeCurrent() + 86400;
    
    if(!HistorySelect(from_time, to_time))
       return "[]";
       
    int total_deals = HistoryDealsTotal();
-   string json = "[";
-   int count = 0;
+   if(total_deals <= 0) return "[]";
+   
+   // 1. Recopilar tickets de salida en un array para evitar que HistorySelectByPosition
+   // altere el contexto global de HistoryDealsTotal
+   ulong out_tickets[];
+   ArrayResize(out_tickets, 0);
    
    for(int i = 0; i < total_deals; i++)
    {
-      ulong deal_ticket = HistoryDealGetTicket(i);
-      if(deal_ticket == 0) continue;
-      
-      long entry = HistoryDealGetInteger(deal_ticket, DEAL_ENTRY);
-      // Solo operaciones cerradas (DEAL_ENTRY_OUT o DEAL_ENTRY_INOUT)
-      if(entry != DEAL_ENTRY_OUT && entry != DEAL_ENTRY_INOUT) continue;
+      ulong ticket = HistoryDealGetTicket(i);
+      if(ticket == 0) continue;
+      long entry = HistoryDealGetInteger(ticket, DEAL_ENTRY);
+      if(entry == DEAL_ENTRY_OUT || entry == DEAL_ENTRY_INOUT || entry == DEAL_ENTRY_OUT_BY)
+      {
+         int sz = ArraySize(out_tickets);
+         ArrayResize(out_tickets, sz + 1);
+         out_tickets[sz] = ticket;
+      }
+   }
+   
+   int out_count = ArraySize(out_tickets);
+   if(out_count == 0) return "[]";
+   
+   string json = "[";
+   int valid_count = 0;
+   
+   for(int i = 0; i < out_count; i++)
+   {
+      ulong deal_ticket = out_tickets[i];
+      if(!HistoryDealSelect(deal_ticket)) continue;
       
       string symbol   = HistoryDealGetString(deal_ticket, DEAL_SYMBOL);
       double volume   = HistoryDealGetDouble(deal_ticket, DEAL_VOLUME);
@@ -136,6 +174,7 @@ string BuildClosedDealsJson(int days_back)
       datetime open_t  = close_t;
       string direction = "BUY";
       
+      // Consultar la posición para obtener el precio de entrada y hora original
       if(HistorySelectByPosition(pos_id))
       {
          int p_deals = HistoryDealsTotal();
@@ -153,26 +192,23 @@ string BuildClosedDealsJson(int days_back)
          }
       }
       
-      if(count > 0) json += ",";
+      if(valid_count > 0) json += ",";
       
-      string deal_item = StringFormat(
-         "{\"ticket\":%d,\"pos_id\":%d,\"symbol\":\"%s\",\"direction\":\"%s\",\"open_time\":\"%s\",\"close_time\":\"%s\",\"open_price\":%.5f,\"close_price\":%.5f,\"volume\":%.2f,\"profit\":%.2f,\"commission\":%.2f,\"swap\":%.2f}",
-         (long)deal_ticket,
-         (long)pos_id,
-         symbol,
-         direction,
-         TimeToString(open_t, TIME_DATE|TIME_MINUTES),
-         TimeToString(close_t, TIME_DATE|TIME_MINUTES),
-         entry_px,
-         exit_px,
-         volume,
-         profit,
-         comm,
-         swap
-      );
-      
+      string deal_item = "{\"ticket\":" + IntegerToString((long)deal_ticket) +
+                         ",\"pos_id\":" + IntegerToString((long)pos_id) +
+                         ",\"symbol\":\"" + symbol + "\"" +
+                         ",\"direction\":\"" + direction + "\"" +
+                         ",\"open_time\":\"" + TimeToString(open_t, TIME_DATE|TIME_MINUTES) + "\"" +
+                         ",\"close_time\":\"" + TimeToString(close_t, TIME_DATE|TIME_MINUTES) + "\"" +
+                         ",\"open_price\":" + DoubleToString(entry_px, 5) +
+                         ",\"close_price\":" + DoubleToString(exit_px, 5) +
+                         ",\"volume\":" + DoubleToString(volume, 2) +
+                         ",\"profit\":" + DoubleToString(profit, 2) +
+                         ",\"commission\":" + DoubleToString(comm, 2) +
+                         ",\"swap\":" + DoubleToString(swap, 2) + "}";
+                         
       json += deal_item;
-      count++;
+      valid_count++;
    }
    
    json += "]";
@@ -192,6 +228,7 @@ void SendMarketDataToDashboard()
    string currency = AccountInfoString(ACCOUNT_CURRENCY);
    string company  = AccountInfoString(ACCOUNT_COMPANY);
    long   leverage = AccountInfoInteger(ACCOUNT_LEVERAGE);
+   double init_dep = GetAccountInitialDeposit();
 
    // 2. Precios y Spreads XAUUSD
    double xau_bid = SymbolInfoDouble(InpSymbolGold, SYMBOL_BID);
@@ -211,8 +248,8 @@ void SendMarketDataToDashboard()
 
    // 5. Armar Payload JSON Completo
    string json_payload = "{\n";
-   json_payload += StringFormat("  \"account\": {\"balance\": %.2f, \"equity\": %.2f, \"currency\": \"%s\", \"company\": \"%s\", \"leverage\": %d},\n",
-                                balance, equity, currency, company, leverage);
+   json_payload += StringFormat("  \"account\": {\"balance\": %.2f, \"equity\": %.2f, \"currency\": \"%s\", \"company\": \"%s\", \"leverage\": %d, \"initial_deposit\": %.2f},\n",
+                                balance, equity, currency, company, leverage, init_dep);
    json_payload += StringFormat("  \"closed_deals\": %s,\n", closed_deals_json);
    json_payload += "  \"symbols\": {\n";
    
@@ -242,7 +279,7 @@ void SendMarketDataToDashboard()
       static datetime last_log = 0;
       if(TimeCurrent() - last_log > 30)
       {
-         Print("✅ [GhostBridge] Sincronizado exitosamente: Velas en vivo & Bitácora Real actualizadas");
+         Print("✅ [GhostBridge v1.20] Sincronizado exitosamente: Velas en vivo & Bitácora Real actualizadas");
          last_log = TimeCurrent();
       }
    }

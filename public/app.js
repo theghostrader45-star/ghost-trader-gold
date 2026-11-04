@@ -1103,7 +1103,18 @@ function renderRealJournalDashboard() {
   const realStatTotalOpsBadge = document.getElementById('realStatTotalOpsBadge');
   if (realStatTotalOpsBadge) realStatTotalOpsBadge.textContent = total;
   document.getElementById('realStatBalance').textContent = `$${curBal.toFixed(2)}`;
-  document.getElementById('realStatInitBal').textContent = Number(cfg.initial_balance || 110.0).toFixed(2);
+  const initBalVal = s.initial_balance !== undefined ? s.initial_balance : (cfg.initial_balance || 110.0);
+  document.getElementById('realStatInitBal').textContent = Number(initBalVal).toFixed(2);
+  
+  const badgeRealMt5 = document.getElementById('badgeRealMt5');
+  if (badgeRealMt5) {
+    if (s.mt5_connected) {
+      badgeRealMt5.textContent = `🟢 MT5 (${s.broker || 'Tickmill'})`;
+      badgeRealMt5.classList.remove('hidden');
+    } else {
+      badgeRealMt5.classList.add('hidden');
+    }
+  }
   
   const pnlSign = netPnl >= 0 ? '+' : '';
   const netPnlEl = document.getElementById('realStatNetPnL');
@@ -5700,8 +5711,11 @@ function copyRadarSetupToCalculator() {
 let selectedScannerAsset = 'XAUUSD';
 let selectedRiskPct = 1.0;
 let lastDualSignalsData = null;
-let lastTriggerStateXau = null;
-let lastTriggerStateEur = null;
+let lastTriggerIdXau = null;
+let lastTriggerIdEur = null;
+let lastChimeTimeXau = 0;
+let lastChimeTimeEur = 0;
+const TRIGGER_CHIME_COOLDOWN_MS = 180000; // 3 minutos de silencio mínimo entre alertas para el mismo activo
 let dualTerminalListenersAttached = false;
 let audioContext = null;
 
@@ -5985,12 +5999,15 @@ function renderDualSignals(data) {
     if (bslPool && x.bsl_pool) bslPool.textContent = `$${x.bsl_pool.toFixed(2)}`;
     if (sslPool && x.ssl_pool) sslPool.textContent = `$${x.ssl_pool.toFixed(2)}`;
 
-    // Sound chime when state triggers
-    if (x.state === "TRIGGER_CONFIRMED" && lastTriggerStateXau !== "TRIGGER_CONFIRMED") {
+    // Sound chime ONLY when a genuine NEW trigger_id is confirmed and cooldown has passed
+    const nowMs = Date.now();
+    const xauTriggerId = x.trigger_id || (x.state === "TRIGGER_CONFIRMED" ? `XAU_${x.ticket?.action}_${x.ticket?.entry}` : null);
+    if (x.state === "TRIGGER_CONFIRMED" && xauTriggerId && xauTriggerId !== lastTriggerIdXau && (nowMs - lastChimeTimeXau > TRIGGER_CHIME_COOLDOWN_MS)) {
+      lastTriggerIdXau = xauTriggerId;
+      lastChimeTimeXau = nowMs;
       playTriggerChime();
-      showToast("🎯 ¡GATILLO CONFIRMADO EN XAU/USD (ORO)! Abre tu MT5 y coloca los parámetros.", "success", 6000);
+      showToast("🎯 ¡GATILLO CONFIRMADO EN XAU/USD (ORO)! Abre tu MT5 y coloca los parámetros.", "success", 7000);
     }
-    lastTriggerStateXau = x.state;
   }
 
   // 3. Render EUR/USD (Felipe López Price Action)
@@ -6048,12 +6065,14 @@ function renderDualSignals(data) {
     }
     if (structDesc && e.structure_desc) structDesc.textContent = e.structure_desc;
 
-    // Sound chime when state triggers
-    if (e.state === "TRIGGER_CONFIRMED" && lastTriggerStateEur !== "TRIGGER_CONFIRMED") {
+    // Sound chime ONLY when a genuine NEW trigger_id is confirmed and cooldown has passed
+    const eurTriggerId = e.trigger_id || (e.state === "TRIGGER_CONFIRMED" ? `EUR_${e.ticket?.action}_${e.ticket?.entry}` : null);
+    if (e.state === "TRIGGER_CONFIRMED" && eurTriggerId && eurTriggerId !== lastTriggerIdEur && (nowMs - lastChimeTimeEur > TRIGGER_CHIME_COOLDOWN_MS)) {
+      lastTriggerIdEur = eurTriggerId;
+      lastChimeTimeEur = nowMs;
       playTriggerChime();
-      showToast("🎯 ¡GATILLO CONFIRMADO EN EUR/USD! Abre tu MT5 y coloca los parámetros.", "success", 6000);
+      showToast("🎯 ¡GATILLO CONFIRMADO EN EUR/USD! Abre tu MT5 y coloca los parámetros.", "success", 7000);
     }
-    lastTriggerStateEur = e.state;
   }
 
   initIcons();

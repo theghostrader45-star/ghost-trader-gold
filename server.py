@@ -663,6 +663,18 @@ def recalculate_trade_history(trades, config, mode="backtest"):
     and the given risk_pct and rr_ratio, without losing any trade or outcome fact.
     """
     initial_balance = float(config.get("initial_balance", 110.0))
+    if mode == "real":
+        try:
+            from engine_strategies import mt5_store
+            if mt5_store.get("connected") and float(mt5_store.get("account", {}).get("balance", 0.0)) > 0:
+                mt5_bal = float(mt5_store["account"]["balance"])
+                total_pnl = sum(float(t.get("pnl", 0.0)) for t in trades)
+                implied_init = round(mt5_bal - total_pnl, 2)
+                if implied_init > 0:
+                    initial_balance = implied_init
+        except Exception:
+            pass
+
     risk_pct = float(config.get("risk_pct", 5.0))
     global_rr = float(config.get("rr_ratio", 1.0))
     leverage = float(config.get("leverage", 300))
@@ -781,6 +793,22 @@ def recalculate_trade_history(trades, config, mode="backtest"):
 
 def calculate_analytics(trades, config, mode="backtest"):
     initial_balance = float(config.get("initial_balance", 110.0))
+    mt5_conn = False
+    mt5_broker = ""
+    if mode == "real":
+        try:
+            from engine_strategies import mt5_store
+            if mt5_store.get("connected") and float(mt5_store.get("account", {}).get("balance", 0.0)) > 0:
+                mt5_conn = True
+                mt5_broker = mt5_store.get("account", {}).get("company", "MetaTrader 5")
+                mt5_bal = float(mt5_store["account"]["balance"])
+                total_pnl = sum(float(t.get("pnl", 0.0)) for t in trades)
+                implied_init = round(mt5_bal - total_pnl, 2)
+                if implied_init > 0:
+                    initial_balance = implied_init
+        except Exception:
+            pass
+
     leverage = float(config.get("leverage", 300))
     
     current_balance = initial_balance
@@ -961,6 +989,8 @@ def calculate_analytics(trades, config, mode="backtest"):
         "summary": {
             "initial_balance": round(initial_balance, 2),
             "current_balance": round(current_balance, 2),
+            "mt5_connected": mt5_conn,
+            "broker": mt5_broker,
             "net_pnl": round(net_pnl, 2),
             "net_return_pct": round(net_return_pct, 2),
             "total_trades": total_closed,

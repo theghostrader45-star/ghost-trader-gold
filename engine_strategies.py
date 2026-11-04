@@ -380,18 +380,21 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
                     displacement_candle = c2
 
     # 3. Mitigation & Rejection Trigger
-    last_candle = recent_m5[-1]
-    prev_candle = recent_m5[-2]
-    last_range = last_candle["high"] - last_candle["low"]
-    lower_wick = min(last_candle["open"], last_candle["close"]) - last_candle["low"]
-    upper_wick = last_candle["high"] - max(last_candle["open"], last_candle["close"])
-    lower_wick_ratio = (lower_wick / last_range) if last_range > 0 else 0
-    upper_wick_ratio = (upper_wick / last_range) if last_range > 0 else 0
+    # In institutional SMC and Price Action, confirmation of entry is strictly evaluated
+    # on the LAST CLOSED candle (recent_m5[-2]), preventing erratic flickering on the forming candle (recent_m5[-1]).
+    last_closed = recent_m5[-2]
+    prev_closed = recent_m5[-3]
+    closed_range = last_closed["high"] - last_closed["low"]
+    closed_lower_wick = min(last_closed["open"], last_closed["close"]) - last_closed["low"]
+    closed_upper_wick = last_closed["high"] - max(last_closed["open"], last_closed["close"])
+    lower_wick_ratio = (closed_lower_wick / closed_range) if closed_range > 0 else 0
+    upper_wick_ratio = (closed_upper_wick / closed_range) if closed_range > 0 else 0
 
     state = "WAITING_DISPLACEMENT"
     badge = "🟡 ESPERANDO DESPLAZAMIENTO INSTITUCIONAL (1H/5m)"
     status_desc = "El mercado está oscilando sin imprimir un desbalance claro de 3 velas. Esperar que aparezca un FVG."
     ticket = None
+    trigger_id = None
 
     if detected_fvg:
         fvg_top = detected_fvg["top"]
@@ -399,20 +402,21 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
         fvg_ce = detected_fvg["ce_50"]
         fvg_type = detected_fvg["type"]
 
-        # Check if current price is in or near FVG
+        # Check if the closed candle or current price touched / mitigated the FVG
+        closed_touched_fvg_bull = (last_closed["low"] <= fvg_top + 0.50) and (last_closed["high"] >= fvg_bottom - 0.50)
+        closed_touched_fvg_bear = (last_closed["high"] >= fvg_bottom - 0.50) and (last_closed["low"] <= fvg_top + 0.50)
         price_in_fvg = (fvg_bottom - 1.0) <= current_price <= (fvg_top + 1.0)
 
         if fvg_type == "BULLISH" and htf_bias in ["BULLISH", "RANGING"]:
-            if price_in_fvg:
-                # Check for rejection or bullish momentum
-                if lower_wick_ratio >= 0.35 or last_candle["close"] > last_candle["open"]:
-                    state = "TRIGGER_CONFIRMED"
-                    badge = "🎯 ¡GATILLO CONFIRMADO: MITIGACIÓN FVG + RECHAZO!"
-                    status_desc = f"El Oro mitigó el Fair Value Gap (${fvg_bottom:.2f}–${fvg_top:.2f}) y cerró con absorción institucional. Entrada lista."
-                else:
-                    state = "IN_FVG_ZONE"
-                    badge = "⚡ EN ZONA DE FVG · ESPERANDO VELA DE RECHAZO"
-                    status_desc = f"Precio dentro del FVG (${fvg_bottom:.2f} - ${fvg_top:.2f}). Esperando confirmación de mecha inferior en M5."
+            if closed_touched_fvg_bull and (lower_wick_ratio >= 0.30 or (last_closed["close"] > last_closed["open"] and last_closed["close"] >= fvg_top)):
+                state = "TRIGGER_CONFIRMED"
+                badge = "🎯 ¡GATILLO CONFIRMADO: MITIGACIÓN FVG + RECHAZO EN VELA CERRADA!"
+                status_desc = f"El Oro mitigó el Fair Value Gap (${fvg_bottom:.2f}–${fvg_top:.2f}) y cerró vela M5 con absorción institucional. Entrada lista."
+                trigger_id = f"XAU_BUY_{int(fvg_top*100)}_{last_closed['time']}"
+            elif price_in_fvg:
+                state = "IN_FVG_ZONE"
+                badge = "⚡ EN ZONA DE FVG · ESPERANDO CIERRE DE VELA DE RECHAZO"
+                status_desc = f"Precio dentro del FVG (${fvg_bottom:.2f} - ${fvg_top:.2f}). Esperando confirmación al cierre de vela M5."
             else:
                 state = "WAITING_MITIGATION"
                 badge = "⏳ FVG ALCISTA VIGENTE · ESPERANDO RETROCESO (DESCUENTO)"
@@ -430,8 +434,6 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
             tp2_price = round(entry_price + (sl_dist_usd * 3.0), 2)
 
             risk_dollar = balance * (risk_pct / 100.0)
-            # Gold: 1 lot = 100 oz -> $1 move = $100 per lot
-            # Lot = Risk$ / (SL_dist * 100)
             exact_lot = risk_dollar / (sl_dist_usd * 100.0)
             suggested_lot = max(0.01, round(exact_lot, 2))
 
@@ -448,19 +450,20 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
                 "risk_usd": round(risk_dollar, 2),
                 "suggested_lot": suggested_lot,
                 "strategy": "Toni Maura SMC (FVG + 1H Bias)",
-                "state": state
+                "state": state,
+                "trigger_id": trigger_id
             }
 
         elif fvg_type == "BEARISH" and htf_bias in ["BEARISH", "RANGING"]:
-            if price_in_fvg:
-                if upper_wick_ratio >= 0.35 or last_candle["close"] < last_candle["open"]:
-                    state = "TRIGGER_CONFIRMED"
-                    badge = "🎯 ¡GATILLO CONFIRMADO: MITIGACIÓN FVG + RECHAZO!"
-                    status_desc = f"El Oro mitigó el Fair Value Gap (${fvg_top:.2f}–${fvg_bottom:.2f}) y cerró con absorción vendedora. Entrada lista."
-                else:
-                    state = "IN_FVG_ZONE"
-                    badge = "⚡ EN ZONA DE FVG · ESPERANDO VELA DE RECHAZO"
-                    status_desc = f"Precio dentro del FVG (${fvg_bottom:.2f} - ${fvg_top:.2f}). Esperando confirmación de mecha superior en M5."
+            if closed_touched_fvg_bear and (upper_wick_ratio >= 0.30 or (last_closed["close"] < last_closed["open"] and last_closed["close"] <= fvg_bottom)):
+                state = "TRIGGER_CONFIRMED"
+                badge = "🎯 ¡GATILLO CONFIRMADO: MITIGACIÓN FVG + RECHAZO EN VELA CERRADA!"
+                status_desc = f"El Oro mitigó el Fair Value Gap (${fvg_top:.2f}–${fvg_bottom:.2f}) y cerró vela M5 con absorción vendedora. Entrada lista."
+                trigger_id = f"XAU_SELL_{int(fvg_bottom*100)}_{last_closed['time']}"
+            elif price_in_fvg:
+                state = "IN_FVG_ZONE"
+                badge = "⚡ EN ZONA DE FVG · ESPERANDO CIERRE DE VELA DE RECHAZO"
+                status_desc = f"Precio dentro del FVG (${fvg_bottom:.2f} - ${fvg_top:.2f}). Esperando confirmación al cierre de vela M5."
             else:
                 state = "WAITING_MITIGATION"
                 badge = "⏳ FVG BAJISTA VIGENTE · ESPERANDO RETROCESO (PREMIUM)"
@@ -493,7 +496,8 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
                 "risk_usd": round(risk_dollar, 2),
                 "suggested_lot": suggested_lot,
                 "strategy": "Toni Maura SMC (FVG + 1H Bias)",
-                "state": state
+                "state": state,
+                "trigger_id": trigger_id
             }
 
     # Default ticket if no active FVG
@@ -529,6 +533,7 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
         "ssl_pool": round(ssl_pool, 2),
         "detected_fvg": detected_fvg,
         "state": state,
+        "trigger_id": trigger_id,
         "badge": badge,
         "status_desc": status_desc,
         "ticket": ticket
@@ -607,25 +612,26 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
     }
 
     # 3. Breakout, Retest & Gatillo Analysis
-    last_candle = recent[-1]
-    prev_candle = recent[-2]
-    c_range = last_candle["high"] - last_candle["low"]
-    c_body = abs(last_candle["close"] - last_candle["open"])
-    lower_wick = min(last_candle["open"], last_candle["close"]) - last_candle["low"]
-    upper_wick = last_candle["high"] - max(last_candle["open"], last_candle["close"])
+    # Strictly evaluated on the LAST CLOSED candle (recent[-2]) to prevent intra-candle tick flickering
+    last_closed = recent[-2]
+    prev_closed = recent[-3]
+    c_range = last_closed["high"] - last_closed["low"]
+    c_body = abs(last_closed["close"] - last_closed["open"])
+    lower_wick = min(last_closed["open"], last_closed["close"]) - last_closed["low"]
+    upper_wick = last_closed["high"] - max(last_closed["open"], last_closed["close"])
 
-    is_engulfing_bull = (last_candle["close"] > last_candle["open"] and 
-                         prev_candle["close"] < prev_candle["open"] and 
-                         last_candle["close"] > prev_candle["open"] and 
-                         c_body > 0.00025)
+    is_engulfing_bull = (last_closed["close"] > last_closed["open"] and 
+                         prev_closed["close"] < prev_closed["open"] and 
+                         last_closed["close"] > prev_closed["open"] and 
+                         c_body > 0.00020)
 
-    is_engulfing_bear = (last_candle["close"] < last_candle["open"] and 
-                         prev_candle["close"] > prev_candle["open"] and 
-                         last_candle["close"] < prev_candle["open"] and 
-                         c_body > 0.00025)
+    is_engulfing_bear = (last_closed["close"] < last_closed["open"] and 
+                         prev_closed["close"] > prev_closed["open"] and 
+                         last_closed["close"] < prev_closed["open"] and 
+                         c_body > 0.00020)
 
-    rejection_bull = (lower_wick / c_range >= 0.40) if c_range > 0 else False
-    rejection_bear = (upper_wick / c_range >= 0.40) if c_range > 0 else False
+    rejection_bull = (lower_wick / c_range >= 0.35) if c_range > 0 else False
+    rejection_bear = (upper_wick / c_range >= 0.35) if c_range > 0 else False
 
     # Distance to key zone in pips
     dist_to_zone_pips = round(abs(current_price - key_zone["center"]) * 10000, 1)
@@ -634,18 +640,20 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
     badge = "⏳ ESPERANDO RUPTURA O RETESTEO A ZONA DE REACCIÓN"
     status_desc = f"Zona de reacción clave detectada en {key_zone['center']:.5f} ({key_zone['touches']} toques). Esperando confirmación."
     ticket = None
+    trigger_id = None
 
     # Scenario Bullish: Price broke above zone, now retesting zone
     if structure == "BULLISH":
         if dist_to_zone_pips <= 2.5: # Retesting the zone
             if is_engulfing_bull or rejection_bull:
                 state = "TRIGGER_CONFIRMED"
-                badge = "🎯 ¡GATILLO CONFIRMADO: RETESTEO + RECHAZO EN ZONA!"
-                status_desc = f"EUR/USD retesteó la zona {key_zone['center']:.5f} e imprimió confirmación por mecha/envolvente. Entrada en compras."
+                badge = "🎯 ¡GATILLO CONFIRMADO: RETESTEO + RECHAZO EN VELA CERRADA!"
+                status_desc = f"EUR/USD retesteó la zona {key_zone['center']:.5f} y cerró vela M5 con confirmación alcista. Entrada lista."
+                trigger_id = f"EUR_BUY_{int(key_zone['center']*100000)}_{last_closed['time']}"
             else:
                 state = "IN_RETEST_ZONE"
-                badge = "⚡ RETESTEANDO ZONA DE REACCIÓN · ESPERANDO VELA DE CONFIRMACIÓN"
-                status_desc = f"El precio está en la zona ({key_zone['center']:.5f}). Esperando que cierre vela M5 con mecha de rechazo o envolvente."
+                badge = "⚡ RETESTEANDO ZONA DE REACCIÓN · ESPERANDO CIERRE DE VELA"
+                status_desc = f"El precio está en la zona ({key_zone['center']:.5f}). Esperando confirmación al cierre de vela M5."
         elif current_price > key_zone["top"]:
             state = "WAITING_RETEST"
             badge = "⏳ RUPTURA ALCISTA REALIZADA · ESPERANDO RETESTEO A LA ZONA"
@@ -663,8 +671,6 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
         tp2_price = round(entry_price + (sl_pips * 3.0 / 10000.0), 5)
 
         risk_dollar = balance * (risk_pct / 100.0)
-        # EURUSD: 1 standard lot = $10 per pip
-        # Lot = Risk$ / (SL_pips * 10)
         exact_lot = risk_dollar / (sl_pips * 10.0)
         suggested_lot = max(0.01, round(exact_lot, 2))
 
@@ -680,19 +686,21 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
             "risk_usd": round(risk_dollar, 2),
             "suggested_lot": suggested_lot,
             "strategy": "Felipe López (Estructura + Zona + Retesteo)",
-            "state": state
+            "state": state,
+            "trigger_id": trigger_id
         }
 
     elif structure == "BEARISH":
         if dist_to_zone_pips <= 2.5:
             if is_engulfing_bear or rejection_bear:
                 state = "TRIGGER_CONFIRMED"
-                badge = "🎯 ¡GATILLO CONFIRMADO: RETESTEO + RECHAZO EN ZONA!"
-                status_desc = f"EUR/USD retesteó la zona {key_zone['center']:.5f} e imprimió confirmación vendedora. Entrada en ventas."
+                badge = "🎯 ¡GATILLO CONFIRMADO: RETESTEO + RECHAZO EN VELA CERRADA!"
+                status_desc = f"EUR/USD retesteó la zona {key_zone['center']:.5f} y cerró vela M5 con confirmación bajista. Entrada lista."
+                trigger_id = f"EUR_SELL_{int(key_zone['center']*100000)}_{last_closed['time']}"
             else:
                 state = "IN_RETEST_ZONE"
-                badge = "⚡ RETESTEANDO ZONA DE REACCIÓN · ESPERANDO VELA DE CONFIRMACIÓN"
-                status_desc = f"El precio está en la zona ({key_zone['center']:.5f}). Esperando que cierre vela M5 con mecha superior o envolvente bajista."
+                badge = "⚡ RETESTEANDO ZONA DE REACCIÓN · ESPERANDO CIERRE DE VELA"
+                status_desc = f"El precio está en la zona ({key_zone['center']:.5f}). Esperando confirmación al cierre de vela M5."
         elif current_price < key_zone["bottom"]:
             state = "WAITING_RETEST"
             badge = "⏳ RUPTURA BAJISTA REALIZADA · ESPERANDO RETESTEO A LA ZONA"
@@ -725,7 +733,8 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
             "risk_usd": round(risk_dollar, 2),
             "suggested_lot": suggested_lot,
             "strategy": "Felipe López (Estructura + Zona + Retesteo)",
-            "state": state
+            "state": state,
+            "trigger_id": trigger_id
         }
 
     # Default ticket if ranging
@@ -760,6 +769,7 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
         "key_zone": key_zone,
         "all_zones": cluster_zones[:4],
         "state": state,
+        "trigger_id": trigger_id,
         "badge": badge,
         "status_desc": status_desc,
         "ticket": ticket
