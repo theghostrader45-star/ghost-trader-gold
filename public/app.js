@@ -3059,9 +3059,11 @@ function updateMacroQuantIntelligence(data) {
     const tp = document.getElementById("confActionTP");
 
     if (dir && c.direction) dir.textContent = c.direction;
-    if (trig && c.entry_zone) trig.textContent = `Retesteo a ${c.entry_zone}`;
-    if (sl && c.stop_loss) sl.textContent = `${c.stop_loss} (~1,800 a 2,000 pts)`;
-    if (tp && c.take_profit) tp.textContent = `${c.take_profit} (R:R ${c.rr_target || '1:2.9'})`;
+    if (trig && c.entry_zone) trig.textContent = `Retesteo a FVG (${c.entry_zone})`;
+    if (sl && c.stop_loss) sl.textContent = `${c.stop_loss} (Sobre Order Block / 1,800 pts)`;
+    if (tp) {
+      tp.textContent = `TP1: $${c.take_profit_1 || '3,875'} (1:1.8) | TP2: $${c.take_profit || '3,850'} (R:R ${c.rr_target || '1:3.2'})`;
+    }
   }
 
   // 8. Botón Cargar Parámetros en Calculadora Myfxbook
@@ -3070,7 +3072,7 @@ function updateMacroQuantIntelligence(data) {
     btnLoadCalc.onclick = () => {
       const slInput = document.getElementById("calcStopLoss");
       const riskInput = document.getElementById("calcRiskPct");
-      if (slInput) slInput.value = "2000";
+      if (slInput) slInput.value = "1800";
       if (riskInput) riskInput.value = "5";
       if (typeof runMyfxbookCalculator === "function") {
         runMyfxbookCalculator();
