@@ -79,6 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   recalculateTradingViewValues();
   updateCalculatorBalances();
   loadGoldBiasData();
+  startM5RealTimeScanner();
 });
 
 function initIcons() {
@@ -206,6 +207,7 @@ function setupTabNavigation() {
       if (viewPrecision) viewPrecision.classList.remove('hidden');
       loadPrecisionRadarData();
       loadGoldBiasData();
+      triggerM5Scan();
       loadWeeklyNews();
     } else if (tab === 'gold_bias') {
       if (btnGoldBias) {
@@ -214,6 +216,7 @@ function setupTabNavigation() {
       }
       if (viewGoldBias) viewGoldBias.classList.remove('hidden');
       loadGoldBiasData();
+      triggerM5Scan();
       loadWeeklyNews();
     } else if (tab === 'calculator') {
       if (btnCalc) {
@@ -3091,29 +3094,339 @@ function updateMacroQuantIntelligence(data) {
 }
 
 // -------------------------------------------------------------
-// Control del Régimen de Estructura M5 (Rango vs Rupturas)
+// Escáner Algorítmico M5 Autónomo en Tiempo Real (XAU/USD)
 // -------------------------------------------------------------
+let m5ScanInterval = null;
+let autoScanActive = true;
 let currentM5StateKey = "in_range";
 let m5StateListenersAttached = false;
+let lastM5ScanData = null;
 
 function setupM5StateListeners() {
   if (m5StateListenersAttached) return;
 
-  const btnRange = document.getElementById("btnM5StateRange");
-  const btnDown = document.getElementById("btnM5StateDown");
-  const btnUp = document.getElementById("btnM5StateUp");
-
-  if (btnRange) {
-    btnRange.addEventListener("click", () => setM5MarketState("in_range"));
-  }
-  if (btnDown) {
-    btnDown.addEventListener("click", () => setM5MarketState("breakout_down"));
-  }
-  if (btnUp) {
-    btnUp.addEventListener("click", () => setM5MarketState("breakout_up"));
+  const selectMode = document.getElementById("selectScannerMode");
+  if (selectMode) {
+    selectMode.addEventListener("change", (e) => {
+      const val = e.target.value;
+      if (val === "auto") {
+        autoScanActive = true;
+        const statusPill = document.getElementById("scannerAutoStatus");
+        if (statusPill) {
+          statusPill.className = "px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold border border-emerald-500/40";
+          statusPill.textContent = "🟢 RASTREANDO CADA 5s";
+        }
+        triggerM5Scan();
+      } else {
+        autoScanActive = false;
+        const statusPill = document.getElementById("scannerAutoStatus");
+        if (statusPill) {
+          statusPill.className = "px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold border border-amber-500/40";
+          statusPill.textContent = "🟡 MODO SIMULACIÓN MANUAL";
+        }
+        setM5MarketState(val);
+      }
+    });
   }
 
   m5StateListenersAttached = true;
+}
+
+function startM5RealTimeScanner() {
+  setupM5StateListeners();
+  if (m5ScanInterval) clearInterval(m5ScanInterval);
+
+  // Ejecución inmediata inicial
+  triggerM5Scan();
+
+  // Escaneo continuo cada 5 segundos
+  m5ScanInterval = setInterval(() => {
+    if (autoScanActive) {
+      triggerM5Scan();
+    }
+  }, 5000);
+}
+
+async function triggerM5Scan() {
+  try {
+    const res = await fetch("/api/m5-scanner");
+    if (!res.ok) return;
+    const scan = await res.json();
+    if (!scan || scan.status !== "success") return;
+    lastM5ScanData = scan;
+    renderM5ScanResults(scan);
+  } catch (err) {
+    console.error("Error en escaneo M5:", err);
+  }
+}
+
+function renderM5ScanResults(scan) {
+  if (!scan) return;
+
+  // 1. Telemetría del Escáner
+  const livePrice = document.getElementById("scannerLivePrice");
+  const scanTime = document.getElementById("scannerScanTime");
+  const zoneDesc = document.getElementById("scannerZoneDesc");
+  const distExtremes = document.getElementById("scannerDistToExtremes");
+  const zoneAlert = document.getElementById("scannerZoneAlert");
+
+  if (livePrice && scan.current_price) {
+    livePrice.textContent = `$${scan.current_price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+  if (scanTime && scan.scanned_at) {
+    scanTime.textContent = scan.scanned_at;
+  }
+  if (zoneDesc && scan.zone_desc) {
+    zoneDesc.textContent = scan.zone_desc;
+  }
+  if (distExtremes && scan.m5_range) {
+    distExtremes.textContent = `Precio: $${scan.current_price.toFixed(2)} · A ${scan.m5_range.pct_position}% del Rango M5`;
+  }
+
+  // Color de Alerta de Zona
+  if (zoneAlert) {
+    if (scan.detected_state === "in_range") {
+      zoneAlert.className = "p-2.5 rounded-xl bg-yellow-950/40 border border-yellow-500/40 text-xs font-mono flex flex-wrap items-center justify-between gap-2 shadow-inner";
+    } else if (scan.detected_state === "breakout_down") {
+      zoneAlert.className = "p-2.5 rounded-xl bg-red-950/40 border border-red-500/50 text-xs font-mono flex flex-wrap items-center justify-between gap-2 shadow-inner";
+    } else {
+      zoneAlert.className = "p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/50 text-xs font-mono flex flex-wrap items-center justify-between gap-2 shadow-inner";
+    }
+  }
+
+  // 2. Card de Régimen M5
+  const regimeBadge = document.getElementById("m5RegimeBadge");
+  const regimeHeadline = document.getElementById("m5RegimeHeadline");
+  const regimeSummary = document.getElementById("m5RegimeSummary");
+  const rangeHigh = document.getElementById("m5RangeHigh");
+  const rangeLow = document.getElementById("m5RangeLow");
+  const rangeEQ = document.getElementById("m5RangeEQ");
+  const rangeWidth = document.getElementById("m5RangeWidth");
+  const rangeMarker = document.getElementById("m5RangeProgressMarker");
+  const monitorCard = document.getElementById("m5RangeMonitorCard");
+
+  if (regimeBadge && scan.detected_badge) {
+    regimeBadge.textContent = scan.detected_badge;
+    regimeBadge.className = scan.detected_state === "in_range"
+      ? "text-xs font-mono font-black px-2.5 py-0.5 rounded-md bg-yellow-500/20 text-yellow-300 border border-yellow-500/40"
+      : (scan.detected_state === "breakout_down"
+          ? "text-xs font-mono font-black px-2.5 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40"
+          : "text-xs font-mono font-black px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40");
+  }
+
+  if (regimeHeadline && scan.headline) regimeHeadline.textContent = scan.headline;
+  if (regimeSummary && scan.summary) regimeSummary.textContent = scan.summary;
+
+  if (scan.m5_range) {
+    if (rangeHigh) rangeHigh.textContent = `$${scan.m5_range.range_high.toFixed(2)}`;
+    if (rangeLow) rangeLow.textContent = `$${scan.m5_range.range_low.toFixed(2)}`;
+    if (rangeEQ) rangeEQ.textContent = `$${scan.m5_range.range_eq.toFixed(2)}`;
+    if (rangeWidth) {
+      rangeWidth.textContent = `${scan.m5_range.range_width_pts.toLocaleString("en-US")} pts (${scan.m5_range.range_width_usd})`;
+    }
+    if (rangeMarker && scan.m5_range.pct_position !== undefined) {
+      rangeMarker.style.left = `${scan.m5_range.pct_position}%`;
+      const innerDot = rangeMarker.querySelector("div");
+      if (innerDot) {
+        if (scan.detected_state === "in_range") {
+          innerDot.className = "w-4 h-4 rounded-full bg-yellow-400 border-2 border-black shadow-lg shadow-yellow-400/50 flex items-center justify-center";
+        } else if (scan.detected_state === "breakout_down") {
+          innerDot.className = "w-4 h-4 rounded-full bg-red-500 border-2 border-black shadow-lg shadow-red-500/50 flex items-center justify-center animate-ping";
+        } else {
+          innerDot.className = "w-4 h-4 rounded-full bg-emerald-400 border-2 border-black shadow-lg shadow-emerald-400/50 flex items-center justify-center animate-ping";
+        }
+      }
+    }
+  }
+
+  if (monitorCard) {
+    if (scan.detected_state === "in_range") {
+      monitorCard.className = "p-4 sm:p-5 rounded-xl bg-gradient-to-b from-gray-900/90 via-gray-950 to-amber-950/20 border-2 border-amber-500/40 space-y-4 shadow-xl transition-all";
+    } else if (scan.detected_state === "breakout_down") {
+      monitorCard.className = "p-4 sm:p-5 rounded-xl bg-gradient-to-b from-gray-900/90 via-gray-950 to-red-950/20 border-2 border-red-500/50 space-y-4 shadow-xl transition-all";
+    } else {
+      monitorCard.className = "p-4 sm:p-5 rounded-xl bg-gradient-to-b from-gray-900/90 via-gray-950 to-emerald-950/20 border-2 border-emerald-500/50 space-y-4 shadow-xl transition-all";
+    }
+  }
+
+  // 3. Tarjeta de Ruptura de Londres
+  const lbBadge = document.getElementById("londonStatusBadge");
+  const lbDetail = document.getElementById("londonBreakoutDetail");
+  const jsStatus = document.getElementById("judasSwingStatus");
+  if (lbBadge) {
+    if (scan.detected_state === "in_range") {
+      lbBadge.textContent = "🟡 EN RANGO";
+      lbBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-yellow-950 text-yellow-300 border border-yellow-800 font-bold";
+      if (lbDetail) lbDetail.textContent = `El precio comprime dentro del rango de M5 ($${scan.m5_range.range_low.toFixed(2)} – $${scan.m5_range.range_high.toFixed(2)}).`;
+      if (jsStatus) jsStatus.textContent = "Monitoreando extremos por posibles barridos de manipulación";
+    } else if (scan.detected_state === "breakout_down") {
+      lbBadge.textContent = "🔴 RUPTURA BAJISTA";
+      lbBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-bold";
+      if (lbDetail) lbDetail.textContent = `Ruptura bajista confirmada bajo $${scan.m5_range.range_low.toFixed(2)} con desplazamiento.`;
+      if (jsStatus) jsStatus.textContent = "No detectado (Ruptura limpia sostenida a favor de la macro)";
+    } else {
+      lbBadge.textContent = "🟢 RUPTURA ALCISTA";
+      lbBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold";
+      if (lbDetail) lbDetail.textContent = `Ruptura alcista sobre el techo de M5 ($${scan.m5_range.range_high.toFixed(2)}).`;
+      if (jsStatus) jsStatus.textContent = "Atención: posible barrido de liquidez alcista contra la macro";
+    }
+  }
+
+  // 4. Heikin Ashi M5 Escaneado en Vivo
+  const haBadge = document.getElementById("heikinAshiBadge");
+  const haCandles = document.getElementById("heikinAshiCandles");
+  const haDesc = document.getElementById("heikinAshiDesc");
+  if (scan.heikin_ashi) {
+    const ha = scan.heikin_ashi;
+    if (haBadge && ha.badge) {
+      haBadge.textContent = ha.badge;
+      haBadge.className = ha.flat_top 
+        ? "text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-bold"
+        : (ha.flat_bottom 
+            ? "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold"
+            : "text-[10px] font-mono px-2 py-0.5 rounded bg-yellow-950 text-yellow-300 border border-yellow-800 font-bold");
+    }
+    if (haCandles && ha.candles_label) {
+      haCandles.textContent = ha.candles_label;
+      haCandles.className = ha.flat_top 
+        ? "font-mono text-red-400 font-black" 
+        : (ha.flat_bottom ? "font-mono text-emerald-400 font-black" : "font-mono text-yellow-400 font-black");
+    }
+    if (haDesc && ha.desc) {
+      haDesc.textContent = ha.desc + ` (Mecha sup: ${ha.upper_wick.toFixed(2)}, Mecha inf: ${ha.lower_wick.toFixed(2)})`;
+    }
+  }
+
+  // 5. Squeeze Momentum LazyBear Escaneado en Vivo
+  const sqBadge = document.getElementById("squeezeStatusBadge");
+  const sqVal = document.getElementById("squeezeLinregVal");
+  const sqDesc = document.getElementById("squeezeDesc");
+  if (scan.squeeze_momentum) {
+    const sq = scan.squeeze_momentum;
+    if (sqBadge && sq.status_badge) {
+      sqBadge.textContent = sq.status_badge;
+      sqBadge.className = sq.sqz_on
+        ? "text-[10px] font-mono px-2 py-0.5 rounded bg-yellow-950 text-yellow-300 border border-yellow-800 font-bold"
+        : (scan.detected_state === "breakout_down"
+            ? "text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-bold"
+            : "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold");
+    }
+    if (sqVal) {
+      sqVal.textContent = sq.histogram_badge || `${sq.linreg_val} pts`;
+      sqVal.className = sq.linreg_val < 0 
+        ? "font-mono text-red-400 font-black" 
+        : (sq.linreg_val > 0 ? "font-mono text-emerald-400 font-black" : "font-mono text-yellow-400 font-black");
+    }
+    if (sqDesc && sq.desc) sqDesc.textContent = sq.desc;
+  }
+
+  // 6. Matriz de Confluencia: 4 Pills Dinámicos (Filtros 4, 5, 6, 7)
+  const p4Badge = document.getElementById("confPill4Badge");
+  const p4Title = document.getElementById("confPill4Title");
+  const p4Desc = document.getElementById("confPill4Desc");
+
+  const p5Badge = document.getElementById("confPill5Badge");
+  const p5Title = document.getElementById("confPill5Title");
+  const p5Desc = document.getElementById("confPill5Desc");
+
+  const p6Badge = document.getElementById("confPill6Badge");
+  const p6Title = document.getElementById("confPill6Title");
+  const p6Desc = document.getElementById("confPill6Desc");
+
+  const p7Badge = document.getElementById("confPill7Badge");
+  const p7Title = document.getElementById("confPill7Title");
+  const p7Desc = document.getElementById("confPill7Desc");
+
+  if (scan.detected_state === "in_range") {
+    if (p4Badge) { p4Badge.textContent = "🟡 EN RANGO M5"; p4Badge.className = "text-yellow-400 font-bold"; }
+    if (p4Title) p4Title.textContent = "COMPRESIÓN BSL/SSL";
+    if (p4Desc) p4Desc.textContent = `Rango M5 $${scan.m5_range.range_low.toFixed(2)} – $${scan.m5_range.range_high.toFixed(2)}.`;
+
+    if (p5Badge) { p5Badge.textContent = "🟡 EN EL VWAP"; p5Badge.className = "text-yellow-400 font-bold"; }
+    if (p5Title) p5Title.textContent = "OSCILACIÓN CHOP";
+    if (p5Desc) p5Desc.textContent = `A ${scan.m5_range.pct_position}% del rango intradía.`;
+
+    if (p6Badge) { p6Badge.textContent = scan.heikin_ashi.badge.includes("TECHO") ? "🔴 TECHO PLANO" : (scan.heikin_ashi.badge.includes("BASE") ? "🟢 BASE PLANA" : "🟡 MECHAS DUALES"); }
+    if (p6Title) p6Title.textContent = scan.heikin_ashi.indecision ? "INDECISIÓN DOJI" : "VELA CON DIRECCIÓN";
+    if (p6Desc) p6Desc.textContent = scan.heikin_ashi.candles_label;
+
+    if (p7Badge) { p7Badge.textContent = scan.squeeze_momentum.sqz_on ? "🟡 SQUEEZE ON" : "⚡ SQUEEZE OFF"; }
+    if (p7Title) p7Title.textContent = scan.squeeze_momentum.sqz_on ? "RESORTE COMPRIMIDO" : "EXPANSIÓN ACTIVA";
+    if (p7Desc) p7Desc.textContent = `Linreg ${scan.squeeze_momentum.linreg_val > 0 ? '+' : ''}${scan.squeeze_momentum.linreg_val} pts.`;
+  } else if (scan.detected_state === "breakout_down") {
+    if (p4Badge) { p4Badge.textContent = "🔴 RUPTURA LL"; p4Badge.className = "text-red-400 font-bold"; }
+    if (p4Title) p4Title.textContent = "MSS DESPLAZAMIENTO";
+    if (p4Desc) p4Desc.textContent = `Bajo London Low ($${scan.m5_range.range_low.toFixed(2)}).`;
+
+    if (p5Badge) { p5Badge.textContent = "🔴 BAJO VWAP"; p5Badge.className = "text-red-400 font-bold"; }
+    if (p5Title) p5Title.textContent = "CONTROL VENDEDOR";
+    if (p5Desc) p5Desc.textContent = "Desplazamiento bajista activo.";
+
+    if (p6Badge) { p6Badge.textContent = "🔴 TECHO PLANO"; p6Badge.className = "text-red-400 font-bold"; }
+    if (p6Title) p6Title.textContent = "CERO MECHA ARRIBA";
+    if (p6Desc) p6Desc.textContent = "Venta institucional agresiva.";
+
+    if (p7Badge) { p7Badge.textContent = "⚡ EXPANSIÓN"; p7Badge.className = "text-red-400 font-bold"; }
+    if (p7Title) p7Title.textContent = "ROJO ACELERANDO";
+    if (p7Desc) p7Desc.textContent = `Linreg ${scan.squeeze_momentum.linreg_val} pts.`;
+  } else {
+    if (p4Badge) { p4Badge.textContent = "🟢 RUPTURA ALTO"; p4Badge.className = "text-emerald-400 font-bold"; }
+    if (p4Title) p4Title.textContent = "EXPANSIÓN BSL";
+    if (p4Desc) p4Desc.textContent = `Sobre techo Rango M5 ($${scan.m5_range.range_high.toFixed(2)}).`;
+
+    if (p5Badge) { p5Badge.textContent = "🟢 SOBRE VWAP"; p5Badge.className = "text-emerald-400 font-bold"; }
+    if (p5Title) p5Title.textContent = "CONTROL COMPRADOR";
+    if (p5Desc) p5Desc.textContent = "Impulso comprador intradía.";
+
+    if (p6Badge) { p6Badge.textContent = "🟢 BASE PLANA"; p6Badge.className = "text-emerald-400 font-bold"; }
+    if (p6Title) p6Title.textContent = "CERO MECHA ABAJO";
+    if (p6Desc) p6Desc.textContent = "Compras contratendencia.";
+
+    if (p7Badge) { p7Badge.textContent = "⚡ EXPANSIÓN"; p7Badge.className = "text-emerald-400 font-bold"; }
+    if (p7Title) p7Title.textContent = "VERDE ACELERANDO";
+    if (p7Desc) p7Desc.textContent = `Linreg ${scan.squeeze_momentum.linreg_val > 0 ? '+' : ''}${scan.squeeze_momentum.linreg_val} pts.`;
+  }
+
+  // 7. Confluencia Institucional Maestra & Plan de Acción
+  if (scan.confluence) {
+    const c = scan.confluence;
+    const masterBadge = document.getElementById("confluenceMasterBadge");
+    const ratingText = document.getElementById("confluenceRatingText");
+    const dir = document.getElementById("confActionDirection");
+    const trig = document.getElementById("confActionTrigger");
+    const sl = document.getElementById("confActionSL");
+    const tp = document.getElementById("confActionTP");
+
+    if (ratingText && c.rating) {
+      ratingText.textContent = `${c.rating} · ${c.score_pct}%`;
+    }
+
+    if (masterBadge) {
+      if (scan.detected_state === "in_range") {
+        masterBadge.className = "text-xs font-mono px-3 py-1.5 rounded-xl bg-yellow-950 text-yellow-300 border border-yellow-800 flex items-center gap-2 font-bold shadow-md";
+        masterBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span><span id="confluenceRatingText">${c.rating} · ${c.score_pct}% RANGO</span>`;
+      } else if (scan.detected_state === "breakout_down") {
+        masterBadge.className = "text-xs font-mono px-3 py-1.5 rounded-xl bg-red-950 text-red-300 border border-red-800 flex items-center gap-2 font-bold shadow-md";
+        masterBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span><span id="confluenceRatingText">${c.rating} · ${c.score_pct}% SELL-ONLY</span>`;
+      } else {
+        masterBadge.className = "text-xs font-mono px-3 py-1.5 rounded-xl bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center gap-2 font-bold shadow-md";
+        masterBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span id="confluenceRatingText">${c.rating} · ${c.score_pct}% BUY-CAUTION</span>`;
+      }
+    }
+
+    if (dir && c.direction) {
+      dir.textContent = c.direction;
+      dir.className = scan.detected_state === "in_range" 
+        ? "text-sm font-black text-yellow-400 font-mono" 
+        : (scan.detected_state === "breakout_down" ? "text-sm font-black text-red-400 font-mono" : "text-sm font-black text-emerald-400 font-mono");
+    }
+    if (trig && c.trigger) trig.textContent = c.trigger;
+    if (sl && c.sl) sl.textContent = c.sl;
+    if (tp && c.tp) tp.textContent = c.tp;
+  }
+
+  currentM5StateKey = scan.detected_state;
+  initIcons();
 }
 
 function setM5MarketState(stateKey) {
@@ -3123,19 +3436,11 @@ function setM5MarketState(stateKey) {
   const st = goldBiasState.m5_states[stateKey];
   if (!st) return;
 
-  // 1. Botones de Selector de Estado
-  const btnRange = document.getElementById("btnM5StateRange");
-  const btnDown = document.getElementById("btnM5StateDown");
-  const btnUp = document.getElementById("btnM5StateUp");
-
-  const activeClassesRange = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 shadow-sm";
-  const activeClassesDown = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer bg-red-500/20 text-red-300 border border-red-500/40 shadow-sm";
-  const activeClassesUp = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm";
-  const inactiveClasses = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-white hover:bg-gray-800/60";
-
-  if (btnRange) btnRange.className = stateKey === "in_range" ? activeClassesRange : inactiveClasses;
-  if (btnDown) btnDown.className = stateKey === "breakout_down" ? activeClassesDown : inactiveClasses;
-  if (btnUp) btnUp.className = stateKey === "breakout_up" ? activeClassesUp : inactiveClasses;
+  // 1. Selector de Estado (dropdown)
+  const selectMode = document.getElementById("selectScannerMode");
+  if (selectMode && selectMode.value !== stateKey) {
+    selectMode.value = stateKey;
+  }
 
   // 2. Monitor de Rango M5 (Card Destacada)
   const regimeBadge = document.getElementById("m5RegimeBadge");
