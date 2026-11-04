@@ -5,8 +5,8 @@
 //+------------------------------------------------------------------+
 #property copyright "Ghost Trader Gold Institutional"
 #property link      "https://ghost-trader-gold.onrender.com"
-#property version   "1.00"
-#property description "Puente de transmisión en tiempo real de tick y velas M5/H1 hacia el Dashboard"
+#property version   "1.10"
+#property description "Puente de transmisión en tiempo real de tick, velas M5/H1 y sincronización automática de operaciones hacia la Bitácora Real"
 #property description "IMPORTANTE: En MT5 ve a Herramientas -> Opciones -> Asesores Expertos y activa 'Permitir WebRequest' agregando tu URL."
 
 //--- Inputs
@@ -19,6 +19,7 @@ input string   InpSymbolGold   = "XAUUSD"; // Símbolo del Oro en tu broker (ej:
 input string   InpSymbolEuro   = "EURUSD"; // Símbolo del Euro en tu broker (ej: EURUSD)
 input int      InpBarsCountM5  = 60;       // Velas M5 a enviar
 input int      InpBarsCountH1  = 30;       // Velas H1 a enviar
+input int      InpHistoryDays  = 14;       // Días de historial a sincronizar con la Bitácora
 
 //--- Variables Globales
 datetime g_last_send = 0;
@@ -28,7 +29,7 @@ datetime g_last_send = 0;
 //+------------------------------------------------------------------+
 int OnInit()
 {
-   Print("🟢 [GhostBridge] Iniciando puente de datos hacia: ", InpServerUrl);
+   Print("🟢 [GhostBridge] Iniciando puente de datos y bitácora automática hacia: ", InpServerUrl);
    EventSetTimer(InpTimerSeconds);
    
    // Verificar que los símbolos estén en Market Watch
@@ -63,7 +64,6 @@ void OnTimer()
 //+------------------------------------------------------------------+
 void OnTick()
 {
-   // Si han pasado más de InpTimerSeconds desde el último envío, mandar en nuevo tick
    if(TimeCurrent() - g_last_send >= InpTimerSeconds)
    {
       SendMarketDataToDashboard();
@@ -100,6 +100,86 @@ string BuildCandlesJson(string symbol, ENUM_TIMEFRAMES tf, int count)
 }
 
 //+------------------------------------------------------------------+
+//| Extraer Historial de Operaciones Cerradas para la Bitácora Real  |
+//+------------------------------------------------------------------+
+string BuildClosedDealsJson(int days_back)
+{
+   datetime from_time = TimeCurrent() - days_back * 86400;
+   datetime to_time   = TimeCurrent() + 60;
+   
+   if(!HistorySelect(from_time, to_time))
+      return "[]";
+      
+   int total_deals = HistoryDealsTotal();
+   string json = "[";
+   int count = 0;
+   
+   for(int i = 0; i < total_deals; i++)
+   {
+      ulong deal_ticket = HistoryDealGetTicket(i);
+      if(deal_ticket == 0) continue;
+      
+      long entry = HistoryDealGetInteger(deal_ticket, DEAL_ENTRY);
+      // Solo operaciones cerradas (DEAL_ENTRY_OUT o DEAL_ENTRY_INOUT)
+      if(entry != DEAL_ENTRY_OUT && entry != DEAL_ENTRY_INOUT) continue;
+      
+      string symbol   = HistoryDealGetString(deal_ticket, DEAL_SYMBOL);
+      double volume   = HistoryDealGetDouble(deal_ticket, DEAL_VOLUME);
+      double exit_px  = HistoryDealGetDouble(deal_ticket, DEAL_PRICE);
+      double profit   = HistoryDealGetDouble(deal_ticket, DEAL_PROFIT);
+      double comm     = HistoryDealGetDouble(deal_ticket, DEAL_COMMISSION);
+      double swap     = HistoryDealGetDouble(deal_ticket, DEAL_SWAP);
+      datetime close_t= (datetime)HistoryDealGetInteger(deal_ticket, DEAL_TIME);
+      long   pos_id   = HistoryDealGetInteger(deal_ticket, DEAL_POSITION_ID);
+      
+      double entry_px  = exit_px;
+      datetime open_t  = close_t;
+      string direction = "BUY";
+      
+      if(HistorySelectByPosition(pos_id))
+      {
+         int p_deals = HistoryDealsTotal();
+         for(int j = 0; j < p_deals; j++)
+         {
+            ulong in_ticket = HistoryDealGetTicket(j);
+            if(HistoryDealGetInteger(in_ticket, DEAL_ENTRY) == DEAL_ENTRY_IN)
+            {
+               entry_px = HistoryDealGetDouble(in_ticket, DEAL_PRICE);
+               open_t   = (datetime)HistoryDealGetInteger(in_ticket, DEAL_TIME);
+               long dir = HistoryDealGetInteger(in_ticket, DEAL_TYPE);
+               direction = (dir == DEAL_TYPE_BUY) ? "BUY" : "SELL";
+               break;
+            }
+         }
+      }
+      
+      if(count > 0) json += ",";
+      
+      string deal_item = StringFormat(
+         "{\"ticket\":%d,\"pos_id\":%d,\"symbol\":\"%s\",\"direction\":\"%s\",\"open_time\":\"%s\",\"close_time\":\"%s\",\"open_price\":%.5f,\"close_price\":%.5f,\"volume\":%.2f,\"profit\":%.2f,\"commission\":%.2f,\"swap\":%.2f}",
+         (long)deal_ticket,
+         (long)pos_id,
+         symbol,
+         direction,
+         TimeToString(open_t, TIME_DATE|TIME_MINUTES),
+         TimeToString(close_t, TIME_DATE|TIME_MINUTES),
+         entry_px,
+         exit_px,
+         volume,
+         profit,
+         comm,
+         swap
+      );
+      
+      json += deal_item;
+      count++;
+   }
+   
+   json += "]";
+   return json;
+}
+
+//+------------------------------------------------------------------+
 //| Función Principal: Recopila y Envía Datos al Dashboard           |
 //+------------------------------------------------------------------+
 void SendMarketDataToDashboard()
@@ -126,10 +206,14 @@ void SendMarketDataToDashboard()
    long   eur_spread = SymbolInfoInteger(InpSymbolEuro, SYMBOL_SPREAD);
    string eur_m5_json = BuildCandlesJson(InpSymbolEuro, PERIOD_M5, InpBarsCountM5);
 
-   // 4. Armar Payload JSON Completo
+   // 4. Operaciones Cerradas para la Bitácora Automática
+   string closed_deals_json = BuildClosedDealsJson(InpHistoryDays);
+
+   // 5. Armar Payload JSON Completo
    string json_payload = "{\n";
    json_payload += StringFormat("  \"account\": {\"balance\": %.2f, \"equity\": %.2f, \"currency\": \"%s\", \"company\": \"%s\", \"leverage\": %d},\n",
                                 balance, equity, currency, company, leverage);
+   json_payload += StringFormat("  \"closed_deals\": %s,\n", closed_deals_json);
    json_payload += "  \"symbols\": {\n";
    
    // Sección XAUUSD
@@ -142,7 +226,7 @@ void SendMarketDataToDashboard()
                                 
    json_payload += "  }\n}";
 
-   // 5. Enviar por HTTP WebRequest
+   // 6. Enviar por HTTP WebRequest
    char post_data[];
    char result[];
    string result_headers;
@@ -155,11 +239,10 @@ void SendMarketDataToDashboard()
    
    if(res == 200)
    {
-      // Éxito silencioso (mostrar solo cada 30 segundos para no saturar log)
       static datetime last_log = 0;
       if(TimeCurrent() - last_log > 30)
       {
-         Print("✅ [GhostBridge] Sincronizado exitosamente con el Dashboard (200 OK)");
+         Print("✅ [GhostBridge] Sincronizado exitosamente: Velas en vivo & Bitácora Real actualizadas");
          last_log = TimeCurrent();
       }
    }

@@ -5,11 +5,19 @@ engine_strategies.py - Dual Institutional Engine
 Includes MetaTrader 5 Bridge receiver and exact lot size calculator.
 """
 
+import os
+import re
+import uuid
 import time
 import math
 import urllib.request
 import json
 from datetime import datetime
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+TRADES_REAL_FILE = os.path.join(DATA_DIR, "trades_real.json")
+CONFIG_FILE = os.path.join(DATA_DIR, "config.json")
 
 # In-memory storage for MetaTrader 5 feed
 mt5_store = {
@@ -41,12 +49,152 @@ mt5_store = {
     }
 }
 
+def sync_mt5_closed_deals(closed_deals):
+    """
+    Ingests closed deals from MetaTrader 5 and adds them automatically
+    to data/trades_real.json without duplicating existing trades.
+    """
+    if not closed_deals or not isinstance(closed_deals, list):
+        return {"added": 0, "total": 0}
+
+    # Load existing real trades
+    trades = []
+    if os.path.exists(TRADES_REAL_FILE):
+        try:
+            with open(TRADES_REAL_FILE, "r", encoding="utf-8") as f:
+                trades = json.load(f)
+        except Exception as e:
+            print("Error loading trades_real.json:", e)
+            trades = []
+
+    # Map existing tickets and notes to avoid ANY duplicates
+    existing_tickets = set()
+    for t in trades:
+        if "mt5_ticket" in t and t["mt5_ticket"]:
+            existing_tickets.add(str(t["mt5_ticket"]))
+        if "mt5_pos_id" in t and t["mt5_pos_id"]:
+            existing_tickets.add(str(t["mt5_pos_id"]))
+        notes = t.get("notes", "")
+        m = re.search(r"#(\d+)", notes)
+        if m:
+            existing_tickets.add(m.group(1))
+
+    new_trades_added = 0
+
+    for deal in closed_deals:
+        pos_id = str(deal.get("pos_id", deal.get("ticket", "")))
+        deal_ticket = str(deal.get("ticket", ""))
+
+        if (pos_id and pos_id in existing_tickets) or (deal_ticket and deal_ticket in existing_tickets):
+            continue  # Already registered
+
+        symbol = str(deal.get("symbol", "XAUUSD")).upper()
+        volume = float(deal.get("volume", 0.01))
+        open_px = float(deal.get("open_price", 0.0))
+        close_px = float(deal.get("close_price", 0.0))
+        profit = float(deal.get("profit", 0.0))
+        comm = float(deal.get("commission", 0.0))
+        swap = float(deal.get("swap", 0.0))
+        net_pnl = round(profit + comm + swap, 2)
+        direction = str(deal.get("direction", "BUY")).upper()
+        open_time = str(deal.get("open_time", datetime.now().strftime("%Y-%m-%d %H:%M")))
+
+        # Calculate price distance & points
+        if "XAU" in symbol or "GOLD" in symbol:
+            price_dist = round(abs(close_px - open_px), 2)
+            tv_points = int(price_dist * 100)
+            strategy = "Toni Maura SMC M5"
+            sl_distance = price_dist
+        elif "EUR" in symbol:
+            price_dist = round(abs(close_px - open_px), 5)
+            tv_points = int(price_dist * 100000)
+            strategy = "Felipe López PA M5"
+            sl_distance = price_dist
+        else:
+            price_dist = round(abs(close_px - open_px), 4)
+            tv_points = int(price_dist * 100)
+            strategy = "Ejecución MT5"
+            sl_distance = price_dist
+
+        if net_pnl > 0.01:
+            status = "win"
+        elif net_pnl < -0.01:
+            status = "loss"
+        else:
+            status = "be"
+
+        # Determine session by open_time hour
+        try:
+            hour = int(open_time.split()[1].split(":")[0])
+            if 2 <= hour < 8:
+                session = "London"
+            elif 8 <= hour < 17:
+                session = "New York"
+            else:
+                session = "Asia"
+        except Exception:
+            session = "New York"
+
+        risk_dollar = round(abs(net_pnl), 2) if net_pnl < 0 else 10.0
+        risk_pct = 1.0
+
+        trade_obj = {
+            "id": f"trade-real-{uuid.uuid4().hex[:8]}",
+            "date": open_time,
+            "direction": direction,
+            "symbol": symbol,
+            "tv_points": tv_points,
+            "price_dist": price_dist,
+            "sl_points": tv_points,
+            "tp_points": tv_points,
+            "sl_distance": sl_distance,
+            "risk_pct": risk_pct,
+            "ret_pct": round((net_pnl / 110.0) * 100, 2),
+            "dollar_risk": risk_dollar,
+            "suggested_lot": volume,
+            "lot_size": volume,
+            "manual_lot": volume,
+            "commission": comm,
+            "swap": swap,
+            "margin_used": round(volume * 1000, 2),
+            "status": status,
+            "pnl": net_pnl,
+            "rr": 2.0 if status == "win" else 1.0,
+            "session": session,
+            "strategy": strategy,
+            "emotion": "Ejecución MT5 Automática",
+            "tv_chart_url": "",
+            "notes": f"Operación MT5 #{pos_id} · Sincronizada automáticamente",
+            "mt5_ticket": deal_ticket,
+            "mt5_pos_id": pos_id,
+            "mode": "real"
+        }
+
+        trades.append(trade_obj)
+        existing_tickets.add(pos_id)
+        if deal_ticket:
+            existing_tickets.add(deal_ticket)
+        new_trades_added += 1
+
+    if new_trades_added > 0:
+        try:
+            trades.sort(key=lambda x: x.get("date", ""))
+        except Exception:
+            pass
+
+        with open(TRADES_REAL_FILE, "w", encoding="utf-8") as f:
+            json.dump(trades, f, indent=2, ensure_ascii=False)
+        print(f"✅ Sincronización MT5: {new_trades_added} operaciones nuevas agregadas a la Bitácora Real.")
+
+    return {"added": new_trades_added, "total": len(trades)}
+
 def update_mt5_feed(payload):
     """
     Receives JSON payload from MetaTrader 5 GhostBridge EA.
     Expected format:
     {
         "account": {"balance": 10000, "equity": 10000, "currency": "USD", "company": "Pepperstone", "leverage": 100},
+        "closed_deals": [...],
         "symbols": {
             "XAUUSD": {"bid": 4045.20, "ask": 4045.55, "spread_pts": 35, "candles_m5": [...], "candles_h1": [...]},
             "EURUSD": {"bid": 1.08500, "ask": 1.08503, "spread_pts": 3, "candles_m5": [...]}
@@ -63,6 +211,11 @@ def update_mt5_feed(payload):
             if k in acc:
                 mt5_store["account"][k] = acc[k]
 
+    # Sincronización automática de historial de operaciones cerradas
+    sync_result = {"added": 0, "total": 0}
+    if "closed_deals" in payload and isinstance(payload["closed_deals"], list):
+        sync_result = sync_mt5_closed_deals(payload["closed_deals"])
+
     if "symbols" in payload and isinstance(payload["symbols"], dict):
         for sym, s_data in payload["symbols"].items():
             norm_sym = "XAUUSD" if "XAU" in sym.upper() or "GOLD" in sym.upper() else ("EURUSD" if "EUR" in sym.upper() else sym.upper())
@@ -77,7 +230,8 @@ def update_mt5_feed(payload):
         "status": "success",
         "message": "MT5 payload received",
         "timestamp": now,
-        "symbols_updated": list(mt5_store["symbols"].keys())
+        "symbols_updated": list(mt5_store["symbols"].keys()),
+        "sync_result": sync_result
     }
 
 def get_mt5_status():
