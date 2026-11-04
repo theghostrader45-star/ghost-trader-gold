@@ -78,6 +78,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderBacktestDashboard();
   recalculateTradingViewValues();
   updateCalculatorBalances();
+  loadGoldBiasData();
 });
 
 function initIcons() {
@@ -2745,6 +2746,10 @@ function renderGoldBiasUI(data) {
   // Actualizar Módulo Cuantitativo: Termómetro de Fuerza, Sugerencia, Radar A+ y ADR
   updateMacroQuantIntelligence(data);
 
+  // Inicializar listeners y sincronizar el estado M5 seleccionado (por defecto 'in_range')
+  setupM5StateListeners();
+  setM5MarketState(data.current_m5_state || currentM5StateKey || 'in_range');
+
   initIcons();
 }
 
@@ -3038,42 +3043,35 @@ function updateMacroQuantIntelligence(data) {
   }
 
   // 7. Actualizar Síntesis de Confluencia Institucional Maestra (Parte 3)
-  if (data.confluence) {
-    const c = data.confluence;
-    const masterBadge = document.getElementById("confluenceMasterBadge");
-    const ratingText = document.getElementById("confluenceRatingText");
-    if (ratingText && c.rating) {
-      ratingText.textContent = `${c.rating} · ${c.score_pct || 88}% ${isBear ? 'SELL-ONLY' : (isBull ? 'BUY-ONLY' : 'RANGO')}`;
-    }
-    if (masterBadge) {
-      masterBadge.className = isBear 
-        ? "text-xs font-mono px-3 py-1.5 rounded-xl bg-red-950 text-red-300 border border-red-800 flex items-center gap-2 font-bold shadow-md"
-        : (isBull 
-            ? "text-xs font-mono px-3 py-1.5 rounded-xl bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center gap-2 font-bold shadow-md"
-            : "text-xs font-mono px-3 py-1.5 rounded-xl bg-yellow-950 text-yellow-300 border border-yellow-800 flex items-center gap-2 font-bold shadow-md");
-    }
-
-    const dir = document.getElementById("confActionDirection");
-    const trig = document.getElementById("confActionTrigger");
-    const sl = document.getElementById("confActionSL");
-    const tp = document.getElementById("confActionTP");
-
-    if (dir && c.direction) dir.textContent = c.direction;
-    if (trig && c.entry_zone) trig.textContent = `Retesteo a FVG (${c.entry_zone})`;
-    if (sl && c.stop_loss) sl.textContent = `${c.stop_loss} (Sobre Order Block / 1,800 pts)`;
-    if (tp) {
-      tp.textContent = `TP1: $${c.take_profit_1 || '3,875'} (1:1.8) | TP2: $${c.take_profit || '3,850'} (R:R ${c.rr_target || '1:3.2'})`;
-    }
+  // Nota: setM5MarketState sincronizará el estado activo (en rango, ruptura bajista o ruptura alcista)
+  if (data.current_m5_state) {
+    setM5MarketState(data.current_m5_state);
+  } else {
+    setM5MarketState(currentM5StateKey || "in_range");
   }
 
   // 8. Botón Cargar Parámetros en Calculadora Myfxbook
   const btnLoadCalc = document.getElementById("btnLoadConfluenceIntoCalc");
   if (btnLoadCalc) {
     btnLoadCalc.onclick = () => {
+      let slPts = "1800";
+      let riskPct = "5";
+      if (goldBiasState && goldBiasState.m5_states && goldBiasState.m5_states[currentM5StateKey]) {
+        if (currentM5StateKey === "breakout_up") {
+          slPts = "1100";
+          riskPct = "1.5";
+        } else if (currentM5StateKey === "in_range") {
+          slPts = "1800";
+          riskPct = "3";
+        } else {
+          slPts = "1800";
+          riskPct = "5";
+        }
+      }
       const slInput = document.getElementById("calcStopLoss");
       const riskInput = document.getElementById("calcRiskPct");
-      if (slInput) slInput.value = "1800";
-      if (riskInput) riskInput.value = "5";
+      if (slInput) slInput.value = slPts;
+      if (riskInput) riskInput.value = riskPct;
       if (typeof runMyfxbookCalculator === "function") {
         runMyfxbookCalculator();
       }
@@ -3083,13 +3081,291 @@ function updateMacroQuantIntelligence(data) {
       try {
         const toast = document.createElement("div");
         toast.className = "fixed bottom-5 right-5 z-50 bg-emerald-900 border border-emerald-500 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-bold font-mono flex items-center gap-2 animate-bounce";
-        toast.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>¡Parámetros de Confluencia cargados en la Calculadora!</span>';
+        toast.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>¡Parámetros de M5 (${currentM5StateKey}) cargados en la Calculadora (SL: ${slPts} pts, Riesgo: ${riskPct}%)!</span>`;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3500);
         initIcons();
       } catch (e) {}
     };
   }
+}
+
+// -------------------------------------------------------------
+// Control del Régimen de Estructura M5 (Rango vs Rupturas)
+// -------------------------------------------------------------
+let currentM5StateKey = "in_range";
+let m5StateListenersAttached = false;
+
+function setupM5StateListeners() {
+  if (m5StateListenersAttached) return;
+
+  const btnRange = document.getElementById("btnM5StateRange");
+  const btnDown = document.getElementById("btnM5StateDown");
+  const btnUp = document.getElementById("btnM5StateUp");
+
+  if (btnRange) {
+    btnRange.addEventListener("click", () => setM5MarketState("in_range"));
+  }
+  if (btnDown) {
+    btnDown.addEventListener("click", () => setM5MarketState("breakout_down"));
+  }
+  if (btnUp) {
+    btnUp.addEventListener("click", () => setM5MarketState("breakout_up"));
+  }
+
+  m5StateListenersAttached = true;
+}
+
+function setM5MarketState(stateKey) {
+  currentM5StateKey = stateKey;
+  if (!goldBiasState || !goldBiasState.m5_states) return;
+
+  const st = goldBiasState.m5_states[stateKey];
+  if (!st) return;
+
+  // 1. Botones de Selector de Estado
+  const btnRange = document.getElementById("btnM5StateRange");
+  const btnDown = document.getElementById("btnM5StateDown");
+  const btnUp = document.getElementById("btnM5StateUp");
+
+  const activeClassesRange = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 shadow-sm";
+  const activeClassesDown = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer bg-red-500/20 text-red-300 border border-red-500/40 shadow-sm";
+  const activeClassesUp = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm";
+  const inactiveClasses = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-white hover:bg-gray-800/60";
+
+  if (btnRange) btnRange.className = stateKey === "in_range" ? activeClassesRange : inactiveClasses;
+  if (btnDown) btnDown.className = stateKey === "breakout_down" ? activeClassesDown : inactiveClasses;
+  if (btnUp) btnUp.className = stateKey === "breakout_up" ? activeClassesUp : inactiveClasses;
+
+  // 2. Monitor de Rango M5 (Card Destacada)
+  const regimeBadge = document.getElementById("m5RegimeBadge");
+  const regimeHeadline = document.getElementById("m5RegimeHeadline");
+  const regimeSummary = document.getElementById("m5RegimeSummary");
+  const rangeHigh = document.getElementById("m5RangeHigh");
+  const rangeLow = document.getElementById("m5RangeLow");
+  const rangeEQ = document.getElementById("m5RangeEQ");
+  const rangeWidth = document.getElementById("m5RangeWidth");
+  const rangeMarker = document.getElementById("m5RangeProgressMarker");
+  const monitorCard = document.getElementById("m5RangeMonitorCard");
+
+  if (regimeBadge && st.badge) {
+    regimeBadge.textContent = st.badge;
+    regimeBadge.className = stateKey === "in_range"
+      ? "text-xs font-mono font-black px-2.5 py-0.5 rounded-md bg-yellow-500/20 text-yellow-300 border border-yellow-500/40"
+      : (stateKey === "breakout_down"
+          ? "text-xs font-mono font-black px-2.5 py-0.5 rounded-md bg-red-500/20 text-red-300 border border-red-500/40"
+          : "text-xs font-mono font-black px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40");
+  }
+
+  if (regimeHeadline && st.headline) regimeHeadline.textContent = st.headline;
+  if (regimeSummary && st.summary) regimeSummary.textContent = st.summary;
+  if (rangeHigh && st.range_high) rangeHigh.textContent = `$${st.range_high}`;
+  if (rangeLow && st.range_low) rangeLow.textContent = `$${st.range_low}`;
+  if (rangeEQ && st.range_eq) rangeEQ.textContent = `$${st.range_eq}`;
+  if (rangeWidth && st.range_width_pts) {
+    rangeWidth.textContent = `${st.range_width_pts.toLocaleString("en-US")} pts (${st.range_width_usd || "$16.30"})`;
+  }
+  if (rangeMarker && st.range_progress_pct !== undefined) {
+    rangeMarker.style.left = `${st.range_progress_pct}%`;
+    const innerDot = rangeMarker.querySelector("div");
+    if (innerDot) {
+      if (stateKey === "in_range") {
+        innerDot.className = "w-4 h-4 rounded-full bg-yellow-400 border-2 border-black shadow-lg shadow-yellow-400/50 flex items-center justify-center";
+      } else if (stateKey === "breakout_down") {
+        innerDot.className = "w-4 h-4 rounded-full bg-red-500 border-2 border-black shadow-lg shadow-red-500/50 flex items-center justify-center animate-ping";
+      } else {
+        innerDot.className = "w-4 h-4 rounded-full bg-emerald-400 border-2 border-black shadow-lg shadow-emerald-400/50 flex items-center justify-center animate-ping";
+      }
+    }
+  }
+
+  if (monitorCard) {
+    if (stateKey === "in_range") {
+      monitorCard.className = "p-4 sm:p-5 rounded-xl bg-gradient-to-b from-gray-900/90 via-gray-950 to-amber-950/20 border-2 border-amber-500/40 space-y-4 shadow-xl transition-all";
+    } else if (stateKey === "breakout_down") {
+      monitorCard.className = "p-4 sm:p-5 rounded-xl bg-gradient-to-b from-gray-900/90 via-gray-950 to-red-950/20 border-2 border-red-500/50 space-y-4 shadow-xl transition-all";
+    } else {
+      monitorCard.className = "p-4 sm:p-5 rounded-xl bg-gradient-to-b from-gray-900/90 via-gray-950 to-emerald-950/20 border-2 border-emerald-500/50 space-y-4 shadow-xl transition-all";
+    }
+  }
+
+  // 3. Tarjeta de Ruptura de Londres
+  const lbBadge = document.getElementById("londonStatusBadge");
+  const lbDetail = document.getElementById("londonBreakoutDetail");
+  const jsStatus = document.getElementById("judasSwingStatus");
+  if (lbBadge) {
+    if (stateKey === "in_range") {
+      lbBadge.textContent = "🟡 EN RANGO";
+      lbBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-yellow-950 text-yellow-300 border border-yellow-800 font-bold";
+      if (lbDetail) lbDetail.textContent = "El precio comprime dentro del rango de Londres ($3,908.20 – $3,936.50).";
+      if (jsStatus) jsStatus.textContent = "Monitoreando extremos por posibles barridos de manipulación";
+    } else if (stateKey === "breakout_down") {
+      lbBadge.textContent = "🔴 RUPTURA BAJISTA";
+      lbBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-bold";
+      if (lbDetail) lbDetail.textContent = "Ruptura bajista de London Low confirmada bajo $3,908.20 con vela sólida.";
+      if (jsStatus) jsStatus.textContent = "No detectado (Ruptura limpia sostenida a favor de la macro)";
+    } else {
+      lbBadge.textContent = "🟢 RUPTURA ALCISTA";
+      lbBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold";
+      if (lbDetail) lbDetail.textContent = "Ruptura sobre techo intradía M5 ($3,924.50) hacia London High ($3,936.50).";
+      if (jsStatus) jsStatus.textContent = "Atención: posible barrido de liquidez alcista contra la macro";
+    }
+  }
+
+  // 4. Tarjeta Heikin Ashi M5
+  const haBadge = document.getElementById("heikinAshiBadge");
+  const haCandles = document.getElementById("heikinAshiCandles");
+  const haDesc = document.getElementById("heikinAshiDesc");
+  if (st.heikin_ashi) {
+    if (haBadge && st.heikin_ashi.badge) {
+      haBadge.textContent = st.heikin_ashi.badge;
+      haBadge.className = stateKey === "in_range"
+        ? "text-[10px] font-mono px-2 py-0.5 rounded bg-yellow-950 text-yellow-300 border border-yellow-800 font-bold"
+        : (stateKey === "breakout_down"
+            ? "text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-bold"
+            : "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold");
+    }
+    if (haCandles && st.heikin_ashi.candles_label) {
+      haCandles.textContent = st.heikin_ashi.candles_label;
+      haCandles.className = stateKey === "in_range"
+        ? "font-mono text-yellow-400 font-black"
+        : (stateKey === "breakout_down" ? "font-mono text-red-400 font-black" : "font-mono text-emerald-400 font-black");
+    }
+    if (haDesc) {
+      haDesc.textContent = (st.heikin_ashi.desc || "") + " " + (st.heikin_ashi.rule || "");
+    }
+  }
+
+  // 5. Tarjeta Squeeze Momentum
+  const sqBadge = document.getElementById("squeezeStatusBadge");
+  const sqVal = document.getElementById("squeezeLinregVal");
+  const sqDesc = document.getElementById("squeezeDesc");
+  if (st.squeeze_momentum) {
+    if (sqBadge && st.squeeze_momentum.badge) {
+      sqBadge.textContent = st.squeeze_momentum.badge;
+      sqBadge.className = stateKey === "in_range"
+        ? "text-[10px] font-mono px-2 py-0.5 rounded bg-yellow-950 text-yellow-300 border border-yellow-800 font-bold"
+        : (stateKey === "breakout_down"
+            ? "text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-bold"
+            : "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold");
+    }
+    if (sqVal) {
+      sqVal.textContent = `${st.squeeze_momentum.linreg_val} pts (${st.squeeze_momentum.histogram_badge || ''})`;
+      sqVal.className = stateKey === "in_range"
+        ? "font-mono text-yellow-400 font-black"
+        : (stateKey === "breakout_down" ? "font-mono text-red-400 font-black" : "font-mono text-emerald-400 font-black");
+    }
+    if (sqDesc && st.squeeze_momentum.desc) sqDesc.textContent = st.squeeze_momentum.desc;
+  }
+
+  // 6. Matriz de Confluencia: 4 Pills Dinámicos (Filtros 4, 5, 6, 7)
+  const p4Badge = document.getElementById("confPill4Badge");
+  const p4Title = document.getElementById("confPill4Title");
+  const p4Desc = document.getElementById("confPill4Desc");
+
+  const p5Badge = document.getElementById("confPill5Badge");
+  const p5Title = document.getElementById("confPill5Title");
+  const p5Desc = document.getElementById("confPill5Desc");
+
+  const p6Badge = document.getElementById("confPill6Badge");
+  const p6Title = document.getElementById("confPill6Title");
+  const p6Desc = document.getElementById("confPill6Desc");
+
+  const p7Badge = document.getElementById("confPill7Badge");
+  const p7Title = document.getElementById("confPill7Title");
+  const p7Desc = document.getElementById("confPill7Desc");
+
+  if (stateKey === "in_range") {
+    if (p4Badge) { p4Badge.textContent = "🟡 EN RANGO M5"; p4Badge.className = "text-yellow-400 font-bold"; }
+    if (p4Title) p4Title.textContent = "COMPRESIÓN BSL/SSL";
+    if (p4Desc) p4Desc.textContent = "Rango M5 $3,908.20 – $3,924.50.";
+
+    if (p5Badge) { p5Badge.textContent = "🟡 EN EL VWAP"; p5Badge.className = "text-yellow-400 font-bold"; }
+    if (p5Title) p5Title.textContent = "OSCILACIÓN CHOP";
+    if (p5Desc) p5Desc.textContent = "Cortando VWAP ($3,916.40).";
+
+    if (p6Badge) { p6Badge.textContent = "🟡 MECHAS DUALES"; p6Badge.className = "text-yellow-400 font-bold"; }
+    if (p6Title) p6Title.textContent = "INDECISIÓN DOJI";
+    if (p6Desc) p6Desc.textContent = "Sin base ni techo plano en M5.";
+
+    if (p7Badge) { p7Badge.textContent = "🟡 SQUEEZE ON"; p7Badge.className = "text-yellow-400 font-bold"; }
+    if (p7Title) p7Title.textContent = "RESORTE COMPRIMIDO";
+    if (p7Desc) p7Desc.textContent = "Puntos negros en 0 (-2.10 pts).";
+  } else if (stateKey === "breakout_down") {
+    if (p4Badge) { p4Badge.textContent = "🔴 RUPTURA LL"; p4Badge.className = "text-red-400 font-bold"; }
+    if (p4Title) p4Title.textContent = "MSS DESPLAZAMIENTO";
+    if (p4Desc) p4Desc.textContent = "Bajo London Low ($3,908.20).";
+
+    if (p5Badge) { p5Badge.textContent = "🔴 BAJO VWAP"; p5Badge.className = "text-red-400 font-bold"; }
+    if (p5Title) p5Title.textContent = "CONTROL VENDEDOR";
+    if (p5Desc) p5Desc.textContent = "-1.2σ bajo $3,916.40.";
+
+    if (p6Badge) { p6Badge.textContent = "🔴 TECHO PLANO"; p6Badge.className = "text-red-400 font-bold"; }
+    if (p6Title) p6Title.textContent = "CERO MECHA ARRIBA";
+    if (p6Desc) p6Desc.textContent = "Venta institucional agresiva.";
+
+    if (p7Badge) { p7Badge.textContent = "⚡ EXPANSIÓN"; p7Badge.className = "text-red-400 font-bold"; }
+    if (p7Title) p7Title.textContent = "ROJO ACELERANDO";
+    if (p7Desc) p7Desc.textContent = "Linreg negativo (-14.85 pts).";
+  } else {
+    if (p4Badge) { p4Badge.textContent = "🟢 RUPTURA ALTO"; p4Badge.className = "text-emerald-400 font-bold"; }
+    if (p4Title) p4Title.textContent = "EXPANSIÓN BSL";
+    if (p4Desc) p4Desc.textContent = "Sobre techo Rango M5 ($3,924.50).";
+
+    if (p5Badge) { p5Badge.textContent = "🟢 SOBRE VWAP"; p5Badge.className = "text-emerald-400 font-bold"; }
+    if (p5Title) p5Title.textContent = "CONTROL COMPRADOR";
+    if (p5Desc) p5Desc.textContent = "+0.9σ sobre $3,916.40.";
+
+    if (p6Badge) { p6Badge.textContent = "🟢 BASE PLANA"; p6Badge.className = "text-emerald-400 font-bold"; }
+    if (p6Title) p6Title.textContent = "CERO MECHA ABAJO";
+    if (p6Desc) p6Desc.textContent = "Compras contratendencia.";
+
+    if (p7Badge) { p7Badge.textContent = "⚡ EXPANSIÓN"; p7Badge.className = "text-emerald-400 font-bold"; }
+    if (p7Title) p7Title.textContent = "VERDE ACELERANDO";
+    if (p7Desc) p7Desc.textContent = "Linreg positivo (+8.40 pts).";
+  }
+
+  // 7. Confluencia Institucional Maestra & Plan de Acción
+  if (st.confluence) {
+    const c = st.confluence;
+    const masterBadge = document.getElementById("confluenceMasterBadge");
+    const ratingText = document.getElementById("confluenceRatingText");
+    const dir = document.getElementById("confActionDirection");
+    const trig = document.getElementById("confActionTrigger");
+    const sl = document.getElementById("confActionSL");
+    const tp = document.getElementById("confActionTP");
+
+    if (ratingText && c.rating) {
+      ratingText.textContent = `${c.rating} · ${c.score_pct || 65}%`;
+    }
+
+    if (masterBadge) {
+      if (stateKey === "in_range") {
+        masterBadge.className = "text-xs font-mono px-3 py-1.5 rounded-xl bg-yellow-950 text-yellow-300 border border-yellow-800 flex items-center gap-2 font-bold shadow-md";
+        masterBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span><span id="confluenceRatingText">' + (c.rating || "CONFLUENCIA CONDICIONAL: ESPERA M5") + ' · 65% RANGO</span>';
+      } else if (stateKey === "breakout_down") {
+        masterBadge.className = "text-xs font-mono px-3 py-1.5 rounded-xl bg-red-950 text-red-300 border border-red-800 flex items-center gap-2 font-bold shadow-md";
+        masterBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span><span id="confluenceRatingText">' + (c.rating || "CONFLUENCIA A+") + ' · 92% SELL-ONLY</span>';
+      } else {
+        masterBadge.className = "text-xs font-mono px-3 py-1.5 rounded-xl bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center gap-2 font-bold shadow-md";
+        masterBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span id="confluenceRatingText">' + (c.rating || "CONFLUENCIA B") + ' · 60% BUY-CAUTION</span>';
+      }
+    }
+
+    if (dir && c.direction) {
+      dir.textContent = c.direction;
+      dir.className = stateKey === "in_range" 
+        ? "text-sm font-black text-yellow-400 font-mono" 
+        : (stateKey === "breakout_down" ? "text-sm font-black text-red-400 font-mono" : "text-sm font-black text-emerald-400 font-mono");
+    }
+    if (trig && c.entry_zone) trig.textContent = c.entry_zone;
+    if (sl && c.stop_loss) sl.textContent = c.stop_loss;
+    if (tp) {
+      tp.textContent = `TP1: $${c.take_profit_1 || '3,875'} | TP2: $${c.take_profit || '3,850'} (${c.rr_target || '1:3.2'})`;
+    }
+  }
+
+  initIcons();
 }
 
 // -------------------------------------------------------------

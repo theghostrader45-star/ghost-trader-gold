@@ -607,6 +607,150 @@
           </div>
         </div>
 
+        <!-- SELECTOR DE CONDICIÓN DE MERCADO EN M5 (INTERACTIVO) -->
+        <div class="p-3 rounded-xl bg-gray-950/90 border border-gray-800 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+            <span class="text-xs font-bold text-white font-mono uppercase tracking-wider">Estructura M5:</span>
+            <span class="text-[11px] text-gray-400 hidden sm:inline">Selecciona el estado de la acción del precio para calibrar los algoritmos</span>
+          </div>
+
+          <div class="inline-flex p-1 rounded-xl bg-gray-900 border border-gray-800 gap-1 text-xs font-bold font-mono">
+            <button type="button" id="btnM5StateRange" class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 shadow-sm" title="Oro oscilando dentro de los extremos">
+              <span>🟡</span>
+              <span>En Rango M5 (Actual)</span>
+            </button>
+            <button type="button" id="btnM5StateDown" class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-white hover:bg-gray-800/60" title="Ruptura bajista por debajo del soporte">
+              <span>🔴</span>
+              <span>Ruptura Bajista M5</span>
+            </button>
+            <button type="button" id="btnM5StateUp" class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-white hover:bg-gray-800/60" title="Ruptura alcista por encima de la resistencia">
+              <span>🟢</span>
+              <span>Ruptura Alcista M5</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- CAJA DESTACADA: MONITOR DEL RANGO M5 EN TIEMPO REAL (XAU/USD) -->
+        <div id="m5RangeMonitorCard" class="p-4 sm:p-5 rounded-xl bg-gradient-to-b from-gray-900/90 via-gray-950 to-amber-950/20 border-2 border-amber-500/40 space-y-4 shadow-xl transition-all">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800/80 pb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                <i data-lucide="scan-line" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span id="m5RegimeBadge" class="text-xs font-mono font-black px-2.5 py-0.5 rounded-md bg-yellow-500/20 text-yellow-300 border border-yellow-500/40">
+                    🟡 EN RANGO M5 · CONSOLIDACIÓN ACTIVA
+                  </span>
+                  <span class="text-[10px] text-gray-400 font-mono">Temporalidad 5 Minutos (M5)</span>
+                </div>
+                <h4 id="m5RegimeHeadline" class="text-sm sm:text-base font-black text-white mt-1">
+                  Oro oscilando dentro de un Rango de 5 Minutos (Compresión de Apertura NY)
+                </h4>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] uppercase font-mono text-gray-400">Amplitud del Rango M5:</span>
+              <div id="m5RangeWidth" class="text-sm font-black font-mono text-amber-400">1,630 pts ($16.30)</div>
+            </div>
+          </div>
+
+          <p id="m5RegimeSummary" class="text-xs text-gray-300 leading-relaxed">
+            El precio está atrapado entre la resistencia intradía de $3,924.50 y el soporte de $3,908.20. El Squeeze Momentum se encuentra en compresión (Squeeze ON) y las velas Heikin Ashi muestran indecisión con mechas a ambos lados.
+          </p>
+
+          <!-- Cuadrícula de Niveles Clave del Rango M5 -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- Techo / Resistencia -->
+            <div class="p-3 rounded-xl bg-gray-950/80 border border-red-500/30 space-y-1">
+              <div class="flex items-center justify-between text-[11px] font-mono">
+                <span class="text-gray-400">Techo del Rango (BSL):</span>
+                <span class="text-red-400 font-bold">Resistencia</span>
+              </div>
+              <div class="text-lg font-black font-mono text-red-400" id="m5RangeHigh">$3,924.50</div>
+              <p class="text-[10px] text-gray-400 leading-tight">Piscina de Buy Side Liquidity (Stop loss de vendedores minoristas).</p>
+            </div>
+
+            <!-- Equilibrio 50% / VWAP NY -->
+            <div class="p-3 rounded-xl bg-gray-950/80 border border-yellow-500/30 space-y-1">
+              <div class="flex items-center justify-between text-[11px] font-mono">
+                <span class="text-gray-400">Nivel de Equilibrio (50% EQ):</span>
+                <span class="text-yellow-400 font-bold">Zona Neutral</span>
+              </div>
+              <div class="text-lg font-black font-mono text-yellow-300" id="m5RangeEQ">$3,916.35</div>
+              <p class="text-[10px] text-gray-400 leading-tight">Confluencia exacta con el NY VWAP ($3,916.40). Picadora de carne.</p>
+            </div>
+
+            <!-- Suelo / Soporte -->
+            <div class="p-3 rounded-xl bg-gray-950/80 border border-emerald-500/30 space-y-1">
+              <div class="flex items-center justify-between text-[11px] font-mono">
+                <span class="text-gray-400">Suelo del Rango (SSL):</span>
+                <span class="text-emerald-400 font-bold">Soporte</span>
+              </div>
+              <div class="text-lg font-black font-mono text-emerald-400" id="m5RangeLow">$3,908.20</div>
+              <p class="text-[10px] text-gray-400 leading-tight">London Low. Sell Side Liquidity. Gatillo de ruptura institucional.</p>
+            </div>
+          </div>
+
+          <!-- Pista Visual de Rango M5 con Marcador de Precio Actual -->
+          <div class="space-y-1.5 pt-1">
+            <div class="flex items-center justify-between text-[10px] font-mono text-gray-400">
+              <span class="text-emerald-400 font-bold">Soporte $3,908.20</span>
+              <span class="text-yellow-400 font-bold">Equilibrio / VWAP $3,916.35</span>
+              <span class="text-red-400 font-bold">Resistencia $3,924.50</span>
+            </div>
+            
+            <div class="relative w-full h-4 bg-gray-950 rounded-full border border-gray-800 overflow-visible">
+              <!-- Zona Central Choppy (Prohibida) -->
+              <div class="absolute top-0 bottom-0 left-[35%] right-[35%] bg-yellow-500/15 border-x border-yellow-500/30"></div>
+              
+              <!-- Marcador de Posición del Precio Actual -->
+              <div id="m5RangeProgressMarker" class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-500 z-10" style="left: 52%;">
+                <div class="w-4 h-4 rounded-full bg-yellow-400 border-2 border-black shadow-lg shadow-yellow-400/50 flex items-center justify-center">
+                  <div class="w-1.5 h-1.5 rounded-full bg-black"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between text-[9px] font-mono text-gray-500">
+              <span>Zona de Venta por Quiebre (SSL)</span>
+              <span class="text-yellow-500/80 font-bold">⛔ ZONA CENTRAL PROHIBIDA (CHOP)</span>
+              <span>Zona de Barrido BSL (Fakeout)</span>
+            </div>
+          </div>
+
+          <!-- Protocolo Operativo en Rango M5 -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-2 border-t border-gray-800/80 text-xs">
+            <div class="p-2.5 rounded-lg bg-gray-950 border border-yellow-500/30 space-y-1">
+              <div class="text-[10px] font-bold uppercase font-mono text-yellow-400 flex items-center gap-1">
+                <span>🛑 Regla 1: Zona Prohibida</span>
+              </div>
+              <p class="text-[11px] text-gray-300 leading-tight">
+                <strong>No operar en $3,913 – $3,919</strong>. Cruzando el NY VWAP el mercado genera ruido y falso movimiento sin ventaja estadística.
+              </p>
+            </div>
+
+            <div class="p-2.5 rounded-lg bg-gray-950 border border-red-500/30 space-y-1">
+              <div class="text-[10px] font-bold uppercase font-mono text-red-400 flex items-center gap-1">
+                <span>🎯 Estrategia A: Ruptura Macro (SELL)</span>
+              </div>
+              <p class="text-[11px] text-gray-300 leading-tight">
+                Esperar cierre M5 perforando <strong>$3,908.20</strong> + vela Heikin Ashi <strong>techo plano</strong> + Squeeze OFF rojo. TP: $3,875.
+              </p>
+            </div>
+
+            <div class="p-2.5 rounded-lg bg-gray-950 border border-purple-500/30 space-y-1">
+              <div class="text-[10px] font-bold uppercase font-mono text-purple-400 flex items-center gap-1">
+                <span>🎯 Estrategia B: Barrido Judas (Fakeout)</span>
+              </div>
+              <p class="text-[11px] text-gray-300 leading-tight">
+                Si supera <strong>$3,924.50</strong> solo con mecha de barrido BSL y rechaza rápido dejando vela HA roja plana, vender hacia $3,908.20.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- PILAR 1: ARQUITECTURA DE LIQUIDEZ INSTITUCIONAL SMC (SMART MONEY CONCEPTS EN M5) -->
         <div class="space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-gray-950/70 border border-gray-800/80 text-xs">
@@ -1069,9 +1213,9 @@
               <p class="text-xs text-gray-400 mt-0.5">Alineación algorítmica obligatoria de 7 filtros técnicos y fundamentales para la Sesión New York</p>
             </div>
           </div>
-          <div id="confluenceMasterBadge" class="text-xs font-mono px-3 py-1.5 rounded-xl bg-red-950 text-red-300 border border-red-800 flex items-center gap-2 font-bold shadow-md">
-            <span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
-            <span id="confluenceRatingText">CONFLUENCIA A+ · 92% SELL-ONLY</span>
+          <div id="confluenceMasterBadge" class="text-xs font-mono px-3 py-1.5 rounded-xl bg-yellow-950 text-yellow-300 border border-yellow-800 flex items-center gap-2 font-bold shadow-md">
+            <span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
+            <span id="confluenceRatingText">CONFLUENCIA CONDICIONAL: ESPERA M5 · 65% RANGO</span>
           </div>
         </div>
 
@@ -1112,40 +1256,40 @@
           <div class="p-2.5 rounded-xl bg-gray-900/90 border border-gray-800 space-y-1 shadow-sm">
             <div class="text-[9px] text-gray-400 uppercase font-mono font-bold flex items-center justify-between">
               <span>4. Estructura SMC</span>
-              <span class="text-red-400 font-bold">🔴 RUPTURA LL</span>
+              <span id="confPill4Badge" class="text-yellow-400 font-bold">🟡 EN RANGO M5</span>
             </div>
-            <div class="text-[11px] font-bold text-white leading-tight">MSS DESPLAZAMIENTO</div>
-            <p class="text-[9px] text-gray-400 leading-tight">Bajo London Low ($3,908.20).</p>
+            <div id="confPill4Title" class="text-[11px] font-bold text-white leading-tight">COMPRESIÓN BSL/SSL</div>
+            <p id="confPill4Desc" class="text-[9px] text-gray-400 leading-tight">Rango M5 $3,908.20 – $3,924.50.</p>
           </div>
 
           <!-- Filtro 5: NY Anchored VWAP & Perfil -->
           <div class="p-2.5 rounded-xl bg-gray-900/90 border border-gray-800 space-y-1 shadow-sm">
             <div class="text-[9px] text-gray-400 uppercase font-mono font-bold flex items-center justify-between">
               <span>5. NY VWAP</span>
-              <span class="text-red-400 font-bold">🔴 BAJO VWAP</span>
+              <span id="confPill5Badge" class="text-yellow-400 font-bold">🟡 EN EL VWAP</span>
             </div>
-            <div class="text-[11px] font-bold text-white leading-tight">CONTROL VENDEDOR</div>
-            <p class="text-[9px] text-gray-400 leading-tight">-1.2σ bajo $3,916.40.</p>
+            <div id="confPill5Title" class="text-[11px] font-bold text-white leading-tight">OSCILACIÓN CHOP</div>
+            <p id="confPill5Desc" class="text-[9px] text-gray-400 leading-tight">Cortando VWAP ($3,916.40).</p>
           </div>
 
           <!-- Filtro 6: Velas Heikin Ashi M5 -->
           <div class="p-2.5 rounded-xl bg-gray-900/90 border border-gray-800 space-y-1 shadow-sm">
             <div class="text-[9px] text-gray-400 uppercase font-mono font-bold flex items-center justify-between">
               <span>6. Heikin Ashi</span>
-              <span class="text-red-400 font-bold">🔴 TECHO PLANO</span>
+              <span id="confPill6Badge" class="text-yellow-400 font-bold">🟡 MECHAS DUALES</span>
             </div>
-            <div class="text-[11px] font-bold text-white leading-tight">CERO MECHA ARRIBA</div>
-            <p class="text-[9px] text-gray-400 leading-tight">Venta institucional agresiva.</p>
+            <div id="confPill6Title" class="text-[11px] font-bold text-white leading-tight">INDECISIÓN DOJI</div>
+            <p id="confPill6Desc" class="text-[9px] text-gray-400 leading-tight">Sin base ni techo plano en M5.</p>
           </div>
 
           <!-- Filtro 7: Squeeze Momentum LazyBear -->
           <div class="p-2.5 rounded-xl bg-gray-900/90 border border-gray-800 space-y-1 shadow-sm">
             <div class="text-[9px] text-gray-400 uppercase font-mono font-bold flex items-center justify-between">
               <span>7. Squeeze Mom.</span>
-              <span class="text-red-400 font-bold">⚡ EXPANSIÓN</span>
+              <span id="confPill7Badge" class="text-yellow-400 font-bold">🟡 SQUEEZE ON</span>
             </div>
-            <div class="text-[11px] font-bold text-white leading-tight">ROJO ACELERANDO</div>
-            <p class="text-[9px] text-gray-400 leading-tight">Linreg negativo (-14.85 pts).</p>
+            <div id="confPill7Title" class="text-[11px] font-bold text-white leading-tight">RESORTE COMPRIMIDO</div>
+            <p id="confPill7Desc" class="text-[9px] text-gray-400 leading-tight">Puntos negros en 0 (-2.10 pts).</p>
           </div>
 
         </div>
@@ -1167,19 +1311,19 @@
           <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs font-mono">
             <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
               <span class="text-gray-400 text-[10px] uppercase font-bold">Dirección Exclusiva:</span>
-              <div class="text-sm font-black text-red-400" id="confActionDirection">SOLO VENTAS (SELL-ONLY)</div>
-              <span class="text-[10px] text-gray-500">Prohibido compras</span>
+              <div class="text-sm font-black text-yellow-400" id="confActionDirection">ESPERA / RANGO M5 (WAIT)</div>
+              <span class="text-[10px] text-gray-500">Paciencia: no forzar trades</span>
             </div>
 
             <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
               <span class="text-gray-400 text-[10px] uppercase font-bold">Gatillo en M5:</span>
-              <div class="text-xs font-bold text-white" id="confActionTrigger">Retesteo a FVG ($3,910 – $3,916.80)</div>
-              <span class="text-[10px] text-gray-400">50% C.E. + Vela HA techo plano</span>
+              <div class="text-xs font-bold text-white" id="confActionTrigger">Ruptura bajo $3,908.20 o Falso Rompimiento sobre $3,924.50</div>
+              <span class="text-[10px] text-gray-400">Vela HA con cero mecha + Squeeze OFF</span>
             </div>
 
             <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
               <span class="text-gray-400 text-[10px] uppercase font-bold">Stop Loss Técnico:</span>
-              <div class="text-xs font-bold text-amber-400" id="confActionSL">3,928.00 (Sobre Order Block / 1,800 pts)</div>
+              <div class="text-xs font-bold text-amber-400" id="confActionSL">3,928.00 (Fuera de los extremos)</div>
               <span class="text-[10px] text-gray-400">Protección estructural</span>
             </div>
 
@@ -4110,6 +4254,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261104_v15_strong_technical_xauusd"></script>
+<script src="app.js?v=20261104_v16_m5_range_live_focus"></script>
 </body>
 </html>
