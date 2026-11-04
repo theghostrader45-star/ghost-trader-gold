@@ -448,22 +448,25 @@ def calculate_precision_radar(current_price=None, daily_bias="BEARISH", session_
     is_bearish = "BEAR" in bias_upper
     is_bullish = "BULL" in bias_upper
     
-    # Precios de referencia de sesión
-    sweep_high = 3972.50
-    sweep_low = 3894.00
+    if current_price is None or current_price <= 0:
+        current_price = 4032.50
+        
+    sweep_high = current_price + 15.00
+    sweep_low = current_price - 25.00
     
     if session_levels:
         try:
             if "london_high" in session_levels:
-                sweep_high = max(sweep_high, float(str(session_levels["london_high"]).replace(",", "")))
+                lh = float(str(session_levels["london_high"]).replace(",", ""))
+                if abs(lh - current_price) < 150:
+                    sweep_high = max(sweep_high, lh)
             if "asian_low" in session_levels:
-                sweep_low = min(sweep_low, float(str(session_levels["asian_low"]).replace(",", "")))
+                al = float(str(session_levels["asian_low"]).replace(",", ""))
+                if abs(al - current_price) < 150:
+                    sweep_low = min(sweep_low, al)
         except Exception:
             pass
             
-    if current_price is None or current_price <= 0:
-        current_price = 3947.80
-        
     cfg = CONFIG_PRECISION_INTRADAY if mode == "PRECISION" else CONFIG_TREND_MACRO
 
     if is_bearish:
@@ -472,7 +475,7 @@ def calculate_precision_radar(current_price=None, daily_bias="BEARISH", session_
         setup_name = "Retesteo en Zona de Mitigación / FVG (2da Onda Anti-Inducement)"
         
         # Zona óptima de retesteo (50% a 61.8% de retroceso del impulso de caída desde sweep_high)
-        impulse_low = 3940.00
+        impulse_low = current_price - 8.00
         fib_50 = round(impulse_low + (sweep_high - impulse_low) * 0.50, 2)
         fib_618 = round(impulse_low + (sweep_high - impulse_low) * 0.618, 2)
         
@@ -517,7 +520,7 @@ def calculate_precision_radar(current_price=None, daily_bias="BEARISH", session_
         action_label = "COMPRA / LONG EN RETESTEO"
         setup_name = "Retesteo en Zona de Soporte / FVG Alcista (2da Onda)"
         
-        impulse_high = 3980.00
+        impulse_high = current_price + 8.00
         fib_50 = round(sweep_low + (impulse_high - sweep_low) * 0.50, 2)
         fib_618 = round(sweep_low + (impulse_high - sweep_low) * 0.382, 2)
         

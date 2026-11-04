@@ -107,23 +107,23 @@
     }
   ],
   "session_levels": {
-    "pdh": "3,985.50",
-    "pdl": "3,872.20",
-    "pd_range_pts": 11330,
-    "london_high": "3,936.50",
-    "london_low": "3,908.20",
-    "london_range_pts": 2830,
-    "asian_high": "3,912.80",
-    "asian_low": "3,894.10",
-    "asian_range_pts": 1870,
-    "current_pivot": "3,922.35"
+    "pdh": "4,058.00",
+    "pdl": "4,018.00",
+    "pd_range_pts": 4000,
+    "london_high": "4,047.50",
+    "london_low": "4,028.30",
+    "london_range_pts": 1920,
+    "asian_high": "4,042.80",
+    "asian_low": "4,031.50",
+    "asian_range_pts": 1130,
+    "current_pivot": "4,038.40"
   },
   "technical_zones": {
-    "key_resistance": "3,920.00 – 4,000.00",
-    "key_resistance_label": "Zona A+ de Ventas (Antiguo Soporte ahora Resistencia Institucional)",
-    "key_support": "3,850.00 – 3,800.00",
+    "key_resistance": "4,048.00 – 4,060.00",
+    "key_resistance_label": "Zona A+ de Ventas (Resistencia Institucional)",
+    "key_support": "4,025.00 – 4,000.00",
     "key_support_label": "Zona Objetivo de Toma de Ganancias (Piscina de Liquidez)",
-    "invalidation": "4,015.00",
+    "invalidation": "4,068.00",
     "invalidation_label": "Cierre de vela H4 por encima invalida el sesgo bajista"
   },
   "m5_states": {
@@ -131,12 +131,12 @@
       "state_key": "in_range",
       "badge": "🟡 EN RANGO M5 · CONSOLIDACIÓN ACTIVA",
       "headline": "Oro oscilando dentro de un Rango de 5 Minutos (Compresión de Apertura NY)",
-      "summary": "El precio está atrapado entre la resistencia intradía de $3,924.50 y el soporte de $3,908.20. El Squeeze Momentum se encuentra en compresión (Squeeze ON) y las velas Heikin Ashi muestran indecisión con mechas a ambos lados.",
-      "range_high": "3,924.50",
-      "range_low": "3,908.20",
-      "range_eq": "3,916.35",
-      "range_width_pts": 1630,
-      "range_width_usd": "$16.30",
+      "summary": "El precio está atrapado entre la resistencia intradía de $4,046.50 y el soporte de $4,030.00. El Squeeze Momentum se encuentra en compresión (Squeeze ON) y las velas Heikin Ashi muestran indecisión con mechas a ambos lados.",
+      "range_high": "4,046.50",
+      "range_low": "4,030.00",
+      "range_eq": "4,038.25",
+      "range_width_pts": 1650,
+      "range_width_usd": "$16.50",
       "range_progress_pct": 52,
       "heikin_ashi": {
         "status": "INDECISION_DOJI",
@@ -155,19 +155,19 @@
         "desc": "Volatilidad reprimida cargando el resorte de New York. Las Bandas de Bollinger están dentro de los Canales de Keltner acumulando energía antes de la expansión."
       },
       "session_vwap": {
-        "ny_vwap": "3,916.40",
+        "ny_vwap": "4,038.40",
         "status": "CHOPPY_OSCILLATION (En torno al VWAP)",
-        "badge": "🟡 PRECIO EN EL VWAP ($3,916.40)",
-        "desc": "El precio corta el VWAP repetidamente en $3,916.40. Zona de picadora de carne (choppy) sin dominancia clara de compradores ni vendedores."
+        "badge": "🟡 PRECIO EN EL VWAP ($4,038.40)",
+        "desc": "El precio corta el VWAP repetidamente en $4,038.40. Zona de picadora de carne (choppy) sin dominancia clara de compradores ni vendedores."
       },
       "smc_liquidity": {
         "liquidity_state": "CONSOLIDACIÓN DENTRO DEL RANGO DE LONDRES",
         "badge": "🟡 ACUMULACIÓN DE LIQUIDEZ BSL / SSL",
-        "mss_status": "PENDIENTE DE ROTURA (Rango 1,630 pts)",
-        "order_block": "3,924.50 (Techo del Rango M5) / 3,908.20 (Suelo)",
-        "fvg": "3,910.50 – $3,916.80 (Zona Central FVG)",
-        "fvg_ce": "3,913.65 (50% Consequent Encroachment)",
-        "desc": "Los algoritmos bancarios están construyendo liquidez en los extremos (BSL por encima de $3,924.50 y SSL por debajo de $3,908.20). Se espera barrido de manipulación (Judas Swing) antes del despegue."
+        "mss_status": "PENDIENTE DE ROTURA (Rango 1,650 pts)",
+        "order_block": "4,042.50 – 4,046.50 (Techo del Rango M5)",
+        "fvg": "4,033.50 – $4,039.00 (Zona Central FVG)",
+        "fvg_ce": "4,036.25 (50% Consequent Encroachment)",
+        "desc": "Los algoritmos bancarios están construyendo liquidez en los extremos (BSL por encima de $4,046.50 y SSL por debajo de $4,030.00). Se espera barrido de manipulación (Judas Swing) antes del despegue."
       },
       "confluence": {
         "rating": "CONFLUENCIA CONDICIONAL: ESPERA DE GATILLO M5",
@@ -175,10 +175,10 @@
         "direction": "ESPERA / RANGO M5 (WAIT FOR EXPANSION)",
         "badge": "🟡 ESPERA · RANGO M5 EN COMPRESIÓN",
         "cardinal_rule": "PACIENCIA ESTRICTA: NO DISPARAR EN EL CENTRO DEL RANGO. Esperar que rompa un extremo o barra liquidez.",
-        "entry_zone": "Ruptura bajo $3,908.20 o Falso Rompimiento sobre $3,924.50",
-        "stop_loss": "3,928.00 (Fuera de los extremos)",
-        "take_profit_1": "3,875.00 (1:1.8)",
-        "take_profit": "3,850.00 (1:3.2)",
+        "entry_zone": "Ruptura bajo $4,030.00 o Falso Rompimiento sobre $4,046.50",
+        "stop_loss": "4,050.00 (Fuera de los extremos)",
+        "take_profit_1": "4,010.00 (1:1.8)",
+        "take_profit": "3,990.00 (1:3.2)",
         "rr_target": "1:3.2"
       }
     },
@@ -186,12 +186,12 @@
       "state_key": "breakout_down",
       "badge": "🔴 RUPTURA BAJISTA M5 · EXPANSIÓN CONFIRMADA",
       "headline": "Ruptura del Rango M5 con Desplazamiento y Gatillo Vendedor Activo",
-      "summary": "El precio perforó el soporte del rango M5 ($3,908.20) con vela de cuerpo completo. El Squeeze disparó a Squeeze OFF y las velas Heikin Ashi M5 confirman techos planos.",
-      "range_high": "3,924.50",
-      "range_low": "3,908.20",
-      "range_eq": "3,916.35",
-      "range_width_pts": 1630,
-      "range_width_usd": "$16.30",
+      "summary": "El precio perforó el soporte del rango M5 ($4,030.00) con vela de cuerpo completo. El Squeeze disparó a Squeeze OFF y las velas Heikin Ashi M5 confirman techos planos.",
+      "range_high": "4,046.50",
+      "range_low": "4,030.00",
+      "range_eq": "4,038.25",
+      "range_width_pts": 1650,
+      "range_width_usd": "$16.50",
       "range_progress_pct": 10,
       "heikin_ashi": {
         "status": "BEARISH_FLAT_TOP",
@@ -210,19 +210,19 @@
         "desc": "Volatilidad liberada. El squeeze comprimido explotó con histograma linreg negativo creciente por debajo de cero."
       },
       "session_vwap": {
-        "ny_vwap": "3,916.40",
+        "ny_vwap": "4,038.40",
         "status": "BEARISH_CONTROL (-1.2σ)",
         "badge": "📉 CONTROL TOTAL DE VENDEDORES (BAJO NY VWAP)",
-        "desc": "El precio cotiza a -1.2 Desviaciones Estándar bajo el VWAP de New York ($3,916.40). Vendedores en control."
+        "desc": "El precio cotiza a -1.2 Desviaciones Estándar bajo el VWAP de New York ($4,038.40). Vendedores en control."
       },
       "smc_liquidity": {
         "liquidity_state": "SELLSIDE LIQUIDITY RUN (SSL RUN)",
         "badge": "⚡ BARRIDO DE LIQUIDEZ SSL",
-        "mss_status": "MSS CONFIRMADO (Cuerpo de vela cerrado bajo 3,908.20)",
-        "order_block": "3,918.00 – 3,924.00 (Bearish Order Block M5)",
-        "fvg": "3,910.50 – $3,916.80 (IFVG M5)",
-        "fvg_ce": "3,913.65 (50% Consequent Encroachment)",
-        "desc": "Desplazamiento institucional limpio con rotura de estructura (MSS). Los algoritmos bancarios buscan mitigar el FVG al 50% C.E. ($3,913.65) antes de continuar la cascada bajista."
+        "mss_status": "MSS CONFIRMADO (Cuerpo de vela cerrado bajo 4,030.00)",
+        "order_block": "4,042.50 – 4,046.50 (Bearish Order Block M5)",
+        "fvg": "4,033.50 – $4,039.00 (IFVG M5)",
+        "fvg_ce": "4,036.25 (50% Consequent Encroachment)",
+        "desc": "Desplazamiento institucional limpio con rotura de estructura (MSS). Los algoritmos bancarios buscan mitigar el FVG al 50% C.E. ($4,036.25) antes de continuar la cascada bajista."
       },
       "confluence": {
         "rating": "CONFLUENCIA A+ (MÁXIMA CONVICCIÓN)",
@@ -230,23 +230,23 @@
         "direction": "SELL-ONLY (SOLO VENTAS)",
         "badge": "🔴 CONFLUENCIA A+ · 92% SELL-ONLY",
         "cardinal_rule": "PROHIBIDAS TODAS LAS COMPRAS. Operar exclusivamente ventas tras retroceso a la zona FVG / 50% C.E.",
-        "entry_zone": "3,910.00 – 3,916.80 (Retesteo de nivel M5 + 50% C.E.)",
-        "stop_loss": "3,928.00 (Por encima del Bearish Order Block M5 / ~1,800 pts)",
-        "take_profit_1": "3,875.00 (Toma de SSL Diario / R:R 1:1.8)",
-        "take_profit": "3,850.00 (Piscina de Liquidez Institucional Mayor / R:R 1:3.2)",
+        "entry_zone": "4,033.50 – 4,039.00 (Retesteo de nivel M5 + 50% C.E.)",
+        "stop_loss": "4,050.00 (Por encima del Bearish Order Block M5 / ~1,000 pts)",
+        "take_profit_1": "4,010.00 (Toma de SSL Diario / R:R 1:1.8)",
+        "take_profit": "3,990.00 (Piscina de Liquidez Institucional Mayor / R:R 1:3.2)",
         "rr_target": "1:3.2"
       }
     },
     "breakout_up": {
       "state_key": "breakout_up",
       "badge": "🟢 RUPTURA ALCISTA M5 · CONTRATENDENCIA",
-      "headline": "Ruptura Alcista sobre el Rango M5 ($3,924.50) con Impulso Comprador",
-      "summary": "El precio superó el techo del rango M5 ($3,924.50). Las velas Heikin Ashi marcan base plana. Nota: Es un movimiento en contra del Macro Score (-85%), por lo que se requiere riesgo reducido.",
-      "range_high": "3,924.50",
-      "range_low": "3,908.20",
-      "range_eq": "3,916.35",
-      "range_width_pts": 1630,
-      "range_width_usd": "$16.30",
+      "headline": "Ruptura Alcista sobre el Rango M5 ($4,046.50) con Impulso Comprador",
+      "summary": "El precio superó el techo del rango M5 ($4,046.50). Las velas Heikin Ashi marcan base plana. Nota: Es un movimiento en contra del Macro Score (-85%), por lo que se requiere riesgo reducido.",
+      "range_high": "4,046.50",
+      "range_low": "4,030.00",
+      "range_eq": "4,038.25",
+      "range_width_pts": 1650,
+      "range_width_usd": "$16.50",
       "range_progress_pct": 90,
       "heikin_ashi": {
         "status": "BULLISH_FLAT_BOTTOM",

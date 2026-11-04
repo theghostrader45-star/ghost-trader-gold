@@ -649,45 +649,11 @@
               Escaneo: <span id="scannerScanTime" class="text-white font-bold">--:--:-- ET</span>
             </div>
 
-            <!-- Selector de Modo / Banco de Pruebas -->
-            <div class="flex items-center gap-1.5">
-              <select id="selectScannerMode" class="bg-gray-950 border border-cyan-500/30 hover:border-cyan-400 text-gray-200 text-xs rounded-xl px-2.5 py-1.5 font-mono cursor-pointer transition focus:outline-none focus:border-cyan-400">
-                <option value="auto" selected>🤖 Modo 100% Automático (Escáner Vivo)</option>
-                <option value="in_range">🟡 Probar: Rango M5 / Compresión</option>
-                <option value="breakout_down">🔴 Probar: Ruptura Bajista M5 (A+)</option>
-                <option value="breakout_up">🟢 Probar: Ruptura Alcista M5 (B)</option>
-              </select>
+            <!-- Modo 100% Automático Permanente (Sin opciones manuales) -->
+            <div class="px-3 py-1.5 rounded-xl bg-emerald-950/70 border border-emerald-500/50 text-xs font-mono flex items-center gap-2 shadow-inner">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-emerald-300 font-black tracking-wide uppercase text-[11px]">100% AUTOMÁTICO · SCANNER EN VIVO</span>
             </div>
-          </div>
-        </div>
-
-        <!-- BANCO DE PRUEBAS DEL LABORATORIO (TESTING BAY INTERACTIVO) -->
-        <div class="p-2.5 rounded-xl bg-gray-950/80 border border-gray-800 flex flex-wrap items-center justify-between gap-2.5 shadow-sm">
-          <div class="flex items-center gap-2">
-            <span class="text-cyan-400 font-bold font-mono text-xs uppercase flex items-center gap-1.5">
-              <i data-lucide="flask-conical" class="w-4 h-4 text-cyan-400"></i>
-              <span>Banco de Pruebas de Precisión:</span>
-            </span>
-            <span class="text-[11px] text-gray-400 hidden sm:inline">Ejecuta simulaciones instantáneas para comprobar la respuesta de los 7 filtros</span>
-          </div>
-
-          <div class="inline-flex gap-1.5 flex-wrap text-xs font-mono font-bold">
-            <button type="button" id="btnLabAuto" class="px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center gap-1.5 cursor-pointer shadow-sm transition hover:bg-cyan-500/30">
-              <span>🤖</span>
-              <span>Auto-Scan (En Vivo)</span>
-            </button>
-            <button type="button" id="btnLabRange" class="px-2.5 py-1 rounded-lg bg-gray-900 text-yellow-300 border border-yellow-500/30 flex items-center gap-1.5 cursor-pointer transition hover:bg-yellow-950/40">
-              <span>🟡</span>
-              <span>Simular Rango / Chop</span>
-            </button>
-            <button type="button" id="btnLabDown" class="px-2.5 py-1 rounded-lg bg-gray-900 text-red-300 border border-red-500/30 flex items-center gap-1.5 cursor-pointer transition hover:bg-red-950/40">
-              <span>🔴</span>
-              <span>Simular Ruptura Sell (A+)</span>
-            </button>
-            <button type="button" id="btnLabUp" class="px-2.5 py-1 rounded-lg bg-gray-900 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 cursor-pointer transition hover:bg-emerald-950/40">
-              <span>🟢</span>
-              <span>Simular Ruptura Buy (B)</span>
-            </button>
           </div>
         </div>
 
@@ -780,9 +746,9 @@
           <!-- Pista Visual de Rango M5 con Marcador de Precio Actual -->
           <div class="space-y-1.5 pt-1">
             <div class="flex items-center justify-between text-[10px] font-mono text-gray-400">
-              <span class="text-emerald-400 font-bold">Soporte $3,908.20</span>
-              <span class="text-yellow-400 font-bold">Equilibrio / VWAP $3,916.35</span>
-              <span class="text-red-400 font-bold">Resistencia $3,924.50</span>
+              <span class="text-emerald-400 font-bold" id="m5RangeLowLabel">Soporte $4,030.00</span>
+              <span class="text-yellow-400 font-bold" id="m5RangeEqLabel">Equilibrio / VWAP $4,038.25</span>
+              <span class="text-red-400 font-bold" id="m5RangeHighLabel">Resistencia $4,046.50</span>
             </div>
             
             <div class="relative w-full h-4 bg-gray-950 rounded-full border border-gray-800 overflow-visible">
@@ -810,8 +776,8 @@
               <div class="text-[10px] font-bold uppercase font-mono text-yellow-400 flex items-center gap-1">
                 <span>🛑 Regla 1: Zona Prohibida</span>
               </div>
-              <p class="text-[11px] text-gray-300 leading-tight">
-                <strong>No operar en $3,913 – $3,919</strong>. Cruzando el NY VWAP el mercado genera ruido y falso movimiento sin ventaja estadística.
+              <p class="text-[11px] text-gray-300 leading-tight" id="labRuleForbiddenText">
+                <strong>No operar en zona de choque</strong>. Cruzando el NY VWAP el mercado genera ruido y falso movimiento sin ventaja estadística.
               </p>
             </div>
 
@@ -819,8 +785,8 @@
               <div class="text-[10px] font-bold uppercase font-mono text-red-400 flex items-center gap-1">
                 <span>🎯 Estrategia A: Ruptura Macro (SELL)</span>
               </div>
-              <p class="text-[11px] text-gray-300 leading-tight">
-                Esperar cierre M5 perforando <strong>$3,908.20</strong> + vela Heikin Ashi <strong>techo plano</strong> + Squeeze OFF rojo. TP: $3,875.
+              <p class="text-[11px] text-gray-300 leading-tight" id="labStrategyAText">
+                Esperar cierre M5 perforando el soporte + vela Heikin Ashi <strong>techo plano</strong> + Squeeze OFF rojo.
               </p>
             </div>
 
@@ -828,8 +794,8 @@
               <div class="text-[10px] font-bold uppercase font-mono text-purple-400 flex items-center gap-1">
                 <span>🎯 Estrategia B: Barrido Judas (Fakeout)</span>
               </div>
-              <p class="text-[11px] text-gray-300 leading-tight">
-                Si supera <strong>$3,924.50</strong> solo con mecha de barrido BSL y rechaza rápido dejando vela HA roja plana, vender hacia $3,908.20.
+              <p class="text-[11px] text-gray-300 leading-tight" id="labStrategyBText">
+                Si supera la resistencia solo con mecha de barrido BSL y rechaza rápido dejando vela HA roja plana, vender hacia el soporte.
               </p>
             </div>
           </div>
@@ -910,11 +876,11 @@
               <div class="space-y-1.5 text-xs">
                 <div class="flex items-center justify-between font-mono">
                   <span class="text-gray-400">Cierre de Ruptura M5:</span>
-                  <span class="font-bold text-red-400 font-mono">$3,902.50</span>
+                  <span class="font-bold text-red-400 font-mono" id="labMssClose">$4,028.50</span>
                 </div>
                 <div class="flex items-center justify-between font-mono">
                   <span class="text-gray-400">Vela de Desplazamiento:</span>
-                  <span class="font-bold text-white font-mono">1,420 pts ($14.20)</span>
+                  <span class="font-bold text-white font-mono" id="labMssPts">1,650 pts ($16.50)</span>
                 </div>
                 <div class="flex items-center justify-between font-mono text-[11px]">
                   <span class="text-gray-400">Tipo de Liquidez:</span>
@@ -947,20 +913,20 @@
               <div class="space-y-1.5 text-xs">
                 <div class="flex items-center justify-between font-mono">
                   <span class="text-gray-400">Inversion FVG M5:</span>
-                  <span class="font-bold text-amber-300">$3,910.50 – $3,916.80</span>
+                  <span class="font-bold text-amber-300" id="labFvgRange">$4,033.50 – $4,039.00</span>
                 </div>
                 <div class="flex items-center justify-between font-mono">
                   <span class="text-gray-400">50% C.E. (Consequent Encroachment):</span>
-                  <span class="font-bold text-emerald-400">$3,913.65</span>
+                  <span class="font-bold text-emerald-400" id="labFvgCe">$4,036.25</span>
                 </div>
                 <div class="flex items-center justify-between font-mono text-[11px]">
                   <span class="text-gray-400">Bearish Order Block (OB):</span>
-                  <span class="text-red-400 font-bold">$3,918.00 – $3,924.00</span>
+                  <span class="text-red-400 font-bold" id="labOrderBlock">$4,042.50 – $4,046.50</span>
                 </div>
               </div>
 
-              <div class="p-2 rounded-lg bg-red-950/30 border border-red-900/40 text-[10px] text-red-200 leading-tight">
-                <strong>Punto de entrada de alta precisión:</strong> Esperar retroceso hacia el 50% C.E. del FVG ($3,913.65) con Stop Loss justo por encima del Bearish Order Block ($3,928.00).
+              <div class="p-2 rounded-lg bg-red-950/30 border border-red-900/40 text-[10px] text-red-200 leading-tight" id="labFvgProtocolText">
+                <strong>Punto de entrada de alta precisión:</strong> Esperar retroceso hacia el 50% C.E. del FVG con Stop Loss justo por encima del Bearish Order Block.
               </div>
             </div>
 
@@ -1056,20 +1022,20 @@
               <div class="space-y-2 text-xs font-mono">
                 <div class="flex items-center justify-between">
                   <span class="text-gray-400">Point of Control (POC):</span>
-                  <span class="font-bold text-yellow-400">$3,914.00</span>
+                  <span class="font-bold text-yellow-400" id="labPoc">$4,038.00</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-gray-400">Value Area High (VAH):</span>
-                  <span class="font-bold text-white">$3,926.00</span>
+                  <span class="font-bold text-white" id="labVah">$4,044.00</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-gray-400">Value Area Low (VAL):</span>
-                  <span class="font-bold text-purple-300">$3,906.50</span>
+                  <span class="font-bold text-purple-300" id="labVal">$4,032.50</span>
                 </div>
               </div>
 
-              <p class="text-[10px] text-gray-400 leading-tight">
-                El POC de $3,914.00 actúa como resistencia magnetizada. La ruptura y aceptación bajo el VAL confirma el desequilibrio vendedor institucional.
+              <p class="text-[10px] text-gray-400 leading-tight" id="labVpDetailText">
+                El POC actúa como resistencia/soporte magnetizado. La ruptura y aceptación bajo el VAL confirma el desequilibrio vendedor institucional.
               </p>
             </div>
 
@@ -1093,7 +1059,7 @@
               <div class="space-y-2 text-xs">
                 <div class="flex items-center justify-between">
                   <span class="text-gray-400 font-mono">Tendencia H1:</span>
-                  <span class="font-bold text-red-400 font-mono">Bajista (Bajo EMA 200 $3,965)</span>
+                  <span class="font-bold text-red-400 font-mono">Bajista (Bajo EMA 200 $4,065)</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-gray-400 font-mono">Tendencia M15:</span>
@@ -1389,7 +1355,7 @@
               <span id="confPill4Badge" class="text-yellow-400 font-bold">🟡 EN RANGO M5</span>
             </div>
             <div id="confPill4Title" class="text-[11px] font-bold text-white leading-tight">COMPRESIÓN BSL/SSL</div>
-            <p id="confPill4Desc" class="text-[9px] text-gray-400 leading-tight">Rango M5 $3,908.20 – $3,924.50.</p>
+            <p id="confPill4Desc" class="text-[9px] text-gray-400 leading-tight">Rango M5 $4,030.00 – $4,046.50.</p>
           </div>
 
           <!-- Filtro 5: NY Anchored VWAP & Perfil -->
@@ -1399,7 +1365,7 @@
               <span id="confPill5Badge" class="text-yellow-400 font-bold">🟡 EN EL VWAP</span>
             </div>
             <div id="confPill5Title" class="text-[11px] font-bold text-white leading-tight">OSCILACIÓN CHOP</div>
-            <p id="confPill5Desc" class="text-[9px] text-gray-400 leading-tight">Cortando VWAP ($3,916.40).</p>
+            <p id="confPill5Desc" class="text-[9px] text-gray-400 leading-tight">En torno al NY VWAP ($4,038.40).</p>
           </div>
 
           <!-- Filtro 6: Velas Heikin Ashi M5 -->
@@ -1447,19 +1413,19 @@
 
             <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
               <span class="text-gray-400 text-[10px] uppercase font-bold">Gatillo en M5:</span>
-              <div class="text-xs font-bold text-white" id="confActionTrigger">Ruptura bajo $3,908.20 o Falso Rompimiento sobre $3,924.50</div>
+              <div class="text-xs font-bold text-white" id="confActionTrigger">Ruptura bajo $4,030.00 o Falso Rompimiento sobre $4,046.50</div>
               <span class="text-[10px] text-gray-400">Vela HA con cero mecha + Squeeze OFF</span>
             </div>
 
             <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
               <span class="text-gray-400 text-[10px] uppercase font-bold">Stop Loss Técnico:</span>
-              <div class="text-xs font-bold text-amber-400" id="confActionSL">3,928.00 (Fuera de los extremos)</div>
+              <div class="text-xs font-bold text-amber-400" id="confActionSL">4,050.00 (Fuera de los extremos)</div>
               <span class="text-[10px] text-gray-400">Protección estructural</span>
             </div>
 
             <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
               <span class="text-gray-400 text-[10px] uppercase font-bold">Take Profit & R:R:</span>
-              <div class="text-xs font-bold text-emerald-400" id="confActionTP">TP1: $3,875 (1:1.8) | TP2: $3,850 (1:3.2)</div>
+              <div class="text-xs font-bold text-emerald-400" id="confActionTP">TP1: $4,010 (1:1.8) | TP2: $3,990 (1:3.2)</div>
               <span class="text-[10px] text-gray-400">Target institucional limpio</span>
             </div>
           </div>
@@ -4384,6 +4350,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261104_v18_precision_lab_m5"></script>
+<script src="app.js?v=20261104_v20_pure_auto_m5"></script>
 </body>
 </html>
