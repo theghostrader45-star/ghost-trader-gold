@@ -24,6 +24,12 @@ try:
 except ImportError:
     adaptive_supertrend = None
 
+# Motor Dual Institucional (Toni Maura SMC + Felipe López Price Action + MT5 Bridge)
+try:
+    import engine_strategies
+except ImportError:
+    engine_strategies = None
+
 PORT = int(os.environ.get("PORT", 8081))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = os.path.join(BASE_DIR, "public")
@@ -1254,6 +1260,29 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             })
             return
 
+        elif path == "/api/scanner/signals":
+            # Escáner Dual Institucional: Toni Maura (XAUUSD) & Felipe López (EURUSD)
+            query = parse_qs(parsed.query)
+            risk_pct = 1.0
+            if "risk_pct" in query:
+                try:
+                    risk_pct = float(query["risk_pct"][0])
+                except Exception:
+                    pass
+            if engine_strategies:
+                signals = engine_strategies.get_dual_scanner_signals(risk_pct=risk_pct)
+                self.send_json(signals)
+            else:
+                self.send_json({"status": "error", "message": "engine_strategies module not available"}, code=500)
+            return
+
+        elif path == "/api/mt5/status":
+            if engine_strategies:
+                self.send_json(engine_strategies.get_mt5_status())
+            else:
+                self.send_json({"connected": False, "error": "engine_strategies not available"})
+            return
+
         elif path == "/api/m5-scanner":
             # Escáner Algorítmico M5 Autónomo en Tiempo Real (XAU/USD)
             scanner_res = scan_m5_gold_market()
@@ -1431,6 +1460,15 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             news_data.update(payload)
             save_weekly_news(news_data)
             self.send_json({"success": True, "news": news_data})
+            return
+
+        elif path == "/api/mt5/feed":
+            # Receptor de Feed Tick-a-Tick y Velas M5/H1 desde MetaTrader 5
+            if engine_strategies:
+                res = engine_strategies.update_mt5_feed(payload)
+                self.send_json(res)
+            else:
+                self.send_json({"status": "error", "message": "engine_strategies not available"}, code=500)
             return
 
         elif path == "/api/webhook/tradingview" or path == "/api/webhook":

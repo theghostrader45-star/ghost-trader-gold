@@ -3162,18 +3162,21 @@ function setupM5StateListeners() {
 
 function startM5RealTimeScanner() {
   setupM5StateListeners();
+  setupDualTerminalControls();
   startM5CountdownTicker();
   if (m5ScanInterval) clearInterval(m5ScanInterval);
 
   // Ejecución inmediata inicial
   triggerM5Scan();
+  fetchDualScannerSignals();
 
-  // Escaneo continuo cada 5 segundos
+  // Escaneo continuo cada 4 segundos
   m5ScanInterval = setInterval(() => {
     if (autoScanActive) {
       triggerM5Scan();
+      fetchDualScannerSignals();
     }
-  }, 5000);
+  }, 4000);
 }
 
 async function triggerM5Scan() {
@@ -5687,4 +5690,371 @@ function copyRadarSetupToCalculator() {
   }
 
   showToast(`🎯 ¡Parámetros transferidos a la Calculadora! SL: ${slPts} pts ($${(slPts/100).toFixed(2)}) @ $${targetPrice}`, 'success', 3500);
+}
+
+
+
+// -------------------------------------------------------------
+// TERMINAL INSTITUCIONAL MT5 (Toni Maura SMC & Felipe López PA)
+// -------------------------------------------------------------
+let selectedScannerAsset = 'XAUUSD';
+let selectedRiskPct = 1.0;
+let lastDualSignalsData = null;
+let lastTriggerStateXau = null;
+let lastTriggerStateEur = null;
+let dualTerminalListenersAttached = false;
+let audioContext = null;
+
+function playTriggerChime() {
+  try {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880.00, audioContext.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.start();
+    osc.stop(audioContext.currentTime + 0.35);
+  } catch (e) {
+    console.warn("Audio chime not allowed:", e);
+  }
+}
+
+function setupDualTerminalControls() {
+  if (dualTerminalListenersAttached) return;
+  dualTerminalListenersAttached = true;
+
+  const btnXau = document.getElementById('btnSwitchAssetXau');
+  const btnEur = document.getElementById('btnSwitchAssetEur');
+  const cardXau = document.getElementById('cardAssetXau');
+  const cardEur = document.getElementById('cardAssetEur');
+
+  if (btnXau && btnEur) {
+    btnXau.addEventListener('click', () => {
+      selectedScannerAsset = 'XAUUSD';
+      btnXau.className = "btn-asset-switch flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition bg-yellow-500 text-black shadow-lg shadow-yellow-500/20";
+      const xauSpan = btnXau.querySelector('span:nth-child(3)');
+      if (xauSpan) xauSpan.className = "text-[10px] px-2 py-0.5 rounded-full font-mono bg-black/20 text-black font-bold";
+
+      btnEur.className = "btn-asset-switch flex-1 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-900";
+      const eurSpan = btnEur.querySelector('span:nth-child(3)');
+      if (eurSpan) eurSpan.className = "text-[10px] px-2 py-0.5 rounded-full font-mono bg-blue-950 text-blue-300 border border-blue-800 font-bold";
+
+      if (cardXau) cardXau.classList.remove('hidden');
+      if (cardEur) cardEur.classList.add('hidden');
+    });
+
+    btnEur.addEventListener('click', () => {
+      selectedScannerAsset = 'EURUSD';
+      btnEur.className = "btn-asset-switch flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition bg-blue-500 text-black shadow-lg shadow-blue-500/20";
+      const eurSpan = btnEur.querySelector('span:nth-child(3)');
+      if (eurSpan) eurSpan.className = "text-[10px] px-2 py-0.5 rounded-full font-mono bg-black/20 text-black font-bold";
+
+      btnXau.className = "btn-asset-switch flex-1 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-900";
+      const xauSpan = btnXau.querySelector('span:nth-child(3)');
+      if (xauSpan) xauSpan.className = "text-[10px] px-2 py-0.5 rounded-full font-mono bg-yellow-950 text-yellow-300 border border-yellow-800 font-bold";
+
+      if (cardEur) cardEur.classList.remove('hidden');
+      if (cardXau) cardXau.classList.add('hidden');
+    });
+  }
+
+  // Risk selector buttons
+  const riskBtns = document.querySelectorAll('.btn-risk-choice');
+  riskBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedRiskPct = parseFloat(btn.getAttribute('data-risk')) || 1.0;
+      riskBtns.forEach(b => {
+        b.className = "btn-risk-choice flex-1 py-1 rounded-lg text-[11px] font-mono font-bold bg-gray-800 text-gray-300 hover:text-white transition";
+      });
+      btn.className = "btn-risk-choice flex-1 py-1 rounded-lg text-[11px] font-mono font-black bg-amber-500 text-black shadow-md shadow-amber-500/20 transition";
+      fetchDualScannerSignals();
+    });
+  });
+
+  // Copy Ticket XAU
+  const btnCopyXau = document.getElementById('btnCopyTicketXau');
+  if (btnCopyXau) {
+    btnCopyXau.addEventListener('click', () => {
+      copyTicketToClipboard('XAUUSD');
+    });
+  }
+
+  // Copy Ticket EUR
+  const btnCopyEur = document.getElementById('btnCopyTicketEur');
+  if (btnCopyEur) {
+    btnCopyEur.addEventListener('click', () => {
+      copyTicketToClipboard('EURUSD');
+    });
+  }
+
+  // Modal MT5 Guide
+  const btnOpenGuide = document.getElementById('btnOpenMt5Guide');
+  const btnCloseGuide = document.getElementById('btnCloseMt5Guide');
+  const btnGotItGuide = document.getElementById('btnGotItMt5');
+  const modalGuide = document.getElementById('modalMt5Guide');
+
+  if (btnOpenGuide && modalGuide) {
+    btnOpenGuide.addEventListener('click', () => { modalGuide.classList.remove('hidden'); });
+  }
+  if (btnCloseGuide && modalGuide) {
+    btnCloseGuide.addEventListener('click', () => { modalGuide.classList.add('hidden'); });
+  }
+  if (btnGotItGuide && modalGuide) {
+    btnGotItGuide.addEventListener('click', () => { modalGuide.classList.add('hidden'); });
+  }
+
+  // Refresh Button
+  const btnRefresh = document.getElementById('btnRefreshScanner');
+  if (btnRefresh) {
+    btnRefresh.addEventListener('click', () => {
+      showToast("🔄 Escaneando XAU/USD y EUR/USD...", "info", 1500);
+      fetchDualScannerSignals();
+    });
+  }
+}
+
+function copyTicketToClipboard(asset) {
+  if (!lastDualSignalsData) {
+    showToast("⚠️ Datos no disponibles aún.", "warning");
+    return;
+  }
+  const data = asset === 'XAUUSD' ? lastDualSignalsData.xauusd : lastDualSignalsData.eurusd;
+  if (!data || !data.ticket) return;
+
+  const t = data.ticket;
+  const text = `${t.asset} ${t.action}
+Entrada: ${t.entry}
+Stop Loss: ${t.sl} (${asset === 'XAUUSD' ? t.sl_dist_pts + ' pts' : t.sl_pips + ' pips'})
+Take Profit 1 (1:2): ${t.tp1}
+Take Profit 2 (1:3): ${t.tp2}
+Lotaje MT5: ${t.suggested_lot} lotes (Riesgo: ${t.risk_pct}% · $${t.risk_usd} USD)
+Estrategia: ${t.strategy}`;
+
+  navigator.clipboard.writeText(text).then(() => {
+    const lbl = document.getElementById(asset === 'XAUUSD' ? 'labelCopyXau' : 'labelCopyEur');
+    if (lbl) {
+      const orig = lbl.textContent;
+      lbl.textContent = "¡Copiado!";
+      setTimeout(() => { lbl.textContent = orig; }, 2000);
+    }
+    showToast(`📋 ¡Orden MT5 de ${t.asset} copiada! Abre MetaTrader y ejecuta.`, "success", 3000);
+  }).catch(err => {
+    console.error("Clipboard err:", err);
+  });
+}
+
+async function fetchDualScannerSignals() {
+  setupDualTerminalControls();
+  try {
+    const res = await fetch(`/api/scanner/signals?risk_pct=${selectedRiskPct}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || data.status !== "success") return;
+    lastDualSignalsData = data;
+    renderDualSignals(data);
+  } catch (err) {
+    console.error("Error fetching dual scanner signals:", err);
+  }
+}
+
+function renderDualSignals(data) {
+  if (!data) return;
+
+  // 1. Telemetría de Conexión MT5 & Cuenta
+  const badgeMt5 = document.getElementById('badgeMt5Status');
+  const iconBox = document.getElementById('mt5StatusIconBox');
+  const subTitle = document.getElementById('mt5StatusSubtitle');
+  const statBroker = document.getElementById('statMt5Broker');
+  const statPing = document.getElementById('statMt5Ping');
+  const statBalance = document.getElementById('statMt5Balance');
+  const statEquity = document.getElementById('statMt5Equity');
+  const statSpreadXau = document.getElementById('statSpreadXau');
+  const statSpreadEur = document.getElementById('statSpreadEur');
+  const labelRiskDollar = document.getElementById('labelRiskDollar');
+
+  const isMt5 = data.mt5_connected;
+  if (badgeMt5) {
+    if (isMt5) {
+      badgeMt5.className = "px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse";
+      badgeMt5.textContent = `🟢 MT5 CONECTADO (TICK EXACTO)`;
+    } else {
+      badgeMt5.className = "px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30";
+      badgeMt5.textContent = "🟡 MODO SPOT WEB (Esperando MT5)";
+    }
+  }
+
+  if (iconBox) {
+    iconBox.className = isMt5 
+      ? "w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0"
+      : "w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0";
+  }
+
+  if (subTitle && data.source) {
+    subTitle.textContent = isMt5
+      ? `Transmisión directa desde tu MetaTrader 5 (${data.mt5_status.broker}) · 0.00 desfase`
+      : "Transmisión Spot en Vivo · Conecta GhostBridge_MT5.mq5 para sincronizar tu broker al centavo";
+  }
+
+  if (statBroker && data.account) {
+    statBroker.textContent = isMt5 ? (data.mt5_status.broker || "MetaTrader 5") : "Esperando MT5...";
+  }
+
+  if (statPing && data.mt5_status) {
+    statPing.textContent = isMt5 ? `Último tick: hace ${data.mt5_status.seconds_since_ping}s` : "MT5 desconectado";
+  }
+
+  if (statBalance && data.account) {
+    statBalance.textContent = `$${data.account.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${data.account.currency}`;
+  }
+
+  if (statEquity && data.mt5_status && data.mt5_status.equity) {
+    statEquity.textContent = `Equidad: $${data.mt5_status.equity.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  if (labelRiskDollar && data.account) {
+    labelRiskDollar.textContent = `$${data.account.risk_usd.toFixed(2)} (${data.account.risk_pct}%)`;
+  }
+
+  // 2. Render XAU/USD (Toni Maura SMC)
+  if (data.xauusd) {
+    const x = data.xauusd;
+    const t = x.ticket || {};
+
+    const priceEl = document.getElementById('xauLivePrice');
+    const badgeEl = document.getElementById('xauStateBadge');
+    const descEl = document.getElementById('xauStatusDesc');
+    const p1El = document.getElementById('xauPhase1');
+    const p2El = document.getElementById('xauPhase2');
+    const p3El = document.getElementById('xauPhase3');
+
+    if (priceEl && x.current_price) priceEl.textContent = `$${x.current_price.toFixed(2)}`;
+    if (badgeEl && x.badge) badgeEl.textContent = x.badge;
+    if (descEl && x.status_desc) descEl.textContent = x.status_desc;
+    if (p1El && x.htf_bias) p1El.textContent = x.htf_bias;
+    if (p2El) p2El.textContent = x.detected_fvg ? "ACTIVO" : "BUSCANDO";
+    if (p3El) p3El.textContent = x.state === "TRIGGER_CONFIRMED" ? "CONFIRMADO" : "ESPERANDO";
+
+    // Ticket fields
+    const actBadge = document.getElementById('xauTicketActionBadge');
+    const entryEl = document.getElementById('xauTicketEntry');
+    const slEl = document.getElementById('xauTicketSl');
+    const slDistEl = document.getElementById('xauTicketSlDist');
+    const tp1El = document.getElementById('xauTicketTp1');
+    const tp2El = document.getElementById('xauTicketTp2');
+    const lotEl = document.getElementById('xauTicketLot');
+    const riskUsdEl = document.getElementById('xauTicketRiskDollar');
+
+    if (actBadge && t.action) {
+      actBadge.textContent = t.action;
+      actBadge.className = t.action.includes('BUY') 
+        ? "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-emerald-500 text-black shadow-md"
+        : (t.action.includes('SELL') ? "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-red-500 text-white shadow-md" : "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-gray-700 text-gray-300");
+    }
+    if (entryEl && t.entry) entryEl.textContent = `$${t.entry.toFixed(2)}`;
+    if (slEl && t.sl) slEl.textContent = `$${t.sl.toFixed(2)}`;
+    if (slDistEl && t.sl_dist_pts) slDistEl.textContent = `${t.sl_dist_pts} pts ($${t.sl_dist_usd.toFixed(2)})`;
+    if (tp1El && t.tp1) tp1El.textContent = `$${t.tp1.toFixed(2)}`;
+    if (tp2El && t.tp2) tp2El.textContent = `$${t.tp2.toFixed(2)}`;
+    if (lotEl && t.suggested_lot) lotEl.textContent = `${t.suggested_lot.toFixed(2)} lotes`;
+    if (riskUsdEl && t.risk_usd) riskUsdEl.textContent = `$${t.risk_usd.toFixed(2)}`;
+
+    // Extra SMC Metrics
+    const fvgRange = document.getElementById('xauFvgRange');
+    const fvgCe = document.getElementById('xauFvgCe');
+    const bslPool = document.getElementById('xauBslPool');
+    const sslPool = document.getElementById('xauSslPool');
+    if (statSpreadXau && x.spread_pts) statSpreadXau.textContent = `${x.spread_pts} pts`;
+
+    if (x.detected_fvg) {
+      if (fvgRange) fvgRange.textContent = `$${x.detected_fvg.bottom.toFixed(2)} – $${x.detected_fvg.top.toFixed(2)}`;
+      if (fvgCe) fvgCe.textContent = `50% C.E.: $${x.detected_fvg.ce_50.toFixed(2)} (${x.detected_fvg.type})`;
+    } else {
+      if (fvgRange) fvgRange.textContent = "Buscando Imbalance M5...";
+      if (fvgCe) fvgCe.textContent = "Sin FVG abierto reciente";
+    }
+    if (bslPool && x.bsl_pool) bslPool.textContent = `$${x.bsl_pool.toFixed(2)}`;
+    if (sslPool && x.ssl_pool) sslPool.textContent = `$${x.ssl_pool.toFixed(2)}`;
+
+    // Sound chime when state triggers
+    if (x.state === "TRIGGER_CONFIRMED" && lastTriggerStateXau !== "TRIGGER_CONFIRMED") {
+      playTriggerChime();
+      showToast("🎯 ¡GATILLO CONFIRMADO EN XAU/USD (ORO)! Abre tu MT5 y coloca los parámetros.", "success", 6000);
+    }
+    lastTriggerStateXau = x.state;
+  }
+
+  // 3. Render EUR/USD (Felipe López Price Action)
+  if (data.eurusd) {
+    const e = data.eurusd;
+    const t = e.ticket || {};
+
+    const priceEl = document.getElementById('eurLivePrice');
+    const badgeEl = document.getElementById('eurStateBadge');
+    const descEl = document.getElementById('eurStatusDesc');
+    const p1El = document.getElementById('eurPhase1');
+    const p2El = document.getElementById('eurPhase2');
+    const p3El = document.getElementById('eurPhase3');
+
+    if (priceEl && e.current_price) priceEl.textContent = e.current_price.toFixed(5);
+    if (badgeEl && e.badge) badgeEl.textContent = e.badge;
+    if (descEl && e.status_desc) descEl.textContent = e.status_desc;
+    if (p1El && e.structure) p1El.textContent = e.structure;
+    if (p2El) p2El.textContent = e.state === "WAITING_RETEST" || e.state === "TRIGGER_CONFIRMED" ? "CONFIRMADO" : "BUSCANDO";
+    if (p3El) p3El.textContent = e.state === "TRIGGER_CONFIRMED" ? "CONFIRMADO" : "ESPERANDO";
+
+    // Ticket fields
+    const actBadge = document.getElementById('eurTicketActionBadge');
+    const entryEl = document.getElementById('eurTicketEntry');
+    const slEl = document.getElementById('eurTicketSl');
+    const slPipsEl = document.getElementById('eurTicketSlPips');
+    const tp1El = document.getElementById('eurTicketTp1');
+    const tp2El = document.getElementById('eurTicketTp2');
+    const lotEl = document.getElementById('eurTicketLot');
+    const riskUsdEl = document.getElementById('eurTicketRiskDollar');
+
+    if (actBadge && t.action) {
+      actBadge.textContent = t.action;
+      actBadge.className = t.action.includes('BUY') 
+        ? "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-blue-500 text-black shadow-md"
+        : (t.action.includes('SELL') ? "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-red-500 text-white shadow-md" : "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-gray-700 text-gray-300");
+    }
+    if (entryEl && t.entry) entryEl.textContent = t.entry.toFixed(5);
+    if (slEl && t.sl) slEl.textContent = t.sl.toFixed(5);
+    if (slPipsEl && t.sl_pips) slPipsEl.textContent = `${t.sl_pips} pips`;
+    if (tp1El && t.tp1) tp1El.textContent = t.tp1.toFixed(5);
+    if (tp2El && t.tp2) tp2El.textContent = t.tp2.toFixed(5);
+    if (lotEl && t.suggested_lot) lotEl.textContent = `${t.suggested_lot.toFixed(2)} lotes`;
+    if (riskUsdEl && t.risk_usd) riskUsdEl.textContent = `$${t.risk_usd.toFixed(2)}`;
+
+    // Extra Price Action Metrics
+    const keyZone = document.getElementById('eurKeyZone');
+    const zoneTouches = document.getElementById('eurZoneTouches');
+    const structDesc = document.getElementById('eurStructureDesc');
+    if (statSpreadEur && e.spread_pips) statSpreadEur.textContent = `${e.spread_pips} pips`;
+
+    if (e.key_zone) {
+      if (keyZone) keyZone.textContent = e.key_zone.center.toFixed(5);
+      if (zoneTouches) zoneTouches.textContent = `${e.key_zone.touches} toques previos confirmados`;
+    }
+    if (structDesc && e.structure_desc) structDesc.textContent = e.structure_desc;
+
+    // Sound chime when state triggers
+    if (e.state === "TRIGGER_CONFIRMED" && lastTriggerStateEur !== "TRIGGER_CONFIRMED") {
+      playTriggerChime();
+      showToast("🎯 ¡GATILLO CONFIRMADO EN EUR/USD! Abre tu MT5 y coloca los parámetros.", "success", 6000);
+    }
+    lastTriggerStateEur = e.state;
+  }
+
+  initIcons();
 }
