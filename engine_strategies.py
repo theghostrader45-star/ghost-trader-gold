@@ -401,6 +401,13 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
         fvg_bottom = detected_fvg["bottom"]
         fvg_ce = detected_fvg["ce_50"]
         fvg_type = detected_fvg["type"]
+        disp_idx = detected_fvg["displacement_index"]
+
+        # Velas formadas estrictamente después de la vela de desplazamiento
+        candles_after = recent_m5[disp_idx + 1:]
+        num_after = len(candles_after)
+        max_high_after = max([c["high"] for c in candles_after]) if candles_after else current_price
+        min_low_after = min([c["low"] for c in candles_after]) if candles_after else current_price
 
         # Check if the closed candle or current price touched / mitigated the FVG
         closed_touched_fvg_bull = (last_closed["low"] <= fvg_top + 0.50) and (last_closed["high"] >= fvg_bottom - 0.50)
@@ -408,97 +415,247 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
         price_in_fvg = (fvg_bottom - 1.0) <= current_price <= (fvg_top + 1.0)
 
         if fvg_type == "BULLISH" and htf_bias in ["BULLISH", "RANGING"]:
-            if closed_touched_fvg_bull and (lower_wick_ratio >= 0.30 or (last_closed["close"] > last_closed["open"] and last_closed["close"] >= fvg_top)):
-                state = "TRIGGER_CONFIRMED"
-                badge = "🎯 ¡GATILLO CONFIRMADO: MITIGACIÓN FVG + RECHAZO EN VELA CERRADA!"
-                status_desc = f"El Oro mitigó el Fair Value Gap (${fvg_bottom:.2f}–${fvg_top:.2f}) y cerró vela M5 con absorción institucional. Entrada lista."
-                trigger_id = f"XAU_BUY_{int(fvg_top*100)}_{last_closed['time']}"
-            elif price_in_fvg:
-                state = "IN_FVG_ZONE"
-                badge = "⚡ EN ZONA DE FVG · ESPERANDO CIERRE DE VELA DE RECHAZO"
-                status_desc = f"Precio dentro del FVG (${fvg_bottom:.2f} - ${fvg_top:.2f}). Esperando confirmación al cierre de vela M5."
+            calc_sl = round(detected_fvg["disp_low"] - 1.20, 2)
+            calc_sl_dist = round(fvg_ce - calc_sl, 2)
+            if calc_sl_dist < 2.0:
+                calc_sl_dist = 2.50
+            tp1_target = round(fvg_ce + (calc_sl_dist * 2.0), 2)
+            tp2_target = round(fvg_ce + (calc_sl_dist * 3.0), 2)
+
+            # ¿YA PASÓ LA OPORTUNIDAD?
+            # 1. El precio ya mitigó el FVG y se expandió hacia TP1 o subió más de $3.00 sobre el FVG
+            # 2. Invalidación: El precio perforó el mínimo del desplazamiento
+            # 3. Expiración temporal: Han pasado más de 8 velas M5 (40 minutos)
+            has_mitigated = min_low_after <= fvg_top + 0.30
+            expansion_done = (has_mitigated and (current_price >= tp1_target - 0.80 or current_price >= fvg_top + 3.00 or max_high_after >= tp1_target))
+            invalidated = min_low_after < (detected_fvg["disp_low"] - 0.50)
+            too_old = num_after > 8
+
+            if expansion_done:
+                state = "OPPORTUNITY_PASSED"
+                badge = "⚪ OPORTUNIDAD EXPIRADA · PRECIO YA SE EXPANDIÓ AL TARGET"
+                status_desc = f"El Oro ya mitigó el FVG (${fvg_bottom:.2f}–${fvg_top:.2f}) y se expandió a ${current_price:.2f} (objetivo ${tp1_target:.2f} alcanzado). Prohibido entrar tarde; esperar nuevo ciclo."
+                ticket = {
+                    "asset": "XAUUSD",
+                    "action": "OPORTUNIDAD EXPIRADA",
+                    "entry": current_price,
+                    "sl": calc_sl,
+                    "sl_dist_usd": 0.0,
+                    "sl_dist_pts": 0,
+                    "tp1": tp1_target,
+                    "tp2": tp2_target,
+                    "risk_pct": risk_pct,
+                    "risk_usd": 0.0,
+                    "suggested_lot": 0.0,
+                    "strategy": "Toni Maura SMC (FVG + 1H Bias)",
+                    "state": state,
+                    "trigger_id": None
+                }
+            elif invalidated:
+                state = "SETUP_INVALIDATED"
+                badge = "🚫 SETUP INVALIDADO · MÍNIMO ESTRUCTURAL ROTO"
+                status_desc = f"El precio perforó el mínimo de la vela de desplazamiento (${detected_fvg['disp_low']:.2f}). Desbalance alcista anulado."
+                ticket = {
+                    "asset": "XAUUSD",
+                    "action": "INVALIDADO (NO OPERAR)",
+                    "entry": current_price,
+                    "sl": calc_sl,
+                    "sl_dist_usd": 0.0,
+                    "sl_dist_pts": 0,
+                    "tp1": tp1_target,
+                    "tp2": tp2_target,
+                    "risk_pct": risk_pct,
+                    "risk_usd": 0.0,
+                    "suggested_lot": 0.0,
+                    "strategy": "Toni Maura SMC",
+                    "state": state,
+                    "trigger_id": None
+                }
+            elif too_old:
+                state = "SETUP_EXPIRED"
+                badge = "⏳ DESBALANCE EXPIRADO POR TIEMPO"
+                status_desc = "Han transcurrido más de 8 velas M5 sin confirmación de entrada. Esperando nuevo desplazamiento institucional."
+                ticket = {
+                    "asset": "XAUUSD",
+                    "action": "EXPIRADO (NO OPERAR)",
+                    "entry": current_price,
+                    "sl": calc_sl,
+                    "sl_dist_usd": 0.0,
+                    "sl_dist_pts": 0,
+                    "tp1": tp1_target,
+                    "tp2": tp2_target,
+                    "risk_pct": risk_pct,
+                    "risk_usd": 0.0,
+                    "suggested_lot": 0.0,
+                    "strategy": "Toni Maura SMC",
+                    "state": state,
+                    "trigger_id": None
+                }
             else:
-                state = "WAITING_MITIGATION"
-                badge = "⏳ FVG ALCISTA VIGENTE · ESPERANDO RETROCESO (DESCUENTO)"
-                status_desc = f"Fair Value Gap creado en ${fvg_bottom:.2f} - ${fvg_top:.2f}. Esperar que el precio retroceda a la zona para comprar."
+                if closed_touched_fvg_bull and (lower_wick_ratio >= 0.30 or (last_closed["close"] > last_closed["open"] and last_closed["close"] >= fvg_top)):
+                    state = "TRIGGER_CONFIRMED"
+                    badge = "🎯 ¡GATILLO CONFIRMADO: MITIGACIÓN FVG + RECHAZO EN VELA CERRADA!"
+                    status_desc = f"El Oro mitigó el Fair Value Gap (${fvg_bottom:.2f}–${fvg_top:.2f}) y cerró vela M5 con absorción institucional. Entrada lista."
+                    trigger_id = f"XAU_BUY_{int(fvg_top*100)}_{last_closed['time']}"
+                elif price_in_fvg:
+                    state = "IN_FVG_ZONE"
+                    badge = "⚡ EN ZONA DE FVG · ESPERANDO CIERRE DE VELA DE RECHAZO"
+                    status_desc = f"Precio dentro del FVG (${fvg_bottom:.2f} - ${fvg_top:.2f}). Esperando confirmación al cierre de vela M5."
+                else:
+                    state = "WAITING_MITIGATION"
+                    badge = "⏳ FVG ALCISTA VIGENTE · ESPERANDO RETROCESO (DESCUENTO)"
+                    status_desc = f"Fair Value Gap creado en ${fvg_bottom:.2f} - ${fvg_top:.2f}. Esperar que el precio retroceda a la zona para comprar."
 
-            # Calculate ticket for BUY
-            entry_price = current_price if state == "TRIGGER_CONFIRMED" else fvg_ce
-            sl_price = round(detected_fvg["disp_low"] - 1.20, 2) # Buffer below displacement candle
-            sl_dist_usd = round(entry_price - sl_price, 2)
-            if sl_dist_usd < 2.0: # Minimum $2 SL buffer for Gold
-                sl_price = round(entry_price - 2.50, 2)
-                sl_dist_usd = 2.50
+                # Calculate ticket for BUY
+                entry_price = current_price if state == "TRIGGER_CONFIRMED" else fvg_ce
+                sl_price = round(detected_fvg["disp_low"] - 1.20, 2)
+                sl_dist_usd = round(entry_price - sl_price, 2)
+                if sl_dist_usd < 2.0:
+                    sl_price = round(entry_price - 2.50, 2)
+                    sl_dist_usd = 2.50
 
-            tp1_price = round(entry_price + (sl_dist_usd * 2.0), 2)
-            tp2_price = round(entry_price + (sl_dist_usd * 3.0), 2)
+                tp1_price = round(entry_price + (sl_dist_usd * 2.0), 2)
+                tp2_price = round(entry_price + (sl_dist_usd * 3.0), 2)
 
-            risk_dollar = balance * (risk_pct / 100.0)
-            exact_lot = risk_dollar / (sl_dist_usd * 100.0)
-            suggested_lot = max(0.01, round(exact_lot, 2))
+                risk_dollar = balance * (risk_pct / 100.0)
+                exact_lot = risk_dollar / (sl_dist_usd * 100.0)
+                suggested_lot = max(0.01, round(exact_lot, 2))
 
-            ticket = {
-                "asset": "XAUUSD",
-                "action": "BUY NOW" if state == "TRIGGER_CONFIRMED" else "BUY LIMIT",
-                "entry": entry_price,
-                "sl": sl_price,
-                "sl_dist_usd": sl_dist_usd,
-                "sl_dist_pts": int(sl_dist_usd * 100),
-                "tp1": tp1_price,
-                "tp2": tp2_price,
-                "risk_pct": risk_pct,
-                "risk_usd": round(risk_dollar, 2),
-                "suggested_lot": suggested_lot,
-                "strategy": "Toni Maura SMC (FVG + 1H Bias)",
-                "state": state,
-                "trigger_id": trigger_id
-            }
+                ticket = {
+                    "asset": "XAUUSD",
+                    "action": "BUY NOW" if state == "TRIGGER_CONFIRMED" else "BUY LIMIT",
+                    "entry": entry_price,
+                    "sl": sl_price,
+                    "sl_dist_usd": sl_dist_usd,
+                    "sl_dist_pts": int(sl_dist_usd * 100),
+                    "tp1": tp1_price,
+                    "tp2": tp2_price,
+                    "risk_pct": risk_pct,
+                    "risk_usd": round(risk_dollar, 2),
+                    "suggested_lot": suggested_lot,
+                    "strategy": "Toni Maura SMC (FVG + 1H Bias)",
+                    "state": state,
+                    "trigger_id": trigger_id
+                }
 
         elif fvg_type == "BEARISH" and htf_bias in ["BEARISH", "RANGING"]:
-            if closed_touched_fvg_bear and (upper_wick_ratio >= 0.30 or (last_closed["close"] < last_closed["open"] and last_closed["close"] <= fvg_bottom)):
-                state = "TRIGGER_CONFIRMED"
-                badge = "🎯 ¡GATILLO CONFIRMADO: MITIGACIÓN FVG + RECHAZO EN VELA CERRADA!"
-                status_desc = f"El Oro mitigó el Fair Value Gap (${fvg_top:.2f}–${fvg_bottom:.2f}) y cerró vela M5 con absorción vendedora. Entrada lista."
-                trigger_id = f"XAU_SELL_{int(fvg_bottom*100)}_{last_closed['time']}"
-            elif price_in_fvg:
-                state = "IN_FVG_ZONE"
-                badge = "⚡ EN ZONA DE FVG · ESPERANDO CIERRE DE VELA DE RECHAZO"
-                status_desc = f"Precio dentro del FVG (${fvg_bottom:.2f} - ${fvg_top:.2f}). Esperando confirmación al cierre de vela M5."
+            calc_sl = round(detected_fvg["disp_high"] + 1.20, 2)
+            calc_sl_dist = round(calc_sl - fvg_ce, 2)
+            if calc_sl_dist < 2.0:
+                calc_sl_dist = 2.50
+            tp1_target = round(fvg_ce - (calc_sl_dist * 2.0), 2)
+            tp2_target = round(fvg_ce - (calc_sl_dist * 3.0), 2)
+
+            has_mitigated = max_high_after >= fvg_bottom - 0.30
+            expansion_done = (has_mitigated and (current_price <= tp1_target + 0.80 or current_price <= fvg_bottom - 3.00 or min_low_after <= tp1_target))
+            invalidated = max_high_after > (detected_fvg["disp_high"] + 0.50)
+            too_old = num_after > 8
+
+            if expansion_done:
+                state = "OPPORTUNITY_PASSED"
+                badge = "⚪ OPORTUNIDAD EXPIRADA · PRECIO YA SE EXPANDIÓ AL TARGET"
+                status_desc = f"El Oro ya mitigó el FVG (${fvg_top:.2f}–${fvg_bottom:.2f}) y cayó a ${current_price:.2f} (objetivo ${tp1_target:.2f} alcanzado). Prohibido entrar tarde; esperar nuevo ciclo."
+                ticket = {
+                    "asset": "XAUUSD",
+                    "action": "OPORTUNIDAD EXPIRADA",
+                    "entry": current_price,
+                    "sl": calc_sl,
+                    "sl_dist_usd": 0.0,
+                    "sl_dist_pts": 0,
+                    "tp1": tp1_target,
+                    "tp2": tp2_target,
+                    "risk_pct": risk_pct,
+                    "risk_usd": 0.0,
+                    "suggested_lot": 0.0,
+                    "strategy": "Toni Maura SMC (FVG + 1H Bias)",
+                    "state": state,
+                    "trigger_id": None
+                }
+            elif invalidated:
+                state = "SETUP_INVALIDATED"
+                badge = "🚫 SETUP INVALIDADO · MÁXIMO ESTRUCTURAL ROTO"
+                status_desc = f"El precio superó el máximo de la vela de desplazamiento (${detected_fvg['disp_high']:.2f}). Desbalance bajista anulado."
+                ticket = {
+                    "asset": "XAUUSD",
+                    "action": "INVALIDADO (NO OPERAR)",
+                    "entry": current_price,
+                    "sl": calc_sl,
+                    "sl_dist_usd": 0.0,
+                    "sl_dist_pts": 0,
+                    "tp1": tp1_target,
+                    "tp2": tp2_target,
+                    "risk_pct": risk_pct,
+                    "risk_usd": 0.0,
+                    "suggested_lot": 0.0,
+                    "strategy": "Toni Maura SMC",
+                    "state": state,
+                    "trigger_id": None
+                }
+            elif too_old:
+                state = "SETUP_EXPIRED"
+                badge = "⏳ DESBALANCE EXPIRADO POR TIEMPO"
+                status_desc = "Han transcurrido más de 8 velas M5 sin confirmación de entrada. Esperando nuevo desplazamiento institucional."
+                ticket = {
+                    "asset": "XAUUSD",
+                    "action": "EXPIRADO (NO OPERAR)",
+                    "entry": current_price,
+                    "sl": calc_sl,
+                    "sl_dist_usd": 0.0,
+                    "sl_dist_pts": 0,
+                    "tp1": tp1_target,
+                    "tp2": tp2_target,
+                    "risk_pct": risk_pct,
+                    "risk_usd": 0.0,
+                    "suggested_lot": 0.0,
+                    "strategy": "Toni Maura SMC",
+                    "state": state,
+                    "trigger_id": None
+                }
             else:
-                state = "WAITING_MITIGATION"
-                badge = "⏳ FVG BAJISTA VIGENTE · ESPERANDO RETROCESO (PREMIUM)"
-                status_desc = f"Fair Value Gap creado en ${fvg_bottom:.2f} - ${fvg_top:.2f}. Esperar que el precio suba a la zona para vender."
+                if closed_touched_fvg_bear and (upper_wick_ratio >= 0.30 or (last_closed["close"] < last_closed["open"] and last_closed["close"] <= fvg_bottom)):
+                    state = "TRIGGER_CONFIRMED"
+                    badge = "🎯 ¡GATILLO CONFIRMADO: MITIGACIÓN FVG + RECHAZO EN VELA CERRADA!"
+                    status_desc = f"El Oro mitigó el Fair Value Gap (${fvg_top:.2f}–${fvg_bottom:.2f}) y cerró vela M5 con absorción vendedora. Entrada lista."
+                    trigger_id = f"XAU_SELL_{int(fvg_bottom*100)}_{last_closed['time']}"
+                elif price_in_fvg:
+                    state = "IN_FVG_ZONE"
+                    badge = "⚡ EN ZONA DE FVG · ESPERANDO CIERRE DE VELA DE RECHAZO"
+                    status_desc = f"Precio dentro del FVG (${fvg_bottom:.2f} - ${fvg_top:.2f}). Esperando confirmación al cierre de vela M5."
+                else:
+                    state = "WAITING_MITIGATION"
+                    badge = "⏳ FVG BAJISTA VIGENTE · ESPERANDO RETROCESO (PREMIUM)"
+                    status_desc = f"Fair Value Gap creado en ${fvg_bottom:.2f} - ${fvg_top:.2f}. Esperar que el precio suba a la zona para vender."
 
-            entry_price = current_price if state == "TRIGGER_CONFIRMED" else fvg_ce
-            sl_price = round(detected_fvg["disp_high"] + 1.20, 2)
-            sl_dist_usd = round(sl_price - entry_price, 2)
-            if sl_dist_usd < 2.0:
-                sl_price = round(entry_price + 2.50, 2)
-                sl_dist_usd = 2.50
+                entry_price = current_price if state == "TRIGGER_CONFIRMED" else fvg_ce
+                sl_price = round(detected_fvg["disp_high"] + 1.20, 2)
+                sl_dist_usd = round(sl_price - entry_price, 2)
+                if sl_dist_usd < 2.0:
+                    sl_price = round(entry_price + 2.50, 2)
+                    sl_dist_usd = 2.50
 
-            tp1_price = round(entry_price - (sl_dist_usd * 2.0), 2)
-            tp2_price = round(entry_price - (sl_dist_usd * 3.0), 2)
+                tp1_price = round(entry_price - (sl_dist_usd * 2.0), 2)
+                tp2_price = round(entry_price - (sl_dist_usd * 3.0), 2)
 
-            risk_dollar = balance * (risk_pct / 100.0)
-            exact_lot = risk_dollar / (sl_dist_usd * 100.0)
-            suggested_lot = max(0.01, round(exact_lot, 2))
+                risk_dollar = balance * (risk_pct / 100.0)
+                exact_lot = risk_dollar / (sl_dist_usd * 100.0)
+                suggested_lot = max(0.01, round(exact_lot, 2))
 
-            ticket = {
-                "asset": "XAUUSD",
-                "action": "SELL NOW" if state == "TRIGGER_CONFIRMED" else "SELL LIMIT",
-                "entry": entry_price,
-                "sl": sl_price,
-                "sl_dist_usd": sl_dist_usd,
-                "sl_dist_pts": int(sl_dist_usd * 100),
-                "tp1": tp1_price,
-                "tp2": tp2_price,
-                "risk_pct": risk_pct,
-                "risk_usd": round(risk_dollar, 2),
-                "suggested_lot": suggested_lot,
-                "strategy": "Toni Maura SMC (FVG + 1H Bias)",
-                "state": state,
-                "trigger_id": trigger_id
-            }
+                ticket = {
+                    "asset": "XAUUSD",
+                    "action": "SELL NOW" if state == "TRIGGER_CONFIRMED" else "SELL LIMIT",
+                    "entry": entry_price,
+                    "sl": sl_price,
+                    "sl_dist_usd": sl_dist_usd,
+                    "sl_dist_pts": int(sl_dist_usd * 100),
+                    "tp1": tp1_price,
+                    "tp2": tp2_price,
+                    "risk_pct": risk_pct,
+                    "risk_usd": round(risk_dollar, 2),
+                    "suggested_lot": suggested_lot,
+                    "strategy": "Toni Maura SMC (FVG + 1H Bias)",
+                    "state": state,
+                    "trigger_id": trigger_id
+                }
 
     # Default ticket if no active FVG
     if not ticket:
@@ -644,7 +801,49 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
 
     # Scenario Bullish: Price broke above zone, now retesting zone
     if structure == "BULLISH":
-        if dist_to_zone_pips <= 2.5: # Retesting the zone
+        tp1_target = round(key_zone["center"] + 0.00160, 5)
+        expansion_done = current_price >= tp1_target - 0.00030 or (current_price > key_zone["top"] + 0.00060)
+        invalidated = current_price < key_zone["bottom"] - 0.00050
+
+        if expansion_done:
+            state = "OPPORTUNITY_PASSED"
+            badge = "⚪ OPORTUNIDAD EXPIRADA · PRECIO YA SE EXPANDIÓ AL TARGET"
+            status_desc = f"EUR/USD ya retesteó la zona {key_zone['center']:.5f} y avanzó a {current_price:.5f}. Regla institucional: Prohibido perseguir el precio."
+            ticket = {
+                "asset": "EURUSD",
+                "action": "OPORTUNIDAD EXPIRADA",
+                "entry": current_price,
+                "sl": 0.0,
+                "sl_pips": 0.0,
+                "tp1": tp1_target,
+                "tp2": round(tp1_target + 0.00080, 5),
+                "risk_pct": risk_pct,
+                "risk_usd": 0.0,
+                "suggested_lot": 0.0,
+                "strategy": "Felipe López PA",
+                "state": state,
+                "trigger_id": None
+            }
+        elif invalidated:
+            state = "SETUP_INVALIDATED"
+            badge = "🚫 ZONA PERFORADA · SETUP ANULADO"
+            status_desc = f"EUR/USD perforó el soporte {key_zone['bottom']:.5f}. No hay compras válidas."
+            ticket = {
+                "asset": "EURUSD",
+                "action": "INVALIDADO (NO OPERAR)",
+                "entry": current_price,
+                "sl": 0.0,
+                "sl_pips": 0.0,
+                "tp1": 0.0,
+                "tp2": 0.0,
+                "risk_pct": risk_pct,
+                "risk_usd": 0.0,
+                "suggested_lot": 0.0,
+                "strategy": "Felipe López PA",
+                "state": state,
+                "trigger_id": None
+            }
+        elif dist_to_zone_pips <= 2.5: # Retesting the zone
             if is_engulfing_bull or rejection_bull:
                 state = "TRIGGER_CONFIRMED"
                 badge = "🎯 ¡GATILLO CONFIRMADO: RETESTEO + RECHAZO EN VELA CERRADA!"
@@ -659,39 +858,82 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
             badge = "⏳ RUPTURA ALCISTA REALIZADA · ESPERANDO RETESTEO A LA ZONA"
             status_desc = f"El precio rompió la resistencia {key_zone['center']:.5f}. Esperar retroceso para entrar al retesteo."
 
-        # Ticket BUY
-        entry_price = current_price
-        sl_price = round(key_zone["bottom"] - 0.00040, 5) # 4 pips below zone
-        sl_pips = round((entry_price - sl_price) * 10000, 1)
-        if sl_pips < 8.0:
-            sl_pips = 8.0
-            sl_price = round(entry_price - 0.00080, 5)
+        # Ticket BUY if active
+        if not ticket:
+            entry_price = current_price
+            sl_price = round(key_zone["bottom"] - 0.00040, 5) # 4 pips below zone
+            sl_pips = round((entry_price - sl_price) * 10000, 1)
+            if sl_pips < 8.0:
+                sl_pips = 8.0
+                sl_price = round(entry_price - 0.00080, 5)
 
-        tp1_price = round(entry_price + (sl_pips * 2.0 / 10000.0), 5)
-        tp2_price = round(entry_price + (sl_pips * 3.0 / 10000.0), 5)
+            tp1_price = round(entry_price + (sl_pips * 2.0 / 10000.0), 5)
+            tp2_price = round(entry_price + (sl_pips * 3.0 / 10000.0), 5)
 
-        risk_dollar = balance * (risk_pct / 100.0)
-        exact_lot = risk_dollar / (sl_pips * 10.0)
-        suggested_lot = max(0.01, round(exact_lot, 2))
+            risk_dollar = balance * (risk_pct / 100.0)
+            exact_lot = risk_dollar / (sl_pips * 10.0)
+            suggested_lot = max(0.01, round(exact_lot, 2))
 
-        ticket = {
-            "asset": "EURUSD",
-            "action": "BUY NOW" if state == "TRIGGER_CONFIRMED" else "BUY LIMIT",
-            "entry": entry_price,
-            "sl": sl_price,
-            "sl_pips": sl_pips,
-            "tp1": tp1_price,
-            "tp2": tp2_price,
-            "risk_pct": risk_pct,
-            "risk_usd": round(risk_dollar, 2),
-            "suggested_lot": suggested_lot,
-            "strategy": "Felipe López (Estructura + Zona + Retesteo)",
-            "state": state,
-            "trigger_id": trigger_id
-        }
+            ticket = {
+                "asset": "EURUSD",
+                "action": "BUY NOW" if state == "TRIGGER_CONFIRMED" else "BUY LIMIT",
+                "entry": entry_price,
+                "sl": sl_price,
+                "sl_pips": sl_pips,
+                "tp1": tp1_price,
+                "tp2": tp2_price,
+                "risk_pct": risk_pct,
+                "risk_usd": round(risk_dollar, 2),
+                "suggested_lot": suggested_lot,
+                "strategy": "Felipe López (Estructura + Zona + Retesteo)",
+                "state": state,
+                "trigger_id": trigger_id
+            }
 
     elif structure == "BEARISH":
-        if dist_to_zone_pips <= 2.5:
+        tp1_target = round(key_zone["center"] - 0.00160, 5)
+        expansion_done = current_price <= tp1_target + 0.00030 or (current_price < key_zone["bottom"] - 0.00060)
+        invalidated = current_price > key_zone["top"] + 0.00050
+
+        if expansion_done:
+            state = "OPPORTUNITY_PASSED"
+            badge = "⚪ OPORTUNIDAD EXPIRADA · PRECIO YA SE EXPANDIÓ AL TARGET"
+            status_desc = f"EUR/USD ya retesteó la zona {key_zone['center']:.5f} y cayó a {current_price:.5f}. Regla institucional: Prohibido perseguir el precio."
+            ticket = {
+                "asset": "EURUSD",
+                "action": "OPORTUNIDAD EXPIRADA",
+                "entry": current_price,
+                "sl": 0.0,
+                "sl_pips": 0.0,
+                "tp1": tp1_target,
+                "tp2": round(tp1_target - 0.00080, 5),
+                "risk_pct": risk_pct,
+                "risk_usd": 0.0,
+                "suggested_lot": 0.0,
+                "strategy": "Felipe López PA",
+                "state": state,
+                "trigger_id": None
+            }
+        elif invalidated:
+            state = "SETUP_INVALIDATED"
+            badge = "🚫 ZONA PERFORADA · SETUP ANULADO"
+            status_desc = f"EUR/USD superó la resistencia {key_zone['top']:.5f}. No hay ventas válidas."
+            ticket = {
+                "asset": "EURUSD",
+                "action": "INVALIDADO (NO OPERAR)",
+                "entry": current_price,
+                "sl": 0.0,
+                "sl_pips": 0.0,
+                "tp1": 0.0,
+                "tp2": 0.0,
+                "risk_pct": risk_pct,
+                "risk_usd": 0.0,
+                "suggested_lot": 0.0,
+                "strategy": "Felipe López PA",
+                "state": state,
+                "trigger_id": None
+            }
+        elif dist_to_zone_pips <= 2.5:
             if is_engulfing_bear or rejection_bear:
                 state = "TRIGGER_CONFIRMED"
                 badge = "🎯 ¡GATILLO CONFIRMADO: RETESTEO + RECHAZO EN VELA CERRADA!"
@@ -706,36 +948,37 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
             badge = "⏳ RUPTURA BAJISTA REALIZADA · ESPERANDO RETESTEO A LA ZONA"
             status_desc = f"El precio rompió el soporte {key_zone['center']:.5f}. Esperar retroceso para entrar al retesteo."
 
-        # Ticket SELL
-        entry_price = current_price
-        sl_price = round(key_zone["top"] + 0.00040, 5) # 4 pips above zone
-        sl_pips = round((sl_price - entry_price) * 10000, 1)
-        if sl_pips < 8.0:
-            sl_pips = 8.0
-            sl_price = round(entry_price + 0.00080, 5)
+        # Ticket SELL if active
+        if not ticket:
+            entry_price = current_price
+            sl_price = round(key_zone["top"] + 0.00040, 5) # 4 pips above zone
+            sl_pips = round((sl_price - entry_price) * 10000, 1)
+            if sl_pips < 8.0:
+                sl_pips = 8.0
+                sl_price = round(entry_price + 0.00080, 5)
 
-        tp1_price = round(entry_price - (sl_pips * 2.0 / 10000.0), 5)
-        tp2_price = round(entry_price - (sl_pips * 3.0 / 10000.0), 5)
+            tp1_price = round(entry_price - (sl_pips * 2.0 / 10000.0), 5)
+            tp2_price = round(entry_price - (sl_pips * 3.0 / 10000.0), 5)
 
-        risk_dollar = balance * (risk_pct / 100.0)
-        exact_lot = risk_dollar / (sl_pips * 10.0)
-        suggested_lot = max(0.01, round(exact_lot, 2))
+            risk_dollar = balance * (risk_pct / 100.0)
+            exact_lot = risk_dollar / (sl_pips * 10.0)
+            suggested_lot = max(0.01, round(exact_lot, 2))
 
-        ticket = {
-            "asset": "EURUSD",
-            "action": "SELL NOW" if state == "TRIGGER_CONFIRMED" else "SELL LIMIT",
-            "entry": entry_price,
-            "sl": sl_price,
-            "sl_pips": sl_pips,
-            "tp1": tp1_price,
-            "tp2": tp2_price,
-            "risk_pct": risk_pct,
-            "risk_usd": round(risk_dollar, 2),
-            "suggested_lot": suggested_lot,
-            "strategy": "Felipe López (Estructura + Zona + Retesteo)",
-            "state": state,
-            "trigger_id": trigger_id
-        }
+            ticket = {
+                "asset": "EURUSD",
+                "action": "SELL NOW" if state == "TRIGGER_CONFIRMED" else "SELL LIMIT",
+                "entry": entry_price,
+                "sl": sl_price,
+                "sl_pips": sl_pips,
+                "tp1": tp1_price,
+                "tp2": tp2_price,
+                "risk_pct": risk_pct,
+                "risk_usd": round(risk_dollar, 2),
+                "suggested_lot": suggested_lot,
+                "strategy": "Felipe López (Estructura + Zona + Retesteo)",
+                "state": state,
+                "trigger_id": trigger_id
+            }
 
     # Default ticket if ranging
     if not ticket:

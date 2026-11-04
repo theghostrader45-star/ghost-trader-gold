@@ -5846,6 +5846,10 @@ function copyTicketToClipboard(asset) {
   if (!data || !data.ticket) return;
 
   const t = data.ticket;
+  if (t.action && (t.action.includes('EXPIRAD') || t.action.includes('INVALIDAD') || t.action.includes('ESPERA'))) {
+    showToast("⚪ Esta oportunidad ya expiró o el precio ya se expandió. Espera un nuevo ciclo.", "info", 3000);
+    return;
+  }
   const text = `${t.asset} ${t.action}
 Entrada: ${t.entry}
 Stop Loss: ${t.sl} (${asset === 'XAUUSD' ? t.sl_dist_pts + ' pts' : t.sl_pips + ' pips'})
@@ -5967,20 +5971,49 @@ function renderDualSignals(data) {
     const tp2El = document.getElementById('xauTicketTp2');
     const lotEl = document.getElementById('xauTicketLot');
     const riskUsdEl = document.getElementById('xauTicketRiskDollar');
+    const btnCopyXau = document.getElementById('btnCopyTicketXau');
+    const lblCopyXau = document.getElementById('labelCopyXau');
+
+    const isExpiredXau = t.action && (t.action.includes('EXPIRAD') || t.action.includes('INVALIDAD') || t.action.includes('ESPERA'));
 
     if (actBadge && t.action) {
       actBadge.textContent = t.action;
-      actBadge.className = t.action.includes('BUY') 
-        ? "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-emerald-500 text-black shadow-md"
-        : (t.action.includes('SELL') ? "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-red-500 text-white shadow-md" : "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-gray-700 text-gray-300");
+      if (isExpiredXau) {
+        actBadge.className = "px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-zinc-800 text-zinc-400 border border-zinc-700";
+      } else if (t.action.includes('BUY')) {
+        actBadge.className = "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-emerald-500 text-black shadow-md";
+      } else {
+        actBadge.className = "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-red-500 text-white shadow-md";
+      }
     }
-    if (entryEl && t.entry) entryEl.textContent = `$${t.entry.toFixed(2)}`;
-    if (slEl && t.sl) slEl.textContent = `$${t.sl.toFixed(2)}`;
-    if (slDistEl && t.sl_dist_pts) slDistEl.textContent = `${t.sl_dist_pts} pts ($${t.sl_dist_usd.toFixed(2)})`;
-    if (tp1El && t.tp1) tp1El.textContent = `$${t.tp1.toFixed(2)}`;
-    if (tp2El && t.tp2) tp2El.textContent = `$${t.tp2.toFixed(2)}`;
-    if (lotEl && t.suggested_lot) lotEl.textContent = `${t.suggested_lot.toFixed(2)} lotes`;
-    if (riskUsdEl && t.risk_usd) riskUsdEl.textContent = `$${t.risk_usd.toFixed(2)}`;
+
+    if (isExpiredXau) {
+      if (entryEl) entryEl.textContent = "— (Expirada)";
+      if (slEl) slEl.textContent = "—";
+      if (slDistEl) slDistEl.textContent = "Fuera de zona";
+      if (tp1El) tp1El.textContent = "—";
+      if (tp2El) tp2El.textContent = "—";
+      if (lotEl) lotEl.textContent = "0.00 lotes";
+      if (riskUsdEl) riskUsdEl.textContent = "$0.00";
+      if (btnCopyXau) {
+        btnCopyXau.classList.add('opacity-40', 'cursor-not-allowed');
+        btnCopyXau.disabled = true;
+      }
+      if (lblCopyXau) lblCopyXau.textContent = "⚪ Oportunidad Finalizada";
+    } else {
+      if (entryEl && t.entry) entryEl.textContent = `$${t.entry.toFixed(2)}`;
+      if (slEl && t.sl) slEl.textContent = `$${t.sl.toFixed(2)}`;
+      if (slDistEl && t.sl_dist_pts) slDistEl.textContent = `${t.sl_dist_pts} pts ($${t.sl_dist_usd.toFixed(2)})`;
+      if (tp1El && t.tp1) tp1El.textContent = `$${t.tp1.toFixed(2)}`;
+      if (tp2El && t.tp2) tp2El.textContent = `$${t.tp2.toFixed(2)}`;
+      if (lotEl && t.suggested_lot) lotEl.textContent = `${t.suggested_lot.toFixed(2)} lotes`;
+      if (riskUsdEl && t.risk_usd) riskUsdEl.textContent = `$${t.risk_usd.toFixed(2)}`;
+      if (btnCopyXau) {
+        btnCopyXau.classList.remove('opacity-40', 'cursor-not-allowed');
+        btnCopyXau.disabled = false;
+      }
+      if (lblCopyXau) lblCopyXau.textContent = "Copiar Parámetros MT5";
+    }
 
     // Extra SMC Metrics
     const fvgRange = document.getElementById('xauFvgRange');
@@ -6038,20 +6071,49 @@ function renderDualSignals(data) {
     const tp2El = document.getElementById('eurTicketTp2');
     const lotEl = document.getElementById('eurTicketLot');
     const riskUsdEl = document.getElementById('eurTicketRiskDollar');
+    const btnCopyEur = document.getElementById('btnCopyTicketEur');
+    const lblCopyEur = document.getElementById('labelCopyEur');
+
+    const isExpiredEur = t.action && (t.action.includes('EXPIRAD') || t.action.includes('INVALIDAD') || t.action.includes('ESPERA'));
 
     if (actBadge && t.action) {
       actBadge.textContent = t.action;
-      actBadge.className = t.action.includes('BUY') 
-        ? "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-blue-500 text-black shadow-md"
-        : (t.action.includes('SELL') ? "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-red-500 text-white shadow-md" : "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-gray-700 text-gray-300");
+      if (isExpiredEur) {
+        actBadge.className = "px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-zinc-800 text-zinc-400 border border-zinc-700";
+      } else if (t.action.includes('BUY')) {
+        actBadge.className = "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-blue-500 text-black shadow-md";
+      } else {
+        actBadge.className = "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-red-500 text-white shadow-md";
+      }
     }
-    if (entryEl && t.entry) entryEl.textContent = t.entry.toFixed(5);
-    if (slEl && t.sl) slEl.textContent = t.sl.toFixed(5);
-    if (slPipsEl && t.sl_pips) slPipsEl.textContent = `${t.sl_pips} pips`;
-    if (tp1El && t.tp1) tp1El.textContent = t.tp1.toFixed(5);
-    if (tp2El && t.tp2) tp2El.textContent = t.tp2.toFixed(5);
-    if (lotEl && t.suggested_lot) lotEl.textContent = `${t.suggested_lot.toFixed(2)} lotes`;
-    if (riskUsdEl && t.risk_usd) riskUsdEl.textContent = `$${t.risk_usd.toFixed(2)}`;
+
+    if (isExpiredEur) {
+      if (entryEl) entryEl.textContent = "— (Expirada)";
+      if (slEl) slEl.textContent = "—";
+      if (slPipsEl) slPipsEl.textContent = "Fuera de zona";
+      if (tp1El) tp1El.textContent = "—";
+      if (tp2El) tp2El.textContent = "—";
+      if (lotEl) lotEl.textContent = "0.00 lotes";
+      if (riskUsdEl) riskUsdEl.textContent = "$0.00";
+      if (btnCopyEur) {
+        btnCopyEur.classList.add('opacity-40', 'cursor-not-allowed');
+        btnCopyEur.disabled = true;
+      }
+      if (lblCopyEur) lblCopyEur.textContent = "⚪ Oportunidad Finalizada";
+    } else {
+      if (entryEl && t.entry) entryEl.textContent = t.entry.toFixed(5);
+      if (slEl && t.sl) slEl.textContent = t.sl.toFixed(5);
+      if (slPipsEl && t.sl_pips) slPipsEl.textContent = `${t.sl_pips} pips`;
+      if (tp1El && t.tp1) tp1El.textContent = t.tp1.toFixed(5);
+      if (tp2El && t.tp2) tp2El.textContent = t.tp2.toFixed(5);
+      if (lotEl && t.suggested_lot) lotEl.textContent = `${t.suggested_lot.toFixed(2)} lotes`;
+      if (riskUsdEl && t.risk_usd) riskUsdEl.textContent = `$${t.risk_usd.toFixed(2)}`;
+      if (btnCopyEur) {
+        btnCopyEur.classList.remove('opacity-40', 'cursor-not-allowed');
+        btnCopyEur.disabled = false;
+      }
+      if (lblCopyEur) lblCopyEur.textContent = "Copiar Parámetros MT5";
+    }
 
     // Extra Price Action Metrics
     const keyZone = document.getElementById('eurKeyZone');
