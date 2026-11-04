@@ -103,58 +103,77 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- NAVIGATION TABS: 1. Calculadora / 2. Bitácora Real / 3. Backtesting -->
-    <nav class="flex flex-wrap items-center gap-3 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-4xl mx-auto">
-      <!-- Tab 1: Calculadora (CENTRO OPERATIVO) -->
-      <button id="tabBtnCalculator" class="tab-button flex-1 min-w-[170px] px-5 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
+    <!-- NAVIGATION TABS: 1. Macro Sesión Oro / 2. Calculadora / 3. Bitácora Real / 4. Backtesting -->
+    <nav class="flex flex-wrap items-center gap-2 sm:gap-3 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-5xl mx-auto">
+      <!-- Tab 1: Macro Sesión Oro (XAU/USD) -->
+      <button id="tabBtnGoldBias" class="tab-button flex-1 min-w-[170px] px-4 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition bg-yellow-500 text-black shadow-lg shadow-yellow-500/30">
+        <i data-lucide="compass" class="w-4 h-4 text-black"></i>
+        <span>1. Macro Sesión Oro</span>
+        <span id="tabBadgeBias" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-red-950 text-red-300 border border-red-800 font-bold">BAJISTA 88%</span>
+      </button>
+
+      <!-- Tab 2: Calculadora (CENTRO OPERATIVO) -->
+      <button id="tabBtnCalculator" class="tab-button flex-1 min-w-[145px] px-4 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
         <i data-lucide="calculator" class="w-4 h-4 text-amber-400"></i>
-        <span>1. Calculadora</span>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/20 text-gray-300 border border-gray-700 font-bold">Oro XAU</span>
+        <span>2. Calculadora</span>
+        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-black/20 text-gray-300 border border-gray-700 font-bold">Myfxbook</span>
       </button>
 
-      <!-- Tab 2: Bitácora Real -->
-      <button id="tabBtnRealJournal" class="tab-button flex-1 min-w-[170px] px-5 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2.5 transition bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
-        <i data-lucide="book-open" class="w-4 h-4 text-white"></i>
-        <span>2. Bitácora Real</span>
-        <span id="tabBadgeReal" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">2 ops</span>
+      <!-- Tab 3: Bitácora Real -->
+      <button id="tabBtnRealJournal" class="tab-button flex-1 min-w-[145px] px-4 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
+        <i data-lucide="book-open" class="w-4 h-4 text-emerald-400"></i>
+        <span>3. Bitácora Real</span>
+        <span id="tabBadgeReal" class="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">2 ops</span>
       </button>
 
-      <!-- Tab 3: Backtesting -->
-      <button id="tabBtnBacktest" class="tab-button flex-1 min-w-[170px] px-5 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
+      <!-- Tab 4: Backtesting -->
+      <button id="tabBtnBacktest" class="tab-button flex-1 min-w-[145px] px-4 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
         <i data-lucide="history" class="w-4 h-4 text-blue-400"></i>
-        <span>3. Backtesting</span>
-        <span id="tabBadgeBacktest" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-950 text-blue-300 border border-blue-800 font-bold">8 ops</span>
+        <span>4. Backtesting</span>
+        <span id="tabBadgeBacktest" class="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-blue-950 text-blue-300 border border-blue-800 font-bold">8 ops</span>
       </button>
     </nav>
 
 
     <!-- ============================================================== -->
-    <!-- VIEW 1: MACRO SESIÓN & SESGO INSTITUCIONAL ORO (XAU/USD)      -->
+    <!-- VIEW 1: MACRO SESIÓN INSTITUCIONAL ORO (XAU/USD)               -->
+    <!-- PARTE 1 (FUNDAMENTAL) + PARTE 2 (TÉCNICO M5 NY) + CONFLUENCIA  -->
     <!-- ============================================================== -->
-    <div id="viewGoldBias" class="hidden" style="display:none !important;">
+    <div id="viewGoldBias" class="space-y-6">
 
-      <!-- Header & Status Bar -->
+      <!-- ============================================================== -->
+      <!-- ENCABEZADO & RELOJES DE MERCADO DE LA SESIÓN NEW YORK         -->
+      <!-- ============================================================== -->
       <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
         
-        <!-- Top Title & Live Clocks -->
         <!-- Top Title & Controls Header -->
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0">
-            <div class="w-9 h-9 rounded-xl bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center text-yellow-400 shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center text-yellow-400 shrink-0">
               <i data-lucide="compass" class="w-5 h-5"></i>
             </div>
             <div>
-              <h2 class="text-base font-bold text-white flex items-center gap-2">
-                <span>Brújula Macro & Sesgo Diario Institucional</span>
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 font-mono border border-yellow-500/30 font-bold">XAU/USD</span>
-              </h2>
-              <p class="text-xs text-gray-400 mt-0.5">Dirección de alta probabilidad antes de operar sesión New York</p>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h2 class="text-base sm:text-lg font-black text-white">Macro Sesión Institucional del Oro</h2>
+                <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 font-mono border border-yellow-500/30 font-bold">XAU/USD · M5 NY Killzone</span>
+              </div>
+              <p class="text-xs text-gray-400 mt-0.5">Análisis Fundamental / Institucional & Técnico Cuantitativo en 5 Minutos con Confluencia A+</p>
             </div>
           </div>
 
-          <!-- Botón Contraer / Expandir a la Derecha -->
-          <div class="flex items-center gap-2.5 shrink-0">
-            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#goldBiasHeroContainer" title="Contraer / Expandir Sesgo">
+          <!-- Botones Refrescar y Guía PDF -->
+          <div class="flex items-center gap-2">
+            <button id="btnRefreshBias" class="h-8 px-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 text-yellow-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition cursor-pointer shadow-sm">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>Refrescar</span>
+            </button>
+
+            <button id="btnOpenMacroGuideModal" class="h-8 px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Manual Operativo & Guía de la Macro Sesión">
+              <i data-lucide="book-open" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Guía Macro (PDF)</span>
+            </button>
+
+            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white px-2.5 py-1.5 rounded-xl text-xs flex items-center gap-1 transition" data-target="#goldBiasHeroContainer" title="Contraer / Expandir Sesgo">
               <span class="btn-collapse-label">Contraer</span>
               <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
             </button>
@@ -163,7 +182,7 @@
 
         <div id="goldBiasHeroContainer" class="mt-4 pt-4 border-t border-gray-800/80 space-y-4">
 
-          <!-- Relojes de Mercado, Sesión Activa, Vela M5 & Controles -->
+          <!-- Relojes de Mercado, Sesión Activa & Controles -->
           <div class="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-2xl bg-gray-950/60 border border-gray-800/80 text-xs">
             <div class="flex flex-wrap items-center gap-2.5">
               <!-- Reloj New York -->
@@ -189,320 +208,275 @@
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 <span id="marketSessionName">Calculando sesión...</span>
               </div>
-
-
             </div>
 
-            <!-- Botones Refrescar y Guía PDF -->
-            <div class="flex items-center gap-2">
-              <button id="btnRefreshBias" class="h-8 px-3 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 text-yellow-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition cursor-pointer shadow-sm">
-                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-                <span>Refrescar</span>
-              </button>
-
-              <button id="btnOpenMacroGuideModal" class="h-8 px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Manual Operativo & Guía de la Macro Sesión">
-                <i data-lucide="book-open" class="w-3.5 h-3.5 text-amber-400"></i>
-                <span>Guía Macro (PDF)</span>
-              </button>
+            <!-- Badge de Actualización en Tiempo Real -->
+            <div class="text-[11px] font-mono text-gray-400 flex items-center gap-1.5">
+              <i data-lucide="clock" class="w-3.5 h-3.5 text-yellow-400"></i>
+              <span id="lastBiasUpdateTimestamp">Actualizado: Sesión NY Activa</span>
             </div>
           </div>
 
-        <!-- ============================================================== -->
-        <!-- GUARDIA DE SESIÓN NY: ESTADO EN VIVO & HORA ÓPTIMA DE OPERATIVA-->
-        <!-- ============================================================== -->
-        <div id="sessionGuardBanner" class="p-4 sm:p-5 rounded-2xl border-2 transition-all duration-300 shadow-xl bg-rose-950/40 border-rose-600/60 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div class="flex items-start sm:items-center gap-3.5 min-w-0">
-            <div id="sessionGuardIconBox" class="w-11 h-11 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0 shadow-lg">
-              <i data-lucide="moon" class="w-6 h-6"></i>
+          <!-- GUARDIA DE SESIÓN NY: ESTADO EN VIVO & HORA ÓPTIMA DE OPERATIVA -->
+          <div id="sessionGuardBanner" class="p-4 sm:p-5 rounded-2xl border-2 transition-all duration-300 shadow-xl bg-rose-950/40 border-rose-600/60 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div class="flex items-start sm:items-center gap-3.5 min-w-0">
+              <div id="sessionGuardIconBox" class="w-11 h-11 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0 shadow-lg">
+                <i data-lucide="moon" class="w-6 h-6"></i>
+              </div>
+              <div class="space-y-1.5 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span id="sessionGuardStatusBadge" class="px-3 py-1 rounded-lg bg-rose-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse">
+                    <i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i>
+                    <span>NO OPERAR · FUERA DE SESIÓN NY</span>
+                  </span>
+                  <span id="sessionGuardCountdownBadge" class="px-2.5 py-1 rounded-lg bg-gray-950/90 border border-gray-800 text-amber-300 font-mono text-xs font-bold flex items-center gap-1.5">
+                    <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span id="sessionGuardCountdownText">⏳ Faltan: Calculando...</span>
+                  </span>
+                </div>
+                <p id="sessionGuardHeadline" class="text-xs text-gray-200 font-medium leading-relaxed">
+                  El mercado Spot de Oro se encuentra fuera de la <strong>Ventana Dorada de New York</strong> (08:00 AM – 11:30 AM NY). En horas asiáticas o madrugada el volumen interbancario cae un 80% y los spreads se ensanchan. <strong>Disciplina: No regales tu dinero operando fuera de sesión.</strong>
+                </p>
+              </div>
             </div>
-            <div class="space-y-1.5 min-w-0">
-              <div class="flex flex-wrap items-center gap-2">
-                <span id="sessionGuardStatusBadge" class="px-3 py-1 rounded-lg bg-rose-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse">
-                  <i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i>
-                  <span>NO OPERAR · FUERA DE SESIÓN NY</span>
+
+            <!-- Caja de Hora Óptima de Operativa según Noticias -->
+            <div class="shrink-0 w-full lg:w-auto bg-gray-950/90 border border-amber-500/40 rounded-xl p-3.5 flex flex-col justify-between space-y-1.5 shadow-inner min-w-[280px]">
+              <div class="flex items-center justify-between gap-2 border-b border-gray-800 pb-1.5">
+                <span class="text-[10px] uppercase font-mono font-bold text-amber-400 flex items-center gap-1">
+                  <i data-lucide="target" class="w-3 h-3 text-amber-400"></i>
+                  <span>Hora Óptima de Operativa (<span id="optimalDayLabel">Hoy</span>)</span>
                 </span>
-                <span id="sessionGuardCountdownBadge" class="px-2.5 py-1 rounded-lg bg-gray-950/90 border border-gray-800 text-amber-300 font-mono text-xs font-bold flex items-center gap-1.5">
-                  <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
-                  <span id="sessionGuardCountdownText">⏳ Faltan: Calculando...</span>
+                <span id="optimalPurityBadge" class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono font-bold">SETUP A+</span>
+              </div>
+              
+              <div class="flex items-baseline justify-between gap-2">
+                <span class="text-xs text-gray-400 font-medium">Ventana NY:</span>
+                <span id="optimalNyWindowDisplay" class="text-sm font-black text-white font-mono">08:15 AM – 11:30 AM NY</span>
+              </div>
+
+              <div class="flex items-baseline justify-between gap-2 text-[11px]">
+                <span class="text-gray-400">🎯 Tu hora local:</span>
+                <span id="optimalLocalWindowDisplay" class="font-bold text-emerald-400 font-mono">--:-- – --:--</span>
+              </div>
+
+              <div id="optimalNewsReasonContainer" class="p-1.5 rounded-lg bg-amber-950/40 border border-amber-500/30 text-[10px] text-amber-300/90 leading-tight font-mono flex items-center gap-1">
+                <i data-lucide="info" class="w-3 h-3 shrink-0 text-amber-400"></i>
+                <span id="optimalNewsReasonDisplay">Pausa táctica por noticias de alto impacto</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- HERO BANNER: EL SESGO DEL DÍA -->
+          <div id="biasHeroBanner" class="p-4 sm:p-5 rounded-xl bg-red-950/40 border border-red-500/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-3">
+                <span id="biasDirectionBadge" class="text-sm sm:text-base font-black px-3.5 py-1 rounded-lg bg-red-500/20 text-red-400 border border-red-500/40 flex items-center gap-2">
+                  <i data-lucide="trending-down" class="w-5 h-5"></i>
+                  <span id="biasTitleText">SESGO INSTITUCIONAL: BAJISTA (Sell-Only)</span>
+                </span>
+                <span id="biasConfidenceBadge" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-gray-800 text-yellow-300 border border-yellow-500/30">
+                  Alta Convicción A+ (88%)
                 </span>
               </div>
-              <p id="sessionGuardHeadline" class="text-xs text-gray-200 font-medium leading-relaxed">
-                El mercado Spot de Oro se encuentra fuera de la <strong>Ventana Dorada de New York</strong> (08:00 AM – 11:30 AM NY). En horas asiáticas o madrugada el volumen interbancario cae un 80% y los spreads se ensanchan. <strong>Disciplina: No regales tu dinero operando fuera de sesión.</strong>
+              <p id="biasHeadlineText" class="text-sm font-semibold text-gray-200">
+                Oro bajo presión estructural tras perder el soporte clave de $4,000. Rendimientos reales TIPS 10Y firmes (+2.12%) y fortaleza del DXY (104.35) limitan el apetito institucional por metal sin rendimiento.
+              </p>
+              <p id="biasSummaryText" class="text-xs text-gray-400 leading-relaxed max-w-4xl">
+                El mercado institucional está liquidando posiciones largas tras confirmarse que el PIB de EE.UU. cerró en 3.4% anualizado y la inflación PCE subyacente se mantuvo pegajosa en 3.1%. Esto descarta recortes apresurados de tasas y mantiene los rendimientos de los bonos del Tesoro (US10Y) y el Dólar (DXY) en niveles que encarecen el costo de oportunidad del oro sin rendimiento.
               </p>
             </div>
+            <div id="cardinalRuleContainer" class="flex-shrink-0 bg-gray-900/90 p-3.5 rounded-xl border border-gray-800 text-center min-w-[160px] transition-all">
+              <div class="text-[11px] text-gray-400 font-medium">Regla Cardinal de Hoy</div>
+              <div id="cardinalRuleText" class="text-base font-black text-red-400 uppercase mt-0.5 tracking-wide">SOLO VENTAS</div>
+              <div id="cardinalRuleSub" class="text-[10px] text-gray-500 mt-1">Prohibido compras en contratendencia</div>
+            </div>
           </div>
 
-          <!-- Caja de Hora Óptima de Operativa según Noticias -->
-          <div class="shrink-0 w-full lg:w-auto bg-gray-950/90 border border-amber-500/40 rounded-xl p-3.5 flex flex-col justify-between space-y-1.5 shadow-inner min-w-[280px]">
-            <div class="flex items-center justify-between gap-2 border-b border-gray-800 pb-1.5">
-              <span class="text-[10px] uppercase font-mono font-bold text-amber-400 flex items-center gap-1">
-                <i data-lucide="target" class="w-3 h-3 text-amber-400"></i>
-                <span>Hora Óptima de Operativa (<span id="optimalDayLabel">Hoy</span>)</span>
-              </span>
-              <span id="optimalPurityBadge" class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono font-bold">SETUP A+</span>
-            </div>
-            
-            <div class="flex items-baseline justify-between gap-2">
-              <span class="text-xs text-gray-400 font-medium">Ventana NY:</span>
-              <span id="optimalNyWindowDisplay" class="text-sm font-black text-white font-mono">08:15 AM – 09:45 AM NY</span>
-            </div>
+        </div>
+      </section>
 
-            <div class="flex items-baseline justify-between gap-2 text-[11px]">
-              <span class="text-gray-400">🎯 Tu hora local:</span>
-              <span id="optimalLocalWindowDisplay" class="font-bold text-emerald-400 font-mono">--:-- – --:--</span>
-            </div>
 
-            <div id="optimalNewsReasonContainer" class="p-1.5 rounded-lg bg-amber-950/40 border border-amber-500/30 text-[10px] text-amber-300/90 leading-tight font-mono flex items-center gap-1">
-              <i data-lucide="info" class="w-3 h-3 shrink-0 text-amber-400"></i>
-              <span id="optimalNewsReasonDisplay">Pausa táctica por noticias de alto impacto</span>
+      <!-- ============================================================== -->
+      <!-- PARTE 1: ANÁLISIS FUNDAMENTAL & INSTITUCIONAL                  -->
+      <!-- Fuentes Macro Verídicas en Tiempo Real, Noticias & Shield      -->
+      <!-- ============================================================== -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-5 transition-all">
+        
+        <!-- Header Banner Parte 1 -->
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800 pb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+              <i data-lucide="landmark" class="w-5 h-5"></i>
             </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 font-mono text-xs font-black border border-blue-500/40">PARTE 1</span>
+                <h3 class="text-base sm:text-lg font-black text-white">Análisis Fundamental & Institucional</h3>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono border border-emerald-500/30 font-bold">Tiempo Real</span>
+              </div>
+              <p class="text-xs text-gray-400 mt-0.5">Macroeconomía, DXY, rendimientos reales, política de la Fed, COT y flujo de capitales globales</p>
+            </div>
+          </div>
+          <div class="text-xs font-mono px-3 py-1.5 rounded-xl bg-gray-950 border border-gray-800 text-blue-300 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+            <span>Fuentes: FRED St. Louis · CME FedWatch · CFTC COMEX</span>
           </div>
         </div>
 
-        <!-- HERO BANNER: EL SESGO DEL DÍA -->
-        <div id="biasHeroBanner" class="p-4 sm:p-5 rounded-xl bg-red-950/40 border border-red-500/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div class="space-y-1.5">
-            <div class="flex items-center gap-3">
-              <span id="biasDirectionBadge" class="text-sm sm:text-base font-black px-3.5 py-1 rounded-lg bg-red-500/20 text-red-400 border border-red-500/40 flex items-center gap-2">
-                <i data-lucide="trending-down" class="w-5 h-5"></i>
-                <span id="biasTitleText">SESGO INSTITUCIONAL: BAJISTA (Sell-Only)</span>
-              </span>
-              <span id="biasConfidenceBadge" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-gray-800 text-yellow-300 border border-yellow-500/30">
-                Alta Convicción (85%)
-              </span>
-            </div>
-            <p id="biasHeadlineText" class="text-sm font-semibold text-gray-200">
-              Oro bajo presión estructural tras perder el soporte clave de $4,000. La fortaleza económica de EE.UU. mantiene a la Fed en postura restrictiva.
-            </p>
-            <p id="biasSummaryText" class="text-xs text-gray-400 leading-relaxed max-w-4xl">
-              El mercado institucional está liquidando posiciones largas tras confirmarse que el PIB de EE.UU. cerró en 3.4% anualizado y la inflación PCE subyacente se mantuvo pegajosa en 3.1%. Esto descarta recortes apresurados de tasas y mantiene los rendimientos de los bonos del Tesoro (US10Y) y el Dólar (DXY) en niveles que encarecen el costo de oportunidad del oro sin rendimiento.
-            </p>
-          </div>
-          <div id="cardinalRuleContainer" class="flex-shrink-0 bg-gray-900/90 p-3.5 rounded-xl border border-gray-800 text-center min-w-[160px] transition-all">
-            <div class="text-[11px] text-gray-400 font-medium">Regla Cardinal de Hoy</div>
-            <div id="cardinalRuleText" class="text-base font-black text-red-400 uppercase mt-0.5 tracking-wide">SOLO VENTAS</div>
-            <div id="cardinalRuleSub" class="text-[10px] text-gray-500 mt-1">Prohibido compras en contratendencia</div>
-          </div>
-        </div>
-
-        <!-- ============================================================== -->
-        <!-- MÓDULO CUANTITATIVO: FUERZA MACRO, SUGERENCIA & RADAR A+       -->
-        <!-- ============================================================== -->
-        <div id="macroQuantIntelligenceBlock" class="space-y-3.5">
+        <!-- Fila 1: Termómetro de Fuerza Cuantitativa & Sugerencia Algorítmica -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
           
-          <!-- Fila 1: Termómetro de Fuerza Cuantitativa & Sugerencia Algorítmica -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
-            
-            <!-- Col 7: Termómetro de Fuerza Fundamental Cuantitativo -->
-            <div class="lg:col-span-7 bg-gray-950/80 border border-yellow-500/30 rounded-xl p-4 sm:p-5 flex flex-col justify-between space-y-3 shadow-inner">
-              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-800 pb-2.5">
-                <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                    <i data-lucide="gauge" class="w-4 h-4"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-xs sm:text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                      <span>Termómetro de Fuerza Fundamental</span>
-                      <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono border border-amber-500/30">Macro Score</span>
-                    </h3>
-                  </div>
+          <!-- Col 7: Termómetro de Fuerza Fundamental Cuantitativo -->
+          <div class="lg:col-span-7 bg-gray-950/80 border border-yellow-500/30 rounded-xl p-4 sm:p-5 flex flex-col justify-between space-y-3 shadow-inner">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-800 pb-2.5">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <i data-lucide="gauge" class="w-4 h-4"></i>
                 </div>
-                <div id="macroScoreBadge" class="px-2.5 py-1 rounded-lg bg-red-950/80 border border-red-500/40 text-red-300 text-xs font-mono font-bold flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
-                  <span id="macroScoreValue">-85% • PRESIÓN VENDEDORA INSTITUCIONAL</span>
+                <div>
+                  <h4 class="text-xs sm:text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    <span>Termómetro de Fuerza Fundamental</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono border border-amber-500/30">Macro Score</span>
+                  </h4>
                 </div>
               </div>
-
-              <!-- Medidor Visual de Aguja / Barra de Convicción -->
-              <div class="space-y-1.5">
-                <div class="flex items-center justify-between text-[11px] font-mono">
-                  <span class="text-red-400 font-bold flex items-center gap-1">
-                    <i data-lucide="trending-down" class="w-3 h-3"></i>
-                    <span>VENTA FUERTE (-100%)</span>
-                  </span>
-                  <span class="text-gray-400 font-bold">NEUTRAL (0%)</span>
-                  <span class="text-emerald-400 font-bold flex items-center gap-1">
-                    <span>COMPRA FUERTE (+100%)</span>
-                    <i data-lucide="trending-up" class="w-3 h-3"></i>
-                  </span>
-                </div>
-
-                <!-- Barra Track con Gradiente Tricolor -->
-                <div class="relative w-full h-4 rounded-full bg-gray-900 border border-gray-800 overflow-hidden p-0.5">
-                  <div class="w-full h-full rounded-full bg-gradient-to-r from-red-600 via-yellow-500 to-emerald-500 opacity-75"></div>
-                  <!-- Marcador / Puntero de Posición Dinámico -->
-                  <div id="macroGaugeMarker" class="absolute top-0 bottom-0 w-3 -ml-1.5 bg-white border-2 border-black rounded-full shadow-lg transition-all duration-700" style="left: 7.5%;"></div>
-                </div>
-
-                <div class="flex items-center justify-between text-[10px] text-gray-500">
-                  <span>Presión Bajista: <strong id="macroBearPowerText" class="text-red-400">85%</strong></span>
-                  <span id="macroDominantDriverText" class="text-gray-400 font-medium">Driver Dominante: <strong class="text-white">TIPS 10A Real (+2.12%)</strong></span>
-                  <span>Presión Alcista: <strong id="macroBullPowerText" class="text-emerald-400">15%</strong></span>
-                </div>
+              <div id="macroScoreBadge" class="px-2.5 py-1 rounded-lg bg-red-950/80 border border-red-500/40 text-red-300 text-xs font-mono font-bold flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
+                <span id="macroScoreValue">-85% • PRESIÓN VENDEDORA INSTITUCIONAL</span>
               </div>
-
-              <!-- Ponderación de 6 Drivers (Pills) -->
-              <div class="pt-2 border-t border-gray-800/80">
-                <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1.5 flex items-center justify-between">
-                  <span>Ponderación Institucional Multi-Fuente (Votos)</span>
-                  <span id="macroDriverVotesCount" class="font-mono text-amber-400 font-semibold">5 Bajistas · 1 Neutral · 0 Alcistas</span>
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[10px] font-mono" id="macroDriverPillsContainer">
-                  <div class="px-2 py-1 rounded bg-red-950/40 border border-red-900/50 text-red-300 flex items-center justify-between">
-                    <span>TIPS 10A (30%)</span>
-                    <span class="font-bold text-red-400">🔴 -30%</span>
-                  </div>
-                  <div class="px-2 py-1 rounded bg-red-950/40 border border-red-900/50 text-red-300 flex items-center justify-between">
-                    <span>DXY Dólar (25%)</span>
-                    <span class="font-bold text-red-400">🔴 -25%</span>
-                  </div>
-                  <div class="px-2 py-1 rounded bg-red-950/40 border border-red-900/50 text-red-300 flex items-center justify-between">
-                    <span>FedWatch (15%)</span>
-                    <span class="font-bold text-red-400">🔴 -15%</span>
-                  </div>
-                  <div class="px-2 py-1 rounded bg-red-950/40 border border-red-900/50 text-red-300 flex items-center justify-between">
-                    <span>CFTC COT (15%)</span>
-                    <span class="font-bold text-red-400">🔴 -12%</span>
-                  </div>
-                  <div class="px-2 py-1 rounded bg-yellow-950/40 border border-yellow-900/50 text-yellow-300 flex items-center justify-between">
-                    <span>Curva Tipos (10%)</span>
-                    <span class="font-bold text-yellow-400">🟡 0%</span>
-                  </div>
-                  <div class="px-2 py-1 rounded bg-emerald-950/40 border border-emerald-900/50 text-emerald-300 flex items-center justify-between">
-                    <span>Bancos Cent. (5%)</span>
-                    <span class="font-bold text-emerald-400">🟢 +5%</span>
-                  </div>
-                </div>
-              </div>
-
             </div>
 
-            <!-- Col 5: Caja de Sugerencia Algorítmica Accionable (Para el operador en vivo) -->
-            <div id="macroAdvisorBox" class="lg:col-span-5 bg-gradient-to-b from-gray-900 to-red-950/30 border-2 border-red-500/40 rounded-xl p-4 sm:p-5 flex flex-col justify-between space-y-3 shadow-inner">
-              <div class="flex items-center justify-between border-b border-gray-800 pb-2">
-                <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-400">
-                    <i data-lucide="bot" class="w-4 h-4"></i>
-                  </div>
-                  <h3 class="text-xs sm:text-sm font-black text-white uppercase tracking-wider">Sugerencia Algorítmica NY</h3>
-                </div>
-                <span id="advisorConvicBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30 font-bold">ALTA PROBABILIDAD</span>
-              </div>
-
-              <div class="space-y-2 text-xs">
-                <div>
-                  <div class="text-[10px] text-gray-400 uppercase font-mono font-bold">Veredicto Operativo Institucional:</div>
-                  <div id="macroVerdictTitle" class="text-sm font-black text-red-400 mt-0.5">VENTA DE ALTA CONVICCIÓN (SELL-ONLY)</div>
-                </div>
-
-                <div class="p-2.5 rounded-lg bg-gray-950/80 border border-gray-800 space-y-1">
-                  <div class="text-[10px] text-amber-400 font-bold flex items-center gap-1 font-mono">
-                    <i data-lucide="crosshair" class="w-3 h-3"></i>
-                    <span>Gatillo en M5 (Adaptive Supertrend):</span>
-                  </div>
-                  <p id="macroTriggerAdvice" class="text-[11px] text-gray-200 leading-snug">
-                    Ejecutar venta únicamente en vela M5 cerrada con flecha roja o cambio de banda tras retesteo a la <strong>Zona de Resistencia</strong>. Descartar el 100% de compras.
-                  </p>
-                </div>
-
-                <div class="p-2.5 rounded-lg bg-gray-950/80 border border-gray-800 space-y-1">
-                  <div class="text-[10px] text-emerald-400 font-bold flex items-center gap-1 font-mono">
-                    <i data-lucide="shield-check" class="w-3 h-3"></i>
-                    <span>Gestión de Riesgo & Lotaje:</span>
-                  </div>
-                  <p id="macroRiskAdvice" class="text-[11px] text-gray-300 leading-snug">
-                    Riesgo recomendado: <strong>3% a 5%</strong> ($3.30 a $5.50). Si el SL en TradingView es de 1,500 a 2,500 pts ($15 a $25), operar con <strong>0.01 – 0.02 lotes</strong>.
-                  </p>
-                </div>
-              </div>
-
-              <div class="pt-2 border-t border-gray-800 flex items-center justify-between text-[10px] text-gray-400">
-                <span class="flex items-center gap-1">
-                  <i data-lucide="clock" class="w-3 h-3 text-yellow-400"></i>
-                  <span>Ventana Óptima: <strong>08:15 AM – 11:30 AM NY</strong></span>
+            <!-- Medidor Visual de Aguja / Barra de Convicción -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between text-[11px] font-mono">
+                <span class="text-red-400 font-bold flex items-center gap-1">
+                  <i data-lucide="trending-down" class="w-3 h-3"></i>
+                  <span>VENTA FUERTE (-100%)</span>
                 </span>
-                <span class="font-mono text-yellow-400 font-bold">Setup A+</span>
+                <span class="text-gray-400 font-bold">NEUTRAL (0%)</span>
+                <span class="text-emerald-400 font-bold flex items-center gap-1">
+                  <span>COMPRA FUERTE (+100%)</span>
+                  <i data-lucide="trending-up" class="w-3 h-3"></i>
+                </span>
+              </div>
+
+              <!-- Barra Track con Gradiente Tricolor -->
+              <div class="relative w-full h-4 rounded-full bg-gray-900 border border-gray-800 overflow-hidden p-0.5">
+                <div class="w-full h-full rounded-full bg-gradient-to-r from-red-600 via-yellow-500 to-emerald-500 opacity-75"></div>
+                <!-- Marcador Dinámico -->
+                <div id="macroGaugeMarker" class="absolute top-0 bottom-0 w-3 -ml-1.5 bg-white border-2 border-black rounded-full shadow-lg transition-all duration-700" style="left: 7.5%;"></div>
+              </div>
+
+              <div class="flex items-center justify-between text-[10px] text-gray-500">
+                <span>Presión Bajista: <strong id="macroBearPowerText" class="text-red-400">85%</strong></span>
+                <span id="macroDominantDriverText" class="text-gray-400 font-medium">Driver Dominante: <strong class="text-white">TIPS 10A Real (+2.12%)</strong></span>
+                <span>Presión Alcista: <strong id="macroBullPowerText" class="text-emerald-400">15%</strong></span>
+              </div>
+            </div>
+
+            <!-- Ponderación de 6 Drivers (Pills) -->
+            <div class="pt-2 border-t border-gray-800/80">
+              <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1.5 flex items-center justify-between">
+                <span>Ponderación Institucional Multi-Fuente (Votos)</span>
+                <span id="macroDriverVotesCount" class="font-mono text-amber-400 font-semibold">5 Bajistas · 1 Neutral · 0 Alcistas</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[10px] font-mono" id="macroDriverPillsContainer">
+                <div class="px-2 py-1 rounded bg-red-950/40 border border-red-900/50 text-red-300 flex items-center justify-between">
+                  <span>TIPS 10A (30%)</span>
+                  <span class="font-bold text-red-400">🔴 -30%</span>
+                </div>
+                <div class="px-2 py-1 rounded bg-red-950/40 border border-red-900/50 text-red-300 flex items-center justify-between">
+                  <span>DXY Dólar (25%)</span>
+                  <span class="font-bold text-red-400">🔴 -25%</span>
+                </div>
+                <div class="px-2 py-1 rounded bg-red-950/40 border border-red-900/50 text-red-300 flex items-center justify-between">
+                  <span>FedWatch (15%)</span>
+                  <span class="font-bold text-red-400">🔴 -15%</span>
+                </div>
+                <div class="px-2 py-1 rounded bg-red-950/40 border border-red-900/50 text-red-300 flex items-center justify-between">
+                  <span>CFTC COT (15%)</span>
+                  <span class="font-bold text-red-400">🔴 -12%</span>
+                </div>
+                <div class="px-2 py-1 rounded bg-yellow-950/40 border border-yellow-900/50 text-yellow-300 flex items-center justify-between">
+                  <span>Curva Tipos (10%)</span>
+                  <span class="font-bold text-yellow-400">🟡 0%</span>
+                </div>
+                <div class="px-2 py-1 rounded bg-emerald-950/40 border border-emerald-900/50 text-emerald-300 flex items-center justify-between">
+                  <span>Bancos Cent. (5%)</span>
+                  <span class="font-bold text-emerald-400">🟢 +5%</span>
+                </div>
               </div>
             </div>
 
           </div>
 
-          <!-- Fila 2: 2 Mejoras de Máxima Precisión (Semáforo Noticias & Proyección ADR Puntos TV) -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            
-            <!-- Mejora 1: Semáforo Dinámico de Noticias en Vivo ("News Risk Shield") -->
-            <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-2.5 shadow-inner">
-              <div class="flex items-center justify-between border-b border-gray-800/80 pb-2">
-                <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
-                    <i data-lucide="shield-alert" class="w-4 h-4"></i>
-                  </div>
-                  <span class="text-xs font-bold text-white uppercase tracking-wider">News Risk Shield</span>
+          <!-- Col 5: Caja de Sugerencia Algorítmica Accionable -->
+          <div id="macroAdvisorBox" class="lg:col-span-5 bg-gradient-to-b from-gray-900 to-red-950/30 border-2 border-red-500/40 rounded-xl p-4 sm:p-5 flex flex-col justify-between space-y-3 shadow-inner">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-400">
+                  <i data-lucide="bot" class="w-4 h-4"></i>
                 </div>
-                <span id="newsShieldStatusBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span id="newsShieldStatusText">🟢 VÍA LIBRE</span>
-                </span>
+                <h4 class="text-xs sm:text-sm font-black text-white uppercase tracking-wider">Sugerencia Algorítmica NY</h4>
+              </div>
+              <span id="advisorConvicBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30 font-bold">ALTA PROBABILIDAD</span>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div>
+                <div class="text-[10px] text-gray-400 uppercase font-mono font-bold">Veredicto Operativo Institucional:</div>
+                <div id="macroVerdictTitle" class="text-sm font-black text-red-400 mt-0.5">VENTA DE ALTA CONVICCIÓN (SELL-ONLY)</div>
               </div>
 
-              <div class="space-y-1.5 text-xs">
-                <div class="text-[10px] text-gray-400 font-mono">Estado de Noticias de Alto Impacto:</div>
-                <div id="newsShieldHeadline" class="font-bold text-white text-xs">Sin noticias de alto impacto en las próximas 2 horas.</div>
-                <p id="newsShieldAdvice" class="text-[11px] text-gray-400 leading-snug">
-                  Operativa 100% autorizada con lotaje y Stop Loss normal. Spreads estables en el broker.
+              <div class="p-2.5 rounded-lg bg-gray-950/80 border border-gray-800 space-y-1">
+                <div class="text-[10px] text-amber-400 font-bold flex items-center gap-1 font-mono">
+                  <i data-lucide="crosshair" class="w-3 h-3"></i>
+                  <span>Gatillo en M5 (Retesteo de Niveles):</span>
+                </div>
+                <p id="macroTriggerAdvice" class="text-[11px] text-gray-200 leading-snug">
+                  Ejecutar venta únicamente en vela M5 cerrada con flecha roja o cambio de banda tras retesteo a la <strong>Zona de Resistencia ($3,908 – $3,920)</strong>. Descartar el 100% de compras.
                 </p>
               </div>
 
-              <div class="p-2 rounded-lg bg-gray-900 border border-gray-800 text-[10px] text-gray-400 flex items-center justify-between font-mono">
-                <span>Regla de Bloqueo:</span>
-                <span class="text-red-400 font-bold">Congelar ±15 min</span>
+              <div class="p-2.5 rounded-lg bg-gray-950/80 border border-gray-800 space-y-1">
+                <div class="text-[10px] text-emerald-400 font-bold flex items-center gap-1 font-mono">
+                  <i data-lucide="shield-check" class="w-3 h-3"></i>
+                  <span>Gestión de Riesgo & Lotaje:</span>
+                </div>
+                <p id="macroRiskAdvice" class="text-[11px] text-gray-300 leading-snug">
+                  Riesgo recomendado: <strong>3% a 5%</strong>. Con SL técnico de 1,800 a 2,200 pts ($18 a $22), operar con lotaje de acuerdo a la Calculadora Myfxbook.
+                </p>
               </div>
             </div>
 
-            <!-- Mejora 2: Proyección de Rango Volátil Diario (ADR Oro - Escala Real TradingView) -->
-            <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-2.5 shadow-inner">
-              <div class="flex items-center justify-between border-b border-gray-800/80 pb-2">
-                <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
-                  </div>
-                  <span class="text-xs font-bold text-white uppercase tracking-wider">Rango Diario ADR (TV)</span>
-                </div>
-                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800 font-bold">
-                  100 pts = $1.00 USD
-                </span>
-              </div>
-
-              <div class="space-y-1.5">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-gray-400">ADR Diario Promedio:</span>
-                  <span class="font-mono font-bold text-white" id="adrDailyAvgDisplay">5,500 pts ($55.00)</span>
-                </div>
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-gray-400">Consumido (Asia + Londres):</span>
-                  <span class="font-mono font-bold text-yellow-400" id="adrConsumedDisplay">2,650 pts ($26.50)</span>
-                </div>
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-gray-400">Espacio Restante para NY:</span>
-                  <span class="font-mono font-bold text-emerald-400" id="adrRemainingDisplay">2,850 pts ($28.50)</span>
-                </div>
-
-                <!-- Barra de Progreso del ADR -->
-                <div class="w-full bg-gray-900 rounded-full h-2 overflow-hidden border border-gray-800">
-                  <div id="adrProgressBar" class="h-full rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 transition-all duration-500" style="width: 48%;"></div>
-                </div>
-              </div>
-
-              <p id="adrDiagnosticText" class="text-[10px] text-gray-400 leading-tight">
-                🟢 <strong>Margen Óptimo:</strong> El oro aún tiene ~2,850 puntos ($28.50) de recorrido libre esperado en Nueva York. Espacio suficiente para buscar Take Profits amplios sin riesgo de agotamiento.
-              </p>
+            <div class="pt-2 border-t border-gray-800 flex items-center justify-between text-[10px] text-gray-400">
+              <span class="flex items-center gap-1">
+                <i data-lucide="clock" class="w-3 h-3 text-yellow-400"></i>
+                <span>Ventana Óptima: <strong>08:15 AM – 11:30 AM NY</strong></span>
+              </span>
+              <span class="font-mono text-yellow-400 font-bold">Setup A+</span>
             </div>
-
           </div>
 
         </div>
 
-        <!-- BARÓMETRO DE FLUJO DE DINERO INTELIGENTE (SMART MONEY FLOW) -->
+        <!-- Matriz de las 6 Fuentes Macroeconómicas Verificadas -->
+        <div class="space-y-3 pt-2">
+          <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-gray-950/60 border border-gray-800/80 text-xs">
+            <span class="text-gray-300 font-bold flex items-center gap-1.5">
+              <i data-lucide="layers" class="w-3.5 h-3.5 text-blue-400"></i>
+              <span>6 Catalizadores Macroeconómicos Verificados (Datos Oficiales):</span>
+            </span>
+            <span class="text-[11px] text-gray-400 font-mono">Correlaciones Cuantitativas Actualizadas</span>
+          </div>
+
+          <div id="macroSourcesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            <!-- Dynamic Macro Sources injected via JS -->
+          </div>
+        </div>
+
+        <!-- Barómetro de Flujo de Dinero Inteligente (Smart Money Flow) -->
         <div class="p-4 sm:p-5 rounded-xl bg-gray-950/70 border border-yellow-500/30 space-y-3 shadow-inner">
           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-800 pb-2.5">
             <div class="flex items-center gap-2">
@@ -510,10 +484,10 @@
                 <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
               </div>
               <div>
-                <h3 class="text-xs sm:text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                <h4 class="text-xs sm:text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
                   <span>Barómetro de Flujo de Dinero Institucional</span>
-                  <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono border border-amber-500/30">Hacia dónde van los dineros</span>
-                </h3>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono border border-amber-500/30">Smart Money Rotation</span>
+                </h4>
               </div>
             </div>
             <div id="moneyFlowVerdictBadge" class="px-3 py-1 rounded-lg bg-red-950/80 border border-red-500/40 text-red-300 text-xs font-mono font-bold flex items-center gap-1.5">
@@ -523,172 +497,548 @@
           </div>
 
           <p id="moneyFlowSummary" class="text-xs text-gray-300 leading-relaxed">
-            El dinero inteligente está SALIENDO de materias primas sin rendimiento (Oro) y ENTRANDO con fuerza a Dólares líquidos (DXY) y Deuda del Tesoro de corto/mediano plazo debido a rendimientos reales del 4.2%.
+            El dinero inteligente está SALIENDO de materias primas sin rendimiento (Oro) y ENTRANDO con fuerza a Dólares líquidos (DXY) y Deuda del Tesoro de corto/mediano plazo debido a rendimientos reales del 2.12%.
           </p>
 
-          <!-- 4 Asset Cards Grid -->
           <div id="moneyFlowAssetsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
             <!-- Dynamic Assets inserted via JS -->
           </div>
         </div>
 
-        </div>
-
-      </section>
-
-
-      <!-- ==========================================
-           CALENDARIO ECONÓMICO SEMANAL DE NOTICIAS (XAU/USD)
-           ========================================== -->
-      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
-        
-        <!-- Header -->
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-9 h-9 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400 shrink-0">
-              <i data-lucide="calendar-days" class="w-5 h-5"></i>
-            </div>
-            <div>
-              <div class="flex flex-wrap items-center gap-2">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
-                  <span>Calendario Semanal de Noticias Económicas (Oro & USD)</span>
-                </h3>
-                <span id="newsWeekBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 font-mono border border-red-500/30 font-bold">
-                  🔥 Semana NFP & Empleo (02–06 Nov)
-                </span>
+        <!-- Calendario Semanal de Noticias Económicas & News Risk Shield -->
+        <div class="p-4 sm:p-5 rounded-xl bg-gray-950/80 border border-gray-800 space-y-4 shadow-inner">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800 pb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center">
+                <i data-lucide="calendar-days" class="w-4 h-4"></i>
               </div>
-              <p class="text-xs text-gray-400 mt-0.5">Noticias de alto impacto en sesión New York (UTC-4) con reglas de protección para XAU/USD</p>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h4 class="text-xs sm:text-sm font-black text-white">Calendario Semanal Económico (Oro & Dólar)</h4>
+                  <span id="newsWeekBadge" class="text-[10px] px-2 py-0.5 rounded bg-red-500/20 text-red-300 font-mono border border-red-500/30 font-bold">Semana NFP & Datos de Empleo</span>
+                </div>
+                <p class="text-[11px] text-gray-400">Eventos de alto impacto en sesión New York con reglas de congelamiento preventivo</p>
+              </div>
+            </div>
+
+            <!-- News Risk Shield Banner Status -->
+            <div class="flex items-center gap-2">
+              <span id="newsShieldStatusBadge" class="text-[10px] font-mono px-3 py-1.5 rounded-xl bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold flex items-center gap-1.5 shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="newsShieldStatusText">🟢 VÍA LIBRE · SIN NOTICIAS INMINENTES</span>
+              </span>
+              <span class="text-[10px] font-mono px-2.5 py-1.5 rounded-xl bg-gray-900 border border-gray-800 text-amber-300 font-bold">
+                Bloqueo: ±15 min
+              </span>
             </div>
           </div>
-          
-          <!-- Botón Contraer / Expandir a la Derecha -->
-          <div class="flex items-center gap-2.5 shrink-0">
-            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#weeklyNewsBodyWrapper" title="Contraer / Expandir Calendario">
-              <span class="btn-collapse-label">Contraer</span>
-              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
+
+          <!-- Selector de Días de la Semana -->
+          <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs" id="newsDaySelectorBar">
+            <button class="news-day-btn active px-3.5 py-2 rounded-xl bg-blue-600 text-white font-black whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 shadow-md shadow-blue-600/30" data-day="all">
+              <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+              <span>Toda la Semana</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-white/20 ml-1 font-mono">8</span>
+            </button>
+            <button class="news-day-btn px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 font-bold whitespace-nowrap transition cursor-pointer border border-gray-800 flex items-center gap-1.5" data-day="2026-11-02">
+              <span>Lun 02</span>
+              <span class="text-[10px] px-1.5 rounded-md bg-yellow-500/20 text-yellow-300 font-mono">ISM Manuf.</span>
+            </button>
+            <button class="news-day-btn px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 font-bold whitespace-nowrap transition cursor-pointer border border-gray-800 flex items-center gap-1.5" data-day="2026-11-03">
+              <span>Mar 03</span>
+              <span class="text-[10px] px-1.5 rounded-md bg-red-500/20 text-red-300 font-mono">JOLTS 🔴</span>
+            </button>
+            <button class="news-day-btn px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 font-bold whitespace-nowrap transition cursor-pointer border border-gray-800 flex items-center gap-1.5" data-day="2026-11-04">
+              <span>Mié 04</span>
+              <span class="text-[10px] px-1.5 rounded-md bg-red-500/20 text-red-300 font-mono">ADP + ISM 🔴</span>
+            </button>
+            <button class="news-day-btn px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 font-bold whitespace-nowrap transition cursor-pointer border border-gray-800 flex items-center gap-1.5" data-day="2026-11-05">
+              <span>Jue 05</span>
+              <span class="text-[10px] px-1.5 rounded-md bg-red-500/20 text-red-300 font-mono">Subsidios 🔴</span>
+            </button>
+            <button class="news-day-btn px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 font-bold whitespace-nowrap transition cursor-pointer border border-red-500/30 flex items-center gap-1.5 text-red-400" data-day="2026-11-06">
+              <span>Vie 06</span>
+              <span class="text-[10px] px-1.5 rounded-md bg-red-500/30 text-red-300 font-mono font-black">NFP 🔥</span>
             </button>
           </div>
-        </div>
 
-        <div id="weeklyNewsBodyWrapper" class="mt-4 pt-4 border-t border-gray-800/80 space-y-4">
-
-          <!-- Sub-barra de Filtros & Reglas de Bloqueo -->
-          <div class="flex flex-wrap items-center justify-between gap-2.5 p-2.5 rounded-xl bg-gray-950/50 border border-gray-800/80 text-xs">
-            <div class="flex items-center gap-2">
-              <span class="text-gray-400 font-semibold flex items-center gap-1.5">
-                <i data-lucide="filter" class="w-3.5 h-3.5 text-red-400"></i>
-                <span>Filtro de Noticias:</span>
-              </span>
-              <button id="btnFilterHighImpactNews" class="h-8 px-3 rounded-xl border border-red-500/40 bg-red-950/40 text-red-300 hover:bg-red-900/60 transition flex items-center gap-1.5 font-semibold cursor-pointer shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                <span id="btnFilterNewsText">Solo Alto Impacto</span>
-              </button>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="h-8 px-3 rounded-xl border border-gray-800 bg-gray-900 text-yellow-300 font-mono font-semibold flex items-center gap-1.5 shadow-sm">
-                <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-yellow-400"></i>
-                <span>Bloqueo ±15 min</span>
-              </span>
-            </div>
+          <!-- Dynamic Container for News Cards -->
+          <div id="weeklyNewsContainer" class="space-y-3">
+            <!-- Injected dynamically via JS from data/weekly_news.json -->
           </div>
 
-        <!-- Weekly Days Selector (Tabs Lunes a Viernes) -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs" id="newsDaySelectorBar">
-          <button class="news-day-btn active px-3.5 py-2 rounded-xl bg-blue-600 text-white font-black whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 shadow-md shadow-blue-600/30" data-day="all">
-            <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-            <span>Toda la Semana</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-white/20 ml-1 font-mono">8</span>
-          </button>
-          <button class="news-day-btn px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 font-bold whitespace-nowrap transition cursor-pointer border border-gray-800 flex items-center gap-1.5" data-day="2026-11-02">
-            <span>Lun 02</span>
-            <span class="text-[10px] px-1.5 rounded-md bg-yellow-500/20 text-yellow-300 font-mono">ISM Manuf.</span>
-          </button>
-          <button class="news-day-btn px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 font-bold whitespace-nowrap transition cursor-pointer border border-gray-800 flex items-center gap-1.5" data-day="2026-11-03">
-            <span>Mar 03</span>
-            <span class="text-[10px] px-1.5 rounded-md bg-red-500/20 text-red-300 font-mono">JOLTS 🔴</span>
-          </button>
-          <button class="news-day-btn px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 font-bold whitespace-nowrap transition cursor-pointer border border-gray-800 flex items-center gap-1.5" data-day="2026-11-04">
-            <span>Mié 04</span>
-            <span class="text-[10px] px-1.5 rounded-md bg-red-500/20 text-red-300 font-mono">ADP + ISM 🔴</span>
-          </button>
-          <button class="news-day-btn px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 font-bold whitespace-nowrap transition cursor-pointer border border-gray-800 flex items-center gap-1.5" data-day="2026-11-05">
-            <span>Jue 05</span>
-            <span class="text-[10px] px-1.5 rounded-md bg-red-500/20 text-red-300 font-mono">Subsidios 🔴</span>
-          </button>
-          <button class="news-day-btn px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 font-bold whitespace-nowrap transition cursor-pointer border border-red-500/30 flex items-center gap-1.5 text-red-400" data-day="2026-11-06">
-            <span>Vie 06</span>
-            <span class="text-[10px] px-1.5 rounded-md bg-red-500/30 text-red-300 font-mono font-black">NFP 🔥</span>
-          </button>
-        </div>
-
-        <!-- Dynamic Container for News Cards -->
-        <div id="weeklyNewsContainer" class="space-y-4">
-          <!-- Injected dynamically via JS from data/weekly_news.json -->
-        </div>
-
-        <!-- News Protocol Footnote -->
-        <div class="p-3.5 rounded-xl bg-gray-950/80 border border-gray-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-lg bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-bold text-xs">💡</span>
-            <span class="text-gray-300 leading-relaxed">
-              <strong class="text-white">Protocolo Institucional para XAU/USD:</strong> Durante los minutos :29 a :32 de una noticia de alto impacto (ej. 08:30 AM NY), los spreads del broker se abren de $0.20 a $2.50+ y saltan slippages en stops. Nunca apuestes al dato en vela viva. Espera que pasen 10-15 minutos de digestión, verifica que el spread se normalice y gatilla tu trade con el <strong>Adaptive Supertrend M5</strong> alineado con el Sesgo Diario Macro.
-            </span>
+          <!-- News Shield Protocol Headline -->
+          <div class="p-3 rounded-xl bg-gray-900/90 border border-gray-800 text-xs flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-amber-400 font-bold">🛡️ News Risk Shield:</span>
+              <span id="newsShieldHeadline" class="text-gray-200">Sin noticias de alto impacto en las próximas 2 horas.</span>
+            </div>
+            <span id="newsShieldAdvice" class="text-[11px] text-gray-400">Operativa autorizada con lotaje y Stop Loss normal. Spreads estables.</span>
           </div>
-        </div>
-
         </div>
 
       </section>
 
 
-
-      <!-- ==========================================
-           SECCIÓN: MATRIZ INSTITUCIONAL DE FUENTES MACRO (6 DRIVERS EN VIVO)
-           ========================================== -->
-      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
-              <i data-lucide="landmark" class="w-5 h-5"></i>
+      <!-- ============================================================== -->
+      <!-- PARTE 2: ANÁLISIS TÉCNICO CUANTITATIVO M5 (SESIÓN NEW YORK)    -->
+      <!-- Ruptura de Londres, Rango Asia, Heikin Ashi M5, Squeeze & ADR  -->
+      <!-- ============================================================== -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-5 transition-all">
+        
+        <!-- Header Banner Parte 2 -->
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800 pb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+              <i data-lucide="crosshair" class="w-5 h-5"></i>
             </div>
             <div>
-              <h3 class="text-base font-bold text-white flex items-center gap-2">
-                <span>Matriz Macro Institucional Multi-Fuente</span>
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono border border-blue-500/30 font-bold">6 Catalizadores</span>
-              </h3>
-              <p class="text-xs text-gray-400 mt-0.5">Datos fundamentales cuantitativos que gobiernan los flujos institucionales del oro</p>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-mono text-xs font-black border border-amber-500/40">PARTE 2</span>
+                <h3 class="text-base sm:text-lg font-black text-white">Análisis Técnico Cuantitativo M5 (Sesión New York)</h3>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono border border-amber-500/30 font-bold">08:00 – 11:30 ET</span>
+              </div>
+              <p class="text-xs text-gray-400 mt-0.5">Específico para XAU/USD en temporalidad de 5 minutos: Rango de Londres, Heikin Ashi y Squeeze Momentum</p>
+            </div>
+          </div>
+          <div class="text-xs font-mono px-3 py-1.5 rounded-xl bg-gray-950 border border-gray-800 text-amber-300 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <span>Tickmill Raw ECN · Velas 5m</span>
+          </div>
+        </div>
+
+        <!-- Fila 1: Estructura de Sesiones & Niveles Interbancarios Clave -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          
+          <!-- Card 1: Rango de Londres (London High / Low 03:00 - 08:00 ET) -->
+          <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-3 shadow-inner hover:border-amber-500/30 transition">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs">
+                  🇬🇧
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white uppercase tracking-wider">Rango de Londres (03:00–08:00 ET)</h4>
+                  <span class="text-[10px] text-gray-400">London High / London Low</span>
+                </div>
+              </div>
+              <span id="londonStatusBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-bold">
+                🔴 RUPTURA BAJISTA
+              </span>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div class="flex items-center justify-between font-mono">
+                <span class="text-gray-400">London High (LH):</span>
+                <span class="font-bold text-white" id="londonHighDisplay">3,936.50</span>
+              </div>
+              <div class="flex items-center justify-between font-mono">
+                <span class="text-gray-400">London Low (LL):</span>
+                <span class="font-bold text-red-400" id="londonLowDisplay">3,908.20</span>
+              </div>
+              <div class="flex items-center justify-between font-mono text-[11px]">
+                <span class="text-gray-400">Amplitud Londres:</span>
+                <span class="text-amber-400 font-bold" id="londonRangeDisplay">2,830 pts ($28.30)</span>
+              </div>
+            </div>
+
+            <div class="p-2 rounded-lg bg-gray-900 border border-gray-800 text-[10px] space-y-1">
+              <div class="text-gray-300 font-semibold flex items-center gap-1">
+                <i data-lucide="check-circle-2" class="w-3 h-3 text-red-400"></i>
+                <span id="londonBreakoutDetail">Ruptura bajista de London Low confirmada.</span>
+              </div>
+              <div class="text-gray-500 font-mono text-[9px]">
+                Judas Swing: <span class="text-emerald-400 font-bold" id="judasSwingStatus">No detectado (Ruptura limpia sostenida)</span>
+              </div>
             </div>
           </div>
 
-          <!-- Botón Contraer / Expandir a la Derecha -->
-          <div class="flex items-center gap-2.5 shrink-0">
-            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#macroDriversBodyWrapper" title="Contraer / Expandir Matriz Macro">
-              <span class="btn-collapse-label">Contraer</span>
-              <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
+          <!-- Card 2: Rango Asiático (Asian High / Low 19:00 - 02:00 ET) -->
+          <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-3 shadow-inner hover:border-amber-500/30 transition">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs">
+                  🇯🇵
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white uppercase tracking-wider">Rango Asiático (19:00–02:00 ET)</h4>
+                  <span class="text-[10px] text-gray-400">Asian High / Asian Low</span>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-gray-900 text-purple-300 border border-purple-800 font-bold">
+                COMPLETO (187 pts)
+              </span>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div class="flex items-center justify-between font-mono">
+                <span class="text-gray-400">Asian High (AH):</span>
+                <span class="font-bold text-white" id="asianHighDisplay">3,912.80</span>
+              </div>
+              <div class="flex items-center justify-between font-mono">
+                <span class="text-gray-400">Asian Low (AL):</span>
+                <span class="font-bold text-purple-300" id="asianLowDisplay">3,894.10</span>
+              </div>
+              <div class="flex items-center justify-between font-mono text-[11px]">
+                <span class="text-gray-400">Amplitud Asia:</span>
+                <span class="text-purple-400 font-bold" id="asianRangeDisplay">1,870 pts ($18.70)</span>
+              </div>
+            </div>
+
+            <div class="p-2 rounded-lg bg-gray-900 border border-gray-800 text-[10px] text-gray-400 leading-tight">
+              <span>Rango estrecho interbancario de acumulación pasiva. Su liquidez fue barrida en Londres y sirve como soporte/resistencia previa en NY.</span>
+            </div>
+          </div>
+
+          <!-- Card 3: Niveles Diarios & Invalidación (PDH / PDL / Pivote) -->
+          <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-3 shadow-inner hover:border-amber-500/30 transition">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
+                  <i data-lucide="crosshair" class="w-3.5 h-3.5"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white uppercase tracking-wider">Niveles Diarios & Invalidación</h4>
+                  <span class="text-[10px] text-gray-400">Pivotes Técnicos Diarios</span>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-gray-900 text-gray-300 border border-gray-800 font-bold">
+                D1 / H4
+              </span>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div class="flex items-center justify-between font-mono">
+                <span class="text-gray-400">Prev. Day High (PDH):</span>
+                <span class="font-bold text-white" id="pdhDisplay">3,985.50</span>
+              </div>
+              <div class="flex items-center justify-between font-mono">
+                <span class="text-gray-400">Prev. Day Low (PDL):</span>
+                <span class="font-bold text-white" id="pdlDisplay">3,872.20</span>
+              </div>
+              <div class="flex items-center justify-between font-mono text-[11px]">
+                <span class="text-gray-400">Pivote Central Diario:</span>
+                <span class="text-amber-400 font-bold" id="dailyPivotDisplay">3,922.35</span>
+              </div>
+            </div>
+
+            <div class="p-2 rounded-lg bg-red-950/30 border border-red-900/50 text-[10px] text-red-300 flex items-center justify-between font-mono">
+              <span>Nivel Invalidación H4:</span>
+              <span class="font-bold text-red-400" id="invalidationDisplay">4,015.00</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Fila 2: Indicadores Cuantitativos de Precisión en M5 (Heikin Ashi + Squeeze + ADR) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1">
+          
+          <!-- Módulo 1: Velas Heikin Ashi en M5 (Filtro de Entrada & Salida) -->
+          <div class="bg-gray-950/80 border border-amber-500/30 rounded-xl p-4 flex flex-col justify-between space-y-3 shadow-inner">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-bold text-xs">
+                  🕯️
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white uppercase tracking-wider">Velas Heikin Ashi M5</h4>
+                  <span class="text-[10px] text-gray-400 font-mono">Filtro de Gatillo Institucional</span>
+                </div>
+              </div>
+              <span id="heikinAshiBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-bold">
+                🔴 TECHO PLANO CONFIRMADO
+              </span>
+            </div>
+
+            <!-- Explicación de la Metodología HA -->
+            <div class="space-y-2 text-xs">
+              <div class="p-2 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
+                <div class="text-[10px] uppercase font-mono font-bold text-emerald-400 flex items-center gap-1">
+                  <i data-lucide="arrow-up" class="w-3 h-3"></i>
+                  <span>Compra Válida:</span>
+                </div>
+                <p class="text-[11px] text-gray-300">
+                  Vela verde cerrada en M5 con <strong>base plana perfecta (cero mecha inferior)</strong>.
+                </p>
+              </div>
+
+              <div class="p-2 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
+                <div class="text-[10px] uppercase font-mono font-bold text-red-400 flex items-center gap-1">
+                  <i data-lucide="arrow-down" class="w-3 h-3"></i>
+                  <span>Venta Válida:</span>
+                </div>
+                <p class="text-[11px] text-gray-300">
+                  Vela roja cerrada en M5 con <strong>techo plano perfecto (cero mecha superior)</strong>.
+                </p>
+              </div>
+
+              <div class="p-2 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
+                <div class="text-[10px] uppercase font-mono font-bold text-yellow-400 flex items-center gap-1">
+                  <i data-lucide="alert-triangle" class="w-3 h-3"></i>
+                  <span>Salida / Indecisión:</span>
+                </div>
+                <p class="text-[11px] text-gray-300">
+                  Aparición de vela con mechas en ambos lados (doji) o vela contraria plana.
+                </p>
+              </div>
+            </div>
+
+            <!-- Estado Actual M5 -->
+            <div class="p-2.5 rounded-lg bg-red-950/40 border border-red-500/40 text-[11px] text-red-300 space-y-1">
+              <div class="font-bold flex items-center justify-between">
+                <span>Estado Actual en M5:</span>
+                <span id="heikinAshiCandles" class="font-mono text-red-400 font-black">3 Velas Rojas Planas</span>
+              </div>
+              <p id="heikinAshiDesc" class="text-[10px] text-gray-300 leading-tight">
+                Velas Heikin Ashi rojas en M5 con techo plano perfecto sin mecha superior. Presión vendedora activa sin absorción en la apertura.
+              </p>
+            </div>
+          </div>
+
+          <!-- Módulo 2: Squeeze Momentum Indicator (LazyBear en M5) -->
+          <div class="bg-gray-950/80 border border-amber-500/30 rounded-xl p-4 flex flex-col justify-between space-y-3 shadow-inner">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs">
+                  📊
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white uppercase tracking-wider">Squeeze Momentum (LazyBear)</h4>
+                  <span class="text-[10px] text-gray-400 font-mono">BB vs Canales Keltner + Linreg</span>
+                </div>
+              </div>
+              <span id="squeezeStatusBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 font-bold">
+                ⚡ SQUEEZE OFF · EXPANSIÓN
+              </span>
+            </div>
+
+            <!-- Explicación de la Metodología Squeeze -->
+            <div class="space-y-2 text-xs">
+              <div class="p-2 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
+                <div class="text-[10px] uppercase font-mono font-bold text-blue-400 flex items-center gap-1">
+                  <span>Compresión vs Disparo (Cruces en 0):</span>
+                </div>
+                <div class="text-[11px] text-gray-300 space-y-0.5">
+                  <div>• <strong>Puntos Negros / Azules (Squeeze ON)</strong>: BB dentro de KC &rarr; Volatilidad comprimida, no entrar.</div>
+                  <div>• <strong>Cruces Grises (Squeeze OFF)</strong>: BB fuera de KC &rarr; Volatilidad liberada, entrada válida.</div>
+                </div>
+              </div>
+
+              <div class="p-2 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
+                <div class="text-[10px] uppercase font-mono font-bold text-purple-400 flex items-center gap-1">
+                  <span>Histograma de Aceleración (Linreg):</span>
+                </div>
+                <div class="text-[10px] font-mono space-y-0.5">
+                  <div class="text-emerald-400">🟢 Verde Lima: Momentum alcista acelerando (+)</div>
+                  <div class="text-emerald-700">🟢 Verde Oscuro: Momentum alcista perdiendo fuerza</div>
+                  <div class="text-red-400 font-bold">🔴 Rojo Brillante: Momentum bajista acelerando (-)</div>
+                  <div class="text-rose-900">🔴 Granate/Maroon: Momentum bajista perdiendo fuerza</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Estado Actual M5 -->
+            <div class="p-2.5 rounded-lg bg-red-950/40 border border-red-500/40 text-[11px] text-red-300 space-y-1">
+              <div class="font-bold flex items-center justify-between">
+                <span>Histograma Linreg M5:</span>
+                <span id="squeezeLinregVal" class="font-mono text-red-400 font-black">-14.85 pts (Rojo Acelerando)</span>
+              </div>
+              <p id="squeezeDesc" class="text-[10px] text-gray-300 leading-tight">
+                Cruces grises (Squeeze OFF) con barras rojas crecientes por debajo de cero. Confirmación cuantitativa de aceleración bajista.
+              </p>
+            </div>
+          </div>
+
+          <!-- Módulo 3: Proyección y Consumo de ADR Diario (5,500 pts = $55.00) -->
+          <div class="bg-gray-950/80 border border-amber-500/30 rounded-xl p-4 flex flex-col justify-between space-y-3 shadow-inner">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs">
+                  <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white uppercase tracking-wider">Rango Diario ADR (5,500 pts)</h4>
+                  <span class="text-[10px] text-gray-400 font-mono">100 pts = $1.00 USD</span>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800 font-bold">
+                TV Scale
+              </span>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-400">ADR Diario Promedio:</span>
+                <span class="font-mono font-bold text-white" id="adrDailyAvgDisplay">5,500 pts ($55.00)</span>
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-400">Consumido (Asia + Londres):</span>
+                <span class="font-mono font-bold text-yellow-400" id="adrConsumedDisplay">2,650 pts ($26.50)</span>
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-400">Espacio Libre para New York:</span>
+                <span class="font-mono font-bold text-emerald-400 text-sm" id="adrRemainingDisplay">2,850 pts ($28.50)</span>
+              </div>
+
+              <!-- Barra de Progreso del ADR -->
+              <div class="w-full bg-gray-900 rounded-full h-2.5 overflow-hidden border border-gray-800">
+                <div id="adrProgressBar" class="h-full rounded-full bg-gradient-to-r from-yellow-500 via-amber-500 to-emerald-500 transition-all duration-500" style="width: 48%;"></div>
+              </div>
+            </div>
+
+            <div class="p-2.5 rounded-lg bg-gray-900 border border-gray-800 text-[10px] text-gray-300 space-y-1">
+              <p id="adrDiagnosticText" class="leading-relaxed">
+                🟢 <strong>Margen Óptimo:</strong> El oro aún tiene ~2,850 puntos ($28.50) de recorrido libre esperado en Nueva York. Espacio suficiente para buscar Take Profits amplios (R:R 1:2.0 a 1:3.0) sin riesgo de agotamiento.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ============================================================== -->
+      <!-- PARTE 3: CONFLUENCIA INSTITUCIONAL MAESTRA & VEREDICTO FINAL   -->
+      <!-- Síntesis Cruzada: Fundamental + Técnico M5 en Sesión NY        -->
+      <!-- ============================================================== -->
+      <section id="confluenceMasterSection" class="bg-gradient-to-b from-gray-900 via-gray-950 to-black border-2 border-yellow-500/50 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-5 transition-all">
+        
+        <!-- Header Banner Parte 3 (Confluencia Final) -->
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800 pb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-yellow-500/20 border border-yellow-500/40 flex items-center justify-center text-yellow-400 shrink-0">
+              <i data-lucide="zap" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-md bg-yellow-500 text-black font-mono text-xs font-black">SÍNTESIS FINAL</span>
+                <h3 class="text-base sm:text-lg font-black text-white">Confluencia Institucional Maestra & Veredicto A+</h3>
+              </div>
+              <p class="text-xs text-gray-400 mt-0.5">Alineación algorítmica obligatoria entre Parte 1 (Fundamental) y Parte 2 (Técnico M5) para la Sesión NY</p>
+            </div>
+          </div>
+          <div id="confluenceMasterBadge" class="text-xs font-mono px-3 py-1.5 rounded-xl bg-red-950 text-red-300 border border-red-800 flex items-center gap-2 font-bold shadow-md">
+            <span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
+            <span id="confluenceRatingText">CONFLUENCIA A+ · 88% SELL-ONLY</span>
+          </div>
+        </div>
+
+        <!-- Matriz de Confluencia: Los 5 Filtros Institucionales -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          
+          <!-- Filtro 1: Macro Score Fundamental -->
+          <div class="p-3 rounded-xl bg-gray-900/90 border border-gray-800 space-y-1.5 shadow-sm">
+            <div class="text-[10px] text-gray-400 uppercase font-mono font-bold flex items-center justify-between">
+              <span>1. Macro Score</span>
+              <span class="text-red-400 font-bold">🔴 -85%</span>
+            </div>
+            <div class="text-xs font-bold text-white" id="confCheck1Title">BAJISTA INSTITUCIONAL</div>
+            <p class="text-[10px] text-gray-400 leading-tight">DXY fuerte (104.35) y TIPS 10Y en 2.12% encarecen mantener oro.</p>
+          </div>
+
+          <!-- Filtro 2: Horario de Sesión NY -->
+          <div class="p-3 rounded-xl bg-gray-900/90 border border-gray-800 space-y-1.5 shadow-sm">
+            <div class="text-[10px] text-gray-400 uppercase font-mono font-bold flex items-center justify-between">
+              <span>2. Sesión NY Killzone</span>
+              <span class="text-emerald-400 font-bold">🟢 AUTORIZADA</span>
+            </div>
+            <div class="text-xs font-bold text-white" id="confCheck2Title">VENTANA DORADA NY</div>
+            <p class="text-[10px] text-gray-400 leading-tight">08:00 a 11:30 AM ET. Máximo volumen institucional interbancario.</p>
+          </div>
+
+          <!-- Filtro 3: Estructura Rango de Londres -->
+          <div class="p-3 rounded-xl bg-gray-900/90 border border-gray-800 space-y-1.5 shadow-sm">
+            <div class="text-[10px] text-gray-400 uppercase font-mono font-bold flex items-center justify-between">
+              <span>3. Rango de Londres</span>
+              <span class="text-red-400 font-bold">🔴 RUPTURA LL</span>
+            </div>
+            <div class="text-xs font-bold text-white" id="confCheck3Title">BAJO LONDON LOW</div>
+            <p class="text-[10px] text-gray-400 leading-tight">Quiebre limpio bajo $3,908.20 sin trampa compradora de apertura.</p>
+          </div>
+
+          <!-- Filtro 4: Velas Heikin Ashi M5 -->
+          <div class="p-3 rounded-xl bg-gray-900/90 border border-gray-800 space-y-1.5 shadow-sm">
+            <div class="text-[10px] text-gray-400 uppercase font-mono font-bold flex items-center justify-between">
+              <span>4. Heikin Ashi M5</span>
+              <span class="text-red-400 font-bold">🔴 TECHO PLANO</span>
+            </div>
+            <div class="text-xs font-bold text-white" id="confCheck4Title">CERO MECHA ARRIBA</div>
+            <p class="text-[10px] text-gray-400 leading-tight">Velas rojas sólidas con techo plano. Cascada de ventas activa.</p>
+          </div>
+
+          <!-- Filtro 5: Squeeze Momentum LazyBear -->
+          <div class="p-3 rounded-xl bg-gray-900/90 border border-gray-800 space-y-1.5 shadow-sm">
+            <div class="text-[10px] text-gray-400 uppercase font-mono font-bold flex items-center justify-between">
+              <span>5. Squeeze Momentum</span>
+              <span class="text-red-400 font-bold">⚡ EXPANSIÓN</span>
+            </div>
+            <div class="text-xs font-bold text-white" id="confCheck5Title">ROJO ACELERANDO</div>
+            <p class="text-[10px] text-gray-400 leading-tight">Squeeze OFF con barras rojas crecientes por debajo de cero (-14.85 pts).</p>
+          </div>
+
+        </div>
+
+        <!-- Plan Operativo Accionable & Ejecución en la Sesión NY -->
+        <div class="p-4 sm:p-5 rounded-xl bg-gray-950/90 border border-yellow-500/40 space-y-4 shadow-inner">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-amber-400 font-bold text-xs uppercase tracking-wider font-mono flex items-center gap-1.5">
+                <i data-lucide="check-square" class="w-4 h-4 text-amber-400"></i>
+                <span>Plan Operativo Institucional para la Sesión New York (Checklist de Ejecución)</span>
+              </span>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold">
+              ESPERANZA MATEMÁTICA EV+
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs font-mono">
+            <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
+              <span class="text-gray-400 text-[10px] uppercase font-bold">Dirección Exclusiva:</span>
+              <div class="text-sm font-black text-red-400" id="confActionDirection">SOLO VENTAS (SELL-ONLY)</div>
+              <span class="text-[10px] text-gray-500">Prohibido compras</span>
+            </div>
+
+            <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
+              <span class="text-gray-400 text-[10px] uppercase font-bold">Gatillo en M5:</span>
+              <div class="text-xs font-bold text-white" id="confActionTrigger">Retesteo a $3,908 – $3,918</div>
+              <span class="text-[10px] text-gray-400">Con vela HA techo plano</span>
+            </div>
+
+            <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
+              <span class="text-gray-400 text-[10px] uppercase font-bold">Stop Loss Técnico:</span>
+              <div class="text-xs font-bold text-amber-400" id="confActionSL">3,928.00 (2,000 pts / $20)</div>
+              <span class="text-[10px] text-gray-400">Por encima del swing M5</span>
+            </div>
+
+            <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 space-y-1">
+              <span class="text-gray-400 text-[10px] uppercase font-bold">Take Profit & R:R:</span>
+              <div class="text-xs font-bold text-emerald-400" id="confActionTP">3,850.00 (R:R 1:2.9)</div>
+              <span class="text-[10px] text-gray-400">Target institucional limpio</span>
+            </div>
+          </div>
+
+          <!-- Botón de Conexión Directa con la Calculadora Myfxbook -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-800">
+            <div class="text-xs text-gray-400 flex items-center gap-1.5">
+              <i data-lucide="info" class="w-4 h-4 text-yellow-400 shrink-0"></i>
+              <span>¿Listo para ejecutar? Transfiere estos parámetros directamente al centro operativo para dimensionar el lotaje exacto:</span>
+            </div>
+
+            <button id="btnLoadConfluenceIntoCalc" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-black font-black text-xs flex items-center gap-2 transition cursor-pointer shadow-lg shadow-yellow-500/20">
+              <i data-lucide="calculator" class="w-4 h-4"></i>
+              <span>Cargar Parámetros en Calculadora Myfxbook &rarr;</span>
             </button>
           </div>
         </div>
 
-        <div id="macroDriversBodyWrapper" class="mt-4 pt-4 border-t border-gray-800/80 space-y-4">
-
-          <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-gray-950/40 border border-gray-800/80 text-xs">
-            <span class="text-gray-400 font-medium">6 Catalizadores Macroeconómicos en Tiempo Real:</span>
-            <span class="h-7 px-2.5 rounded-lg border border-gray-800 bg-gray-900 text-blue-300 font-mono font-semibold flex items-center gap-1.5 shadow-sm text-[11px]">
-              <i data-lucide="activity" class="w-3 h-3 text-blue-400"></i>
-              <span>Correlaciones Cuantitativas</span>
-            </span>
-          </div>
-
-          <!-- Grid de 6 Fuentes Macro -->
-          <div id="macroSourcesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            <!-- Dynamic Macro Sources injected via JS -->
-          </div>
-        </div>
       </section>
 
-      <!-- ==========================================
-           APARTADO: MANUAL OPERATIVO & GUÍA PASO A PASO (PDF)
-           ========================================== -->
+
+      <!-- ============================================================== -->
+      <!-- MANUAL OPERATIVO & GUÍA PASO A PASO (PDF)                      -->
+      <!-- ============================================================== -->
       <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl transition-all">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0">
@@ -700,13 +1050,12 @@
                 <span>Manual Operativo & Guía de la Macro Sesión</span>
                 <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono border border-amber-500/30 font-bold">Guía + PDF</span>
               </h3>
-              <p class="text-xs text-gray-400 mt-0.5">Cómo usar e interpretar cada sección adecuadamente y su confluencia con Adaptive Supertrend 5m</p>
+              <p class="text-xs text-gray-400 mt-0.5">Cómo interpretar cada sección y ejecutar con Heikin Ashi M5 y Squeeze Momentum en New York</p>
             </div>
           </div>
 
-          <!-- Botón Contraer / Expandir a la Derecha -->
           <div class="flex items-center gap-2.5 shrink-0">
-            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white" data-target="#macroQuickGuideContent" title="Contraer / Expandir Guía">
+            <button type="button" class="btn-collapse-toggle bg-gray-950/80 hover:bg-gray-800 border border-gray-700/80 text-gray-300 hover:text-white px-2.5 py-1.5 rounded-xl text-xs flex items-center gap-1 transition" data-target="#macroQuickGuideContent" title="Contraer / Expandir Guía">
               <span class="btn-collapse-label">Contraer</span>
               <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-gray-400"></i>
             </button>
@@ -726,18 +1075,19 @@
               <span>Abrir Manual Completo (PDF)</span>
             </button>
           </div>
+
           <!-- 3 Quick Pillar Cards -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
             <div class="bg-gray-950/70 border border-gray-800/80 rounded-xl p-4 space-y-2">
               <div class="flex items-center gap-2 text-amber-400 font-bold text-xs">
                 <i data-lucide="crosshair" class="w-4 h-4"></i>
-                <span>1. Radar de Precisión & 4 Pestañas</span>
+                <span>1. Flujo Operativo en 4 Pasos</span>
               </div>
               <p class="text-gray-400 text-[11px] leading-relaxed">
-                El <strong>Radar de Precisión</strong> es el centro operativo. Flujo de trabajo en 4 pestañas: <strong>1. Radar de Precisión</strong> &rarr; <strong>2. Macro Sesión</strong> &rarr; <strong>3. Calculadora Myfxbook</strong> &rarr; <strong>4. Bitácora Real</strong>. Dirección obligatoria: <strong class="text-rose-400">SELL-ONLY</strong> o <strong class="text-emerald-400">BUY-ONLY</strong>.
+                Flujo diario obligatorio: <strong>1. Macro Sesión Oro (Confluencia A+)</strong> &rarr; <strong>2. Calculadora Myfxbook</strong> &rarr; <strong>3. Bitácora Real</strong> &rarr; <strong>4. Backtesting</strong>. Si la confluencia no es A+, no hay trade.
               </p>
               <div class="text-[10px] text-amber-300 font-mono bg-amber-950/40 border border-amber-900/40 px-2 py-1 rounded">
-                Triada: Sesgo + News Shield + ADR 5,500 pts
+                Triada: Macro + HA M5 + Squeeze
               </div>
             </div>
 
@@ -747,35 +1097,25 @@
                 <span>2. Solo NY (08:00–11:30) • Asia Prohibida</span>
               </div>
               <p class="text-gray-400 text-[11px] leading-relaxed">
-                Asia prohibida por ADR anémico ($6-$12) y spreads ensanchados (60-90 pts). Operar únicamente en la <strong>Ventana Dorada de New York (08:00 a 11:30 AM)</strong>. Regla de congelamiento ±15 min ante noticias de alto impacto.
+                Asia prohibida por ADR anémico ($6-$12) y spreads ensanchados. Operar únicamente en la <strong>Ventana Dorada de New York (08:00 a 11:30 AM)</strong>. Regla de congelamiento ±15 min ante noticias de alto impacto.
               </p>
               <div class="text-[10px] text-red-400/90 font-mono bg-red-950/40 border border-red-900/40 px-2 py-1 rounded">
-                Protección obligatoria de capital (EV+)
+                Protección obligatoria de capital
               </div>
             </div>
 
             <div class="bg-gray-950/70 border border-gray-800/80 rounded-xl p-4 space-y-2">
               <div class="flex items-center gap-2 text-emerald-400 font-bold text-xs">
                 <i data-lucide="trending-up" class="w-4 h-4"></i>
-                <span>3. 2da Onda M5 & R:R 1:2 a 1:3+</span>
+                <span>3. Gatillo M5 & R:R 1:2 a 1:3+</span>
               </div>
               <p class="text-gray-400 text-[11px] leading-relaxed">
-                Evita la trampa de la 1ra vela (inducement). Gatillar en la <strong>2da Onda tras retroceso a FVG/50% OTE</strong> al cierre de vela en Tickmill (:02, :07...) con RSI alineado. Ratio <strong>R:R 1:2.0 mínimo y 1:3.0+ óptimo</strong> con pre-carga a Bitácora.
+                Gatillar tras retesteo a niveles clave al cierre de vela Heikin Ashi M5 sin mecha contraria y con Squeeze Momentum confirmado. Ratio mínimo <strong>1:2.0 y óptimo 1:3.0+</strong> con pre-carga directa a Bitácora.
               </p>
               <div class="text-[10px] text-emerald-400/90 font-mono bg-emerald-950/40 border border-emerald-900/40 px-2 py-1 rounded">
                 Esperanza Matemática Positiva (EV+)
               </div>
             </div>
-          </div>
-
-          <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-amber-950/30 border border-amber-500/30 text-gray-300">
-            <div class="flex items-center gap-2 text-xs">
-              <i data-lucide="file-text" class="w-4 h-4 text-amber-400"></i>
-              <span>¿Deseas leer el manual completo detallado módulo por módulo o guardarlo en PDF?</span>
-            </div>
-            <button type="button" id="btnLaunchFullGuideText" class="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer">
-              <span>Abrir Manual Completo (PDF) →</span>
-            </button>
           </div>
         </div>
       </section>
@@ -3599,6 +3939,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261103_v13_fix_chart_edit_rm_btcalc"></script>
+<script src="app.js?v=20261104_v14_macro_sesion_confluence"></script>
 </body>
 </html>

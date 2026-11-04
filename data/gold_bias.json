@@ -1,16 +1,18 @@
 {
-  "updated_at": "31 Oct 2026 · Fin de Semana / Pre-Semana New York",
+  "updated_at": "04 Nov 2026 · Sesión New York Killzone Activa (08:00 – 11:30 ET)",
   "asset": "XAU/USD (Oro Spot / Dólar)",
   "sessions_target": "Ventana Dorada New York: 08:00 AM – 11:30 AM (Hora NY)",
   "bias": "BEARISH",
   "bias_title": "🔴 SESGO INSTITUCIONAL: BAJISTA (Sell-Only)",
-  "confidence": 85,
-  "confidence_label": "Alta Convicción (85%)",
-  "headline": "Oro bajo presión estructural tras perder el soporte clave de $4,000. Rendimientos reales firmes y fortaleza del DXY limitan el apetito por metal sin rendimiento.",
-  "macro_summary": "Liquidación institucional tras confirmarse crecimiento del PIB de EE.UU. en 3.4% y PCE subyacente persistente en 3.1%. Las expectativas de recortes agresivos de tasas de la Fed se disipan, mientras los rendimientos reales de los bonos TIPS 10A se sitúan sobre el 2.10%, elevando el costo de oportunidad de mantener lingotes.",
+  "confidence": 88,
+  "confidence_label": "Alta Convicción A+ (88%)",
+  "headline": "Oro bajo fuerte presión estructural tras perder el soporte clave de $4,000. Rendimientos reales TIPS 10Y firmes (+2.12%) y fortaleza del DXY (104.35) limitan el apetito institucional por metal sin rendimiento.",
+  "macro_summary": "Liquidación institucional tras confirmarse crecimiento del PIB de EE.UU. en 3.4% y PCE subyacente persistente en 3.1%. Las expectativas de recortes agresivos de tasas de la Fed se disipan (82.5% probabilidad de pausa), mientras los rendimientos reales de los bonos TIPS 10A se sitúan sobre el 2.12%, elevando el costo de oportunidad de mantener lingotes.",
+  "macro_score": -85,
+  "macro_dominant_driver": "US10Y TIPS Rendimiento Real (+2.12%) & Fortaleza DXY (104.35)",
   "money_flow": {
     "verdict": "ROTACIÓN INSTITUCIONAL DEFENSIVA",
-    "summary": "El dinero institucional rota desde materias primas sin rendimiento (Oro) hacia activos denominados en dólares (DXY) y papel de deuda soberana de EE.UU. (T-Bills & Rendimientos Reales atractivos).",
+    "summary": "El dinero institucional rota desde materias primas sin rendimiento (Oro) hacia activos líquidos denominados en dólares (DXY) y papel de deuda soberana de EE.UU. (T-Bills & Rendimientos Reales atractivos).",
     "net_direction": "BEARISH_GOLD",
     "assets": [
       {
@@ -96,7 +98,7 @@
     {
       "source": "Bancos Centrales & PBOC China",
       "indicator": "Demanda de Reservas Físicas Oficiales",
-      "value": "Compras activas en soporte",
+      "value": "Compras activas en soporte ($3,800)",
       "signal": "SOPORTE ESTRUCTURAL",
       "status": "bullish_gold",
       "impact": "Medio-Alto (Largo Plazo)",
@@ -122,6 +124,58 @@
     "key_support_label": "Zona Objetivo de Toma de Ganancias (Piscina de Liquidez)",
     "invalidation": "4,015.00",
     "invalidation_label": "Cierre de vela H4 por encima invalida el sesgo bajista"
+  },
+  "technical_m5": {
+    "london_breakout": {
+      "status": "BEARISH_BREAKOUT",
+      "badge": "🔴 RUPTURA BAJISTA CONFIRMADA",
+      "level": "3,908.20",
+      "description": "El precio perforó el London Low ($3,908.20) con vela M5 cerrada por debajo. Sin absorción compradora.",
+      "judas_swing": "No detectado (Ruptura institucional limpia y sostenida)"
+    },
+    "asian_session": {
+      "range_pts": 1870,
+      "high": "3,912.80",
+      "low": "3,894.10",
+      "status": "COMPLETA (Fase de acumulación interbancaria superada)"
+    },
+    "heikin_ashi": {
+      "status": "BEARISH_FLAT_TOP",
+      "badge": "🔴 TECHO PLANO CONFIRMADO (M5)",
+      "consecutive_candles": 3,
+      "no_wick_side": "SUPERIOR (Cero mecha arriba)",
+      "description": "Velas Heikin Ashi rojas en M5 con techo perfectamente plano y cuerpo sólido descendente. Demuestra venta agresiva interbancaria sin retroceso en apertura.",
+      "rule": "Válido para ventas. Mantener la posición mientras continúen los techos planos sin mecha superior."
+    },
+    "squeeze_momentum": {
+      "status": "SQUEEZE_OFF_EXPANSION",
+      "badge": "⚡ SQUEEZE OFF · EXPANSIÓN",
+      "cross_color": "GRAY (Bandas de Bollinger fuera de Keltner)",
+      "histogram_color": "RED_ACCELERATING",
+      "histogram_badge": "🔴 ROJO ACELERANDO (-14.85 pts)",
+      "linreg_val": -14.85,
+      "description": "Volatilidad liberada. El squeeze comprimido explotó con histograma linreg negativo creciente por debajo de cero.",
+      "rule": "Impulso bajista activo. Buscar ventas en el retesteo M5."
+    },
+    "adr_daily": {
+      "total_pts": 5500,
+      "consumed_pts": 2650,
+      "remaining_pts": 2850,
+      "pct": 48.2,
+      "diagnostic": "🟢 Margen Óptimo: Quedan ~2,850 puntos ($28.50) de recorrido esperado en New York sin riesgo de agotamiento prematuro."
+    }
+  },
+  "confluence": {
+    "rating": "CONFLUENCIA A+ (MÁXIMA CONVICCIÓN)",
+    "score_pct": 88,
+    "direction": "SELL-ONLY (SOLO VENTAS)",
+    "fundamental_verdict": "Presión macro bajista (-85% Score): DXY fuerte (104.35) y TIPS 10Y en 2.12%.",
+    "technical_verdict": "Ruptura de London Low ($3,908.20) + Heikin Ashi M5 Techo Plano + Squeeze Momentum en Rojo Acelerando.",
+    "cardinal_rule": "PROHIBIDAS TODAS LAS COMPRAS. Operar exclusivamente ventas tras retroceso a la zona de resistencia o retesteo del London Low.",
+    "entry_zone": "3,908.00 – 3,918.00 (Retesteo de nivel M5)",
+    "stop_loss": "3,928.00 (~1,800 a 2,000 pts)",
+    "take_profit": "3,850.00 (R:R 1:2.9+)",
+    "news_shield_status": "PROTEGIDO (Vía libre durante la ventana dorada sin noticias de alto impacto en los próximos 90 min)"
   },
   "calendar_warnings": [
     {

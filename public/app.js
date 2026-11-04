@@ -269,10 +269,10 @@ function setupTabNavigation() {
   if (btnManual) btnManual.addEventListener('click', () => switchTab('manual_guide'));
   if (btnTabPrintManual) btnTabPrintManual.addEventListener('click', () => window.print());
 
-  // Recordar pestaña anterior de forma fiable.
+  // Recordar pestaña anterior de forma fiable (Prioridad: Macro Sesión Oro por defecto si es primera visita).
   let savedTab = localStorage.getItem('activeTab_current') || localStorage.getItem('activeTab_v5') || localStorage.getItem('activeTab');
-  if (!savedTab || !['calculator', 'real', 'backtest'].includes(savedTab)) {
-    savedTab = 'real';
+  if (!savedTab || !['gold_bias', 'calculator', 'real', 'backtest'].includes(savedTab)) {
+    savedTab = 'gold_bias';
   }
   switchTab(savedTab);
 }
@@ -2959,6 +2959,134 @@ function updateMacroQuantIntelligence(data) {
       : (isBullBias 
           ? "DXY en debilidad + TIPS a la baja. Prohibido buscar ventas contra la tendencia."
           : "DXY lateral sin dirección clara. Paciencia.");
+  }
+
+  // 6. Actualizar Elementos Técnicos Cuantitativos M5 (Parte 2)
+  const updateTs = document.getElementById("lastBiasUpdateTimestamp");
+  if (updateTs && data.updated_at) {
+    updateTs.textContent = `Actualizado: ${data.updated_at}`;
+  }
+
+  if (data.session_levels) {
+    const lh = document.getElementById("londonHighDisplay");
+    const ll = document.getElementById("londonLowDisplay");
+    const lr = document.getElementById("londonRangeDisplay");
+    if (lh && data.session_levels.london_high) lh.textContent = data.session_levels.london_high;
+    if (ll && data.session_levels.london_low) ll.textContent = data.session_levels.london_low;
+    if (lr && data.session_levels.london_range_pts) {
+      lr.textContent = `${data.session_levels.london_range_pts.toLocaleString("en-US")} pts ($${(data.session_levels.london_range_pts/100).toFixed(2)})`;
+    }
+
+    const ah = document.getElementById("asianHighDisplay");
+    const al = document.getElementById("asianLowDisplay");
+    const ar = document.getElementById("asianRangeDisplay");
+    if (ah && data.session_levels.asian_high) ah.textContent = data.session_levels.asian_high;
+    if (al && data.session_levels.asian_low) al.textContent = data.session_levels.asian_low;
+    if (ar && data.session_levels.asian_range_pts) {
+      ar.textContent = `${data.session_levels.asian_range_pts.toLocaleString("en-US")} pts ($${(data.session_levels.asian_range_pts/100).toFixed(2)})`;
+    }
+
+    const pdh = document.getElementById("pdhDisplay");
+    const pdl = document.getElementById("pdlDisplay");
+    const piv = document.getElementById("dailyPivotDisplay");
+    if (pdh && data.session_levels.pdh) pdh.textContent = data.session_levels.pdh;
+    if (pdl && data.session_levels.pdl) pdl.textContent = data.session_levels.pdl;
+    if (piv && data.session_levels.current_pivot) piv.textContent = data.session_levels.current_pivot;
+  }
+
+  if (data.technical_zones && data.technical_zones.invalidation) {
+    const inv = document.getElementById("invalidationDisplay");
+    if (inv) inv.textContent = data.technical_zones.invalidation;
+  }
+
+  if (data.technical_m5) {
+    const t5 = data.technical_m5;
+    
+    // London Breakout
+    if (t5.london_breakout) {
+      const lbBadge = document.getElementById("londonStatusBadge");
+      const lbDetail = document.getElementById("londonBreakoutDetail");
+      const jsStatus = document.getElementById("judasSwingStatus");
+      if (lbBadge && t5.london_breakout.badge) lbBadge.textContent = t5.london_breakout.badge;
+      if (lbDetail && t5.london_breakout.description) lbDetail.textContent = t5.london_breakout.description;
+      if (jsStatus && t5.london_breakout.judas_swing) jsStatus.textContent = t5.london_breakout.judas_swing;
+    }
+
+    // Heikin Ashi M5
+    if (t5.heikin_ashi) {
+      const haBadge = document.getElementById("heikinAshiBadge");
+      const haCandles = document.getElementById("heikinAshiCandles");
+      const haDesc = document.getElementById("heikinAshiDesc");
+      if (haBadge && t5.heikin_ashi.badge) haBadge.textContent = t5.heikin_ashi.badge;
+      if (haCandles && t5.heikin_ashi.consecutive_candles) {
+        haCandles.textContent = `${t5.heikin_ashi.consecutive_candles} Velas Rojas Planas`;
+      }
+      if (haDesc && t5.heikin_ashi.description) haDesc.textContent = t5.heikin_ashi.description;
+    }
+
+    // Squeeze Momentum LazyBear
+    if (t5.squeeze_momentum) {
+      const sqBadge = document.getElementById("squeezeStatusBadge");
+      const sqVal = document.getElementById("squeezeLinregVal");
+      const sqDesc = document.getElementById("squeezeDesc");
+      if (sqBadge && t5.squeeze_momentum.badge) sqBadge.textContent = t5.squeeze_momentum.badge;
+      if (sqVal && t5.squeeze_momentum.linreg_val !== undefined) {
+        sqVal.textContent = `${t5.squeeze_momentum.linreg_val} pts (Rojo Acelerando)`;
+      }
+      if (sqDesc && t5.squeeze_momentum.description) sqDesc.textContent = t5.squeeze_momentum.description;
+    }
+  }
+
+  // 7. Actualizar Síntesis de Confluencia Institucional Maestra (Parte 3)
+  if (data.confluence) {
+    const c = data.confluence;
+    const masterBadge = document.getElementById("confluenceMasterBadge");
+    const ratingText = document.getElementById("confluenceRatingText");
+    if (ratingText && c.rating) {
+      ratingText.textContent = `${c.rating} · ${c.score_pct || 88}% ${isBear ? 'SELL-ONLY' : (isBull ? 'BUY-ONLY' : 'RANGO')}`;
+    }
+    if (masterBadge) {
+      masterBadge.className = isBear 
+        ? "text-xs font-mono px-3 py-1.5 rounded-xl bg-red-950 text-red-300 border border-red-800 flex items-center gap-2 font-bold shadow-md"
+        : (isBull 
+            ? "text-xs font-mono px-3 py-1.5 rounded-xl bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center gap-2 font-bold shadow-md"
+            : "text-xs font-mono px-3 py-1.5 rounded-xl bg-yellow-950 text-yellow-300 border border-yellow-800 flex items-center gap-2 font-bold shadow-md");
+    }
+
+    const dir = document.getElementById("confActionDirection");
+    const trig = document.getElementById("confActionTrigger");
+    const sl = document.getElementById("confActionSL");
+    const tp = document.getElementById("confActionTP");
+
+    if (dir && c.direction) dir.textContent = c.direction;
+    if (trig && c.entry_zone) trig.textContent = `Retesteo a ${c.entry_zone}`;
+    if (sl && c.stop_loss) sl.textContent = `${c.stop_loss} (~1,800 a 2,000 pts)`;
+    if (tp && c.take_profit) tp.textContent = `${c.take_profit} (R:R ${c.rr_target || '1:2.9'})`;
+  }
+
+  // 8. Botón Cargar Parámetros en Calculadora Myfxbook
+  const btnLoadCalc = document.getElementById("btnLoadConfluenceIntoCalc");
+  if (btnLoadCalc) {
+    btnLoadCalc.onclick = () => {
+      const slInput = document.getElementById("calcStopLoss");
+      const riskInput = document.getElementById("calcRiskPct");
+      if (slInput) slInput.value = "2000";
+      if (riskInput) riskInput.value = "5";
+      if (typeof runMyfxbookCalculator === "function") {
+        runMyfxbookCalculator();
+      }
+      if (typeof window.switchTabTo === "function") {
+        window.switchTabTo("calculator");
+      }
+      try {
+        const toast = document.createElement("div");
+        toast.className = "fixed bottom-5 right-5 z-50 bg-emerald-900 border border-emerald-500 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-bold font-mono flex items-center gap-2 animate-bounce";
+        toast.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>¡Parámetros de Confluencia cargados en la Calculadora!</span>';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3500);
+        initIcons();
+      } catch (e) {}
+    };
   }
 }
 
