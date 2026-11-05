@@ -1,5 +1,5 @@
 /**
- * Pro Terminal — Terminal Institucional de Trading MT5, Metodología Felipe López & Bitácora Real
+ * Pro Terminal — Terminal Institucional de Trading MT5, Metodología Price Action & Bitácora Real
  * Cálculo de interés compuesto basado puramente en porcentaje y puntos de oro.
  */
 
@@ -5706,7 +5706,7 @@ function copyRadarSetupToCalculator() {
 
 
 // -------------------------------------------------------------
-// TERMINAL INSTITUCIONAL MT5 (Toni Maura SMC & Felipe López PA)
+// TERMINAL INSTITUCIONAL MT5 (Price Action M5 Institutional)
 // -------------------------------------------------------------
 let selectedScannerAsset = 'XAUUSD';
 let selectedRiskPct = 1.0;
@@ -5975,7 +5975,7 @@ function renderDualSignals(data) {
     labelRiskDollar.textContent = `$${data.account.risk_usd.toFixed(2)} (${data.account.risk_pct}%)`;
   }
 
-  // 3. Render EUR/USD (Felipe López Price Action)
+  // 3. Render EUR/USD (Price Action M5)
   if (data.eurusd) {
     const e = data.eurusd;
     const t = e.ticket || {};

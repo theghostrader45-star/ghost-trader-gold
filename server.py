@@ -24,7 +24,7 @@ try:
 except ImportError:
     adaptive_supertrend = None
 
-# Motor Dual Institucional (Toni Maura SMC + Felipe López Price Action + MT5 Bridge)
+# Motor Dual Institucional (Price Action M5 + MT5 Bridge)
 try:
     import engine_strategies
 except ImportError:
@@ -794,22 +794,23 @@ def recalculate_trade_history(trades, config, mode="backtest"):
     return updated_trades
 
 def calculate_analytics(trades, config, mode="backtest"):
-    initial_balance = float(config.get("initial_balance", 110.0))
+    initial_balance = float(config.get("initial_balance", 92.08 if mode == "real" else 110.0))
     mt5_conn = False
     mt5_broker = ""
     if mode == "real":
         try:
             from engine_strategies import mt5_store
-            if mt5_store.get("connected") and float(mt5_store.get("account", {}).get("balance", 0.0)) > 0:
-                mt5_conn = True
-                mt5_broker = mt5_store.get("account", {}).get("company", "MetaTrader 5")
-                mt5_bal = float(mt5_store["account"]["balance"])
+            acc = mt5_store.get("account", {})
+            mt5_bal = float(acc.get("balance", 0.0))
+            if mt5_bal > 0:
+                mt5_conn = bool(mt5_store.get("connected"))
+                mt5_broker = acc.get("company", "Tickmill Ltd")
                 total_pnl = sum(float(t.get("pnl", 0.0)) for t in trades)
                 implied_init = round(mt5_bal - total_pnl, 2)
                 if implied_init > 0:
                     initial_balance = implied_init
                 else:
-                    initial_balance = round(max(10.0, float(mt5_store.get("account", {}).get("initial_deposit", 100.0))), 2)
+                    initial_balance = round(max(10.0, float(acc.get("initial_deposit", 92.08))), 2)
         except Exception:
             pass
 
@@ -1283,7 +1284,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             return
 
         elif path == "/api/scanner/signals":
-            # Escáner Dual Institucional: Toni Maura (XAUUSD) & Felipe López (EURUSD)
+            # Escáner Institucional: Price Action M5 (EURUSD)
             query = parse_qs(parsed.query)
             risk_pct = 1.0
             if "risk_pct" in query:

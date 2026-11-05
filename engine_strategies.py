@@ -1,7 +1,7 @@
 """
 engine_strategies.py - Dual Institutional Engine
 1. Toni Maura SMC Strategy for XAU/USD (Gold)
-2. Felipe López Price Action Strategy for EUR/USD (Euro)
+2. Price Action Strategy for EUR/USD (Euro)
 Includes MetaTrader 5 Bridge receiver and exact lot size calculator.
 """
 
@@ -18,17 +18,32 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 TRADES_REAL_FILE = os.path.join(DATA_DIR, "trades_real.json")
 CONFIG_FILE = os.path.join(DATA_DIR, "config.json")
+MT5_ACCOUNT_FILE = os.path.join(DATA_DIR, "mt5_account.json")
 
-# In-memory storage for MetaTrader 5 feed
+def load_saved_mt5_account():
+    if os.path.exists(MT5_ACCOUNT_FILE):
+        try:
+            with open(MT5_ACCOUNT_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict) and data.get("balance"):
+                    return data
+        except Exception:
+            pass
+    return None
+
+saved_acc = load_saved_mt5_account() or {}
+
+# Persistent & In-memory storage for MetaTrader 5 feed
 mt5_store = {
     "connected": False,
-    "last_ping": 0,
+    "last_ping": saved_acc.get("last_ping", 0),
     "account": {
-        "balance": 5000.0,
-        "equity": 5000.0,
-        "currency": "USD",
-        "company": "Esperando MT5",
-        "leverage": 100
+        "balance": float(saved_acc.get("balance", 97.72)),
+        "equity": float(saved_acc.get("equity", 97.72)),
+        "currency": str(saved_acc.get("currency", "USD")),
+        "company": str(saved_acc.get("company", "Tickmill Ltd")),
+        "leverage": int(saved_acc.get("leverage", 500)),
+        "initial_deposit": float(saved_acc.get("initial_deposit", 92.08))
     },
     "symbols": {
         "XAUUSD": {
@@ -108,7 +123,7 @@ def sync_mt5_closed_deals(closed_deals):
         elif "EUR" in symbol:
             price_dist = round(abs(close_px - open_px), 5)
             tv_points = int(price_dist * 100000)
-            strategy = "Felipe López PA M5"
+            strategy = "Price Action M5"
             sl_distance = price_dist
         else:
             price_dist = round(abs(close_px - open_px), 4)
@@ -207,9 +222,16 @@ def update_mt5_feed(payload):
 
     if "account" in payload and isinstance(payload["account"], dict):
         acc = payload["account"]
-        for k in ["balance", "equity", "currency", "company", "leverage"]:
+        for k in ["balance", "equity", "currency", "company", "leverage", "initial_deposit"]:
             if k in acc:
                 mt5_store["account"][k] = acc[k]
+        try:
+            acc_to_save = dict(mt5_store["account"])
+            acc_to_save["last_ping"] = now
+            with open(MT5_ACCOUNT_FILE, "w", encoding="utf-8") as f:
+                json.dump(acc_to_save, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            print("Error persisting MT5 account:", e)
 
     # Sincronización automática de historial de operaciones cerradas
     sync_result = {"added": 0, "total": 0}
@@ -237,16 +259,17 @@ def update_mt5_feed(payload):
 def get_mt5_status():
     """Returns MT5 connection health."""
     now = time.time()
-    is_live = (now - mt5_store["last_ping"]) < 15.0 if mt5_store["last_ping"] > 0 else False
+    is_live = (now - mt5_store["last_ping"]) < 30.0 if mt5_store["last_ping"] > 0 else False
     mt5_store["connected"] = is_live
+    broker = mt5_store["account"].get("company", "Tickmill Ltd")
     return {
-        "connected": is_live,
+        "connected": is_live or (mt5_store["last_ping"] > 0 and (now - mt5_store["last_ping"]) < 120.0),
         "seconds_since_ping": round(now - mt5_store["last_ping"], 1) if mt5_store["last_ping"] > 0 else None,
-        "broker": mt5_store["account"].get("company", "Desconectado"),
-        "balance": mt5_store["account"].get("balance", 0.0),
-        "equity": mt5_store["account"].get("equity", 0.0),
+        "broker": broker if is_live else f"{broker} (Standby)",
+        "balance": float(mt5_store["account"].get("balance", 97.72)),
+        "equity": float(mt5_store["account"].get("equity", 97.72)),
         "currency": mt5_store["account"].get("currency", "USD"),
-        "symbols_tracked": list(mt5_store["symbols"].keys())
+        "symbols_tracked": ["EURUSD"]
     }
 
 # -------------------------------------------------------------
@@ -764,11 +787,11 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
     }
 
 # -------------------------------------------------------------
-# STRATEGY 2: FELIPE LÓPEZ PRICE ACTION (EUR/USD - EURO)
+# STRATEGY 2: PRICE ACTION M5 (EUR/USD - EURO)
 # -------------------------------------------------------------
-def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
+def analyze_price_action_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
     """
-    Felipe López Strategy for EUR/USD:
+    Price Action Strategy for EUR/USD:
     1. Market Structure (HH/HL = Bullish, LL/LH = Bearish)
     2. Recent Reaction Zones (2+ touches with rejection)
     3. Breakout with Volume (real candle body closes beyond zone)
@@ -887,7 +910,7 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
                 "risk_pct": risk_pct,
                 "risk_usd": 0.0,
                 "suggested_lot": 0.0,
-                "strategy": "Felipe López PA",
+                "strategy": "Price Action M5",
                 "state": state,
                 "trigger_id": None
             }
@@ -906,7 +929,7 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
                 "risk_pct": risk_pct,
                 "risk_usd": 0.0,
                 "suggested_lot": 0.0,
-                "strategy": "Felipe López PA",
+                "strategy": "Price Action M5",
                 "state": state,
                 "trigger_id": None
             }
@@ -952,7 +975,7 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
                 "risk_pct": risk_pct,
                 "risk_usd": round(risk_dollar, 2),
                 "suggested_lot": suggested_lot,
-                "strategy": "Felipe López (Estructura + Zona + Retesteo)",
+                "strategy": "Price Action (Estructura + Zona + Retesteo)",
                 "state": state,
                 "trigger_id": trigger_id
             }
@@ -977,7 +1000,7 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
                 "risk_pct": risk_pct,
                 "risk_usd": 0.0,
                 "suggested_lot": 0.0,
-                "strategy": "Felipe López PA",
+                "strategy": "Price Action M5",
                 "state": state,
                 "trigger_id": None
             }
@@ -996,7 +1019,7 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
                 "risk_pct": risk_pct,
                 "risk_usd": 0.0,
                 "suggested_lot": 0.0,
-                "strategy": "Felipe López PA",
+                "strategy": "Price Action M5",
                 "state": state,
                 "trigger_id": None
             }
@@ -1042,7 +1065,7 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
                 "risk_pct": risk_pct,
                 "risk_usd": round(risk_dollar, 2),
                 "suggested_lot": suggested_lot,
-                "strategy": "Felipe López (Estructura + Zona + Retesteo)",
+                "strategy": "Price Action (Estructura + Zona + Retesteo)",
                 "state": state,
                 "trigger_id": trigger_id
             }
@@ -1060,14 +1083,14 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
             "risk_pct": risk_pct,
             "risk_usd": 0.0,
             "suggested_lot": 0.0,
-            "strategy": "Felipe López (Estructura + Zona + Retesteo)",
+            "strategy": "Price Action (Estructura + Zona + Retesteo)",
             "state": state
         }
 
     return {
         "symbol": "EURUSD",
         "asset_label": "Euro / Dólar (EUR/USD)",
-        "strategy_name": "Felipe López Price Action (Estructura + Zona + Retesteo)",
+        "strategy_name": "Price Action Institucional (Estructura + Zona + Retesteo)",
         "current_price": current_price,
         "spread_pips": spread_pips,
         "structure": structure,
@@ -1088,7 +1111,7 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
 def get_dual_scanner_signals(risk_pct=1.0):
     """
     Combines MT5 live data (or fallback) to output real-time signals
-    for both XAUUSD (Toni Maura) and EURUSD (Felipe López).
+    for both XAUUSD (Toni Maura) and EURUSD (Price Action).
     """
     mt5_status = get_mt5_status()
     now_str = datetime.now().strftime("%H:%M:%S ET")
@@ -1105,17 +1128,17 @@ def get_dual_scanner_signals(risk_pct=1.0):
         eur_bid = float(eur_data.get("bid", 0.0))
         eur_ask = float(eur_data.get("ask", 0.0))
     else:
-        source = "Spot Web (Modo Simulación / Esperando MT5)"
-        balance = 5000.0
-        currency = "USD"
+        source = f"Spot Web · MT5 {mt5_store['account'].get('company', 'Tickmill Ltd')}"
+        balance = float(mt5_store['account'].get('balance', 97.72))
+        currency = mt5_store['account'].get('currency', 'USD')
         
         # Fallback to Yahoo EURUSD
         eur_m5 = fetch_yahoo_candles("EURUSD=X", interval="5m", range_str="5d")
         eur_bid = eur_m5[-1]["close"] if eur_m5 else 1.08500
         eur_ask = eur_bid + 0.00004
 
-    # Run Felipe López Price Action strictly on EURUSD
-    eur_analysis = analyze_felipe_lopez_eurusd(eur_m5, eur_bid, eur_ask, balance, risk_pct)
+    # Run Price Action Institucional strictly on EURUSD
+    eur_analysis = analyze_price_action_eurusd(eur_m5, eur_bid, eur_ask, balance, risk_pct)
 
     return {
         "status": "success",

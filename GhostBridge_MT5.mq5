@@ -3,9 +3,9 @@
 //|               Bridge between MetaTrader 5 and Ghost Trader Gold  |
 //|                               https://ghost-trader-gold.onrender.com |
 //+------------------------------------------------------------------+
-#property copyright "Ghost Trader Gold Institutional"
+#property copyright "Pro Terminal MT5 Bridge"
 #property link      "https://ghost-trader-gold.onrender.com"
-#property version   "1.21"
+#property version   "1.30"
 #property description "Puente de transmision en tiempo real de tick, velas M5/H1 y sincronizacion automatica de operaciones hacia la Bitacora Real"
 #property description "IMPORTANTE: En MT5 ve a Herramientas -> Opciones -> Asesores Expertos y activa 'Permitir WebRequest' agregando tu URL."
 
@@ -53,8 +53,12 @@ int OnInit()
    Print("🟢 [GhostBridge v1.21] Iniciando puente de datos y bitacora automatica hacia: ", InpServerUrl);
    EventSetTimer(InpTimerSeconds);
    
-   // Verificar que los simbolos esten en Market Watch
-   SymbolSelect(InpSymbolGold, true);
+   // Auto-detectar simbolo del grafico si es Euro
+   string curr_sym = _Symbol;
+   if(StringFind(curr_sym, "EUR") >= 0 || StringFind(curr_sym, "eur") >= 0)
+   {
+      InpSymbolEuro = curr_sym;
+   }
    SymbolSelect(InpSymbolEuro, true);
    
    // Primer envio de prueba inmediato
@@ -125,7 +129,7 @@ string BuildCandlesJson(string symbol, ENUM_TIMEFRAMES tf, int count)
 //+------------------------------------------------------------------+
 double GetAccountInitialDeposit()
 {
-   if(!HistorySelect(0, TimeCurrent() + 86400)) return 0.0;
+   if(!HistorySelect(0, TimeCurrent())) return 0.0;
    int total = HistoryDealsTotal();
    for(int i = 0; i < total; i++)
    {
@@ -145,7 +149,7 @@ double GetAccountInitialDeposit()
 string BuildClosedDealsJson(int days_back)
 {
    datetime from_time = (days_back > 0) ? (TimeCurrent() - (datetime)days_back * 86400) : 0;
-   datetime to_time   = TimeCurrent() + 86400;
+   datetime to_time   = TimeCurrent();
    
    if(!HistorySelect(from_time, to_time))
       return "[]";
@@ -266,8 +270,17 @@ void SendMarketDataToDashboard()
    long   eur_spread = SymbolInfoInteger(InpSymbolEuro, SYMBOL_SPREAD);
    string eur_m5_json = BuildCandlesJson(InpSymbolEuro, PERIOD_M5, InpBarsCountM5);
 
-   // 4. Operaciones Cerradas para la Bitacora Automatica
-   string closed_deals_json = BuildClosedDealsJson(InpHistoryDays);
+   // 4. Operaciones Cerradas para la Bitacora Automatica (Smart Sync)
+   static datetime last_deals_sync_time = 0;
+   static int      last_known_deals_count = -1;
+   string closed_deals_json = "[]";
+   
+   if(last_known_deals_count == -1 || (TimeCurrent() - last_deals_sync_time >= 20))
+   {
+      closed_deals_json = BuildClosedDealsJson(InpHistoryDays);
+      last_deals_sync_time = TimeCurrent();
+      last_known_deals_count = HistoryDealsTotal();
+   }
 
    // 5. Armar Payload JSON Completo
    string json_payload = "{\n";
@@ -295,7 +308,7 @@ void SendMarketDataToDashboard()
    string headers = "Content-Type: application/json\r\n";
    ResetLastError();
    
-   int res = WebRequest("POST", InpServerUrl, headers, 3000, post_data, result, result_headers);
+   int res = WebRequest("POST", InpServerUrl, headers, 6000, post_data, result, result_headers);
    
    if(res == 200)
    {
