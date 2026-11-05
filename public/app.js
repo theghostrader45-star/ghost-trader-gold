@@ -5988,9 +5988,10 @@ function renderDualSignals(data) {
     }
 
     if (isExpiredXau) {
-      if (entryEl) entryEl.textContent = "— (Expirada)";
+      const waitMsg = t.action.includes('ESPERA') ? "— (Esperando Setup)" : "— (Expirada)";
+      if (entryEl) entryEl.textContent = waitMsg;
       if (slEl) slEl.textContent = "—";
-      if (slDistEl) slDistEl.textContent = "Fuera de zona";
+      if (slDistEl) slDistEl.textContent = t.action.includes('ESPERA') ? "Sin zona activa" : "Fuera de zona";
       if (tp1El) tp1El.textContent = "—";
       if (tp2El) tp2El.textContent = "—";
       if (lotEl) lotEl.textContent = "0.00 lotes";
@@ -5999,7 +6000,7 @@ function renderDualSignals(data) {
         btnCopyXau.classList.add('opacity-40', 'cursor-not-allowed');
         btnCopyXau.disabled = true;
       }
-      if (lblCopyXau) lblCopyXau.textContent = "⚪ Oportunidad Finalizada";
+      if (lblCopyXau) lblCopyXau.textContent = t.action.includes('ESPERA') ? "⚪ Esperando Desplazamiento" : "⚪ Oportunidad Finalizada";
     } else {
       if (entryEl && t.entry) entryEl.textContent = `$${t.entry.toFixed(2)}`;
       if (slEl && t.sl) slEl.textContent = `$${t.sl.toFixed(2)}`;
@@ -6088,9 +6089,10 @@ function renderDualSignals(data) {
     }
 
     if (isExpiredEur) {
-      if (entryEl) entryEl.textContent = "— (Expirada)";
+      const waitMsg = t.action.includes('ESPERA') ? "— (Esperando Setup)" : "— (Expirada)";
+      if (entryEl) entryEl.textContent = waitMsg;
       if (slEl) slEl.textContent = "—";
-      if (slPipsEl) slPipsEl.textContent = "Fuera de zona";
+      if (slPipsEl) slPipsEl.textContent = t.action.includes('ESPERA') ? "Sin zona activa" : "Fuera de zona";
       if (tp1El) tp1El.textContent = "—";
       if (tp2El) tp2El.textContent = "—";
       if (lotEl) lotEl.textContent = "0.00 lotes";
@@ -6099,7 +6101,7 @@ function renderDualSignals(data) {
         btnCopyEur.classList.add('opacity-40', 'cursor-not-allowed');
         btnCopyEur.disabled = true;
       }
-      if (lblCopyEur) lblCopyEur.textContent = "⚪ Oportunidad Finalizada";
+      if (lblCopyEur) lblCopyEur.textContent = t.action.includes('ESPERA') ? "⚪ Esperando Retesteo" : "⚪ Oportunidad Finalizada";
     } else {
       if (entryEl && t.entry) entryEl.textContent = t.entry.toFixed(5);
       if (slEl && t.sl) slEl.textContent = t.sl.toFixed(5);

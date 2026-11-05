@@ -506,13 +506,13 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
                     badge = "⏳ FVG ALCISTA VIGENTE · ESPERANDO RETROCESO (DESCUENTO)"
                     status_desc = f"Fair Value Gap creado en ${fvg_bottom:.2f} - ${fvg_top:.2f}. Esperar que el precio retroceda a la zona para comprar."
 
-                # Calculate ticket for BUY
-                entry_price = current_price if state == "TRIGGER_CONFIRMED" else fvg_ce
+                # Calculate ticket for BUY (Fijado a niveles estructurales estables, sin bailar con el tick)
+                entry_price = last_closed["close"] if state == "TRIGGER_CONFIRMED" else fvg_ce
                 sl_price = round(detected_fvg["disp_low"] - 1.20, 2)
                 sl_dist_usd = round(entry_price - sl_price, 2)
                 if sl_dist_usd < 2.0:
-                    sl_price = round(entry_price - 2.50, 2)
                     sl_dist_usd = 2.50
+                    sl_price = round(entry_price - 2.50, 2)
 
                 tp1_price = round(entry_price + (sl_dist_usd * 2.0), 2)
                 tp2_price = round(entry_price + (sl_dist_usd * 3.0), 2)
@@ -626,12 +626,13 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
                     badge = "⏳ FVG BAJISTA VIGENTE · ESPERANDO RETROCESO (PREMIUM)"
                     status_desc = f"Fair Value Gap creado en ${fvg_bottom:.2f} - ${fvg_top:.2f}. Esperar que el precio suba a la zona para vender."
 
-                entry_price = current_price if state == "TRIGGER_CONFIRMED" else fvg_ce
+                # Calculate ticket for SELL (Fijado a niveles estructurales estables, sin bailar con el tick)
+                entry_price = last_closed["close"] if state == "TRIGGER_CONFIRMED" else fvg_ce
                 sl_price = round(detected_fvg["disp_high"] + 1.20, 2)
                 sl_dist_usd = round(sl_price - entry_price, 2)
                 if sl_dist_usd < 2.0:
-                    sl_price = round(entry_price + 2.50, 2)
                     sl_dist_usd = 2.50
+                    sl_price = round(entry_price + 2.50, 2)
 
                 tp1_price = round(entry_price - (sl_dist_usd * 2.0), 2)
                 tp2_price = round(entry_price - (sl_dist_usd * 3.0), 2)
@@ -659,21 +660,18 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
 
     # Default ticket if no active FVG
     if not ticket:
-        sl_dist_usd = 3.50
-        risk_dollar = balance * (risk_pct / 100.0)
-        suggested_lot = max(0.01, round(risk_dollar / (sl_dist_usd * 100.0), 2))
         ticket = {
             "asset": "XAUUSD",
-            "action": "ESPERA",
-            "entry": current_price,
-            "sl": round(current_price - sl_dist_usd, 2) if htf_bias == "BULLISH" else round(current_price + sl_dist_usd, 2),
-            "sl_dist_usd": sl_dist_usd,
-            "sl_dist_pts": int(sl_dist_usd * 100),
-            "tp1": round(current_price + (sl_dist_usd * 2.0), 2) if htf_bias == "BULLISH" else round(current_price - (sl_dist_usd * 2.0), 2),
-            "tp2": round(current_price + (sl_dist_usd * 3.0), 2) if htf_bias == "BULLISH" else round(current_price - (sl_dist_usd * 3.0), 2),
+            "action": "ESPERANDO FVG",
+            "entry": 0.0,
+            "sl": 0.0,
+            "sl_dist_usd": 0.0,
+            "sl_dist_pts": 0,
+            "tp1": 0.0,
+            "tp2": 0.0,
             "risk_pct": risk_pct,
-            "risk_usd": round(risk_dollar, 2),
-            "suggested_lot": suggested_lot,
+            "risk_usd": 0.0,
+            "suggested_lot": 0.0,
             "strategy": "Toni Maura SMC (FVG + 1H Bias)",
             "state": state
         }
@@ -858,11 +856,11 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
             badge = "⏳ RUPTURA ALCISTA REALIZADA · ESPERANDO RETESTEO A LA ZONA"
             status_desc = f"El precio rompió la resistencia {key_zone['center']:.5f}. Esperar retroceso para entrar al retesteo."
 
-        # Ticket BUY if active
+        # Ticket BUY if active (Fijado a zona institucional, sin bailar con el tick)
         if not ticket:
-            entry_price = current_price
+            entry_price = last_closed["close"] if state == "TRIGGER_CONFIRMED" else key_zone["center"]
             sl_price = round(key_zone["bottom"] - 0.00040, 5) # 4 pips below zone
-            sl_pips = round((entry_price - sl_price) * 10000, 1)
+            sl_pips = round(abs(entry_price - sl_price) * 10000, 1)
             if sl_pips < 8.0:
                 sl_pips = 8.0
                 sl_price = round(entry_price - 0.00080, 5)
@@ -948,11 +946,11 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
             badge = "⏳ RUPTURA BAJISTA REALIZADA · ESPERANDO RETESTEO A LA ZONA"
             status_desc = f"El precio rompió el soporte {key_zone['center']:.5f}. Esperar retroceso para entrar al retesteo."
 
-        # Ticket SELL if active
+        # Ticket SELL if active (Fijado a zona institucional, sin bailar con el tick)
         if not ticket:
-            entry_price = current_price
+            entry_price = last_closed["close"] if state == "TRIGGER_CONFIRMED" else key_zone["center"]
             sl_price = round(key_zone["top"] + 0.00040, 5) # 4 pips above zone
-            sl_pips = round((sl_price - entry_price) * 10000, 1)
+            sl_pips = round(abs(sl_price - entry_price) * 10000, 1)
             if sl_pips < 8.0:
                 sl_pips = 8.0
                 sl_price = round(entry_price + 0.00080, 5)
@@ -980,22 +978,19 @@ def analyze_felipe_lopez_eurusd(candles_m5, bid, ask, balance, risk_pct=1.0):
                 "trigger_id": trigger_id
             }
 
-    # Default ticket if ranging
+    # Default ticket if ranging / waiting
     if not ticket:
-        sl_pips = 10.0
-        risk_dollar = balance * (risk_pct / 100.0)
-        suggested_lot = max(0.01, round(risk_dollar / (sl_pips * 10.0), 2))
         ticket = {
             "asset": "EURUSD",
-            "action": "ESPERA",
-            "entry": current_price,
-            "sl": round(current_price - 0.00100, 5),
-            "sl_pips": sl_pips,
-            "tp1": round(current_price + 0.00200, 5),
-            "tp2": round(current_price + 0.00300, 5),
+            "action": "ESPERANDO RUPTURA",
+            "entry": 0.0,
+            "sl": 0.0,
+            "sl_pips": 0.0,
+            "tp1": 0.0,
+            "tp2": 0.0,
             "risk_pct": risk_pct,
-            "risk_usd": round(risk_dollar, 2),
-            "suggested_lot": suggested_lot,
+            "risk_usd": 0.0,
+            "suggested_lot": 0.0,
             "strategy": "Felipe López (Estructura + Zona + Retesteo)",
             "state": state
         }
