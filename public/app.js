@@ -1,5 +1,5 @@
 /**
- * Ghost Trader | Gold — Terminal Institucional de Trading, Macro Sesión & Bitácora Real
+ * Pro Terminal — Terminal Institucional de Trading MT5, Metodología Felipe López & Bitácora Real
  * Cálculo de interés compuesto basado puramente en porcentaje y puntos de oro.
  */
 
@@ -212,7 +212,7 @@ function setupTabNavigation() {
     } else if (tab === 'gold_bias') {
       if (btnGoldBias) {
         btnGoldBias.classList.remove(...inactiveClasses);
-        btnGoldBias.classList.add('bg-yellow-500', 'text-black', 'shadow-lg', 'shadow-yellow-500/30', 'font-black');
+        btnGoldBias.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-600/30', 'font-bold');
       }
       if (viewGoldBias) viewGoldBias.classList.remove('hidden');
       loadGoldBiasData();
@@ -5749,24 +5749,87 @@ function setupDualTerminalControls() {
 
   selectedScannerAsset = 'EURUSD';
 
-  // Risk selector buttons
+  // Function to apply risk percentage (presets or manual)
+  function applyRisk(pct, notify = false) {
+    const num = parseFloat(pct);
+    if (isNaN(num) || num <= 0) {
+      if (notify) showToast("⚠️ Ingresa un porcentaje de riesgo válido (ej: 1.5, 3.0, 5.0).", "warning");
+      return;
+    }
+    selectedRiskPct = Math.round(num * 10) / 10;
+
+    // Sync manual input
+    const manualInput = document.getElementById('inputManualRiskPct');
+    if (manualInput && document.activeElement !== manualInput) {
+      manualInput.value = selectedRiskPct;
+    }
+
+    // Sync preset buttons
+    const riskBtns = document.querySelectorAll('.btn-risk-choice');
+    let matchedPreset = false;
+    riskBtns.forEach(b => {
+      const bRisk = parseFloat(b.getAttribute('data-risk'));
+      if (Math.abs(bRisk - selectedRiskPct) < 0.05) {
+        matchedPreset = true;
+        b.className = "btn-risk-choice flex-1 py-1 rounded-md text-[10px] font-mono font-black bg-blue-500 text-white shadow-sm transition";
+      } else {
+        b.className = "btn-risk-choice flex-1 py-1 rounded-md text-[10px] font-mono font-bold bg-gray-800 text-gray-300 hover:text-white transition";
+      }
+    });
+
+    if (manualInput) {
+      if (!matchedPreset) {
+        manualInput.parentElement.classList.add('border-blue-400', 'bg-blue-950/40');
+      } else {
+        manualInput.parentElement.classList.remove('border-blue-400', 'bg-blue-950/40');
+      }
+    }
+
+    // Immediate optimistic update of labels
+    const labelRiskDollar = document.getElementById('labelRiskDollar');
+    const eurTicketRiskPctText = document.getElementById('eurTicketRiskPctText');
+    if (eurTicketRiskPctText) eurTicketRiskPctText.textContent = `${selectedRiskPct}% riesgo exacto`;
+
+    if (labelRiskDollar && lastDualSignalsData && lastDualSignalsData.account) {
+      const bal = lastDualSignalsData.account.balance || 97.72;
+      const usd = (bal * (selectedRiskPct / 100.0)).toFixed(2);
+      labelRiskDollar.textContent = `$${usd} (${selectedRiskPct}%)`;
+    }
+
+    if (notify) {
+      showToast(`🎯 Riesgo actualizado a ${selectedRiskPct}% por operación. Recalculando lotaje...`, "info", 2000);
+    }
+    fetchDualScannerSignals();
+  }
+
+  // Presets
   const riskBtns = document.querySelectorAll('.btn-risk-choice');
   riskBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      selectedRiskPct = parseFloat(btn.getAttribute('data-risk')) || 1.0;
-      riskBtns.forEach(b => {
-        b.className = "btn-risk-choice flex-1 py-1 rounded-lg text-[11px] font-mono font-bold bg-gray-800 text-gray-300 hover:text-white transition";
-      });
-      btn.className = "btn-risk-choice flex-1 py-1 rounded-lg text-[11px] font-mono font-black bg-amber-500 text-black shadow-md shadow-amber-500/20 transition";
-      fetchDualScannerSignals();
+      const val = parseFloat(btn.getAttribute('data-risk')) || 1.0;
+      applyRisk(val);
     });
   });
 
-  // Copy Ticket XAU
-  const btnCopyXau = document.getElementById('btnCopyTicketXau');
-  if (btnCopyXau) {
-    btnCopyXau.addEventListener('click', () => {
-      copyTicketToClipboard('XAUUSD');
+  // Manual Input & Button
+  const inputManual = document.getElementById('inputManualRiskPct');
+  const btnApplyManual = document.getElementById('btnApplyManualRisk');
+
+  if (btnApplyManual && inputManual) {
+    btnApplyManual.addEventListener('click', () => {
+      applyRisk(inputManual.value, true);
+    });
+  }
+
+  if (inputManual) {
+    inputManual.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyRisk(inputManual.value, true);
+      }
+    });
+    inputManual.addEventListener('change', () => {
+      applyRisk(inputManual.value, false);
     });
   }
 
@@ -5798,7 +5861,7 @@ function setupDualTerminalControls() {
   const btnRefresh = document.getElementById('btnRefreshScanner');
   if (btnRefresh) {
     btnRefresh.addEventListener('click', () => {
-      showToast("🔄 Escaneando XAU/USD y EUR/USD...", "info", 1500);
+      showToast("🔄 Escaneando EUR/USD en vivo...", "info", 1500);
       fetchDualScannerSignals();
     });
   }
@@ -5978,6 +6041,11 @@ function renderDualSignals(data) {
       if (tp2El && t.tp2) tp2El.textContent = t.tp2.toFixed(5);
       if (lotEl && t.suggested_lot) lotEl.textContent = `${t.suggested_lot.toFixed(2)} lotes`;
       if (riskUsdEl && t.risk_usd) riskUsdEl.textContent = `$${t.risk_usd.toFixed(2)}`;
+      const riskPctEl = document.getElementById('eurTicketRiskPctText');
+      if (riskPctEl) {
+        const curPct = (t.risk_pct !== undefined && t.risk_pct !== null) ? t.risk_pct : selectedRiskPct;
+        riskPctEl.textContent = `${curPct}% riesgo exacto`;
+      }
       if (btnCopyEur) {
         btnCopyEur.classList.remove('opacity-40', 'cursor-not-allowed');
         btnCopyEur.disabled = false;
