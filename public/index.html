@@ -161,7 +161,7 @@
                 <span class="text-[10px] px-2 py-0.5 rounded-full font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold">100% AUTOMÁTICO</span>
               </div>
               <p class="text-xs text-gray-400 mt-0.5" id="mt5StatusSubtitle">
-                Transmisión tick-a-tick directa desde MetaTrader 5 · Estrategia Toni Maura (Oro) & Felipe López (Euro)
+                Transmisión tick-a-tick directa desde MetaTrader 5 · Metodología Felipe López (EUR/USD Price Action M5)
               </p>
             </div>
           </div>
@@ -214,12 +214,12 @@
             </div>
           </div>
 
-          <!-- Spreads Vivos -->
+          <!-- Spread EUR/USD -->
           <div class="p-3 bg-gray-950/70 border border-gray-800/80 rounded-xl">
-            <div class="text-[10px] text-gray-500 uppercase font-mono font-bold">Spreads en Vivo</div>
+            <div class="text-[10px] text-gray-500 uppercase font-mono font-bold">Spread EUR/USD</div>
             <div class="flex items-center justify-between mt-1">
-              <span class="text-xs text-yellow-400 font-bold">XAU: <span id="statSpreadXau" class="font-mono text-white">25 pts</span></span>
-              <span class="text-xs text-blue-400 font-bold">EUR: <span id="statSpreadEur" class="font-mono text-white">0.3 pips</span></span>
+              <span class="text-sm font-bold text-blue-400 font-mono"><span id="statSpreadEur">0.2</span> pips</span>
+              <span class="text-[10px] text-emerald-400 font-mono font-bold">Tickmill Live</span>
             </div>
             <div class="text-[10px] text-emerald-400 mt-0.5">Sin recotización</div>
           </div>
@@ -227,165 +227,9 @@
       </section>
 
       <!-- ============================================================== -->
-      <!-- CONMUTADOR DE ACTIVOS (ORO vs EURO)                            -->
+      <!-- TERMINAL INSTITUCIONAL: EUR/USD (FELIPE LÓPEZ PRICE ACTION M5) -->
       <!-- ============================================================== -->
-      <div class="flex items-center gap-2 sm:gap-3 p-1.5 bg-gray-950/90 rounded-2xl border border-gray-800">
-        <!-- Botón Oro (Toni Maura) -->
-        <button id="btnSwitchAssetXau" type="button" class="btn-asset-switch flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition bg-yellow-500 text-black shadow-lg shadow-yellow-500/20">
-          <i data-lucide="coins" class="w-4 h-4 text-black"></i>
-          <span>🟡 XAU/USD (Oro)</span>
-          <span class="text-[10px] px-2 py-0.5 rounded-full font-mono bg-black/20 text-black font-bold">Toni Maura SMC</span>
-        </button>
-
-        <!-- Botón Euro (Felipe López) -->
-        <button id="btnSwitchAssetEur" type="button" class="btn-asset-switch flex-1 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-900">
-          <i data-lucide="trending-up" class="w-4 h-4 text-blue-400"></i>
-          <span>🔵 EUR/USD (Euro)</span>
-          <span class="text-[10px] px-2 py-0.5 rounded-full font-mono bg-blue-950 text-blue-300 border border-blue-800 font-bold">Felipe López Price Action</span>
-        </button>
-      </div>
-
-      <!-- ============================================================== -->
-      <!-- CARD 1: XAU/USD · ESTRATEGIA TONI MAURA (SMC / FVG / HTF)      -->
-      <!-- ============================================================== -->
-      <div id="cardAssetXau" class="space-y-6">
-        
-        <!-- Header del Activo: Precio en Vivo y Estado de Gatillo -->
-        <section class="bg-gradient-to-r from-yellow-950/30 via-gray-900 to-amber-950/20 border-2 border-yellow-500/40 rounded-2xl p-5 shadow-2xl">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-mono font-bold text-yellow-400 uppercase tracking-wider">Commodity Spot</span>
-                <span id="xauStateBadge" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-black bg-yellow-500 text-black shadow-md">
-                  🟡 ESCANEANDO MERCADO...
-                </span>
-              </div>
-              <h1 class="text-2xl sm:text-3xl font-black text-white mt-1 flex items-baseline gap-2">
-                <span id="xauLivePrice">$4,045.30</span>
-                <span class="text-xs font-normal text-gray-400">USD/oz</span>
-              </h1>
-              <p id="xauStatusDesc" class="text-xs text-gray-300 mt-1.5 max-w-2xl leading-relaxed">
-                Calculando estructura en 1H y buscando desbalances de 3 velas (Fair Value Gaps) en temporalidad de 5 minutos...
-              </p>
-            </div>
-
-            <!-- Fases de la Estrategia Toni Maura -->
-            <div class="flex items-center gap-2 bg-gray-950/80 p-2.5 rounded-xl border border-gray-800 text-xs font-mono">
-              <div class="text-center px-3 py-1 rounded-lg bg-gray-900 border border-gray-800">
-                <div class="text-[9px] text-gray-500 uppercase font-bold">Fase 1: 1H Bias</div>
-                <div id="xauPhase1" class="font-bold text-yellow-400">ALCISTA</div>
-              </div>
-              <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-600"></i>
-              <div class="text-center px-3 py-1 rounded-lg bg-gray-900 border border-gray-800">
-                <div class="text-[9px] text-gray-500 uppercase font-bold">Fase 2: FVG M5</div>
-                <div id="xauPhase2" class="font-bold text-amber-300">ACTIVO</div>
-              </div>
-              <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-600"></i>
-              <div class="text-center px-3 py-1 rounded-lg bg-emerald-950/80 border border-emerald-500/50">
-                <div class="text-[9px] text-emerald-400 uppercase font-bold">Fase 3: Gatillo</div>
-                <div id="xauPhase3" class="font-black text-emerald-300">CONFIRMADO</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- TICKET DE EJECUCIÓN DIRECTO PARA METATRADER 5 (ORO) -->
-        <section class="bg-gray-900/95 border-2 border-amber-500/50 rounded-2xl p-5 sm:p-6 shadow-2xl relative overflow-hidden">
-          <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
-
-          <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-gray-800">
-            <div class="flex items-center gap-2.5">
-              <span class="w-3 h-3 rounded-full bg-amber-400 animate-pulse"></span>
-              <h3 class="text-base font-black text-white tracking-wide uppercase">Ticket de Orden MT5 · XAU/USD</h3>
-              <span id="xauTicketActionBadge" class="px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-emerald-500 text-black">
-                BUY LIMIT
-              </span>
-            </div>
-
-            <button id="btnCopyTicketXau" type="button" class="h-9 px-4 bg-amber-500 hover:bg-amber-400 text-black font-black text-xs rounded-xl flex items-center gap-1.5 transition shadow-lg shadow-amber-500/20 cursor-pointer">
-              <i data-lucide="copy" class="w-4 h-4"></i>
-              <span id="labelCopyXau">Copiar Parámetros MT5</span>
-            </button>
-          </div>
-
-          <!-- Campos de la Orden: Entrada, SL, TP1, TP2, Lotaje -->
-          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3.5 mt-5">
-            <!-- Precio de Entrada -->
-            <div class="p-3.5 bg-gray-950 rounded-xl border border-gray-800">
-              <div class="text-[10px] text-gray-500 uppercase font-mono font-bold">Precio Entrada</div>
-              <div id="xauTicketEntry" class="text-lg font-mono font-black text-white mt-1">$4,043.20</div>
-              <div class="text-[10px] text-gray-400 mt-0.5">Nivel FVG 50% CE</div>
-            </div>
-
-            <!-- Stop Loss -->
-            <div class="p-3.5 bg-gray-950 rounded-xl border border-red-900/40">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] text-red-400 uppercase font-mono font-bold">Stop Loss</span>
-                <span id="xauTicketSlDist" class="text-[10px] text-red-400 font-mono">350 pts</span>
-              </div>
-              <div id="xauTicketSl" class="text-lg font-mono font-black text-red-400 mt-1">$4,039.70</div>
-              <div class="text-[10px] text-gray-400 mt-0.5">Bajo la mecha de quiebre</div>
-            </div>
-
-            <!-- Take Profit 1 (Ratio 1:3 Institucional) -->
-            <div class="p-3.5 bg-gray-950 rounded-xl border border-emerald-900/40">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] text-emerald-400 uppercase font-mono font-bold">Take Profit 1</span>
-                <span id="xauTicketTp1Ratio" class="text-[10px] text-emerald-400 font-mono font-bold">Ratio 1:3</span>
-              </div>
-              <div id="xauTicketTp1" class="text-lg font-mono font-black text-emerald-400 mt-1">$4,050.20</div>
-              <div class="text-[10px] text-gray-400 mt-0.5">Cerrar 70% & Breakeven</div>
-            </div>
-
-            <!-- Take Profit 2 (Ratio 1:5+ / Piscina BSL-SSL) -->
-            <div class="p-3.5 bg-gray-950 rounded-xl border border-emerald-900/40">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] text-emerald-400 uppercase font-mono font-bold">Take Profit 2</span>
-                <span id="xauTicketTp2Ratio" class="text-[10px] text-emerald-400 font-mono font-bold">Ratio 1:5+</span>
-              </div>
-              <div id="xauTicketTp2" class="text-lg font-mono font-black text-emerald-400 mt-1">$4,053.70</div>
-              <div class="text-[10px] text-gray-400 mt-0.5">Piscina de liquidez HTF</div>
-            </div>
-
-            <!-- LOTAJE RECOMENDADO AUTOMÁTICO -->
-            <div class="p-3.5 bg-gradient-to-br from-emerald-950/60 to-gray-950 rounded-xl border-2 border-emerald-500/60 shadow-lg col-span-2 sm:col-span-1">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] text-emerald-300 uppercase font-mono font-bold">Lotaje MT5</span>
-                <span id="xauTicketRiskDollar" class="text-[10px] font-mono text-emerald-300 font-bold">$50.00</span>
-              </div>
-              <div id="xauTicketLot" class="text-2xl font-mono font-black text-emerald-400 mt-0.5">0.14</div>
-              <div class="text-[10px] text-emerald-400/80 mt-0.5 font-mono">1.0% riesgo exacto</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Métricas Institucionales SMC (Toni Maura) -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
-          <div class="p-4 bg-gray-900/80 border border-gray-800 rounded-xl">
-            <div class="text-[10px] text-gray-500 uppercase font-bold">Fair Value Gap Activo (5m)</div>
-            <div id="xauFvgRange" class="text-sm font-bold text-yellow-400 mt-1">$4,042.10 – $4,044.50</div>
-            <div id="xauFvgCe" class="text-[11px] text-gray-300 mt-0.5">50% C.E.: $4,043.30 (Descuento)</div>
-          </div>
-
-          <div class="p-4 bg-gray-900/80 border border-gray-800 rounded-xl">
-            <div class="text-[10px] text-gray-500 uppercase font-bold">Objetivo de Liquidez Superior (BSL)</div>
-            <div id="xauBslPool" class="text-sm font-bold text-emerald-400 mt-1">$4,068.50</div>
-            <div class="text-[11px] text-gray-400 mt-0.5">Máximo oscilante 1H sin mitigar</div>
-          </div>
-
-          <div class="p-4 bg-gray-900/80 border border-gray-800 rounded-xl">
-            <div class="text-[10px] text-gray-500 uppercase font-bold">Piscina de Liquidez Inferior (SSL)</div>
-            <div id="xauSslPool" class="text-sm font-bold text-red-400 mt-1">$4,024.00</div>
-            <div class="text-[11px] text-gray-400 mt-0.5">Mínimo oscilante 1H sin mitigar</div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ============================================================== -->
-      <!-- CARD 2: EUR/USD · ESTRATEGIA FELIPE LÓPEZ (PRICE ACTION M5)    -->
-      <!-- ============================================================== -->
-      <div id="cardAssetEur" class="hidden space-y-6">
+      <div id="cardAssetEur" class="space-y-6">
         
         <!-- Header del Activo: Precio en Vivo y Estructura -->
         <section class="bg-gradient-to-r from-blue-950/30 via-gray-900 to-indigo-950/20 border-2 border-blue-500/40 rounded-2xl p-5 shadow-2xl">

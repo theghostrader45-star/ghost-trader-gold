@@ -1099,13 +1099,6 @@ def get_dual_scanner_signals(risk_pct=1.0):
         balance = float(mt5_status["balance"]) or 5000.0
         currency = mt5_status["currency"]
         
-        # XAUUSD from MT5
-        xau_data = mt5_store["symbols"].get("XAUUSD", {})
-        xau_m5 = xau_data.get("candles_m5", [])
-        xau_h1 = xau_data.get("candles_h1", [])
-        xau_bid = float(xau_data.get("bid", 0.0))
-        xau_ask = float(xau_data.get("ask", 0.0))
-        
         # EURUSD from MT5
         eur_data = mt5_store["symbols"].get("EURUSD", {})
         eur_m5 = eur_data.get("candles_m5", [])
@@ -1116,20 +1109,12 @@ def get_dual_scanner_signals(risk_pct=1.0):
         balance = 5000.0
         currency = "USD"
         
-        # Fallback to Yahoo
-        xau_m5 = fetch_yahoo_candles("GC=F", interval="5m", range_str="1d")
-        xau_h1 = fetch_yahoo_candles("GC=F", interval="1h", range_str="5d")
-        xau_bid = xau_m5[-1]["close"] if xau_m5 else 4060.0
-        xau_ask = xau_bid + 0.35
-
+        # Fallback to Yahoo EURUSD
         eur_m5 = fetch_yahoo_candles("EURUSD=X", interval="5m", range_str="1d")
         eur_bid = eur_m5[-1]["close"] if eur_m5 else 1.08500
         eur_ask = eur_bid + 0.00004
 
-    # Run Toni Maura SMC on XAUUSD
-    xau_analysis = analyze_toni_maura_xauusd(xau_h1, xau_m5, xau_bid, xau_ask, balance, risk_pct)
-
-    # Run Felipe López Price Action on EURUSD
+    # Run Felipe López Price Action strictly on EURUSD
     eur_analysis = analyze_felipe_lopez_eurusd(eur_m5, eur_bid, eur_ask, balance, risk_pct)
 
     return {
@@ -1144,6 +1129,6 @@ def get_dual_scanner_signals(risk_pct=1.0):
             "risk_pct": risk_pct,
             "risk_usd": round(balance * (risk_pct / 100.0), 2)
         },
-        "xauusd": xau_analysis,
-        "eurusd": eur_analysis
+        "eurusd": eur_analysis,
+        "xauusd": None
     }

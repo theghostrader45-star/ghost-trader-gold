@@ -5747,40 +5747,7 @@ function setupDualTerminalControls() {
   if (dualTerminalListenersAttached) return;
   dualTerminalListenersAttached = true;
 
-  const btnXau = document.getElementById('btnSwitchAssetXau');
-  const btnEur = document.getElementById('btnSwitchAssetEur');
-  const cardXau = document.getElementById('cardAssetXau');
-  const cardEur = document.getElementById('cardAssetEur');
-
-  if (btnXau && btnEur) {
-    btnXau.addEventListener('click', () => {
-      selectedScannerAsset = 'XAUUSD';
-      btnXau.className = "btn-asset-switch flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition bg-yellow-500 text-black shadow-lg shadow-yellow-500/20";
-      const xauSpan = btnXau.querySelector('span:nth-child(3)');
-      if (xauSpan) xauSpan.className = "text-[10px] px-2 py-0.5 rounded-full font-mono bg-black/20 text-black font-bold";
-
-      btnEur.className = "btn-asset-switch flex-1 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-900";
-      const eurSpan = btnEur.querySelector('span:nth-child(3)');
-      if (eurSpan) eurSpan.className = "text-[10px] px-2 py-0.5 rounded-full font-mono bg-blue-950 text-blue-300 border border-blue-800 font-bold";
-
-      if (cardXau) cardXau.classList.remove('hidden');
-      if (cardEur) cardEur.classList.add('hidden');
-    });
-
-    btnEur.addEventListener('click', () => {
-      selectedScannerAsset = 'EURUSD';
-      btnEur.className = "btn-asset-switch flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition bg-blue-500 text-black shadow-lg shadow-blue-500/20";
-      const eurSpan = btnEur.querySelector('span:nth-child(3)');
-      if (eurSpan) eurSpan.className = "text-[10px] px-2 py-0.5 rounded-full font-mono bg-black/20 text-black font-bold";
-
-      btnXau.className = "btn-asset-switch flex-1 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-900";
-      const xauSpan = btnXau.querySelector('span:nth-child(3)');
-      if (xauSpan) xauSpan.className = "text-[10px] px-2 py-0.5 rounded-full font-mono bg-yellow-950 text-yellow-300 border border-yellow-800 font-bold";
-
-      if (cardEur) cardEur.classList.remove('hidden');
-      if (cardXau) cardXau.classList.add('hidden');
-    });
-  }
+  selectedScannerAsset = 'EURUSD';
 
   // Risk selector buttons
   const riskBtns = document.querySelectorAll('.btn-risk-choice');
@@ -5842,7 +5809,7 @@ function copyTicketToClipboard(asset) {
     showToast("⚠️ Datos no disponibles aún.", "warning");
     return;
   }
-  const data = asset === 'XAUUSD' ? lastDualSignalsData.xauusd : lastDualSignalsData.eurusd;
+  const data = lastDualSignalsData.eurusd;
   if (!data || !data.ticket) return;
 
   const t = data.ticket;
@@ -5943,111 +5910,6 @@ function renderDualSignals(data) {
 
   if (labelRiskDollar && data.account) {
     labelRiskDollar.textContent = `$${data.account.risk_usd.toFixed(2)} (${data.account.risk_pct}%)`;
-  }
-
-  // 2. Render XAU/USD (Toni Maura SMC)
-  if (data.xauusd) {
-    const x = data.xauusd;
-    const t = x.ticket || {};
-
-    const priceEl = document.getElementById('xauLivePrice');
-    const badgeEl = document.getElementById('xauStateBadge');
-    const descEl = document.getElementById('xauStatusDesc');
-    const p1El = document.getElementById('xauPhase1');
-    const p2El = document.getElementById('xauPhase2');
-    const p3El = document.getElementById('xauPhase3');
-
-    if (priceEl && x.current_price) priceEl.textContent = `$${x.current_price.toFixed(2)}`;
-    if (badgeEl && x.badge) badgeEl.textContent = x.badge;
-    if (descEl && x.status_desc) descEl.textContent = x.status_desc;
-    if (p1El && x.htf_bias) p1El.textContent = x.htf_bias;
-    if (p2El) p2El.textContent = x.detected_fvg ? "ACTIVO" : "BUSCANDO";
-    if (p3El) p3El.textContent = x.state === "TRIGGER_CONFIRMED" ? "CONFIRMADO" : "ESPERANDO";
-
-    // Ticket fields
-    const actBadge = document.getElementById('xauTicketActionBadge');
-    const entryEl = document.getElementById('xauTicketEntry');
-    const slEl = document.getElementById('xauTicketSl');
-    const slDistEl = document.getElementById('xauTicketSlDist');
-    const tp1El = document.getElementById('xauTicketTp1');
-    const tp2El = document.getElementById('xauTicketTp2');
-    const lotEl = document.getElementById('xauTicketLot');
-    const riskUsdEl = document.getElementById('xauTicketRiskDollar');
-    const btnCopyXau = document.getElementById('btnCopyTicketXau');
-    const lblCopyXau = document.getElementById('labelCopyXau');
-
-    const isExpiredXau = t.action && (t.action.includes('EXPIRAD') || t.action.includes('INVALIDAD') || t.action.includes('ESPERA'));
-
-    if (actBadge && t.action) {
-      actBadge.textContent = t.action;
-      if (isExpiredXau) {
-        actBadge.className = "px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-zinc-800 text-zinc-400 border border-zinc-700";
-      } else if (t.action.includes('BUY')) {
-        actBadge.className = "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-emerald-500 text-black shadow-md";
-      } else {
-        actBadge.className = "px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-red-500 text-white shadow-md";
-      }
-    }
-
-    if (isExpiredXau) {
-      const waitMsg = t.action.includes('ESPERA') ? "— (Esperando Setup)" : "— (Expirada)";
-      if (entryEl) entryEl.textContent = waitMsg;
-      if (slEl) slEl.textContent = "—";
-      if (slDistEl) slDistEl.textContent = t.action.includes('ESPERA') ? "Sin zona activa" : "Fuera de zona";
-      if (tp1El) tp1El.textContent = "—";
-      if (tp2El) tp2El.textContent = "—";
-      if (lotEl) lotEl.textContent = "0.00 lotes";
-      if (riskUsdEl) riskUsdEl.textContent = "$0.00";
-      if (btnCopyXau) {
-        btnCopyXau.classList.add('opacity-40', 'cursor-not-allowed');
-        btnCopyXau.disabled = true;
-      }
-      if (lblCopyXau) lblCopyXau.textContent = t.action.includes('ESPERA') ? "⚪ Esperando Desplazamiento" : "⚪ Oportunidad Finalizada";
-    } else {
-      if (entryEl && t.entry) entryEl.textContent = `$${t.entry.toFixed(2)}`;
-      if (slEl && t.sl) slEl.textContent = `$${t.sl.toFixed(2)}`;
-      if (slDistEl && t.sl_dist_pts) slDistEl.textContent = `${t.sl_dist_pts} pts ($${t.sl_dist_usd.toFixed(2)})`;
-      if (tp1El && t.tp1) tp1El.textContent = `$${t.tp1.toFixed(2)}`;
-      if (tp2El && t.tp2) tp2El.textContent = `$${t.tp2.toFixed(2)}`;
-      const tp1RatioEl = document.getElementById('xauTicketTp1Ratio');
-      const tp2RatioEl = document.getElementById('xauTicketTp2Ratio');
-      if (tp1RatioEl) tp1RatioEl.textContent = t.tp1_label || 'Ratio 1:3.0';
-      if (tp2RatioEl) tp2RatioEl.textContent = t.tp2_label || 'Ratio 1:5.0+';
-      if (lotEl && t.suggested_lot) lotEl.textContent = `${t.suggested_lot.toFixed(2)} lotes`;
-      if (riskUsdEl && t.risk_usd) riskUsdEl.textContent = `$${t.risk_usd.toFixed(2)}`;
-      if (btnCopyXau) {
-        btnCopyXau.classList.remove('opacity-40', 'cursor-not-allowed');
-        btnCopyXau.disabled = false;
-      }
-      if (lblCopyXau) lblCopyXau.textContent = "Copiar Parámetros MT5";
-    }
-
-    // Extra SMC Metrics
-    const fvgRange = document.getElementById('xauFvgRange');
-    const fvgCe = document.getElementById('xauFvgCe');
-    const bslPool = document.getElementById('xauBslPool');
-    const sslPool = document.getElementById('xauSslPool');
-    if (statSpreadXau && x.spread_pts) statSpreadXau.textContent = `${x.spread_pts} pts`;
-
-    if (x.detected_fvg) {
-      if (fvgRange) fvgRange.textContent = `$${x.detected_fvg.bottom.toFixed(2)} – $${x.detected_fvg.top.toFixed(2)}`;
-      if (fvgCe) fvgCe.textContent = `50% C.E.: $${x.detected_fvg.ce_50.toFixed(2)} (${x.detected_fvg.type})`;
-    } else {
-      if (fvgRange) fvgRange.textContent = "Buscando Imbalance M5...";
-      if (fvgCe) fvgCe.textContent = "Sin FVG abierto reciente";
-    }
-    if (bslPool && x.bsl_pool) bslPool.textContent = `$${x.bsl_pool.toFixed(2)}`;
-    if (sslPool && x.ssl_pool) sslPool.textContent = `$${x.ssl_pool.toFixed(2)}`;
-
-    // Sound chime ONLY when a genuine NEW trigger_id is confirmed and cooldown has passed
-    const nowMs = Date.now();
-    const xauTriggerId = x.trigger_id || (x.state === "TRIGGER_CONFIRMED" ? `XAU_${x.ticket?.action}_${x.ticket?.entry}` : null);
-    if (x.state === "TRIGGER_CONFIRMED" && xauTriggerId && xauTriggerId !== lastTriggerIdXau && (nowMs - lastChimeTimeXau > TRIGGER_CHIME_COOLDOWN_MS)) {
-      lastTriggerIdXau = xauTriggerId;
-      lastChimeTimeXau = nowMs;
-      playTriggerChime();
-      showToast("🎯 ¡GATILLO CONFIRMADO EN XAU/USD (ORO)! Abre tu MT5 y coloca los parámetros.", "success", 7000);
-    }
   }
 
   // 3. Render EUR/USD (Felipe López Price Action)
