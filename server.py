@@ -672,6 +672,8 @@ def recalculate_trade_history(trades, config, mode="backtest"):
                 implied_init = round(mt5_bal - total_pnl, 2)
                 if implied_init > 0:
                     initial_balance = implied_init
+                else:
+                    initial_balance = round(max(10.0, float(mt5_store.get("account", {}).get("initial_deposit", 100.0))), 2)
         except Exception:
             pass
 
@@ -806,6 +808,8 @@ def calculate_analytics(trades, config, mode="backtest"):
                 implied_init = round(mt5_bal - total_pnl, 2)
                 if implied_init > 0:
                     initial_balance = implied_init
+                else:
+                    initial_balance = round(max(10.0, float(mt5_store.get("account", {}).get("initial_deposit", 100.0))), 2)
         except Exception:
             pass
 
@@ -870,19 +874,7 @@ def calculate_analytics(trades, config, mode="backtest"):
                     raw_pnl = None
 
             if raw_pnl is not None:
-                if status == "win" and raw_pnl > 0:
-                    pnl = raw_pnl
-                elif status == "loss" and raw_pnl < 0:
-                    pnl = raw_pnl
-                elif status == "be" and abs(raw_pnl) < 1.0:
-                    pnl = raw_pnl
-                else:
-                    if status == "win":
-                        pnl = round(current_balance * (ret_pct / 100.0) - commission, 2)
-                    elif status == "loss":
-                        pnl = -round(current_balance * (trade_risk / 100.0) + commission, 2)
-                    else:
-                        pnl = -commission
+                pnl = raw_pnl
             else:
                 if status == "win":
                     pnl = round(current_balance * (ret_pct / 100.0) - commission, 2)

@@ -5,21 +5,42 @@
 //+------------------------------------------------------------------+
 #property copyright "Ghost Trader Gold Institutional"
 #property link      "https://ghost-trader-gold.onrender.com"
-#property version   "1.20"
-#property description "Puente de transmisión en tiempo real de tick, velas M5/H1 y sincronización automática de operaciones hacia la Bitácora Real"
+#property version   "1.21"
+#property description "Puente de transmision en tiempo real de tick, velas M5/H1 y sincronizacion automatica de operaciones hacia la Bitacora Real"
 #property description "IMPORTANTE: En MT5 ve a Herramientas -> Opciones -> Asesores Expertos y activa 'Permitir WebRequest' agregando tu URL."
 
 //--- Inputs
-input group "=== CONFIGURACIÓN DE CONEXIÓN ==="
+input group "=== CONFIGURACION DE CONEXION ==="
 input string   InpServerUrl    = "https://ghost-trader-gold.onrender.com/api/mt5/feed"; // URL del Dashboard (o http://localhost:8000/api/mt5/feed)
-input int      InpTimerSeconds = 3;                                                     // Frecuencia de envío (segundos)
+input int      InpTimerSeconds = 3;                                                     // Frecuencia de envio (segundos)
 
-input group "=== SÍMBOLOS A TRANSMITIR ==="
-input string   InpSymbolGold   = "XAUUSD"; // Símbolo del Oro en tu broker (ej: XAUUSD, GOLD)
-input string   InpSymbolEuro   = "EURUSD"; // Símbolo del Euro en tu broker (ej: EURUSD)
+input group "=== SIMBOLOS A TRANSMITIR ==="
+input string   InpSymbolGold   = "XAUUSD"; // Simbolo del Oro en tu broker (ej: XAUUSD, GOLD)
+input string   InpSymbolEuro   = "EURUSD"; // Simbolo del Euro en tu broker (ej: EURUSD)
 input int      InpBarsCountM5  = 60;       // Velas M5 a enviar
 input int      InpBarsCountH1  = 30;       // Velas H1 a enviar
-input int      InpHistoryDays  = 365;      // Días de historial a sincronizar con la Bitácora (365 = 1 año)
+input int      InpHistoryDays  = 365;      // Dias de historial a sincronizar con la Bitacora (365 = 1 ano)
+
+//--- Structs para recopilar operaciones de forma segura
+struct DealInRecord {
+   long     pos_id;
+   double   price;
+   datetime time;
+   string   direction;
+};
+
+struct DealOutRecord {
+   ulong    ticket;
+   long     pos_id;
+   string   symbol;
+   double   volume;
+   double   price;
+   double   profit;
+   double   commission;
+   double   swap;
+   datetime time;
+   long     type;
+};
 
 //--- Variables Globales
 datetime g_last_send = 0;
@@ -29,14 +50,14 @@ datetime g_last_send = 0;
 //+------------------------------------------------------------------+
 int OnInit()
 {
-   Print("🟢 [GhostBridge v1.20] Iniciando puente de datos y bitácora automática hacia: ", InpServerUrl);
+   Print("🟢 [GhostBridge v1.21] Iniciando puente de datos y bitacora automatica hacia: ", InpServerUrl);
    EventSetTimer(InpTimerSeconds);
    
-   // Verificar que los símbolos estén en Market Watch
+   // Verificar que los simbolos esten en Market Watch
    SymbolSelect(InpSymbolGold, true);
    SymbolSelect(InpSymbolEuro, true);
    
-   // Primer envío de prueba inmediato
+   // Primer envio de prueba inmediato
    SendMarketDataToDashboard();
    
    return(INIT_SUCCEEDED);
@@ -48,7 +69,7 @@ int OnInit()
 void OnDeinit(const int reason)
 {
    EventKillTimer();
-   Print("🔴 [GhostBridge] Puente detenido. Razón: ", reason);
+   Print("🔴 [GhostBridge] Puente detenido. Razon: ", reason);
 }
 
 //+------------------------------------------------------------------+
@@ -71,7 +92,7 @@ void OnTick()
 }
 
 //+------------------------------------------------------------------+
-//| Función auxiliar: Construye JSON de velas OHLC                   |
+//| Funcion auxiliar: Construye JSON de velas OHLC                   |
 //+------------------------------------------------------------------+
 string BuildCandlesJson(string symbol, ENUM_TIMEFRAMES tf, int count)
 {
@@ -100,7 +121,7 @@ string BuildCandlesJson(string symbol, ENUM_TIMEFRAMES tf, int count)
 }
 
 //+------------------------------------------------------------------+
-//| Extraer Depósito Inicial de la Cuenta                            |
+//| Extraer Deposito Inicial de la Cuenta                            |
 //+------------------------------------------------------------------+
 double GetAccountInitialDeposit()
 {
@@ -119,7 +140,7 @@ double GetAccountInitialDeposit()
 }
 
 //+------------------------------------------------------------------+
-//| Extraer Historial de Operaciones Cerradas para la Bitácora Real  |
+//| Extraer Operaciones Cerradas de MT5 para la Bitacora Real        |
 //+------------------------------------------------------------------+
 string BuildClosedDealsJson(int days_back)
 {
@@ -132,91 +153,93 @@ string BuildClosedDealsJson(int days_back)
    int total_deals = HistoryDealsTotal();
    if(total_deals <= 0) return "[]";
    
-   // 1. Recopilar tickets de salida en un array para evitar que HistorySelectByPosition
-   // altere el contexto global de HistoryDealsTotal
-   ulong out_tickets[];
-   ArrayResize(out_tickets, 0);
+   DealInRecord in_deals[];
+   DealOutRecord out_deals[];
+   ArrayResize(in_deals, 0);
+   ArrayResize(out_deals, 0);
    
+   // Unico pase limpio por el historial seleccionado sin alterar el contexto
    for(int i = 0; i < total_deals; i++)
    {
       ulong ticket = HistoryDealGetTicket(i);
       if(ticket == 0) continue;
-      long entry = HistoryDealGetInteger(ticket, DEAL_ENTRY);
-      if(entry == DEAL_ENTRY_OUT || entry == DEAL_ENTRY_INOUT || entry == DEAL_ENTRY_OUT_BY)
+      
+      long type = HistoryDealGetInteger(ticket, DEAL_TYPE);
+      if(type != DEAL_TYPE_BUY && type != DEAL_TYPE_SELL) continue;
+      
+      long entry  = HistoryDealGetInteger(ticket, DEAL_ENTRY);
+      long pos_id = HistoryDealGetInteger(ticket, DEAL_POSITION_ID);
+      
+      if(entry == DEAL_ENTRY_IN)
       {
-         int sz = ArraySize(out_tickets);
-         ArrayResize(out_tickets, sz + 1);
-         out_tickets[sz] = ticket;
+         int sz = ArraySize(in_deals);
+         ArrayResize(in_deals, sz + 1);
+         in_deals[sz].pos_id    = pos_id;
+         in_deals[sz].price     = HistoryDealGetDouble(ticket, DEAL_PRICE);
+         in_deals[sz].time      = (datetime)HistoryDealGetInteger(ticket, DEAL_TIME);
+         in_deals[sz].direction = (type == DEAL_TYPE_BUY) ? "BUY" : "SELL";
+      }
+      else if(entry == DEAL_ENTRY_OUT || entry == DEAL_ENTRY_INOUT || entry == DEAL_ENTRY_OUT_BY)
+      {
+         int sz = ArraySize(out_deals);
+         ArrayResize(out_deals, sz + 1);
+         out_deals[sz].ticket     = ticket;
+         out_deals[sz].pos_id     = pos_id;
+         out_deals[sz].type       = type;
+         out_deals[sz].symbol     = HistoryDealGetString(ticket, DEAL_SYMBOL);
+         out_deals[sz].volume     = HistoryDealGetDouble(ticket, DEAL_VOLUME);
+         out_deals[sz].price      = HistoryDealGetDouble(ticket, DEAL_PRICE);
+         out_deals[sz].profit     = HistoryDealGetDouble(ticket, DEAL_PROFIT);
+         out_deals[sz].commission = HistoryDealGetDouble(ticket, DEAL_COMMISSION);
+         out_deals[sz].swap       = HistoryDealGetDouble(ticket, DEAL_SWAP);
+         out_deals[sz].time       = (datetime)HistoryDealGetInteger(ticket, DEAL_TIME);
       }
    }
    
-   int out_count = ArraySize(out_tickets);
+   int out_count = ArraySize(out_deals);
    if(out_count == 0) return "[]";
    
    string json = "[";
-   int valid_count = 0;
-   
    for(int i = 0; i < out_count; i++)
    {
-      ulong deal_ticket = out_tickets[i];
-      if(!HistoryDealSelect(deal_ticket)) continue;
+      double   entry_px  = out_deals[i].price;
+      datetime open_t    = out_deals[i].time;
+      string   direction = (out_deals[i].type == DEAL_TYPE_BUY) ? "SELL" : "BUY";
       
-      string symbol   = HistoryDealGetString(deal_ticket, DEAL_SYMBOL);
-      double volume   = HistoryDealGetDouble(deal_ticket, DEAL_VOLUME);
-      double exit_px  = HistoryDealGetDouble(deal_ticket, DEAL_PRICE);
-      double profit   = HistoryDealGetDouble(deal_ticket, DEAL_PROFIT);
-      double comm     = HistoryDealGetDouble(deal_ticket, DEAL_COMMISSION);
-      double swap     = HistoryDealGetDouble(deal_ticket, DEAL_SWAP);
-      datetime close_t= (datetime)HistoryDealGetInteger(deal_ticket, DEAL_TIME);
-      long   pos_id   = HistoryDealGetInteger(deal_ticket, DEAL_POSITION_ID);
-      
-      double entry_px  = exit_px;
-      datetime open_t  = close_t;
-      string direction = "BUY";
-      
-      // Consultar la posición para obtener el precio de entrada y hora original
-      if(HistorySelectByPosition(pos_id))
+      for(int j = 0; j < ArraySize(in_deals); j++)
       {
-         int p_deals = HistoryDealsTotal();
-         for(int j = 0; j < p_deals; j++)
+         if(in_deals[j].pos_id == out_deals[i].pos_id)
          {
-            ulong in_ticket = HistoryDealGetTicket(j);
-            if(HistoryDealGetInteger(in_ticket, DEAL_ENTRY) == DEAL_ENTRY_IN)
-            {
-               entry_px = HistoryDealGetDouble(in_ticket, DEAL_PRICE);
-               open_t   = (datetime)HistoryDealGetInteger(in_ticket, DEAL_TIME);
-               long dir = HistoryDealGetInteger(in_ticket, DEAL_TYPE);
-               direction = (dir == DEAL_TYPE_BUY) ? "BUY" : "SELL";
-               break;
-            }
+            entry_px  = in_deals[j].price;
+            open_t    = in_deals[j].time;
+            direction = in_deals[j].direction;
+            break;
          }
       }
       
-      if(valid_count > 0) json += ",";
+      if(i > 0) json += ",";
       
-      string deal_item = "{\"ticket\":" + IntegerToString((long)deal_ticket) +
-                         ",\"pos_id\":" + IntegerToString((long)pos_id) +
-                         ",\"symbol\":\"" + symbol + "\"" +
+      string deal_item = "{\"ticket\":" + IntegerToString((long)out_deals[i].ticket) +
+                         ",\"pos_id\":" + IntegerToString((long)out_deals[i].pos_id) +
+                         ",\"symbol\":\"" + out_deals[i].symbol + "\"" +
                          ",\"direction\":\"" + direction + "\"" +
                          ",\"open_time\":\"" + TimeToString(open_t, TIME_DATE|TIME_MINUTES) + "\"" +
-                         ",\"close_time\":\"" + TimeToString(close_t, TIME_DATE|TIME_MINUTES) + "\"" +
+                         ",\"close_time\":\"" + TimeToString(out_deals[i].time, TIME_DATE|TIME_MINUTES) + "\"" +
                          ",\"open_price\":" + DoubleToString(entry_px, 5) +
-                         ",\"close_price\":" + DoubleToString(exit_px, 5) +
-                         ",\"volume\":" + DoubleToString(volume, 2) +
-                         ",\"profit\":" + DoubleToString(profit, 2) +
-                         ",\"commission\":" + DoubleToString(comm, 2) +
-                         ",\"swap\":" + DoubleToString(swap, 2) + "}";
+                         ",\"close_price\":" + DoubleToString(out_deals[i].price, 5) +
+                         ",\"volume\":" + DoubleToString(out_deals[i].volume, 2) +
+                         ",\"profit\":" + DoubleToString(out_deals[i].profit, 2) +
+                         ",\"commission\":" + DoubleToString(out_deals[i].commission, 2) +
+                         ",\"swap\":" + DoubleToString(out_deals[i].swap, 2) + "}";
                          
       json += deal_item;
-      valid_count++;
    }
-   
    json += "]";
    return json;
 }
 
 //+------------------------------------------------------------------+
-//| Función Principal: Recopila y Envía Datos al Dashboard           |
+//| Funcion Principal: Recopila y Envia Datos al Dashboard           |
 //+------------------------------------------------------------------+
 void SendMarketDataToDashboard()
 {
@@ -243,7 +266,7 @@ void SendMarketDataToDashboard()
    long   eur_spread = SymbolInfoInteger(InpSymbolEuro, SYMBOL_SPREAD);
    string eur_m5_json = BuildCandlesJson(InpSymbolEuro, PERIOD_M5, InpBarsCountM5);
 
-   // 4. Operaciones Cerradas para la Bitácora Automática
+   // 4. Operaciones Cerradas para la Bitacora Automatica
    string closed_deals_json = BuildClosedDealsJson(InpHistoryDays);
 
    // 5. Armar Payload JSON Completo
@@ -253,11 +276,11 @@ void SendMarketDataToDashboard()
    json_payload += StringFormat("  \"closed_deals\": %s,\n", closed_deals_json);
    json_payload += "  \"symbols\": {\n";
    
-   // Sección XAUUSD
+   // Seccion XAUUSD
    json_payload += StringFormat("    \"XAUUSD\": {\"bid\": %.2f, \"ask\": %.2f, \"spread_pts\": %d, \"candles_m5\": %s, \"candles_h1\": %s},\n",
                                 xau_bid, xau_ask, xau_spread, xau_m5_json, xau_h1_json);
                                 
-   // Sección EURUSD
+   // Seccion EURUSD
    json_payload += StringFormat("    \"EURUSD\": {\"bid\": %.5f, \"ask\": %.5f, \"spread_pts\": %d, \"candles_m5\": %s}\n",
                                 eur_bid, eur_ask, eur_spread, eur_m5_json);
                                 
@@ -279,7 +302,7 @@ void SendMarketDataToDashboard()
       static datetime last_log = 0;
       if(TimeCurrent() - last_log > 30)
       {
-         Print("✅ [GhostBridge v1.20] Sincronizado exitosamente: Velas en vivo & Bitácora Real actualizadas");
+         PrintFormat("✅ [GhostBridge v1.21] Sincronizado exitosamente: Balance $%.2f | Bitacora actualizada", balance);
          last_log = TimeCurrent();
       }
    }
@@ -292,12 +315,12 @@ void SendMarketDataToDashboard()
       }
       else
       {
-         Print("❌ [GhostBridge ERROR] WebRequest falló con código de error: ", err);
+         Print("❌ [GhostBridge ERROR] WebRequest fallo con codigo de error: ", err);
       }
    }
    else
    {
-      PrintFormat("⚠️ [GhostBridge] Servidor respondió con código HTTP: %d", res);
+      PrintFormat("⚠️ [GhostBridge] Servidor respondio con codigo HTTP: %d", res);
    }
 }
 //+------------------------------------------------------------------+
