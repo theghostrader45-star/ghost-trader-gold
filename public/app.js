@@ -5850,11 +5850,13 @@ function copyTicketToClipboard(asset) {
     showToast("⚪ Esta oportunidad ya expiró o el precio ya se expandió. Espera un nuevo ciclo.", "info", 3000);
     return;
   }
+  const tp1Title = t.tp1_label || 'Take Profit 1 (Ratio 1:3)';
+  const tp2Title = t.tp2_label || 'Take Profit 2 (Ratio 1:5+)';
   const text = `${t.asset} ${t.action}
 Entrada: ${t.entry}
 Stop Loss: ${t.sl} (${asset === 'XAUUSD' ? t.sl_dist_pts + ' pts' : t.sl_pips + ' pips'})
-Take Profit 1 (1:2): ${t.tp1}
-Take Profit 2 (1:3): ${t.tp2}
+${tp1Title}: ${t.tp1}
+${tp2Title}: ${t.tp2}
 Lotaje MT5: ${t.suggested_lot} lotes (Riesgo: ${t.risk_pct}% · $${t.risk_usd} USD)
 Estrategia: ${t.strategy}`;
 
@@ -6007,6 +6009,10 @@ function renderDualSignals(data) {
       if (slDistEl && t.sl_dist_pts) slDistEl.textContent = `${t.sl_dist_pts} pts ($${t.sl_dist_usd.toFixed(2)})`;
       if (tp1El && t.tp1) tp1El.textContent = `$${t.tp1.toFixed(2)}`;
       if (tp2El && t.tp2) tp2El.textContent = `$${t.tp2.toFixed(2)}`;
+      const tp1RatioEl = document.getElementById('xauTicketTp1Ratio');
+      const tp2RatioEl = document.getElementById('xauTicketTp2Ratio');
+      if (tp1RatioEl) tp1RatioEl.textContent = t.tp1_label || 'Ratio 1:3.0';
+      if (tp2RatioEl) tp2RatioEl.textContent = t.tp2_label || 'Ratio 1:5.0+';
       if (lotEl && t.suggested_lot) lotEl.textContent = `${t.suggested_lot.toFixed(2)} lotes`;
       if (riskUsdEl && t.risk_usd) riskUsdEl.textContent = `$${t.risk_usd.toFixed(2)}`;
       if (btnCopyXau) {

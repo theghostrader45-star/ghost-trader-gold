@@ -415,26 +415,34 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
         price_in_fvg = (fvg_bottom - 1.0) <= current_price <= (fvg_top + 1.0)
 
         if fvg_type == "BULLISH" and htf_bias in ["BULLISH", "RANGING"]:
-            calc_sl = round(detected_fvg["disp_low"] - 1.20, 2)
+            calc_sl = round(detected_fvg["disp_low"] - 0.80, 2)
             calc_sl_dist = round(fvg_ce - calc_sl, 2)
-            if calc_sl_dist < 2.0:
-                calc_sl_dist = 2.50
-            tp1_target = round(fvg_ce + (calc_sl_dist * 2.0), 2)
-            tp2_target = round(fvg_ce + (calc_sl_dist * 3.0), 2)
+            if calc_sl_dist < 1.80:
+                calc_sl_dist = 2.00
+                calc_sl = round(fvg_ce - 2.00, 2)
+            elif calc_sl_dist > 4.50:
+                calc_sl = round(fvg_bottom - 0.80, 2)
+                calc_sl_dist = round(fvg_ce - calc_sl, 2)
+
+            # Ratios Institucionales Asimétricos Toni Maura SMC
+            tp1_target = round(fvg_ce + (calc_sl_dist * 3.0), 2) # Ratio 1:3.0 (Parciales & BE)
+            
+            # TP2 institucional: Piscina de Liquidez BSL de 1H si ofrece ≥ 1:4.0, o mínimo 1:5.0
+            if bsl_pool and bsl_pool > fvg_ce + (calc_sl_dist * 4.0):
+                tp2_target = round(bsl_pool, 2)
+            else:
+                tp2_target = round(fvg_ce + (calc_sl_dist * 5.0), 2)
 
             # ¿YA PASÓ LA OPORTUNIDAD?
-            # 1. El precio ya mitigó el FVG y se expandió hacia TP1 o subió más de $3.00 sobre el FVG
-            # 2. Invalidación: El precio perforó el mínimo del desplazamiento
-            # 3. Expiración temporal: Han pasado más de 8 velas M5 (40 minutos)
             has_mitigated = min_low_after <= fvg_top + 0.30
-            expansion_done = (has_mitigated and (current_price >= tp1_target - 0.80 or current_price >= fvg_top + 3.00 or max_high_after >= tp1_target))
+            expansion_done = (has_mitigated and (current_price >= tp1_target - 0.50 or max_high_after >= tp1_target))
             invalidated = min_low_after < (detected_fvg["disp_low"] - 0.50)
-            too_old = num_after > 8
+            too_old = num_after > 10
 
             if expansion_done:
                 state = "OPPORTUNITY_PASSED"
                 badge = "⚪ OPORTUNIDAD EXPIRADA · PRECIO YA SE EXPANDIÓ AL TARGET"
-                status_desc = f"El Oro ya mitigó el FVG (${fvg_bottom:.2f}–${fvg_top:.2f}) y se expandió a ${current_price:.2f} (objetivo ${tp1_target:.2f} alcanzado). Prohibido entrar tarde; esperar nuevo ciclo."
+                status_desc = f"El Oro ya mitigó el FVG (${fvg_bottom:.2f}–${fvg_top:.2f}) y se expandió a ${current_price:.2f} (objetivo 1:3 ${tp1_target:.2f} alcanzado). Prohibido entrar tarde; esperar nuevo ciclo."
                 ticket = {
                     "asset": "XAUUSD",
                     "action": "OPORTUNIDAD EXPIRADA",
@@ -444,6 +452,10 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
                     "sl_dist_pts": 0,
                     "tp1": tp1_target,
                     "tp2": tp2_target,
+                    "rr1": 3.0,
+                    "rr2": 5.0,
+                    "tp1_label": "Ratio 1:3.0",
+                    "tp2_label": "Ratio 1:5.0+",
                     "risk_pct": risk_pct,
                     "risk_usd": 0.0,
                     "suggested_lot": 0.0,
@@ -508,14 +520,27 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
 
                 # Calculate ticket for BUY (Fijado a niveles estructurales estables, sin bailar con el tick)
                 entry_price = last_closed["close"] if state == "TRIGGER_CONFIRMED" else fvg_ce
-                sl_price = round(detected_fvg["disp_low"] - 1.20, 2)
+                sl_price = round(detected_fvg["disp_low"] - 0.80, 2)
                 sl_dist_usd = round(entry_price - sl_price, 2)
-                if sl_dist_usd < 2.0:
-                    sl_dist_usd = 2.50
-                    sl_price = round(entry_price - 2.50, 2)
+                if sl_dist_usd < 1.80:
+                    sl_dist_usd = 2.00
+                    sl_price = round(entry_price - 2.00, 2)
+                elif sl_dist_usd > 4.50:
+                    sl_price = round(fvg_bottom - 0.80, 2)
+                    sl_dist_usd = round(entry_price - sl_price, 2)
 
-                tp1_price = round(entry_price + (sl_dist_usd * 2.0), 2)
-                tp2_price = round(entry_price + (sl_dist_usd * 3.0), 2)
+                # Ratios Asimétricos Institucionales Toni Maura SMC
+                tp1_price = round(entry_price + (sl_dist_usd * 3.0), 2) # Ratio 1:3.0 (Parciales 70% & Breakeven)
+                rr1_val = 3.0
+
+                if bsl_pool and bsl_pool > entry_price + (sl_dist_usd * 4.0):
+                    tp2_price = round(bsl_pool, 2)
+                    rr2_val = round((tp2_price - entry_price) / sl_dist_usd, 1)
+                    tp2_label = f"Ratio 1:{rr2_val:.1f} (Piscina BSL)"
+                else:
+                    tp2_price = round(entry_price + (sl_dist_usd * 5.0), 2) # Ratio 1:5.0 (Expansión SMC)
+                    rr2_val = 5.0
+                    tp2_label = "Ratio 1:5.0 (Expansión SMC)"
 
                 risk_dollar = balance * (risk_pct / 100.0)
                 exact_lot = risk_dollar / (sl_dist_usd * 100.0)
@@ -530,6 +555,10 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
                     "sl_dist_pts": int(sl_dist_usd * 100),
                     "tp1": tp1_price,
                     "tp2": tp2_price,
+                    "rr1": rr1_val,
+                    "rr2": rr2_val,
+                    "tp1_label": "Ratio 1:3.0 (Parciales & BE)",
+                    "tp2_label": tp2_label,
                     "risk_pct": risk_pct,
                     "risk_usd": round(risk_dollar, 2),
                     "suggested_lot": suggested_lot,
@@ -539,22 +568,33 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
                 }
 
         elif fvg_type == "BEARISH" and htf_bias in ["BEARISH", "RANGING"]:
-            calc_sl = round(detected_fvg["disp_high"] + 1.20, 2)
+            calc_sl = round(detected_fvg["disp_high"] + 0.80, 2)
             calc_sl_dist = round(calc_sl - fvg_ce, 2)
-            if calc_sl_dist < 2.0:
-                calc_sl_dist = 2.50
-            tp1_target = round(fvg_ce - (calc_sl_dist * 2.0), 2)
-            tp2_target = round(fvg_ce - (calc_sl_dist * 3.0), 2)
+            if calc_sl_dist < 1.80:
+                calc_sl_dist = 2.00
+                calc_sl = round(fvg_ce + 2.00, 2)
+            elif calc_sl_dist > 4.50:
+                calc_sl = round(fvg_top + 0.80, 2)
+                calc_sl_dist = round(calc_sl - fvg_ce, 2)
+
+            # Ratios Institucionales Asimétricos Toni Maura SMC
+            tp1_target = round(fvg_ce - (calc_sl_dist * 3.0), 2) # Ratio 1:3.0 (Parciales & BE)
+            
+            # TP2 institucional: Piscina de Liquidez SSL de 1H si ofrece ≥ 1:4.0, o mínimo 1:5.0
+            if ssl_pool and ssl_pool < fvg_ce - (calc_sl_dist * 4.0):
+                tp2_target = round(ssl_pool, 2)
+            else:
+                tp2_target = round(fvg_ce - (calc_sl_dist * 5.0), 2)
 
             has_mitigated = max_high_after >= fvg_bottom - 0.30
-            expansion_done = (has_mitigated and (current_price <= tp1_target + 0.80 or current_price <= fvg_bottom - 3.00 or min_low_after <= tp1_target))
+            expansion_done = (has_mitigated and (current_price <= tp1_target + 0.50 or min_low_after <= tp1_target))
             invalidated = max_high_after > (detected_fvg["disp_high"] + 0.50)
-            too_old = num_after > 8
+            too_old = num_after > 10
 
             if expansion_done:
                 state = "OPPORTUNITY_PASSED"
                 badge = "⚪ OPORTUNIDAD EXPIRADA · PRECIO YA SE EXPANDIÓ AL TARGET"
-                status_desc = f"El Oro ya mitigó el FVG (${fvg_top:.2f}–${fvg_bottom:.2f}) y cayó a ${current_price:.2f} (objetivo ${tp1_target:.2f} alcanzado). Prohibido entrar tarde; esperar nuevo ciclo."
+                status_desc = f"El Oro ya mitigó el FVG (${fvg_top:.2f}–${fvg_bottom:.2f}) y cayó a ${current_price:.2f} (objetivo 1:3 ${tp1_target:.2f} alcanzado). Prohibido entrar tarde; esperar nuevo ciclo."
                 ticket = {
                     "asset": "XAUUSD",
                     "action": "OPORTUNIDAD EXPIRADA",
@@ -564,10 +604,14 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
                     "sl_dist_pts": 0,
                     "tp1": tp1_target,
                     "tp2": tp2_target,
+                    "rr1": 3.0,
+                    "rr2": 5.0,
+                    "tp1_label": "Ratio 1:3.0",
+                    "tp2_label": "Ratio 1:5.0+",
                     "risk_pct": risk_pct,
                     "risk_usd": 0.0,
                     "suggested_lot": 0.0,
-                    "strategy": "Toni Maura SMC (FVG + 1H Bias)",
+                    "strategy": "Toni Maura SMC",
                     "state": state,
                     "trigger_id": None
                 }
@@ -584,6 +628,10 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
                     "sl_dist_pts": 0,
                     "tp1": tp1_target,
                     "tp2": tp2_target,
+                    "rr1": 3.0,
+                    "rr2": 5.0,
+                    "tp1_label": "Ratio 1:3.0",
+                    "tp2_label": "Ratio 1:5.0+",
                     "risk_pct": risk_pct,
                     "risk_usd": 0.0,
                     "suggested_lot": 0.0,
@@ -594,7 +642,7 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
             elif too_old:
                 state = "SETUP_EXPIRED"
                 badge = "⏳ DESBALANCE EXPIRADO POR TIEMPO"
-                status_desc = "Han transcurrido más de 8 velas M5 sin confirmación de entrada. Esperando nuevo desplazamiento institucional."
+                status_desc = "Han transcurrido más de 10 velas M5 sin confirmación de entrada. Esperando nuevo desplazamiento institucional."
                 ticket = {
                     "asset": "XAUUSD",
                     "action": "EXPIRADO (NO OPERAR)",
@@ -604,6 +652,10 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
                     "sl_dist_pts": 0,
                     "tp1": tp1_target,
                     "tp2": tp2_target,
+                    "rr1": 3.0,
+                    "rr2": 5.0,
+                    "tp1_label": "Ratio 1:3.0",
+                    "tp2_label": "Ratio 1:5.0+",
                     "risk_pct": risk_pct,
                     "risk_usd": 0.0,
                     "suggested_lot": 0.0,
@@ -628,14 +680,27 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
 
                 # Calculate ticket for SELL (Fijado a niveles estructurales estables, sin bailar con el tick)
                 entry_price = last_closed["close"] if state == "TRIGGER_CONFIRMED" else fvg_ce
-                sl_price = round(detected_fvg["disp_high"] + 1.20, 2)
+                sl_price = round(detected_fvg["disp_high"] + 0.80, 2)
                 sl_dist_usd = round(sl_price - entry_price, 2)
-                if sl_dist_usd < 2.0:
-                    sl_dist_usd = 2.50
-                    sl_price = round(entry_price + 2.50, 2)
+                if sl_dist_usd < 1.80:
+                    sl_dist_usd = 2.00
+                    sl_price = round(entry_price + 2.00, 2)
+                elif sl_dist_usd > 4.50:
+                    sl_price = round(fvg_top + 0.80, 2)
+                    sl_dist_usd = round(sl_price - entry_price, 2)
 
-                tp1_price = round(entry_price - (sl_dist_usd * 2.0), 2)
-                tp2_price = round(entry_price - (sl_dist_usd * 3.0), 2)
+                # Ratios Asimétricos Institucionales Toni Maura SMC
+                tp1_price = round(entry_price - (sl_dist_usd * 3.0), 2) # Ratio 1:3.0 (Parciales 70% & BE)
+                rr1_val = 3.0
+
+                if ssl_pool and ssl_pool < entry_price - (sl_dist_usd * 4.0):
+                    tp2_price = round(ssl_pool, 2)
+                    rr2_val = round((entry_price - tp2_price) / sl_dist_usd, 1)
+                    tp2_label = f"Ratio 1:{rr2_val:.1f} (Piscina SSL)"
+                else:
+                    tp2_price = round(entry_price - (sl_dist_usd * 5.0), 2) # Ratio 1:5.0 (Expansión SMC)
+                    rr2_val = 5.0
+                    tp2_label = "Ratio 1:5.0 (Expansión SMC)"
 
                 risk_dollar = balance * (risk_pct / 100.0)
                 exact_lot = risk_dollar / (sl_dist_usd * 100.0)
@@ -650,6 +715,10 @@ def analyze_toni_maura_xauusd(candles_h1, candles_m5, bid, ask, balance, risk_pc
                     "sl_dist_pts": int(sl_dist_usd * 100),
                     "tp1": tp1_price,
                     "tp2": tp2_price,
+                    "rr1": rr1_val,
+                    "rr2": rr2_val,
+                    "tp1_label": "Ratio 1:3.0 (Parciales & BE)",
+                    "tp2_label": tp2_label,
                     "risk_pct": risk_pct,
                     "risk_usd": round(risk_dollar, 2),
                     "suggested_lot": suggested_lot,
