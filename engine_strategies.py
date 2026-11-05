@@ -1110,7 +1110,7 @@ def get_dual_scanner_signals(risk_pct=1.0):
         currency = "USD"
         
         # Fallback to Yahoo EURUSD
-        eur_m5 = fetch_yahoo_candles("EURUSD=X", interval="5m", range_str="1d")
+        eur_m5 = fetch_yahoo_candles("EURUSD=X", interval="5m", range_str="5d")
         eur_bid = eur_m5[-1]["close"] if eur_m5 else 1.08500
         eur_ask = eur_bid + 0.00004
 
