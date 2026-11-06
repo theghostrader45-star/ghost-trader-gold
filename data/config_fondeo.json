@@ -8,10 +8,15 @@
   "max_loss_pct": 8.0,
   "max_loss_usd": 4000.0,
   "drawdown_type": "trailing_lock",
-  "leverage": 100.0,
+  "leverage": 30.0,
   "min_trading_days": 0,
   "best_day_rule_pct": 20.0,
   "currency": "USD",
   "risk_pct": 0.5,
-  "rr_ratio": 2.0
+  "rr_ratio": 2.0,
+  "asset": "XAU/USD",
+  "asset_name": "Oro (XAU/USD)",
+  "gold_price": 2720.0,
+  "contract_size": 100,
+  "sl_default": 30
 }

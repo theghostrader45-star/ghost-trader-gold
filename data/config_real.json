@@ -4,5 +4,10 @@
   "risk_pct": 1.0,
   "leverage": 500.0,
   "rr_ratio": 2.0,
-  "currency": "USD"
+  "currency": "USD",
+  "asset": "XAU/USD",
+  "asset_name": "Oro (XAU/USD)",
+  "gold_price": 2720.0,
+  "contract_size": 100,
+  "sl_default": 30
 }

@@ -72,23 +72,31 @@ DEFAULT_FONDEO_CONFIG = {
     "max_loss_pct": 8.0,
     "max_loss_usd": 4000.0,
     "drawdown_type": "trailing_lock",
-    "leverage": 100.0,
+    "leverage": 30.0,
     "min_trading_days": 0,
     "best_day_rule_pct": 20.0,
     "currency": "USD",
     "risk_pct": 0.5,
     "rr_ratio": 2.0,
-    "asset": "EUR/USD"
+    "asset": "XAU/USD",
+    "asset_name": "Oro (XAU/USD)",
+    "gold_price": 2720.0,
+    "contract_size": 100,
+    "sl_default": 30.0
 }
 
 DEFAULT_REAL_CONFIG = {
     "account_type": "Cuenta Real Personal",
-    "initial_balance": 97.72,
+    "initial_balance": 92.08,
     "risk_pct": 1.0,
     "leverage": 500.0,
     "rr_ratio": 2.0,
     "currency": "USD",
-    "asset": "EUR/USD"
+    "asset": "XAU/USD",
+    "asset_name": "Oro (XAU/USD)",
+    "gold_price": 2720.0,
+    "contract_size": 100,
+    "sl_default": 30.0
 }
 
 def load_json(path, default):
@@ -1122,7 +1130,7 @@ def calculate_analytics(trades, config, mode="backtest"):
         "trades": processed_trades
     }
 
-def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="EUR/USD", rr=2.0, leverage=100.0, mode="fondeo"):
+def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="XAU/USD", rr=2.0, leverage=30.0, mode="fondeo"):
     if balance <= 0 or sl_pips <= 0 or risk_pct <= 0:
         return None
     dollar_risk = round(balance * (risk_pct / 100.0), 2)
@@ -1130,36 +1138,49 @@ def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="EUR/USD
     reward_dollar = round(dollar_risk * rr, 2)
 
     is_gold = any(x in str(asset).upper() for x in ["XAU", "GOLD", "ORO"])
-    
+    raw_val = float(sl_pips)
+
     if is_gold:
-        # Gold contract: 1 lot = 100 oz. $1.00 move = $100.
-        sl_points = sl_pips if sl_pips >= 20.0 else (sl_pips * 100.0)
-        sl_price_dist = round(sl_points / 100.0, 2)
-        pip_val_per_lot = 1.0  # $1 per point on 1 lot
-        raw_lot = dollar_risk / sl_points if sl_points > 0 else 0.01
-        entry_ref_price = 2700.0
+        # Standard Gold contract: 1 lot = 100 troy oz ($1.00 move = $100 per lot).
+        # Intelligent SL normalization:
+        # <= 15.0: entered as dollar price distance (e.g. 3.0 = $3.00)
+        # 15 < val <= 150: entered as pips (e.g. 30 pips = $3.00)
+        # > 150: entered as MT5 points (e.g. 300 points = $3.00)
+        if raw_val <= 15.0:
+            sl_price_dist = round(raw_val, 2)
+            calc_sl_pips = round(raw_val * 10.0, 1)
+            sl_points = round(raw_val * 100.0, 1)
+        elif raw_val <= 150.0:
+            sl_price_dist = round(raw_val / 10.0, 2)
+            calc_sl_pips = raw_val
+            sl_points = round(raw_val * 10.0, 1)
+        else:
+            sl_price_dist = round(raw_val / 100.0, 2)
+            calc_sl_pips = round(raw_val / 10.0, 1)
+            sl_points = raw_val
+
+        loss_per_lot = sl_price_dist * 100.0
+        raw_lot = dollar_risk / loss_per_lot if loss_per_lot > 0 else 0.01
+        entry_ref_price = 2720.0
         contract_size = 100
         gold_leverage = min(leverage, 30.0) if mode == "fondeo" else leverage
-        margin_used = round((entry_ref_price * contract_size * max(0.01, round(raw_lot, 2))) / gold_leverage, 2)
         effective_leverage = gold_leverage
+        suggested_lot = max(0.01, round(raw_lot, 2))
+        margin_used = round((entry_ref_price * contract_size * suggested_lot) / effective_leverage, 2)
+        actual_dollar_risk = round(suggested_lot * loss_per_lot, 2)
+        pip_value_trade = round(suggested_lot * 10.0, 2)  # $10/pip on 1 lot
     else:
-        # Forex EUR/USD: 1 standard lot = 100,000 EUR. 1 pip (0.0001) = $10.00 USD on 1 lot
         pip_val_per_lot = 10.0
-        raw_lot = dollar_risk / (sl_pips * pip_val_per_lot) if sl_pips > 0 else 0.01
+        calc_sl_pips = raw_val
+        raw_lot = dollar_risk / (raw_val * pip_val_per_lot) if raw_val > 0 else 0.01
         entry_ref_price = 1.0850
         contract_size = 100000
         effective_leverage = leverage
-        margin_used = round((contract_size * entry_ref_price * max(0.01, round(raw_lot, 2))) / effective_leverage, 2)
-        sl_points = round(sl_pips * 10.0, 1)
-        sl_price_dist = round(sl_pips * 0.0001, 5)
-
-    suggested_lot = max(0.01, round(raw_lot, 2))
-    
-    if is_gold:
-        actual_dollar_risk = round(suggested_lot * sl_points, 2)
-        pip_value_trade = round(suggested_lot * 1.0, 2)
-    else:
-        actual_dollar_risk = round(suggested_lot * sl_pips * 10.0, 2)
+        suggested_lot = max(0.01, round(raw_lot, 2))
+        margin_used = round((contract_size * entry_ref_price * suggested_lot) / effective_leverage, 2)
+        sl_points = round(raw_val * 10.0, 1)
+        sl_price_dist = round(raw_val * 0.0001, 5)
+        actual_dollar_risk = round(suggested_lot * raw_val * 10.0, 2)
         pip_value_trade = round(suggested_lot * 10.0, 2)
 
     actual_risk_pct = round((actual_dollar_risk / balance * 100.0), 2) if balance > 0 else 0.0
@@ -1167,17 +1188,21 @@ def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="EUR/USD
     margin_level_pct = round((balance / margin_used * 100.0), 1) if margin_used > 0 else 9999.0
 
     tp_targets = {
-        "rr_1_5": {"rr": 1.5, "profit_usd": round(dollar_risk * 1.5, 2), "pips": round(sl_pips * 1.5, 1)},
-        "rr_2_0": {"rr": 2.0, "profit_usd": round(dollar_risk * 2.0, 2), "pips": round(sl_pips * 2.0, 1)},
-        "rr_3_0": {"rr": 3.0, "profit_usd": round(dollar_risk * 3.0, 2), "pips": round(sl_pips * 3.0, 1)},
+        "rr_1_5": {"rr": 1.5, "profit_usd": round(dollar_risk * 1.5, 2), "pips": round(calc_sl_pips * 1.5, 1)},
+        "rr_2_0": {"rr": 2.0, "profit_usd": round(dollar_risk * 2.0, 2), "pips": round(calc_sl_pips * 2.0, 1)},
+        "rr_3_0": {"rr": 3.0, "profit_usd": round(dollar_risk * 3.0, 2), "pips": round(calc_sl_pips * 3.0, 1)},
     }
 
     safety_warnings = []
     if mode == "fondeo":
+        if is_gold and effective_leverage > 30.0:
+            safety_warnings.append("⚠️ Regla Orion Funded: El apalancamiento máximo en Metales (XAU/USD) es 1:30.")
         if dollar_risk > 1000.0:
-            safety_warnings.append(f"⚠️ Riesgo alto (${dollar_risk:,.2f}): Consume más del 50% de tu colchón diario de $2,000. Recomendado: 0.5% ($250) o 1.0% ($500).")
+            safety_warnings.append(f"⚠️ Riesgo alto (${dollar_risk:,.2f}): Consume más del 50% de tu colchón diario de $2,000. Recomendado en Oro: 0.5% ($250) o 0.25% ($125).")
         if dollar_risk >= 2000.0:
-            safety_warnings.append(f"🚨 ALERTA CRÍTICA: Un solo Stop Loss a ${dollar_risk:,.2f} quemaría la cuenta por regla de pérdida diaria.")
+            safety_warnings.append(f"🚨 ALERTA CRÍTICA: Un solo Stop Loss a ${dollar_risk:,.2f} quema la cuenta por regla de pérdida diaria del 4% ($2,000).")
+        if margin_used > balance * 0.40:
+            safety_warnings.append(f"⚠️ Margen elevado (${margin_used:,.2f}): A 1:30 de apalancamiento en Oro, este lote retiene más del 40% de tu balance.")
     elif mode == "real":
         if margin_used > balance * 0.5:
             safety_warnings.append(f"⚠️ Margen requerido (${margin_used:,.2f}) consume más del 50% de tu cuenta pequeña.")
@@ -1188,7 +1213,7 @@ def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="EUR/USD
         "dollar_risk": dollar_risk,
         "actual_dollar_risk": actual_dollar_risk,
         "actual_risk_pct": actual_risk_pct,
-        "sl_pips": sl_pips,
+        "sl_pips": calc_sl_pips,
         "sl_points": sl_points,
         "sl_price_dist": sl_price_dist,
         "asset": asset,
@@ -1754,11 +1779,24 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             leverage = float(config.get("leverage", 100.0 if mode == "fondeo" else 500.0))
             
             if is_gold:
-                sl_points = sl_pips if sl_pips >= 20.0 else (sl_pips * 100.0)
-                raw_lot = dollar_risk / sl_points if sl_points > 0 else 0.01
+                if raw_sl <= 15.0:
+                    sl_price_dist = raw_sl
+                    sl_pips = round(raw_sl * 10.0, 1)
+                    sl_points = round(raw_sl * 100.0, 1)
+                elif raw_sl <= 150.0:
+                    sl_price_dist = round(raw_sl / 10.0, 2)
+                    sl_pips = raw_sl
+                    sl_points = round(raw_sl * 10.0, 1)
+                else:
+                    sl_price_dist = round(raw_sl / 100.0, 2)
+                    sl_pips = round(raw_sl / 10.0, 1)
+                    sl_points = raw_sl
+
+                loss_per_lot = sl_price_dist * 100.0
+                raw_lot = dollar_risk / loss_per_lot if loss_per_lot > 0 else 0.01
                 suggested_lot = max(0.01, round(raw_lot, 2))
                 gold_lev = min(leverage, 30.0) if mode == "fondeo" else leverage
-                calc_margin = round((2700.0 * 100 * suggested_lot) / gold_lev, 2)
+                calc_margin = round((2720.0 * 100.0 * suggested_lot) / gold_lev, 2)
             else:
                 raw_lot = dollar_risk / (sl_pips * 10.0) if sl_pips > 0 else 0.01
                 suggested_lot = max(0.01, round(raw_lot, 2))

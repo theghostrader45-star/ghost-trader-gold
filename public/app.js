@@ -14,17 +14,22 @@ let appState = {
       initial_balance: 50000.0,
       risk_pct: 0.5,
       rr_ratio: 2.0,
-      leverage: 100.0,
+      leverage: 30.0,
+      asset: 'XAU/USD',
+      gold_price: 2720.0,
+      contract_size: 100,
       profit_target_usd: 2000.0,
       daily_loss_usd: 2000.0,
       max_loss_usd: 4000.0
     }
   },
   config: {
-    initial_balance: 97.72,
+    initial_balance: 92.08,
     risk_pct: 1.0,
     rr_ratio: 2.0,
     leverage: 500,
+    asset: 'XAU/USD',
+    gold_price: 2720.0,
     contract_size: 100,
     min_lot: 0.01,
     lot_step: 0.01
@@ -628,10 +633,10 @@ function setupFondeoCalculator() {
   function calculateFondeoMetrics() {
     const summary = appState.fondeo.summary || {};
     const curBalance = summary.current_balance !== undefined ? summary.current_balance : 50000.0;
-    const asset = assetSelect ? assetSelect.value : 'EUR/USD';
-    const isGold = asset.includes('XAU') || asset.includes('GOLD');
+    const asset = assetSelect ? assetSelect.value : 'XAU/USD';
+    const isGold = asset.includes('XAU') || asset.includes('GOLD') || asset.includes('ORO') || true;
 
-    const slPips = parseFloat(slInput ? slInput.value : 10.0) || 10.0;
+    const slInputVal = parseFloat(slInput ? slInput.value : 30.0) || 30.0;
     const riskType = riskSelect ? riskSelect.value : '0.5';
 
     let dollarRisk = 250.0;
@@ -647,22 +652,27 @@ function setupFondeoCalculator() {
       dollarRisk = curBalance * (riskPct / 100.0);
     }
 
-    let lot = 0.01;
-    let margin = 0.0;
-    let pipVal = 10.0;
-
-    if (isGold) {
-      const points = slPips * 10.0;
-      lot = points > 0 ? dollarRisk / points : 0.01;
-      lot = Math.max(0.01, Math.round(lot * 100) / 100);
-      margin = (2700.0 * 100 * lot) / 30.0;
-      pipVal = 1.0 * lot * 10.0;
+    // Normalización de SL para Oro (XAU/USD):
+    // <= 15.0: dólares de precio ($3.00)
+    // 15 - 150: pips (30 pips = $3.00)
+    // > 150: puntos (300 pts = $3.00)
+    let slPriceDist = 3.0;
+    if (slInputVal <= 15.0) {
+      slPriceDist = slInputVal;
+    } else if (slInputVal <= 150.0) {
+      slPriceDist = slInputVal / 10.0;
     } else {
-      lot = (slPips * 10.0) > 0 ? dollarRisk / (slPips * 10.0) : 0.01;
-      lot = Math.max(0.01, Math.round(lot * 100) / 100);
-      margin = (100000.0 * 1.0850 * lot) / 100.0;
-      pipVal = 10.0 * lot;
+      slPriceDist = slInputVal / 100.0;
     }
+
+    const lossPerLot = slPriceDist * 100.0; // 1 lote estándar = 100 oz de oro
+    let lot = lossPerLot > 0 ? dollarRisk / lossPerLot : 0.01;
+    lot = Math.max(0.01, Math.round(lot * 100) / 100);
+
+    // Apalancamiento 1:30 para Oro en Orion Funded
+    const goldPrice = 2720.0;
+    const margin = (goldPrice * 100.0 * lot) / 30.0;
+    const pipVal = 10.0 * lot; // $10 por pip (0.10) por lote
 
     const reward = dollarRisk * selectedFondeoRr;
     const marginPct = curBalance > 0 ? (margin / curBalance) * 100 : 0;
@@ -676,9 +686,9 @@ function setupFondeoCalculator() {
     const elReward = document.getElementById('fondeoCalcReward');
     if (elReward) elReward.textContent = `+$${formatMoney(reward)}`;
     const elPipVal = document.getElementById('fondeoCalcPipVal');
-    if (elPipVal) elPipVal.textContent = `$${formatMoney(pipVal)}`;
+    if (elPipVal) elPipVal.textContent = `$${formatMoney(pipVal)}/pip`;
     const elMarginPct = document.getElementById('fondeoCalcMarginPct');
-    if (elMarginPct) elMarginPct.textContent = `${marginPct.toFixed(1)}%`;
+    if (elMarginPct) elMarginPct.textContent = `${marginPct.toFixed(1)}% (1:30)`;
 
     const orion = summary.orion_metrics || {};
     const dailyHeadroom = orion.daily_loss_headroom !== undefined ? orion.daily_loss_headroom : 2000.0;
@@ -688,10 +698,14 @@ function setupFondeoCalculator() {
     if (banner && bannerText) {
       if (dollarRisk > dailyHeadroom) {
         banner.className = 'p-3 rounded-xl border flex items-start gap-2 bg-red-950/40 border-red-800/80 text-red-300';
-        bannerText.innerHTML = `⚠️ <b>¡ALERTA DE RIESGO!</b> Esta operación arriesga <b>$${formatMoney(dollarRisk)}</b>, superando tu colchón diario disponible de <b>$${formatMoney(dailyHeadroom)}</b>. Podrías violar la regla de pérdida diaria del 4% ($2,000)!`;
+        bannerText.innerHTML = `⚠️ <b>¡ALERTA DE RIESGO EN ORO!</b> Esta operación arriesga <b>$${formatMoney(dollarRisk)}</b>, superando tu colchón diario disponible de <b>$${formatMoney(dailyHeadroom)}</b>. Podrías violar la regla de pérdida diaria del 4% ($2,000)!`;
+      } else if (margin > curBalance * 0.40) {
+        banner.className = 'p-3 rounded-xl border flex items-start gap-2 bg-amber-950/40 border-amber-800/80 text-amber-300';
+        bannerText.innerHTML = `⚠️ <b>PRECAUCIÓN DE MARGEN (1:30):</b> Este lote en Oro retiene <b>$${formatMoney(margin)} (${marginPct.toFixed(1)}%)</b>. Mantén suficiente margen libre para soportar fluctuaciones.`;
       } else {
+        const lossesUntilBreach = Math.floor(dailyHeadroom / dollarRisk);
         banner.className = 'p-3 rounded-xl border flex items-start gap-2 bg-emerald-950/40 border-emerald-800/80 text-emerald-300';
-        bannerText.innerHTML = `🛡️ <b>Operación Segura:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b>. Colchón diario restante tras este trade: <b>$${formatMoney(dailyHeadroom - dollarRisk)}</b>.`;
+        bannerText.innerHTML = `🛡️ <b>Operación Segura en Oro:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b> con SL de <b>$${slPriceDist.toFixed(2)}</b>. Soportas <b>${lossesUntilBreach} pérdidas seguidas</b> hoy sin violar el 4% diario ($2,000). Margen retenido: <b>$${formatMoney(margin)} (${marginPct.toFixed(1)}%)</b>.`;
       }
     }
   }
@@ -700,6 +714,18 @@ function setupFondeoCalculator() {
   if (slInput) slInput.addEventListener('input', calculateFondeoMetrics);
   if (riskSelect) riskSelect.addEventListener('change', calculateFondeoMetrics);
   if (manualRiskInput) manualRiskInput.addEventListener('input', calculateFondeoMetrics);
+
+  // Quick preset buttons for Gold SL ($2, $3, $5, $8)
+  document.querySelectorAll('.btn-sl-gold-preset').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const pips = btn.dataset.pips || '30';
+      if (slInput) {
+        slInput.value = pips;
+        calculateFondeoMetrics();
+      }
+    });
+  });
 
   rrButtons.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -716,9 +742,9 @@ function setupFondeoCalculator() {
 
   if (btnApply) {
     btnApply.addEventListener('click', () => {
-      const asset = assetSelect ? assetSelect.value : 'EUR/USD';
-      const lot = document.getElementById('fondeoCalcLot') ? document.getElementById('fondeoCalcLot').textContent : '2.50';
-      const sl = slInput ? slInput.value : '10';
+      const asset = assetSelect ? assetSelect.value : 'XAU/USD';
+      const lot = document.getElementById('fondeoCalcLot') ? document.getElementById('fondeoCalcLot').textContent : '0.83';
+      const sl = slInput ? slInput.value : '30';
 
       const formAsset = document.getElementById('fondeoFormAsset');
       const formLot = document.getElementById('fondeoFormLot');
@@ -737,7 +763,6 @@ function setupFondeoCalculator() {
 
   calculateFondeoMetrics();
 }
-
 function setupFondeoTradeForm() {
   const form = document.getElementById('formFondeoTrade');
   if (!form) return;
