@@ -69,17 +69,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   startMarketClock();
   initIcons();
 
-  // 1. Recuperación instantánea de caché local de operaciones reales (espejo de seguridad inmediato)
-  try {
-    const cachedReal = localStorage.getItem('cached_real_trades_v2') || localStorage.getItem('cached_real_trades');
-    if (cachedReal) {
-      const parsed = JSON.parse(cachedReal);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        appState.real.trades = parsed;
-      }
-    }
-  } catch (e) {}
-
   setupTabNavigation();
   initCharts();
   setupEventListeners();
@@ -88,19 +77,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupMacroGuideModalEvents();
   setupTradingViewWebhookEvents();
 
-  // 2. Cargar configuración y datos autoritativos del servidor
+  // Cargar configuración y datos de Fondeo Orion Nova 50K
   await loadConfig();
-  await loadTrades('real');
-  await loadTrades('backtest');
   await loadFondeoTrades();
-  setupFondeoCalculator();
   setupFondeoTradeForm();
   setupFondeoActionButtons();
+  setupNewsView();
   setCurrentDateTime();
-  renderRealJournalDashboard();
-  renderBacktestDashboard();
-  recalculateTradingViewValues();
-  updateCalculatorBalances();
   loadGoldBiasData();
 });
 
@@ -183,29 +166,27 @@ function formatMoney(val) {
 }
 
 // ----------------------------------------------------
-// TAB NAVIGATION: 1. Fondeo Orion Nova 50K | 2. Bitácora Real | 3. Calculadora & Reglas
+// TAB NAVIGATION: 1. Operativa & Bitácora 50K | 2. Noticias de Alto Impacto | 3. Reglamento Oficial Orion
 // ----------------------------------------------------
 function setupTabNavigation() {
   const btnFondeo = document.getElementById('tabBtnFondeo');
-  const btnReal = document.getElementById('tabBtnRealJournal');
-  const btnCalc = document.getElementById('tabBtnCalculator');
+  const btnNews = document.getElementById('tabBtnNews');
+  const btnRules = document.getElementById('tabBtnRules');
 
   const viewFondeo = document.getElementById('viewFondeo');
-  const viewReal = document.getElementById('viewRealJournal');
-  const viewCalc = document.getElementById('viewCalculator');
-  const viewBacktest = document.getElementById('viewBacktest');
-  const viewManual = document.getElementById('viewManualGuide');
+  const viewNews = document.getElementById('viewNews');
+  const viewRules = document.getElementById('viewRules');
 
   function switchTab(tab) {
     appState.activeTab = tab;
     try {
-      localStorage.setItem('activeTab_orion', tab);
+      localStorage.setItem('activeTab_orion_v3', tab);
     } catch (e) {}
 
-    const activeClasses = ['bg-amber-500', 'bg-emerald-600', 'bg-blue-600', 'text-black', 'text-white', 'shadow-lg', 'shadow-amber-500/30', 'shadow-emerald-600/30', 'shadow-blue-600/30', 'font-black', 'font-bold'];
+    const activeClasses = ['bg-amber-500', 'bg-rose-600', 'bg-emerald-600', 'text-black', 'text-white', 'shadow-lg', 'shadow-amber-500/30', 'shadow-rose-600/30', 'shadow-emerald-600/30', 'font-black', 'font-bold'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnFondeo, btnReal, btnCalc].forEach(btn => {
+    [btnFondeo, btnNews, btnRules].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
@@ -213,10 +194,8 @@ function setupTabNavigation() {
     });
 
     if (viewFondeo) viewFondeo.classList.add('hidden');
-    if (viewReal) viewReal.classList.add('hidden');
-    if (viewCalc) viewCalc.classList.add('hidden');
-    if (viewBacktest) viewBacktest.classList.add('hidden');
-    if (viewManual) viewManual.classList.add('hidden');
+    if (viewNews) viewNews.classList.add('hidden');
+    if (viewRules) viewRules.classList.add('hidden');
 
     if (tab === 'fondeo') {
       if (btnFondeo) {
@@ -228,26 +207,19 @@ function setupTabNavigation() {
       setTimeout(() => {
         if (fondeoEquityChart) fondeoEquityChart.resize();
       }, 50);
-    } else if (tab === 'real') {
-      if (btnReal) {
-        btnReal.classList.remove(...inactiveClasses);
-        btnReal.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-bold');
+    } else if (tab === 'news') {
+      if (btnNews) {
+        btnNews.classList.remove(...inactiveClasses);
+        btnNews.classList.add('bg-rose-600', 'text-white', 'shadow-lg', 'shadow-rose-600/30', 'font-bold');
       }
-      if (viewReal) viewReal.classList.remove('hidden');
-      renderRealJournalDashboard();
-      setTimeout(() => {
-        if (equityChart) equityChart.resize();
-        if (distributionChart) distributionChart.resize();
-        if (drawdownChart) drawdownChart.resize();
-        updateCharts();
-      }, 50);
-    } else if (tab === 'calculator') {
-      if (btnCalc) {
-        btnCalc.classList.remove(...inactiveClasses);
-        btnCalc.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-600/30', 'font-bold');
+      if (viewNews) viewNews.classList.remove('hidden');
+      renderNewsView();
+    } else if (tab === 'rules') {
+      if (btnRules) {
+        btnRules.classList.remove(...inactiveClasses);
+        btnRules.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-bold');
       }
-      if (viewCalc) viewCalc.classList.remove('hidden');
-      runMyfxbookCalculator();
+      if (viewRules) viewRules.classList.remove('hidden');
     }
 
     initIcons();
@@ -256,11 +228,11 @@ function setupTabNavigation() {
   window.switchTabTo = switchTab;
 
   if (btnFondeo) btnFondeo.addEventListener('click', () => switchTab('fondeo'));
-  if (btnReal) btnReal.addEventListener('click', () => switchTab('real'));
-  if (btnCalc) btnCalc.addEventListener('click', () => switchTab('calculator'));
+  if (btnNews) btnNews.addEventListener('click', () => switchTab('news'));
+  if (btnRules) btnRules.addEventListener('click', () => switchTab('rules'));
 
-  let savedTab = localStorage.getItem('activeTab_orion');
-  if (!savedTab || !['fondeo', 'real', 'calculator'].includes(savedTab)) {
+  let savedTab = localStorage.getItem('activeTab_orion_v3');
+  if (!savedTab || !['fondeo', 'news', 'rules'].includes(savedTab)) {
     savedTab = 'fondeo';
   }
   switchTab(savedTab);
@@ -932,6 +904,11 @@ function setupFondeoTradeForm() {
   const lotEl = document.getElementById('fondeoFormLot');
   const dirEl = document.getElementById('fondeoFormDirection');
   const assetEl = document.getElementById('fondeoFormAsset');
+  const dateEl = document.getElementById('fondeoFormDate');
+  const riskPctEl = document.getElementById('fondeoFormRiskPct');
+  const manualRiskGroup = document.getElementById('fondeoManualRiskGroup');
+  const manualUsdInp = document.getElementById('fondeoManualUsdInput');
+
   const pnlEl = document.getElementById('fondeoFormPnl');
   const rrEl = document.getElementById('fondeoFormRr');
   const slPipsEl = document.getElementById('fondeoFormSlPips');
@@ -941,24 +918,93 @@ function setupFondeoTradeForm() {
   const tpBadge = document.getElementById('fondeoFormTpPtsBadge');
   const ptsDisp = document.getElementById('fondeoCalcPointsDisplay');
   const rrDisp = document.getElementById('fondeoCalcRrDisplay');
+  const statusDisp = document.getElementById('fondeoCalcStatusDisplay');
   const pnlDisp = document.getElementById('fondeoCalcPnlDisplay');
   const pctDisp = document.getElementById('fondeoCalcPctDisplay');
+
+  const marginDisp = document.getElementById('fondeoFormMarginDisplay');
+  const riskUsdDisp = document.getElementById('fondeoFormRiskUsdDisplay');
+  const safetyText = document.getElementById('fondeoFormSafetyText');
+  const safetyBanner = document.getElementById('fondeoFormSafetyBanner');
+  const autoLotHint = document.getElementById('badgeAutoLotHint');
 
   const btnTp = document.getElementById('btnFondeoExitTp');
   const btnSl = document.getElementById('btnFondeoExitSl');
   const btnBe = document.getElementById('btnFondeoExitBe');
 
+  if (dateEl && !dateEl.value) {
+    const d = new Date();
+    dateEl.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  }
+
   function updateFondeoCalculation() {
+    const curBal = (appState.fondeo?.summary?.current_balance !== undefined) 
+      ? Number(appState.fondeo.summary.current_balance) 
+      : 50000.0;
+
+    const riskChoice = riskPctEl ? riskPctEl.value : '0.5';
+    let riskPct = 0.50;
+    let dollarRisk = 250.00;
+
+    if (riskChoice === 'manual') {
+      if (manualRiskGroup) manualRiskGroup.classList.remove('hidden');
+      dollarRisk = parseFloat(manualUsdInp?.value) || 250.0;
+      riskPct = (dollarRisk / curBal) * 100.0;
+    } else {
+      if (manualRiskGroup) manualRiskGroup.classList.add('hidden');
+      riskPct = parseFloat(riskChoice) || 0.50;
+      dollarRisk = curBal * (riskPct / 100.0);
+    }
+
     const entry = parseFloat(entryEl?.value);
     const sl = parseFloat(slEl?.value);
     const tp = parseFloat(tpEl?.value);
     const exit = parseFloat(exitEl?.value);
-    const lot = parseFloat(lotEl?.value) || 0.83;
     const dir = dirEl?.value || 'BUY';
     const asset = assetEl?.value || 'XAU/USD';
-    const curBal = (appState.fondeo?.summary?.current_balance !== undefined) 
-      ? Number(appState.fondeo.summary.current_balance) 
-      : 50000.0;
+
+    // Auto-lot calculation based on SL distance in points
+    let slPts = null;
+    if (!isNaN(entry) && !isNaN(sl)) {
+      slPts = Math.round(Math.abs(entry - sl) * 100);
+    }
+    if (slPts !== null && slPts > 0) {
+      const autoLot = Math.max(0.01, roundNum(dollarRisk / slPts, 2));
+      if (autoLotHint) autoLotHint.textContent = `Auto: ${autoLot.toFixed(2)}`;
+      if (lotEl && !lotEl.dataset.userModified) {
+        lotEl.value = autoLot.toFixed(2);
+      }
+    }
+
+    const lot = parseFloat(lotEl?.value) || 0.83;
+
+    // Margin calculation (1:30 leverage for Gold, 1:100 for Forex)
+    const isGold = anyStringIncludes(asset, ['XAU', 'GOLD', 'ORO']);
+    const lev = isGold ? 30.0 : 100.0;
+    const currentPrice = (!isNaN(entry) && entry > 1000) ? entry : 2720.0;
+    const mult = isGold ? 100.0 : 100000.0;
+    const margin = roundNum((currentPrice * mult * lot) / (isGold ? 30.0 : 100.0 * currentPrice), 2);
+    const goldMargin = roundNum((2720.0 * 100.0 * lot) / 30.0, 2);
+    const marginToUse = isGold ? goldMargin : roundNum((100000.0 * lot) / 100.0, 2);
+    const marginPct = (marginToUse / curBal) * 100.0;
+
+    if (marginDisp) marginDisp.textContent = `$${formatMoney(marginToUse)} (${marginPct.toFixed(1)}%)`;
+    if (riskUsdDisp) riskUsdDisp.textContent = `$${formatMoney(dollarRisk)} (${riskPct.toFixed(2)}%)`;
+
+    const dailyHeadroom = (appState.fondeo?.summary?.daily_loss_headroom !== undefined) 
+      ? Number(appState.fondeo.summary.daily_loss_headroom) 
+      : 2000.0;
+    const lossesAllowed = Math.floor(dailyHeadroom / Math.max(1, dollarRisk));
+
+    if (safetyText) {
+      if (dollarRisk > dailyHeadroom * 0.5) {
+        safetyText.innerHTML = `⚠️ <b>Riesgo Elevado:</b> Arriesgas <b>$${formatMoney(dollarRisk)}</b>, consumiendo más del 50% de tu colchón diario ($${formatMoney(dailyHeadroom)}). Soportas solo <strong>${lossesAllowed} pérdidas</strong> hoy.`;
+        if (safetyBanner) safetyBanner.className = 'text-[11px] p-2 rounded-lg bg-rose-950/40 border border-rose-800/60 text-rose-300 flex items-center gap-1.5';
+      } else {
+        safetyText.innerHTML = `🛡️ <b>Riesgo Óptimo en Oro:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b>. Soportas <strong>${lossesAllowed} pérdidas seguidas</strong> hoy sin violar el 4% diario ($2,000).`;
+        if (safetyBanner) safetyBanner.className = 'text-[11px] p-2 rounded-lg bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 flex items-center gap-1.5';
+      }
+    }
 
     const calc = calculateTradePrices({
       asset,
@@ -980,12 +1026,13 @@ function setupFondeoTradeForm() {
     }
 
     if (calc.tpPoints !== null) {
-      if (tpBadge) tpBadge.textContent = `${calc.tpPoints} pts ($${calc.tpDist.toFixed(2)})`;
+      const projRr = calc.projectedRr ? `1:${calc.projectedRr}` : '1:2.0';
+      if (tpBadge) tpBadge.textContent = `${calc.tpPoints} pts (${projRr})`;
       if (calc.projectedRr !== null && rrEl && isNaN(parseFloat(exitEl?.value))) {
         rrEl.value = calc.projectedRr;
       }
     } else {
-      if (tpBadge) tpBadge.textContent = '0 pts';
+      if (tpBadge) tpBadge.textContent = '0 pts (1:2.0)';
     }
 
     if (calc.points !== null) {
@@ -1000,6 +1047,10 @@ function setupFondeoTradeForm() {
         const pctSign = calc.retPct > 0 ? '+' : '';
         pctDisp.textContent = `${pctSign}${calc.retPct.toFixed(2)}%`;
         pctDisp.className = `font-bold text-sm ${calc.retPct > 0 ? 'text-emerald-400' : (calc.retPct < 0 ? 'text-rose-400' : 'text-amber-400')}`;
+      }
+      if (statusDisp) {
+        statusDisp.textContent = calc.status.toUpperCase();
+        statusDisp.className = `font-bold px-2 py-0.5 rounded text-[10px] ${calc.status === 'win' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : (calc.status === 'loss' ? 'bg-rose-950 text-rose-400 border border-rose-800' : 'bg-gray-800 text-gray-300 border border-gray-700')}`;
       }
       if (pnlEl) pnlEl.value = calc.netPnl.toFixed(2);
       if (statusEl) statusEl.value = calc.status;
@@ -1017,19 +1068,36 @@ function setupFondeoTradeForm() {
         pnlDisp.className = 'font-bold text-emerald-400 text-sm';
       }
       if (pctDisp) {
-        pctDisp.textContent = '0.00%';
+        pctDisp.textContent = '+0.00%';
         pctDisp.className = 'font-bold text-amber-400 text-sm';
+      }
+      if (statusDisp) {
+        statusDisp.textContent = 'WIN';
+        statusDisp.className = 'font-bold px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800';
       }
       if (rrDisp) rrDisp.textContent = `1:${calc.projectedRr || (rrEl?.value || '2.0')}`;
     }
   }
 
-  [entryEl, slEl, tpEl, exitEl, lotEl, dirEl, assetEl].forEach(el => {
+  function anyStringIncludes(str, arr) {
+    if (!str) return false;
+    const upper = String(str).toUpperCase();
+    return arr.some(a => upper.includes(a));
+  }
+
+  [entryEl, slEl, tpEl, exitEl, dirEl, assetEl, riskPctEl, manualUsdInp].forEach(el => {
     if (el) {
       el.addEventListener('input', updateFondeoCalculation);
       el.addEventListener('change', updateFondeoCalculation);
     }
   });
+
+  if (lotEl) {
+    lotEl.addEventListener('input', () => {
+      lotEl.dataset.userModified = 'true';
+      updateFondeoCalculation();
+    });
+  }
 
   if (btnTp) {
     btnTp.addEventListener('click', () => {
@@ -1059,16 +1127,17 @@ function setupFondeoTradeForm() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const asset = document.getElementById('fondeoFormAsset').value;
-    const direction = document.getElementById('fondeoFormDirection').value;
-    const lot = parseFloat(document.getElementById('fondeoFormLot').value) || 0.01;
-    const slPips = parseFloat(document.getElementById('fondeoFormSlPips').value) || 10.0;
-    const status = document.getElementById('fondeoFormStatus').value;
-    const pnlInput = document.getElementById('fondeoFormPnl').value;
-    const rr = parseFloat(document.getElementById('fondeoFormRr').value) || 2.0;
-    const session = document.getElementById('fondeoFormSession').value;
-    const tvUrl = document.getElementById('fondeoFormTvUrl').value;
-    const notes = document.getElementById('fondeoFormNotes').value;
+    const asset = document.getElementById('fondeoFormAsset')?.value || 'XAU/USD';
+    const direction = document.getElementById('fondeoFormDirection')?.value || 'BUY';
+    const lot = parseFloat(lotEl?.value) || 0.83;
+    const slPips = parseFloat(slPipsEl?.value) || 30.0;
+    const status = statusEl?.value || 'win';
+    const pnlInput = pnlEl?.value;
+    const rr = parseFloat(rrEl?.value) || 2.0;
+    const session = document.getElementById('fondeoFormSession')?.value || 'New York';
+    const tvUrl = document.getElementById('fondeoFormTvUrl')?.value || '';
+    const notes = document.getElementById('fondeoFormNotes')?.value || '';
+    const dateVal = dateEl?.value || '';
 
     const entry = parseFloat(entryEl?.value);
     const sl = parseFloat(slEl?.value);
@@ -1089,17 +1158,18 @@ function setupFondeoTradeForm() {
       notes: notes
     };
 
+    if (dateVal) payload.date = dateVal;
     if (!isNaN(entry)) payload.entry_price = entry;
     if (!isNaN(sl)) payload.sl_price = sl;
     if (!isNaN(tp)) payload.tp_price = tp;
     if (!isNaN(exit)) payload.exit_price = exit;
 
-    if (pnlInput && pnlInput.trim() !== '') {
+    if (pnlInput && String(pnlInput).trim() !== '') {
       payload.pnl = parseFloat(pnlInput);
     }
 
     try {
-      const res = await fetch('/api/trades', {
+      const res = await fetch('/api/trades?mode=fondeo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -1107,6 +1177,7 @@ function setupFondeoTradeForm() {
 
       if (res.ok) {
         form.reset();
+        if (lotEl) delete lotEl.dataset.userModified;
         if (slBadge) slBadge.textContent = '0 pts';
         if (tpBadge) tpBadge.textContent = '0 pts';
         if (ptsDisp) ptsDisp.textContent = '0 pts (0.0 pips)';
@@ -1125,6 +1196,9 @@ function setupFondeoTradeForm() {
       alert('Error de conexión al registrar trade');
     }
   });
+
+  // Initial calculation trigger
+  updateFondeoCalculation();
 }
 
 function setupFondeoActionButtons() {
@@ -5080,11 +5154,27 @@ function evaluateDynamicNewsShield() {
   const precHeadlineEl = document.getElementById("precNewsShieldHeadline");
   const precAdviceEl = document.getElementById("precNewsShieldAdvice");
 
+  const newsTrafficLight = document.getElementById("newsTrafficLightStatus");
+  const newsCountdownText = document.getElementById("newsCountdownText");
+  const newsTrafficIconBox = document.getElementById("newsTrafficIconBox");
+
   if (activeBlock) {
     const { event, diffMinutes } = activeBlock;
     const isPre = diffMinutes > 0;
     const absMin = Math.abs(diffMinutes);
     const remCoolDown = Math.max(1, 15 - absMin);
+
+    if (newsTrafficLight) {
+      if (absMin <= 2) {
+        newsTrafficLight.innerHTML = '<span class="w-3 h-3 rounded-full bg-red-500 animate-ping shrink-0"></span><span class="text-rose-400 font-black">VENTANA CRÍTICA ±2 MIN (PROHIBIDO OPERAR EN FONDEADO)</span>';
+        if (newsCountdownText) newsCountdownText.textContent = `⛔ Regla Orion: No abrir, cerrar ni modificar órdenes (${absMin} min de ${event.title})`;
+        if (newsTrafficIconBox) newsTrafficIconBox.className = "p-3 bg-rose-500/20 text-rose-400 rounded-xl border border-rose-500/40 shrink-0";
+      } else {
+        newsTrafficLight.innerHTML = '<span class="w-3 h-3 rounded-full bg-amber-400 animate-pulse shrink-0"></span><span class="text-amber-400 font-bold">ALERTA NOTICIA (< 15 MIN)</span>';
+        if (newsCountdownText) newsCountdownText.textContent = `${event.title} a las ${event.time} (${absMin} min)`;
+        if (newsTrafficIconBox) newsTrafficIconBox.className = "p-3 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/40 shrink-0";
+      }
+    }
 
     lastNewsShieldStatus = {
       isBlocked: true,
@@ -5160,6 +5250,12 @@ function evaluateDynamicNewsShield() {
       bannerText: ""
     };
 
+    if (newsTrafficLight) {
+      newsTrafficLight.innerHTML = '<span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse shrink-0"></span><span class="text-emerald-400 font-bold">ZONA SEGURA (Sin noticias rojas)</span>';
+      if (newsCountdownText) newsCountdownText.textContent = "Spreads y volatilidad normales para operativa manual";
+      if (newsTrafficIconBox) newsTrafficIconBox.className = "p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 shrink-0";
+    }
+
     if (badgeEl) badgeEl.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold flex items-center gap-1";
     if (textEl) textEl.textContent = "🟢 VÍA LIBRE";
     if (headlineEl) headlineEl.textContent = lastNewsShieldStatus.headline;
@@ -5180,6 +5276,24 @@ function evaluateDynamicNewsShield() {
   return lastNewsShieldStatus;
 }
 
+function setupNewsView() {
+  renderNewsView();
+}
+
+async function renderNewsView() {
+  try {
+    const res = await fetch('/api/news');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data) {
+      weeklyNewsState = data;
+      evaluateDynamicNewsShield();
+    }
+  } catch (e) {
+    console.error('Error cargando noticias:', e);
+  }
+}
+
 function startMarketClock() {
   function tick() {
     const now = new Date();
@@ -5188,6 +5302,27 @@ function startMarketClock() {
     const nyClockEl = document.getElementById("marketNyClock");
     if (nyClockEl) {
       nyClockEl.textContent = `${String(session.hour).padStart(2, "0")}:${String(session.min).padStart(2, "0")}:${String(session.sec).padStart(2, "0")} NY (ET)`;
+    }
+
+    const newsNyClock = document.getElementById("newsNyClock");
+    if (newsNyClock) {
+      newsNyClock.textContent = `${String(session.hour).padStart(2, "0")}:${String(session.min).padStart(2, "0")}:${String(session.sec).padStart(2, "0")} NY`;
+    }
+
+    const newsUtcClock = document.getElementById("newsUtcClock");
+    if (newsUtcClock) {
+      newsUtcClock.textContent = `UTC: ${now.toUTCString().slice(17, 25)}`;
+    }
+
+    const newsCurrentSession = document.getElementById("newsCurrentSession");
+    if (newsCurrentSession) {
+      let sessionName = "Mercado Asiático / Pre-Londres";
+      if (session.hour >= 3 && session.hour < 8) sessionName = "Sesión Londres (03:00 - 08:00 NY)";
+      else if (session.hour >= 8 && (session.hour < 11 || (session.hour === 11 && session.min <= 30))) sessionName = "New York Killzone (08:00 - 11:30 NY)";
+      else if (session.hour >= 11 && session.hour < 13) sessionName = "London Fix & Post-Killzone";
+      else if (session.hour >= 13 && session.hour < 17) sessionName = "Sesión Tarde New York";
+      else sessionName = "Mercado Asiático (Cierre NY)";
+      newsCurrentSession.textContent = sessionName;
     }
 
     const localClockEl = document.getElementById("marketLocalClock");
