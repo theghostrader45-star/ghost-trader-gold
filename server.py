@@ -37,7 +37,10 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 TRADES_FILE = os.path.join(DATA_DIR, "trades.json")
 TRADES_BACKTEST_FILE = os.path.join(DATA_DIR, "trades_backtest.json")
 TRADES_REAL_FILE = os.path.join(DATA_DIR, "trades_real.json")
+TRADES_FONDEO_FILE = os.path.join(DATA_DIR, "trades_fondeo.json")
 CONFIG_FILE = os.path.join(DATA_DIR, "config.json")
+CONFIG_REAL_FILE = os.path.join(DATA_DIR, "config_real.json")
+CONFIG_FONDEO_FILE = os.path.join(DATA_DIR, "config_fondeo.json")
 GOLD_BIAS_FILE = os.path.join(DATA_DIR, "gold_bias.json")
 GOLD_BIAS_HISTORY_FILE = os.path.join(DATA_DIR, "gold_bias_history.json")
 WEEKLY_NEWS_FILE = os.path.join(DATA_DIR, "weekly_news.json")
@@ -56,7 +59,36 @@ DEFAULT_CONFIG = {
     "lot_step": 0.01,
     "risk_mode": "percent",     # 'percent' pure compounding
     "currency": "USD",
-    "asset": "XAU/USD (Gold)"
+    "asset": "EUR/USD (Euro)"
+}
+
+DEFAULT_FONDEO_CONFIG = {
+    "account_type": "Orion Nova 50K (Pay After You Pass)",
+    "initial_balance": 50000.0,
+    "profit_target_pct": 4.0,
+    "profit_target_usd": 2000.0,
+    "daily_loss_pct": 4.0,
+    "daily_loss_usd": 2000.0,
+    "max_loss_pct": 8.0,
+    "max_loss_usd": 4000.0,
+    "drawdown_type": "trailing_lock",
+    "leverage": 100.0,
+    "min_trading_days": 0,
+    "best_day_rule_pct": 20.0,
+    "currency": "USD",
+    "risk_pct": 0.5,
+    "rr_ratio": 2.0,
+    "asset": "EUR/USD"
+}
+
+DEFAULT_REAL_CONFIG = {
+    "account_type": "Cuenta Real Personal",
+    "initial_balance": 97.72,
+    "risk_pct": 1.0,
+    "leverage": 500.0,
+    "rr_ratio": 2.0,
+    "currency": "USD",
+    "asset": "EUR/USD"
 }
 
 def load_json(path, default):
@@ -75,14 +107,19 @@ def save_json(path, data):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 def get_trades_file(mode="backtest"):
-    if mode == "real":
+    if mode == "fondeo":
+        return TRADES_FONDEO_FILE
+    elif mode == "real":
         return TRADES_REAL_FILE
     return TRADES_BACKTEST_FILE
 
 def get_trades(mode="backtest"):
     fpath = get_trades_file(mode)
     if not os.path.exists(fpath):
-        if mode == "backtest" and os.path.exists(TRADES_FILE):
+        if mode == "fondeo":
+            save_json(fpath, [])
+            return []
+        elif mode == "backtest" and os.path.exists(TRADES_FILE):
             return load_json(TRADES_FILE, [])
         return []
     return load_json(fpath, [])
@@ -92,6 +129,33 @@ def save_trades(trades, mode="backtest"):
     save_json(fpath, trades)
     if mode == "backtest":
         save_json(TRADES_FILE, trades)
+
+def get_config(mode="backtest"):
+    if mode == "fondeo":
+        cfg = load_json(CONFIG_FONDEO_FILE, DEFAULT_FONDEO_CONFIG)
+        for k, v in DEFAULT_FONDEO_CONFIG.items():
+            if k not in cfg:
+                cfg[k] = v
+        return cfg
+    elif mode == "real":
+        cfg = load_json(CONFIG_REAL_FILE, DEFAULT_REAL_CONFIG)
+        for k, v in DEFAULT_REAL_CONFIG.items():
+            if k not in cfg:
+                cfg[k] = v
+        return cfg
+    config = load_json(CONFIG_FILE, DEFAULT_CONFIG)
+    for k, v in DEFAULT_CONFIG.items():
+        if k not in config:
+            config[k] = v
+    return config
+
+def save_config(config, mode="backtest"):
+    if mode == "fondeo":
+        save_json(CONFIG_FONDEO_FILE, config)
+    elif mode == "real":
+        save_json(CONFIG_REAL_FILE, config)
+    else:
+        save_json(CONFIG_FILE, config)
 
 def get_gold_bias():
     return load_json(GOLD_BIAS_FILE, {})
@@ -649,14 +713,6 @@ def scan_m5_gold_market():
     _m5_scanner_cache["data"] = result
     return result
 
-def get_config():
-    config = load_json(CONFIG_FILE, DEFAULT_CONFIG)
-    # Ensure all default keys exist
-    for k, v in DEFAULT_CONFIG.items():
-        if k not in config:
-            config[k] = v
-    return config
-
 def recalculate_trade_history(trades, config, mode="backtest"):
     """
     Recalculates the entire trade history sequentially using dynamic compound interest
@@ -794,28 +850,19 @@ def recalculate_trade_history(trades, config, mode="backtest"):
     return updated_trades
 
 def calculate_analytics(trades, config, mode="backtest"):
-    initial_balance = float(config.get("initial_balance", 92.08 if mode == "real" else 110.0))
-    mt5_conn = False
-    mt5_broker = ""
-    if mode == "real":
-        try:
-            from engine_strategies import mt5_store
-            acc = mt5_store.get("account", {})
-            mt5_bal = float(acc.get("balance", 0.0))
-            if mt5_bal > 0:
-                mt5_conn = bool(mt5_store.get("connected"))
-                mt5_broker = acc.get("company", "Tickmill Ltd")
-                total_pnl = sum(float(t.get("pnl", 0.0)) for t in trades)
-                implied_init = round(mt5_bal - total_pnl, 2)
-                if implied_init > 0:
-                    initial_balance = implied_init
-                else:
-                    initial_balance = round(max(10.0, float(acc.get("initial_deposit", 92.08))), 2)
-        except Exception:
-            pass
+    if mode == "fondeo":
+        initial_balance = float(config.get("initial_balance", 50000.0))
+        leverage = float(config.get("leverage", 100.0))
+        mt5_broker = "Orion Funded (Nova 50K)"
+    elif mode == "real":
+        initial_balance = float(config.get("initial_balance", 97.72))
+        leverage = float(config.get("leverage", 500.0))
+        mt5_broker = "Tickmill Real ($97.72)"
+    else:
+        initial_balance = float(config.get("initial_balance", 110.0))
+        leverage = float(config.get("leverage", 300.0))
+        mt5_broker = "Demo Backtesting"
 
-    leverage = float(config.get("leverage", 300))
-    
     current_balance = initial_balance
     peak_balance = initial_balance
     max_drawdown_amount = 0.0
@@ -843,16 +890,17 @@ def calculate_analytics(trades, config, mode="backtest"):
     processed_trades = []
     sl_points_list = []
     
-    global_risk = float(config.get("risk_pct", 5.0))
-    global_rr = float(config.get("rr_ratio", 1.0))
+    global_risk = float(config.get("risk_pct", 0.5 if mode == "fondeo" else (1.0 if mode == "real" else 5.0)))
+    global_rr = float(config.get("rr_ratio", 2.0))
+
+    daily_pnl_map = {}
 
     for idx, t in enumerate(trades, start=1):
-        status = t.get("status", "win").lower()
+        status = str(t.get("status", "win")).lower()
         raw_risk = t.get("risk_pct_custom") or t.get("risk_pct") or global_risk
         trade_risk = round(float(str(raw_risk).replace(",", ".")), 2)
         trade_rr = round(float(str(t.get("rr_custom") or t.get("rr") or global_rr).replace(",", ".")), 2)
 
-        # Pure percentage dynamic compounding
         if status == "win":
             ret_pct = round(trade_risk * trade_rr, 2)
         elif status == "loss":
@@ -863,43 +911,45 @@ def calculate_analytics(trades, config, mode="backtest"):
         raw_comm = t.get("commission", 0.0)
         commission = round(abs(float(str(raw_comm).replace(",", "."))), 2)
 
-        trade_mode = t.get("mode") or mode
-        if trade_mode == "backtest":
-            pnl = round(current_balance * (ret_pct / 100.0), 2)
-        else:
-            raw_pnl = None
-            if "pnl" in t and t["pnl"] is not None and str(t["pnl"]).strip() != "":
-                try:
-                    raw_pnl = round(float(str(t["pnl"]).replace(",", ".")), 2)
-                except (ValueError, TypeError):
-                    raw_pnl = None
+        raw_pnl = None
+        if "pnl" in t and t["pnl"] is not None and str(t["pnl"]).strip() != "":
+            try:
+                raw_pnl = round(float(str(t["pnl"]).replace(",", ".")), 2)
+            except (ValueError, TypeError):
+                raw_pnl = None
 
-            if raw_pnl is not None:
-                pnl = raw_pnl
+        if raw_pnl is not None:
+            pnl = raw_pnl
+        else:
+            if status == "win":
+                pnl = round(current_balance * (ret_pct / 100.0) - commission, 2)
+            elif status == "loss":
+                pnl = -round(current_balance * (trade_risk / 100.0) + commission, 2)
             else:
-                if status == "win":
-                    pnl = round(current_balance * (ret_pct / 100.0) - commission, 2)
-                elif status == "loss":
-                    pnl = -round(current_balance * (trade_risk / 100.0) + commission, 2)
-                else:
-                    pnl = -commission
-        
-        # Track SL points for average calculation
-        if t.get("tv_points") is not None and float(t.get("tv_points")) >= 20.0:
+                pnl = -commission
+
+        # Track SL points/pips
+        if t.get("sl_pips") is not None:
+            try:
+                pts = round(float(str(t["sl_pips"]).replace(",", ".")), 1)
+            except Exception:
+                pts = 10.0
+        elif t.get("tv_points") is not None and float(t.get("tv_points")) >= 20.0:
             pts = round(float(t["tv_points"]))
         elif t.get("sl_points") is not None and float(t.get("sl_points")) >= 20.0:
             pts = round(float(t["sl_points"]))
         else:
             raw_sl = float(t.get("sl_distance", 3.0))
-            if raw_sl <= 0:
-                raw_sl = 3.0
             pts = round(raw_sl) if raw_sl >= 20.0 else round(raw_sl * 100.0)
         sl_points_list.append(pts)
-        
+
         balance_before = current_balance
         current_balance += pnl
         if current_balance < 0:
             current_balance = 0.0
+
+        t_date_str = str(t.get("date", datetime.now().strftime("%Y-%m-%d")))[:10]
+        daily_pnl_map[t_date_str] = daily_pnl_map.get(t_date_str, 0.0) + pnl
 
         if pnl > 0:
             wins += 1
@@ -957,7 +1007,6 @@ def calculate_analytics(trades, config, mode="backtest"):
     avg_win = (total_gain / wins) if wins > 0 else 0.0
     avg_loss = (total_loss / losses) if losses > 0 else 0.0
     
-    # Average Stop Loss across registered trades
     if sl_points_list:
         avg_sl_points = round(sum(sl_points_list) / len(sl_points_list), 1)
         avg_sl_price = round(avg_sl_points / 100.0, 2)
@@ -969,83 +1018,197 @@ def calculate_analytics(trades, config, mode="backtest"):
         min_sl_points = 0
         max_sl_points = 0
     
-    # Mathematical Expectancy = (Win% * AvgWin) - (Loss% * AvgLoss)
     win_prob = win_rate / 100.0
     loss_prob = loss_rate / 100.0
     expectancy_usd = (win_prob * avg_win) - (loss_prob * avg_loss)
-    
-    # Breakeven win rate needed for RR
-    global_rr = float(config.get("rr_ratio", 1.0))
     be_winrate = round((1.0 / (1.0 + global_rr)) * 100.0, 1) if global_rr > 0 else 50.0
 
+    summary_data = {
+        "initial_balance": round(initial_balance, 2),
+        "current_balance": round(current_balance, 2),
+        "mt5_connected": False,
+        "broker": mt5_broker,
+        "net_pnl": round(net_pnl, 2),
+        "net_return_pct": round(net_return_pct, 2),
+        "total_trades": total_closed,
+        "wins": wins,
+        "losses": losses,
+        "breakevens": breakevens,
+        "win_rate": round(win_rate, 2),
+        "loss_rate": round(loss_rate, 2),
+        "profit_factor": round(profit_factor, 2) if profit_factor != 999.0 else "∞",
+        "total_gain": round(total_gain, 2),
+        "total_loss": round(total_loss, 2),
+        "avg_win": round(avg_win, 2),
+        "avg_loss": round(avg_loss, 2),
+        "avg_sl_points": avg_sl_points,
+        "avg_sl_price": avg_sl_price,
+        "min_sl_points": min_sl_points,
+        "max_sl_points": max_sl_points,
+        "max_drawdown_amount": round(max_drawdown_amount, 2),
+        "max_drawdown_pct": round(max_drawdown_pct, 2),
+        "max_streak_win": max_streak_win,
+        "max_streak_loss": max_streak_loss,
+        "expectancy_usd": round(expectancy_usd, 2),
+        "be_winrate": be_winrate,
+        "leverage": leverage
+    }
+
+    # Orion Nova Metrics calculation
+    if mode == "fondeo":
+        target_profit_usd = float(config.get("profit_target_usd", 2000.0))
+        target_balance = initial_balance + target_profit_usd
+        daily_limit_usd = float(config.get("daily_loss_usd", 2000.0))
+        max_loss_usd = float(config.get("max_loss_usd", 4000.0))
+
+        # Trailing-Lock Drawdown:
+        # Initial floor is 50000 - 4000 = $46,000.
+        # As peak balance rises above 50000, trailing floor rises: peak_balance - 4000.
+        # BUT once trailing floor reaches 50000 (when peak balance >= 54000), it LOCKS at 50000!
+        if peak_balance > initial_balance:
+            trailing_floor = min(initial_balance, peak_balance - max_loss_usd)
+        else:
+            trailing_floor = initial_balance - max_loss_usd
+
+        trailing_locked = (trailing_floor >= initial_balance)
+        max_dd_headroom = max(0.0, current_balance - trailing_floor)
+
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        today_pnl = daily_pnl_map.get(today_str, 0.0)
+        today_loss = abs(today_pnl) if today_pnl < 0 else 0.0
+        daily_headroom = max(0.0, daily_limit_usd - today_loss)
+
+        max_day_profit = max(daily_pnl_map.values()) if daily_pnl_map else 0.0
+        if max_day_profit < 0: max_day_profit = 0.0
+        pos_profits = sum(p for p in daily_pnl_map.values() if p > 0)
+        best_day_pct = round((max_day_profit / pos_profits * 100.0), 1) if pos_profits > 0 else 0.0
+
+        target_progress_pct = max(0.0, min(100.0, (net_pnl / target_profit_usd * 100.0))) if target_profit_usd > 0 else 0.0
+        target_remaining_usd = max(0.0, target_profit_usd - net_pnl)
+
+        if current_balance >= target_balance:
+            eval_status = "TARGET_PASSED"
+        elif current_balance <= trailing_floor or today_loss >= daily_limit_usd:
+            eval_status = "VIOLATION"
+        else:
+            eval_status = "ACTIVE"
+
+        summary_data["orion_metrics"] = {
+            "initial_capital": initial_balance,
+            "target_profit_usd": target_profit_usd,
+            "target_balance": target_balance,
+            "target_progress_pct": round(target_progress_pct, 1),
+            "target_remaining_usd": round(target_remaining_usd, 2),
+            "daily_limit_usd": daily_limit_usd,
+            "today_pnl": round(today_pnl, 2),
+            "today_loss": round(today_loss, 2),
+            "daily_headroom": round(daily_headroom, 2),
+            "max_loss_usd": max_loss_usd,
+            "trailing_floor": round(trailing_floor, 2),
+            "trailing_locked": trailing_locked,
+            "max_dd_headroom": round(max_dd_headroom, 2),
+            "max_day_profit": round(max_day_profit, 2),
+            "best_day_pct": best_day_pct,
+            "best_day_compliant": (best_day_pct <= 20.0 or pos_profits <= 0),
+            "leverage": leverage,
+            "min_days": 0,
+            "time_limit": "Ilimitado",
+            "eval_status": eval_status
+        }
+
     return {
-        "summary": {
-            "initial_balance": round(initial_balance, 2),
-            "current_balance": round(current_balance, 2),
-            "mt5_connected": mt5_conn,
-            "broker": mt5_broker,
-            "net_pnl": round(net_pnl, 2),
-            "net_return_pct": round(net_return_pct, 2),
-            "total_trades": total_closed,
-            "wins": wins,
-            "losses": losses,
-            "breakevens": breakevens,
-            "win_rate": round(win_rate, 2),
-            "loss_rate": round(loss_rate, 2),
-            "profit_factor": round(profit_factor, 2) if profit_factor != 999.0 else "∞",
-            "total_gain": round(total_gain, 2),
-            "total_loss": round(total_loss, 2),
-            "avg_win": round(avg_win, 2),
-            "avg_loss": round(avg_loss, 2),
-            "avg_sl_points": avg_sl_points,
-            "avg_sl_price": avg_sl_price,
-            "min_sl_points": min_sl_points,
-            "max_sl_points": max_sl_points,
-            "max_drawdown_amount": round(max_drawdown_amount, 2),
-            "max_drawdown_pct": round(max_drawdown_pct, 2),
-            "max_streak_win": max_streak_win,
-            "max_streak_loss": max_streak_loss,
-            "expectancy_usd": round(expectancy_usd, 2),
-            "be_winrate": be_winrate,
-            "leverage": leverage
-        },
+        "summary": summary_data,
         "equity_curve": equity_curve,
         "trades": processed_trades
     }
 
-def calculate_position_size(balance, risk_pct, sl_points, rr=1.0, leverage=300):
-    if balance <= 0 or sl_points <= 0 or risk_pct <= 0:
+def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="EUR/USD", rr=2.0, leverage=100.0, mode="fondeo"):
+    if balance <= 0 or sl_pips <= 0 or risk_pct <= 0:
         return None
     dollar_risk = round(balance * (risk_pct / 100.0), 2)
-    sl_price = round(sl_points / 100.0, 2)
     reward_pct = round(risk_pct * rr, 2)
     reward_dollar = round(dollar_risk * rr, 2)
+
+    is_gold = any(x in str(asset).upper() for x in ["XAU", "GOLD", "ORO"])
     
-    raw_lot = dollar_risk / sl_points if sl_points > 0 else 0.01
-    suggested_lot = round(raw_lot, 2)
-    lot_warning = None
-    if suggested_lot < 0.01:
-        lot_warning = f"Para arriesgar solo ${dollar_risk:.2f} con {sl_points} pts de SL necesitas {raw_lot:.4f} lotes, pero tu broker exige mínimo 0.01 lotes."
-        suggested_lot = 0.01
-        
-    margin_used = round((2700.0 * 100 * suggested_lot) / leverage, 2)
-    margin_pct = round((margin_used / balance) * 100.0, 1) if balance > 0 else 0.0
+    if is_gold:
+        # Gold contract: 1 lot = 100 oz. $1.00 move = $100.
+        sl_points = sl_pips if sl_pips >= 20.0 else (sl_pips * 100.0)
+        sl_price_dist = round(sl_points / 100.0, 2)
+        pip_val_per_lot = 1.0  # $1 per point on 1 lot
+        raw_lot = dollar_risk / sl_points if sl_points > 0 else 0.01
+        entry_ref_price = 2700.0
+        contract_size = 100
+        gold_leverage = min(leverage, 30.0) if mode == "fondeo" else leverage
+        margin_used = round((entry_ref_price * contract_size * max(0.01, round(raw_lot, 2))) / gold_leverage, 2)
+        effective_leverage = gold_leverage
+    else:
+        # Forex EUR/USD: 1 standard lot = 100,000 EUR. 1 pip (0.0001) = $10.00 USD on 1 lot
+        pip_val_per_lot = 10.0
+        raw_lot = dollar_risk / (sl_pips * pip_val_per_lot) if sl_pips > 0 else 0.01
+        entry_ref_price = 1.0850
+        contract_size = 100000
+        effective_leverage = leverage
+        margin_used = round((contract_size * entry_ref_price * max(0.01, round(raw_lot, 2))) / effective_leverage, 2)
+        sl_points = round(sl_pips * 10.0, 1)
+        sl_price_dist = round(sl_pips * 0.0001, 5)
+
+    suggested_lot = max(0.01, round(raw_lot, 2))
     
+    if is_gold:
+        actual_dollar_risk = round(suggested_lot * sl_points, 2)
+        pip_value_trade = round(suggested_lot * 1.0, 2)
+    else:
+        actual_dollar_risk = round(suggested_lot * sl_pips * 10.0, 2)
+        pip_value_trade = round(suggested_lot * 10.0, 2)
+
+    actual_risk_pct = round((actual_dollar_risk / balance * 100.0), 2) if balance > 0 else 0.0
+    free_margin = round(balance - margin_used, 2)
+    margin_level_pct = round((balance / margin_used * 100.0), 1) if margin_used > 0 else 9999.0
+
+    tp_targets = {
+        "rr_1_5": {"rr": 1.5, "profit_usd": round(dollar_risk * 1.5, 2), "pips": round(sl_pips * 1.5, 1)},
+        "rr_2_0": {"rr": 2.0, "profit_usd": round(dollar_risk * 2.0, 2), "pips": round(sl_pips * 2.0, 1)},
+        "rr_3_0": {"rr": 3.0, "profit_usd": round(dollar_risk * 3.0, 2), "pips": round(sl_pips * 3.0, 1)},
+    }
+
+    safety_warnings = []
+    if mode == "fondeo":
+        if dollar_risk > 1000.0:
+            safety_warnings.append(f"⚠️ Riesgo alto (${dollar_risk:,.2f}): Consume más del 50% de tu colchón diario de $2,000. Recomendado: 0.5% ($250) o 1.0% ($500).")
+        if dollar_risk >= 2000.0:
+            safety_warnings.append(f"🚨 ALERTA CRÍTICA: Un solo Stop Loss a ${dollar_risk:,.2f} quemaría la cuenta por regla de pérdida diaria.")
+    elif mode == "real":
+        if margin_used > balance * 0.5:
+            safety_warnings.append(f"⚠️ Margen requerido (${margin_used:,.2f}) consume más del 50% de tu cuenta pequeña.")
+
     return {
         "balance": balance,
         "risk_pct": risk_pct,
         "dollar_risk": dollar_risk,
+        "actual_dollar_risk": actual_dollar_risk,
+        "actual_risk_pct": actual_risk_pct,
+        "sl_pips": sl_pips,
         "sl_points": sl_points,
-        "sl_price": sl_price,
-        "rr": rr,
-        "reward_pct": reward_pct,
-        "reward_dollar": reward_dollar,
+        "sl_price_dist": sl_price_dist,
+        "asset": asset,
+        "is_gold": is_gold,
         "suggested_lot": suggested_lot,
         "raw_lot": round(raw_lot, 4),
+        "pip_value": pip_value_trade,
         "margin_used": margin_used,
-        "margin_pct": margin_pct,
-        "lot_warning": lot_warning
+        "free_margin": free_margin,
+        "margin_level_pct": margin_level_pct,
+        "leverage": effective_leverage,
+        "rr": rr,
+        "reward_dollar": reward_dollar,
+        "reward_pct": reward_pct,
+        "tp_targets": tp_targets,
+        "safety_warnings": safety_warnings
     }
+
+def calculate_position_size(balance, risk_pct, sl_points, rr=1.0, leverage=300):
+    return calculate_position_size_universal(balance, risk_pct, sl_points, "EUR/USD", rr, leverage)
 
 def calculate_lot_and_margin(balance, risk_pct, sl_distance, entry_price, leverage, contract_size=100):
     """
@@ -1202,7 +1365,9 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
         
         # API Routes
         if path == "/api/config":
-            config = get_config()
+            query = parse_qs(parsed.query)
+            mode = query.get("mode", ["backtest"])[0]
+            config = get_config(mode)
             self.send_json(config)
             return
 
@@ -1386,8 +1551,8 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
 
         elif path == "/api/trades":
             query = parse_qs(parsed.query)
-            mode = query.get("mode", ["backtest"])[0]
-            config = get_config()
+            mode = query.get("mode", ["fondeo"])[0]
+            config = get_config(mode)
             trades = get_trades(mode)
             analytics = calculate_analytics(trades, config, mode=mode)
             analytics["mode"] = mode
@@ -1397,14 +1562,15 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
         elif path == "/api/calculate-position" or path == "/api/calculate":
             query = parse_qs(parsed.query)
             try:
-                balance = float(query.get("balance", [110.0])[0])
-                risk_pct = float(query.get("risk_pct", [5.0])[0])
-                raw_sl = float(query.get("sl_points", query.get("sl_distance", [250.0]))[0])
-                if raw_sl <= 0: raw_sl = 250.0
-                pts = round(raw_sl) if raw_sl >= 20.0 else round(raw_sl * 100.0)
-                rr = float(query.get("rr", query.get("rr_ratio", [1.0]))[0])
-                leverage = float(query.get("leverage", [300.0])[0])
-                res = calculate_position_size(balance, risk_pct, pts, rr, leverage)
+                mode = query.get("mode", ["fondeo"])[0]
+                config = get_config(mode)
+                balance = float(query.get("balance", [config.get("initial_balance", 50000.0)])[0])
+                risk_pct = float(query.get("risk_pct", [config.get("risk_pct", 0.5)])[0])
+                sl_pips = float(query.get("sl_pips", query.get("sl_points", query.get("sl_distance", [10.0])))[0])
+                asset = query.get("asset", [config.get("asset", "EUR/USD")])[0]
+                rr = float(query.get("rr", query.get("rr_ratio", [config.get("rr_ratio", 2.0)]))[0])
+                leverage = float(query.get("leverage", [config.get("leverage", 100.0)])[0])
+                res = calculate_position_size_universal(balance, risk_pct, sl_pips, asset, rr, leverage, mode)
                 self.send_json(res if res else {"error": "Invalid inputs"})
             except Exception as e:
                 self.send_json({"error": str(e)}, 400)
@@ -1455,19 +1621,14 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             payload = {}
 
         if path == "/api/config":
-            config = get_config()
+            query = parse_qs(parsed.query)
+            mode = payload.get("mode") or query.get("mode", ["fondeo"])[0]
+            config = get_config(mode)
             config.update(payload)
-            save_json(CONFIG_FILE, config)
+            save_config(config, mode)
             
-            # Recalculate all trades across both modes with updated config
-            for m in ["backtest", "real"]:
-                m_trades = get_trades(m)
-                if m_trades:
-                    m_recalculated = recalculate_trade_history(m_trades, config, mode=m)
-                    save_trades(m_recalculated, m)
-            
-            active_trades = get_trades("backtest")
-            analytics = calculate_analytics(active_trades, config, mode="backtest")
+            active_trades = get_trades(mode)
+            analytics = calculate_analytics(active_trades, config, mode=mode)
             self.send_json({"config": config, "analytics": analytics})
             return
 
@@ -1539,15 +1700,15 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             return
 
         elif path == "/api/recalculate":
-            mode = payload.get("mode", "backtest")
-            config = get_config()
+            mode = payload.get("mode", "fondeo")
+            config = get_config(mode)
             if "risk_pct" in payload:
                 config["risk_pct"] = float(payload["risk_pct"])
             if "rr_ratio" in payload:
                 config["rr_ratio"] = float(payload["rr_ratio"])
             if "initial_balance" in payload:
                 config["initial_balance"] = float(payload["initial_balance"])
-            save_json(CONFIG_FILE, config)
+            save_config(config, mode)
             
             trades = get_trades(mode)
             recalculated = recalculate_trade_history(trades, config, mode=mode)
@@ -1558,37 +1719,30 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             return
 
         elif path == "/api/trades":
-            mode = payload.get("mode", "backtest")
-            config = get_config()
+            mode = payload.get("mode", "fondeo")
+            config = get_config(mode)
             trades = get_trades(mode)
 
-            # Current compound balance before this trade
             analytics = calculate_analytics(trades, config, mode=mode)
             cur_bal = analytics["summary"]["current_balance"]
 
             direction = payload.get("direction", "BUY").upper()
-            
-            # TradingView Exact Position Tool Points & Price Distance
-            raw_val_input = payload.get("tv_points") or payload.get("sl_points") or payload.get("sl_distance") or 250.0
-            try:
-                raw_val = float(str(raw_val_input).replace(",", "."))
-            except Exception:
-                raw_val = 250.0
-            if raw_val <= 0:
-                raw_val = 250.0
-            if raw_val >= 20.0:
-                tv_points = round(raw_val)
-                price_dist = round(raw_val / 100.0, 2)
-            else:
-                tv_points = round(raw_val * 100.0)
-                price_dist = round(raw_val, 2)
+            asset = payload.get("asset", config.get("asset", "EUR/USD"))
+            is_gold = any(x in str(asset).upper() for x in ["XAU", "GOLD", "ORO"])
 
-            raw_risk = payload.get("risk_pct") or payload.get("risk_pct_custom") or config.get("risk_pct", 5.0)
+            raw_sl_input = payload.get("sl_pips") or payload.get("tv_points") or payload.get("sl_points") or payload.get("sl_distance") or 10.0
+            try:
+                raw_sl = float(str(raw_sl_input).replace(",", "."))
+            except Exception:
+                raw_sl = 10.0
+            if raw_sl <= 0: raw_sl = 10.0
+            sl_pips = raw_sl
+
+            raw_risk = payload.get("risk_pct") or payload.get("risk_pct_custom") or config.get("risk_pct", 0.5 if mode == "fondeo" else 1.0)
             trade_risk_pct = round(float(str(raw_risk).replace(",", ".")), 2)
-            trade_rr = round(float(str(payload.get("rr") or config.get("rr_ratio", 1.0)).replace(",", ".")), 2)
+            trade_rr = round(float(str(payload.get("rr") or config.get("rr_ratio", 2.0)).replace(",", ".")), 2)
             status = payload.get("status", "win").lower()
             
-            # Pure percentage calculation
             if status == "win":
                 ret_pct = round(trade_risk_pct * trade_rr, 2)
             elif status == "loss":
@@ -1596,38 +1750,55 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             else:
                 ret_pct = 0.0
                 
-            pnl = round(cur_bal * (ret_pct / 100.0), 2)
             dollar_risk = round(cur_bal * (trade_risk_pct / 100.0), 2)
+            leverage = float(config.get("leverage", 100.0 if mode == "fondeo" else 500.0))
             
-            # Reference lot size for MT4/Broker
-            raw_lot = dollar_risk / tv_points if tv_points > 0 else 0.01
-            suggested_lot = round(raw_lot, 2)
-            if suggested_lot < 0.01:
-                suggested_lot = 0.01
+            if is_gold:
+                sl_points = sl_pips if sl_pips >= 20.0 else (sl_pips * 100.0)
+                raw_lot = dollar_risk / sl_points if sl_points > 0 else 0.01
+                suggested_lot = max(0.01, round(raw_lot, 2))
+                gold_lev = min(leverage, 30.0) if mode == "fondeo" else leverage
+                calc_margin = round((2700.0 * 100 * suggested_lot) / gold_lev, 2)
+            else:
+                raw_lot = dollar_risk / (sl_pips * 10.0) if sl_pips > 0 else 0.01
+                suggested_lot = max(0.01, round(raw_lot, 2))
+                calc_margin = round((100000 * 1.0850 * suggested_lot) / leverage, 2)
 
-            manual_lot_raw = payload.get("manual_lot") or payload.get("lot_size") or 0.0
+            manual_lot_raw = payload.get("manual_lot") or payload.get("lot_size")
             manual_lot = float(str(manual_lot_raw).replace(",", ".")) if manual_lot_raw else 0.0
             lot_size = round(manual_lot, 2) if manual_lot > 0 else suggested_lot
-            margin_used = round((2700.0 * 100 * lot_size) / float(config.get("leverage", 300)), 2)
+
+            margin_used = payload.get("margin_used")
+            if margin_used is None:
+                margin_used = calc_margin
+            else:
+                try:
+                    margin_used = round(float(str(margin_used).replace(",", ".")), 2)
+                except Exception:
+                    margin_used = calc_margin
 
             raw_comm = payload.get("commission", 0.0)
             commission = round(abs(float(str(raw_comm).replace(",", "."))), 2)
-            # If client computed PnL with manual lot size, commission, or explicit PnL, respect it:
+
             if "pnl" in payload and payload["pnl"] is not None and str(payload["pnl"]).strip() != "":
                 pnl = round(float(str(payload["pnl"]).replace(",", ".")), 2)
                 dollar_risk = round(float(str(payload.get("dollar_risk", dollar_risk)).replace(",", ".")), 2)
             else:
-                pnl = round(cur_bal * (ret_pct / 100.0) - commission, 2)
+                if status == "win":
+                    pnl = round(cur_bal * (ret_pct / 100.0) - commission, 2)
+                elif status == "loss":
+                    pnl = -round(dollar_risk + commission, 2)
+                else:
+                    pnl = -commission
 
             trade = {
                 "id": str(uuid.uuid4()),
                 "date": payload.get("date") or datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "asset": asset,
                 "direction": direction,
-                "tv_points": tv_points,
-                "price_dist": price_dist,
-                "sl_points": tv_points,
-                "tp_points": round(tv_points * trade_rr),
-                "sl_distance": price_dist,
+                "sl_pips": sl_pips,
+                "sl_points": round(sl_pips * 10.0) if not is_gold else sl_pips,
+                "tp_pips": round(sl_pips * trade_rr, 1),
                 "risk_pct": trade_risk_pct,
                 "risk_pct_custom": trade_risk_pct,
                 "ret_pct": round(ret_pct, 2),
@@ -1641,7 +1812,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 "pnl": pnl,
                 "rr": trade_rr,
                 "session": payload.get("session", "New York"),
-                "strategy": payload.get("strategy", "General"),
+                "strategy": payload.get("strategy", "Price Action Manual"),
                 "emotion": payload.get("emotion", "Plan Seguido"),
                 "tv_chart_url": payload.get("tv_chart_url", ""),
                 "notes": payload.get("notes", ""),
@@ -1658,13 +1829,12 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             return
 
         elif path == "/api/trades/clear":
-            mode = payload.get("mode", "backtest")
+            mode = payload.get("mode", "fondeo")
             save_trades([], mode)
-            config = get_config()
+            config = get_config(mode)
             ana = calculate_analytics([], config, mode=mode)
             ana["mode"] = mode
             self.send_json(ana)
-            return
             return
 
         elif path == "/api/trades/sample":
@@ -1759,10 +1929,10 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
         if path.startswith("/api/trades/"):
             trade_id = path.replace("/api/trades/", "").strip()
             query = parse_qs(parsed.query)
-            mode = query.get("mode", ["backtest"])[0]
+            mode = query.get("mode", ["fondeo"])[0]
             trades = get_trades(mode)
             new_trades = [t for t in trades if t.get("id") != trade_id]
-            config = get_config()
+            config = get_config(mode)
             recalculated = recalculate_trade_history(new_trades, config, mode=mode)
             save_trades(recalculated, mode)
             ana = calculate_analytics(recalculated, config, mode=mode)
@@ -1777,7 +1947,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
         if path.startswith("/api/trades/"):
             trade_id = path.replace("/api/trades/", "").strip()
             query = parse_qs(parsed.query)
-            mode = query.get("mode", ["backtest"])[0]
+            mode = query.get("mode", ["fondeo"])[0]
             length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(length).decode("utf-8") if length > 0 else "{}"
             try:
@@ -1789,7 +1959,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 mode = payload["mode"]
 
             trades = get_trades(mode)
-            config = get_config()
+            config = get_config(mode)
             updated = False
             for t in trades:
                 if t.get("id") == trade_id:

@@ -47,39 +47,39 @@
       
       <!-- Brand & Mode Badge -->
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center text-white font-black shadow-lg shadow-blue-500/20">
-          <i data-lucide="terminal" class="w-5 h-5 stroke-[2.5]"></i>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-yellow-600 to-amber-700 flex items-center justify-center text-black font-black shadow-lg shadow-amber-500/20">
+          <i data-lucide="award" class="w-5 h-5 stroke-[2.5]"></i>
         </div>
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-lg sm:text-xl font-black tracking-wider text-white uppercase flex items-center gap-2">
-              <span class="bg-gradient-to-r from-white via-slate-100 to-blue-300 bg-clip-text text-transparent">Pro Terminal</span>
-              <span class="text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/40 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 font-mono tracking-wide">
-                <i data-lucide="activity" class="w-3 h-3 text-blue-400"></i> EUR/USD
+              <span class="bg-gradient-to-r from-white via-slate-100 to-amber-200 bg-clip-text text-transparent">Pro Terminal</span>
+              <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 font-mono tracking-wide">
+                <i data-lucide="shield-check" class="w-3 h-3 text-amber-400"></i> Orion Nova 50K
               </span>
             </h1>
           </div>
-          <p class="text-xs text-gray-400">Terminal Institucional MT5 • Price Action Institucional • Bitácora Real</p>
+          <p class="text-xs text-gray-400">Centro de Control de Fondeo • Bitácora Real Tickmill • Operativa 100% Manual</p>
         </div>
       </div>
 
       <!-- Quick Badges -->
       <div class="hidden md:flex items-center gap-2 text-xs">
-        <div class="bg-gray-800/80 border border-gray-700/60 px-3 py-1.5 rounded-lg flex items-center gap-2">
-          <span class="text-gray-400">Capital Base:</span>
-          <span class="font-bold text-emerald-400">$<span id="badgeInitialBalance">110.00</span></span>
+        <div class="bg-amber-950/50 border border-amber-800/50 px-3 py-1.5 rounded-lg flex items-center gap-2">
+          <span class="text-amber-300">Fondeo Nova:</span>
+          <span class="font-bold text-amber-400">$<span id="badgeFondeoBalance">50,000.00</span></span>
         </div>
         <div class="bg-emerald-950/50 border border-emerald-800/50 px-3 py-1.5 rounded-lg flex items-center gap-2">
-          <span class="text-emerald-300">Riesgo %:</span>
-          <span class="font-bold text-emerald-400"><span id="badgeRiskPct">5.0</span>% (<span id="badgeCurrentRiskUsd">$5.50</span>)</span>
+          <span class="text-emerald-300">Cuenta Real:</span>
+          <span class="font-bold text-emerald-400">$<span id="badgeRealBalance">97.72</span></span>
         </div>
         <div class="bg-blue-950/50 border border-blue-800/50 px-3 py-1.5 rounded-lg flex items-center gap-2">
-          <span class="text-blue-300">Ratio R:R:</span>
-          <span class="font-bold text-blue-400">1:<span id="badgeCurrentRR">1.0</span></span>
+          <span class="text-blue-300">Meta Fondeo:</span>
+          <span class="font-bold text-blue-400">$52,000 (+4%)</span>
         </div>
-        <div class="bg-purple-950/50 border border-purple-800/50 px-3 py-1.5 rounded-lg flex items-center gap-2">
-          <span class="text-purple-300">Apal.:</span>
-          <span class="font-bold text-purple-400">1:300</span>
+        <div class="bg-red-950/50 border border-red-800/50 px-3 py-1.5 rounded-lg flex items-center gap-2">
+          <span class="text-red-300">Piso DD Trailing:</span>
+          <span class="font-bold text-red-400" id="badgeFondeoFloor">$46,000</span>
         </div>
       </div>
 
@@ -101,718 +101,510 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- NAVIGATION TABS: 1. Macro Sesión Oro / 2. Calculadora / 3. Bitácora Real / 4. Backtesting -->
+    <!-- NAVIGATION TABS: 1. Fondeo Orion Nova 50K / 2. Bitácora Real / 3. Calculadora & Reglas -->
     <nav class="flex flex-wrap items-center gap-2 sm:gap-3 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-5xl mx-auto">
-      <!-- Tab 1: Pro Terminal MT5 -->
-      <button id="tabBtnGoldBias" class="tab-button flex-1 min-w-[170px] px-4 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition bg-blue-600 text-white shadow-lg shadow-blue-600/30">
-        <i data-lucide="terminal" class="w-4 h-4 text-white"></i>
-        <span>1. Pro Terminal MT5</span>
-        <span id="tabBadgeBias" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">MT5 LIVE</span>
+      <!-- Tab 1: Fondeo Orion Nova 50K -->
+      <button id="tabBtnFondeo" class="tab-button flex-1 min-w-[170px] px-4 py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition bg-amber-500 text-black shadow-lg shadow-amber-500/30">
+        <i data-lucide="award" class="w-4 h-4 text-black"></i>
+        <span>1. Fondeo Orion Nova 50K</span>
+        <span id="tabBadgeFondeo" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/20 text-black border border-black/30 font-bold">50K USD</span>
       </button>
 
-      <!-- Tab 2: Calculadora (CENTRO OPERATIVO) -->
-      <button id="tabBtnCalculator" class="tab-button flex-1 min-w-[145px] px-4 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
-        <i data-lucide="calculator" class="w-4 h-4 text-amber-400"></i>
-        <span>2. Calculadora</span>
-        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-black/20 text-gray-300 border border-gray-700 font-bold">Myfxbook</span>
-      </button>
-
-      <!-- Tab 3: Bitácora Real -->
+      <!-- Tab 2: Bitácora Real -->
       <button id="tabBtnRealJournal" class="tab-button flex-1 min-w-[145px] px-4 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
         <i data-lucide="book-open" class="w-4 h-4 text-emerald-400"></i>
-        <span>3. Bitácora Real</span>
-        <span id="tabBadgeReal" class="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">2 ops</span>
+        <span>2. Bitácora Real</span>
+        <span id="tabBadgeReal" class="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">$97.72</span>
       </button>
 
-      <!-- Tab 4: Backtesting -->
-      <button id="tabBtnBacktest" class="tab-button flex-1 min-w-[145px] px-4 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
-        <i data-lucide="history" class="w-4 h-4 text-blue-400"></i>
-        <span>4. Backtesting</span>
-        <span id="tabBadgeBacktest" class="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-blue-950 text-blue-300 border border-blue-800 font-bold">8 ops</span>
+      <!-- Tab 3: Calculadora & Reglas -->
+      <button id="tabBtnCalculator" class="tab-button flex-1 min-w-[145px] px-4 py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
+        <i data-lucide="calculator" class="w-4 h-4 text-blue-400"></i>
+        <span>3. Calculadora & Reglas</span>
+        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-black/20 text-gray-300 border border-gray-700 font-bold">Manual 50K</span>
       </button>
     </nav>
 
 
     <!-- ============================================================== -->
-    <!-- VIEW 1: MACRO SESIÓN INSTITUCIONAL ORO (XAU/USD)               -->
-    <!-- PARTE 1 (FUNDAMENTAL) + PARTE 2 (TÉCNICO M5 NY) + CONFLUENCIA  -->
+    <!-- VIEW 1: FONDEO ORION NOVA 50K (PAY AFTER YOU PASS)             -->
+    <!-- CENTRO DE CONTROL MANUAL, REGLAS OFICIALES & BITÁCORA 50K      -->
     <!-- ============================================================== -->
-        <div id="viewGoldBias" class="space-y-6">
+    <div id="viewFondeo" class="space-y-6">
 
-      <!-- ============================================================== -->
-      <!-- BARRA DE TELEMETRÍA METATRADER 5 & CUENTA EN VIVO              -->
-      <!-- ============================================================== -->
-      <section class="bg-gray-900/90 border border-gray-800 rounded-2xl p-4 sm:p-5 shadow-2xl backdrop-blur-md">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          
-          <!-- Logo, Título y Estado MT5 -->
-          <div class="flex items-center gap-3.5 min-w-0">
-            <div id="mt5StatusIconBox" class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
-              <i data-lucide="radio" class="w-6 h-6 animate-pulse"></i>
-            </div>
-            <div>
-              <div class="flex items-center gap-2 flex-wrap">
-                <h2 class="text-base sm:text-lg font-black text-white">Terminal Institucional MT5</h2>
-                <span id="badgeMt5Status" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  🟡 MODO SPOT WEB (Esperando MT5)
-                </span>
-                <span class="text-[10px] px-2 py-0.5 rounded-full font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold">100% AUTOMÁTICO</span>
-              </div>
-              <p class="text-xs text-gray-400 mt-0.5" id="mt5StatusSubtitle">
-                Transmisión tick-a-tick directa desde MetaTrader 5 · Metodología Price Action M5 (EUR/USD)
-              </p>
-            </div>
-          </div>
-
-          <!-- Botones de Acción: Descargar EA, Guía MT5, Refrescar -->
-          <div class="flex items-center gap-2 flex-wrap">
-            <a href="/SessionManipulation_EURUSD.mq5" download class="h-9 px-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition shadow-lg shadow-blue-600/20 cursor-pointer" title="Descargar EA Automático de Manipulación de Sesiones">
-              <i data-lucide="bot" class="w-4 h-4"></i>
-              <span>Descargar EA Sesiones (.mq5)</span>
-            </a>
-
-            <a href="/GhostBridge_MT5.mq5" download class="h-9 px-3 bg-gray-800/80 hover:bg-gray-700 text-gray-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition shadow-sm cursor-pointer" title="Descargar EA Puente de Telemetría">
-              <i data-lucide="download" class="w-3.5 h-3.5 text-gray-400"></i>
-              <span>Puente MT5 (.mq5)</span>
-            </a>
-
-            <button id="btnOpenMt5Guide" type="button" class="h-9 px-3.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-sm">
-              <i data-lucide="help-circle" class="w-4 h-4 text-purple-400"></i>
-              <span>Guía Conexión</span>
-            </button>
-
-            <button id="btnRefreshScanner" type="button" class="h-9 px-3.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition cursor-pointer shadow-sm">
-              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-              <span>Escanear Ahora</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Metric Strip: Balance, Broker, Spread, Riesgo % -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-gray-800/80 text-xs">
-          <!-- Broker / Servidor -->
-          <div class="p-3 bg-gray-950/70 border border-gray-800/80 rounded-xl">
-            <div class="text-[10px] text-gray-500 uppercase font-mono font-bold">Broker Conectado</div>
-            <div id="statMt5Broker" class="text-sm font-bold text-white mt-0.5 truncate">Esperando MT5...</div>
-            <div id="statMt5Ping" class="text-[10px] text-gray-400 mt-0.5">Último ping: --</div>
-          </div>
-
-          <!-- Balance Cuenta MT5 -->
-          <div class="p-3 bg-gray-950/70 border border-gray-800/80 rounded-xl">
-            <div class="text-[10px] text-gray-500 uppercase font-mono font-bold">Balance de Cuenta</div>
-            <div id="statMt5Balance" class="text-sm font-mono font-bold text-emerald-400 mt-0.5">$5,000.00 USD</div>
-            <div id="statMt5Equity" class="text-[10px] text-gray-400 mt-0.5">Equidad: $5,000.00</div>
-          </div>
-
-          <!-- Riesgo por Operación (%) -->
-          <div class="p-3 bg-gray-950/70 border border-gray-800/80 rounded-xl flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] text-gray-500 uppercase font-mono font-bold">Riesgo / Trade</span>
-              <span id="labelRiskDollar" class="text-[10px] text-amber-400 font-mono font-bold">$1.00 (1.0%)</span>
-            </div>
-            <!-- Presets rápidos de riesgo -->
-            <div class="flex items-center gap-1 mt-1.5">
-              <button type="button" class="btn-risk-choice flex-1 py-1 rounded-md text-[10px] font-mono font-bold bg-gray-800 text-gray-300 hover:text-white transition" data-risk="0.5">0.5%</button>
-              <button type="button" class="btn-risk-choice flex-1 py-1 rounded-md text-[10px] font-mono font-black bg-blue-500 text-white shadow-sm transition" data-risk="1.0">1.0%</button>
-              <button type="button" class="btn-risk-choice flex-1 py-1 rounded-md text-[10px] font-mono font-bold bg-gray-800 text-gray-300 hover:text-white transition" data-risk="2.0">2.0%</button>
-              <button type="button" class="btn-risk-choice flex-1 py-1 rounded-md text-[10px] font-mono font-bold bg-gray-800 text-gray-300 hover:text-white transition" data-risk="3.0">3.0%</button>
-              <button type="button" class="btn-risk-choice flex-1 py-1 rounded-md text-[10px] font-mono font-bold bg-gray-800 text-gray-300 hover:text-white transition" data-risk="5.0">5.0%</button>
-            </div>
-            <!-- Entrada de riesgo manual -->
-            <div class="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t border-gray-800/60">
-              <span class="text-[9px] text-gray-400 font-mono uppercase font-bold shrink-0">Manual:</span>
-              <div class="flex-1 flex items-center bg-gray-900 border border-gray-700/80 rounded-md px-1.5 py-0.5 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400">
-                <input type="number" id="inputManualRiskPct" min="0.1" max="100" step="0.1" value="1.0" class="w-full bg-transparent text-center font-mono font-bold text-xs text-white focus:outline-none" placeholder="1.0">
-                <span class="text-[10px] text-gray-400 font-mono ml-0.5 font-bold">%</span>
-              </div>
-              <button type="button" id="btnApplyManualRisk" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 border border-blue-500/40 transition shrink-0" title="Fijar riesgo manual">
-                Fijar
-              </button>
-            </div>
-          </div>
-
-          <!-- Spread EUR/USD -->
-          <div class="p-3 bg-gray-950/70 border border-gray-800/80 rounded-xl">
-            <div class="text-[10px] text-gray-500 uppercase font-mono font-bold">Spread EUR/USD</div>
-            <div class="flex items-center justify-between mt-1">
-              <span class="text-sm font-bold text-blue-400 font-mono"><span id="statSpreadEur">0.2</span> pips</span>
-              <span class="text-[10px] text-emerald-400 font-mono font-bold">Tickmill Live</span>
-            </div>
-            <div class="text-[10px] text-emerald-400 mt-0.5">Sin recotización</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============================================================== -->
-      <!-- TERMINAL INSTITUCIONAL: EUR/USD (PRICE ACTION M5) -->
-      <!-- ============================================================== -->
-      <div id="cardAssetEur" class="space-y-6">
-        
-        <!-- Header del Activo: Precio en Vivo y Estructura -->
-        <section class="bg-gradient-to-r from-blue-950/30 via-gray-900 to-indigo-950/20 border-2 border-blue-500/40 rounded-2xl p-5 shadow-2xl">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-mono font-bold text-blue-400 uppercase tracking-wider">Forex Major</span>
-                <span id="eurStateBadge" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-black bg-blue-500 text-black shadow-md">
-                  🔵 ESCANEANDO MERCADO...
-                </span>
-              </div>
-              <h1 class="text-2xl sm:text-3xl font-black text-white mt-1 flex items-baseline gap-2">
-                <span id="eurLivePrice">1.08500</span>
-                <span class="text-xs font-normal text-gray-400">EUR/USD</span>
-              </h1>
-              <p id="eurStatusDesc" class="text-xs text-gray-300 mt-1.5 max-w-2xl leading-relaxed">
-                Analizando estructura de mercado (altos/bajos) y escaneando zonas de reacción con 2 o más toques para entrada al retesteo...
-              </p>
-            </div>
-
-            <!-- Fases de la Estrategia Price Action -->
-            <div class="flex items-center gap-2 bg-gray-950/80 p-2.5 rounded-xl border border-gray-800 text-xs font-mono">
-              <div class="text-center px-3 py-1 rounded-lg bg-gray-900 border border-gray-800">
-                <div class="text-[9px] text-gray-500 uppercase font-bold">Fase 1: Estructura</div>
-                <div id="eurPhase1" class="font-bold text-blue-400">ALCISTA (HH/HL)</div>
-              </div>
-              <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-600"></i>
-              <div class="text-center px-3 py-1 rounded-lg bg-gray-900 border border-gray-800">
-                <div class="text-[9px] text-gray-500 uppercase font-bold">Fase 2: Quiebre</div>
-                <div id="eurPhase2" class="font-bold text-indigo-300">CONFIRMADO</div>
-              </div>
-              <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-600"></i>
-              <div class="text-center px-3 py-1 rounded-lg bg-emerald-950/80 border border-emerald-500/50">
-                <div class="text-[9px] text-emerald-400 uppercase font-bold">Fase 3: Retesteo</div>
-                <div id="eurPhase3" class="font-black text-emerald-300">LISTO</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- TICKET DE EJECUCIÓN DIRECTO PARA METATRADER 5 (EURO) -->
-        <section class="bg-gray-900/95 border-2 border-blue-500/50 rounded-2xl p-5 sm:p-6 shadow-2xl relative overflow-hidden">
-          <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
-
-          <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-gray-800">
-            <div class="flex items-center gap-2.5">
-              <span class="w-3 h-3 rounded-full bg-blue-400 animate-pulse"></span>
-              <h3 class="text-base font-black text-white tracking-wide uppercase">Ticket de Orden MT5 · EUR/USD</h3>
-              <span id="eurTicketActionBadge" class="px-2.5 py-0.5 rounded-md text-xs font-mono font-black bg-blue-500 text-black">
-                BUY NOW
-              </span>
-            </div>
-
-            <button id="btnCopyTicketEur" type="button" class="h-9 px-4 bg-blue-500 hover:bg-blue-400 text-black font-black text-xs rounded-xl flex items-center gap-1.5 transition shadow-lg shadow-blue-500/20 cursor-pointer">
-              <i data-lucide="copy" class="w-4 h-4"></i>
-              <span id="labelCopyEur">Copiar Parámetros MT5</span>
-            </button>
-          </div>
-
-          <!-- Campos de la Orden EURUSD -->
-          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3.5 mt-5">
-            <!-- Precio de Entrada -->
-            <div class="p-3.5 bg-gray-950 rounded-xl border border-gray-800">
-              <div class="text-[10px] text-gray-500 uppercase font-mono font-bold">Precio Entrada</div>
-              <div id="eurTicketEntry" class="text-lg font-mono font-black text-white mt-1">1.08520</div>
-              <div class="text-[10px] text-gray-400 mt-0.5">Al toque de zona</div>
-            </div>
-
-            <!-- Stop Loss -->
-            <div class="p-3.5 bg-gray-950 rounded-xl border border-red-900/40">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] text-red-400 uppercase font-mono font-bold">Stop Loss</span>
-                <span id="eurTicketSlPips" class="text-[10px] text-red-400 font-mono">11.0 pips</span>
-              </div>
-              <div id="eurTicketSl" class="text-lg font-mono font-black text-red-400 mt-1">1.08410</div>
-              <div class="text-[10px] text-gray-400 mt-0.5">Tras la zona de reacción</div>
-            </div>
-
-            <!-- Take Profit 1 (1:2) -->
-            <div class="p-3.5 bg-gray-950 rounded-xl border border-emerald-900/40">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] text-emerald-400 uppercase font-mono font-bold">Take Profit 1</span>
-                <span class="text-[10px] text-emerald-400 font-mono font-bold">Ratio 1:2</span>
-              </div>
-              <div id="eurTicketTp1" class="text-lg font-mono font-black text-emerald-400 mt-1">1.08740</div>
-              <div class="text-[10px] text-gray-400 mt-0.5">Cerrar 70% & Breakeven</div>
-            </div>
-
-            <!-- Take Profit 2 (1:3) -->
-            <div class="p-3.5 bg-gray-950 rounded-xl border border-emerald-900/40">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] text-emerald-400 uppercase font-mono font-bold">Take Profit 2</span>
-                <span class="text-[10px] text-emerald-400 font-mono font-bold">Ratio 1:3</span>
-              </div>
-              <div id="eurTicketTp2" class="text-lg font-mono font-black text-emerald-400 mt-1">1.08850</div>
-              <div class="text-[10px] text-gray-400 mt-0.5">Siguiente nivel de estructura</div>
-            </div>
-
-            <!-- LOTAJE RECOMENDADO AUTOMÁTICO (EURO) -->
-            <div class="p-3.5 bg-gradient-to-br from-blue-950/60 to-gray-950 rounded-xl border-2 border-blue-500/60 shadow-lg col-span-2 sm:col-span-1">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] text-blue-300 uppercase font-mono font-bold">Lotaje MT5</span>
-                <span id="eurTicketRiskDollar" class="text-[10px] font-mono text-blue-300 font-bold">$50.00</span>
-              </div>
-              <div id="eurTicketLot" class="text-2xl font-mono font-black text-blue-400 mt-0.5">0.45</div>
-              <div id="eurTicketRiskPctText" class="text-[10px] text-blue-400/80 mt-0.5 font-mono">1.0% riesgo exacto</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Zonas de Reacción Recientes (Price Action) -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
-          <div class="p-4 bg-gray-900/80 border border-gray-800 rounded-xl">
-            <div class="text-[10px] text-gray-500 uppercase font-bold">Zona de Reacción Principal</div>
-            <div id="eurKeyZone" class="text-sm font-bold text-blue-400 mt-1">1.08500</div>
-            <div id="eurZoneTouches" class="text-[11px] text-gray-300 mt-0.5">3 toques previos confirmados</div>
-          </div>
-
-          <div class="p-4 bg-gray-900/80 border border-gray-800 rounded-xl">
-            <div class="text-[10px] text-gray-500 uppercase font-bold">Dirección Estructural M5</div>
-            <div id="eurStructureDesc" class="text-sm font-bold text-emerald-400 mt-1">ALCISTA (Higher Highs)</div>
-            <div class="text-[11px] text-gray-400 mt-0.5">Solo buscar compras al retesteo</div>
-          </div>
-
-          <div class="p-4 bg-gray-900/80 border border-gray-800 rounded-xl">
-            <div class="text-[10px] text-gray-500 uppercase font-bold">Regla de Gatillo Price Action</div>
-            <div class="text-sm font-bold text-white mt-1">Vela de Mecha / Envolvente</div>
-            <div class="text-[11px] text-gray-400 mt-0.5">Cierre de vela M5 con rechazo de zona</div>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-
-    <!-- ============================================================== -->
-    <!-- MODAL DE CONEXIÓN CON METATRADER 5 (3 PASOS FÁCILES)          -->
-    <!-- ============================================================== -->
-    <div id="modalMt5Guide" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-      <div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative text-left">
-        <button id="btnCloseMt5Guide" type="button" class="absolute top-4 right-4 text-gray-400 hover:text-white transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400">
-            <i data-lucide="cpu" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-white">Conexión MetaTrader 5 en 3 Pasos</h3>
-            <p class="text-xs text-gray-400">Cómo activar la transmisión 100% exacta desde tu Mac</p>
-          </div>
-        </div>
-
-        <div class="space-y-4 mt-5 text-xs text-gray-300">
-          <div class="p-3.5 bg-gray-950 rounded-xl border border-gray-800">
-            <div class="font-bold text-purple-300 text-sm">Paso 1: Descargar el Asesor Experto</div>
-            <p class="mt-1 text-gray-400">Haz clic en el botón azul <strong class="text-white">"Descargar EA (.mq5)"</strong> en la parte superior para guardar el archivo <code class="text-blue-300">GhostBridge_MT5.mq5</code>.</p>
-          </div>
-
-          <div class="p-3.5 bg-gray-950 rounded-xl border border-gray-800">
-            <div class="font-bold text-purple-300 text-sm">Paso 2: Pegar en tu MetaTrader 5</div>
-            <p class="mt-1 text-gray-400">En MT5 en tu Mac, ve al menú superior: <strong class="text-white">Archivo</strong> → <strong class="text-white">Abrir carpeta de datos</strong>. Abre la carpeta <code class="text-yellow-400">MQL5</code> → <code class="text-yellow-400">Experts</code> y pega el archivo allí.</p>
-          </div>
-
-          <div class="p-3.5 bg-gray-950 rounded-xl border border-gray-800">
-            <div class="font-bold text-purple-300 text-sm">Paso 3: Autorizar WebRequest y Ejecutar</div>
-            <p class="mt-1 text-gray-400">En MT5 ve a <strong class="text-white">Herramientas</strong> → <strong class="text-white">Opciones</strong> → pestaña <strong class="text-white">Asesores Expertos</strong>. Marca la casilla <strong class="text-white">"Permitir WebRequest para las URLs listadas"</strong> y añade:</p>
-            <div class="mt-2 p-2 bg-black rounded-lg border border-gray-800 font-mono text-[11px] text-emerald-400 select-all">
-              https://ghost-trader-gold.onrender.com
-            </div>
-            <p class="mt-2 text-gray-400">Luego simplemente arrastra <strong class="text-white">GhostBridge_MT5</strong> a cualquier gráfico de Oro o Euro. ¡El dashboard se pondrá verde en 3 segundos!</p>
-          </div>
-        </div>
-
-        <div class="mt-6 flex justify-end">
-          <button id="btnGotItMt5" type="button" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition">
-            ¡Entendido!
-          </button>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- ============================================================== -->
-    <!-- VIEW 2: RADAR DE PRECISIÓN DE ENTRADAS & ALERTA DEL SETUP      -->
-    <!-- ============================================================== -->
-    <div id="viewPrecisionRadar" class="hidden" style="display:none !important;">
-
-      <!-- Header & Selector de Modo -->
-      <section class="bg-gradient-to-r from-emerald-950/40 via-gray-900 to-teal-950/40 border-2 border-emerald-500/40 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <div class="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30">
-            <i data-lucide="crosshair" class="w-6 h-6"></i>
+      <!-- BANNER RESUMEN ORION NOVA 50K -->
+      <section class="bg-gradient-to-r from-amber-950/40 via-gray-900 to-indigo-950/40 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-600 flex items-center justify-center text-black font-black shadow-lg shadow-amber-500/20 shrink-0">
+            <i data-lucide="award" class="w-7 h-7 stroke-[2.5]"></i>
           </div>
           <div>
             <div class="flex items-center gap-2 flex-wrap">
-              <h2 class="text-base sm:text-lg font-black text-white tracking-wide">Radar de Precisión de Entradas XAU/USD</h2>
-              <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-mono font-bold">M5 / M1 Institucional</span>
-            </div>
-            <p class="text-xs text-gray-400 mt-0.5">Identificación algorítmica de zonas de mitigación, cálculo de proximidad y confirmación de la 2da onda (Anti-Inducement).</p>
-          </div>
-        </div>
-
-        <!-- Mode Toggle & Refresh Button -->
-        <div class="flex items-center gap-2 flex-wrap">
-          <div class="bg-gray-950 p-1 rounded-xl border border-gray-800 flex items-center gap-1">
-            <button type="button" id="btnRadarModePrecision" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-emerald-600 text-white shadow-md shadow-emerald-600/30">
-              <i data-lucide="zap" class="w-3.5 h-3.5 text-yellow-300"></i>
-              <span>Modo Precisión (M5 · 2.2)</span>
-            </button>
-            <button type="button" id="btnRadarModeMacro" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-gray-400 hover:text-white hover:bg-gray-800/60">
-              <i data-lucide="compass" class="w-3.5 h-3.5 text-blue-400"></i>
-              <span>Modo Tendencial (M15 · 2.9)</span>
-            </button>
-          </div>
-
-          <button type="button" id="btnRefreshPrecisionRadar" class="p-2 bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white rounded-xl border border-gray-700 transition" title="Refrescar Radar">
-            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </section>
-
-      <!-- GUARDIA ESTRICTO DE SESIÓN OPERATIVA (NY vs ASIA) -->
-      <section id="precisionSessionGuardBanner" class="p-4 sm:p-5 rounded-2xl border-2 transition-all duration-300 shadow-xl bg-rose-950/40 border-rose-600/60 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-        <div class="flex items-start sm:items-center gap-3.5 min-w-0">
-          <div id="precisionSessionGuardIconBox" class="w-11 h-11 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0 shadow-lg">
-            <i data-lucide="moon" class="w-6 h-6"></i>
-          </div>
-          <div class="space-y-1.5 min-w-0">
-            <div class="flex flex-wrap items-center gap-2">
-              <span id="precisionSessionGuardBadge" class="px-3 py-1 rounded-lg bg-rose-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse">
-                <i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i>
-                <span>NO OPERAR · MERCADO FUERA DE NY (ASIA EN CURSO)</span>
+              <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wide">Orion Funded — Orion Nova 50K</h2>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                PAY AFTER YOU PASS ()
               </span>
-              <span id="precisionSessionGuardCountdown" class="text-xs font-mono font-bold text-rose-300">⏳ Inicia en: --:--:--</span>
+              <span id="badgeOrionEvalStatus" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                EN EVALUACIÓN ACTIVA
+              </span>
             </div>
-            <p id="precisionSessionGuardHeadline" class="text-xs text-gray-300 leading-relaxed font-medium">
-              El oro en la sesión asiática acumula en rangos estrechos ($6 – $12) y los brokers amplían los spreads. <strong>El 80% del volumen y los recorridos limpios para R:R 1:2 y 1:3 ocurren exclusivamente en la Ventana Dorada de New York (08:00 AM – 11:30 AM NY)</strong>.
+            <p class="text-xs text-gray-400 mt-0.5">
+              Operativa 100% Manual • Paso Único • Sin EA ni conexión MT5 • Control estricto de Drawdown y Pérdida Diaria
             </p>
           </div>
         </div>
 
-        <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800 shrink-0 text-right space-y-1">
-          <span class="text-[10px] text-gray-400 uppercase tracking-widest block font-mono">Horario Exclusivo Autorizado</span>
-          <span class="text-xs font-black text-amber-400 font-mono block">🇺🇸 08:00 AM – 11:30 AM NY</span>
-          <span class="text-[10px] text-emerald-400 font-mono block">1 Solo Trade A+ al Día</span>
-        </div>
-      </section>
-
-      <!-- TRIADA OPERATIVA M5: SESGO MACRO + NEWS SHIELD + MARGEN ADR -->
-      <section class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-        
-        <!-- Tarjeta 1: Sesgo Diario & Convicción -->
-        <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-2 shadow-inner">
-          <div class="flex items-center justify-between border-b border-gray-800 pb-2">
-            <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-1.5 font-mono">
-              <i data-lucide="compass" class="w-4 h-4 text-red-400"></i>
-              <span>Sesgo Institucional</span>
-            </span>
-            <span id="precBiasBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-600 font-bold">
-              🔴 BAJISTA 85%
-            </span>
+        <!-- Quick Badges de Reglas Clave -->
+        <div class="flex items-center gap-2 flex-wrap text-xs font-mono">
+          <div class="bg-gray-950/80 border border-gray-800 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+            <span class="text-gray-400">Capital:</span>
+            <span class="font-bold text-white">,000</span>
           </div>
-          <div class="space-y-1">
-            <div class="text-sm font-black text-rose-400 font-mono" id="precBiasRuleText">VENTA / SELL-ONLY</div>
-            <p class="text-[11px] text-gray-400 leading-tight" id="precBiasDxyText">
-              DXY alcista (104.25) + TIPS 10Y positivos (+1.98%). Prohibido buscar compras contra la liquidez interbancaria.
-            </p>
+          <div class="bg-emerald-950/60 border border-emerald-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+            <span class="text-emerald-300">Meta 4%:</span>
+            <span class="font-bold text-emerald-400">+,000 (,000)</span>
           </div>
-          <div class="pt-1 border-t border-gray-800/80 flex items-center justify-between text-[10px] text-gray-500 font-mono">
-            <span>Régimen: Tendencia D1</span>
-            <span class="text-rose-400 font-bold">100% Sell</span>
+          <div class="bg-amber-950/60 border border-amber-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+            <span class="text-amber-300">Pérdida Diaria 4%:</span>
+            <span class="font-bold text-amber-400">-,000</span>
           </div>
-        </div>
-
-        <!-- Tarjeta 2: Semáforo Dinámico News Risk Shield -->
-        <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-2 shadow-inner">
-          <div class="flex items-center justify-between border-b border-gray-800 pb-2">
-            <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-1.5 font-mono">
-              <i data-lucide="shield-alert" class="w-4 h-4 text-emerald-400"></i>
-              <span>News Risk Shield</span>
-            </span>
-            <span id="precNewsShieldBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span id="precNewsShieldStatusText">🟢 VÍA LIBRE</span>
-            </span>
+          <div class="bg-red-950/60 border border-red-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+            <span class="text-red-300">DD Máx 8%:</span>
+            <span class="font-bold text-red-400">-,000 (Trailing-Lock)</span>
           </div>
-          <div class="space-y-1">
-            <div id="precNewsShieldHeadline" class="text-xs font-bold text-white">Sin noticias de alto impacto próximas</div>
-            <p id="precNewsShieldAdvice" class="text-[11px] text-gray-400 leading-tight">
-              Operativa autorizada con lotaje y Stop Loss normal. Spreads estables en el broker.
-            </p>
-          </div>
-          <div class="pt-1 border-t border-gray-800/80 flex items-center justify-between text-[10px] text-gray-500 font-mono">
-            <span>Regla de Congelamiento:</span>
-            <span class="text-amber-400 font-bold">±15 min por impacto</span>
-          </div>
-        </div>
-
-        <!-- Tarjeta 3: Recorrido y Espacio ADR (TradingView) -->
-        <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 flex flex-col justify-between space-y-2 shadow-inner">
-          <div class="flex items-center justify-between border-b border-gray-800 pb-2">
-            <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-1.5 font-mono">
-              <i data-lucide="bar-chart-3" class="w-4 h-4 text-purple-400"></i>
-              <span>Rango Diario ADR</span>
-            </span>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800 font-bold">
-              5,500 pts ($55)
-            </span>
-          </div>
-          <div class="space-y-1">
-            <div class="flex items-center justify-between text-xs font-mono">
-              <span class="text-gray-400">Margen libre para NY:</span>
-              <span class="font-bold text-emerald-400 text-sm" id="precAdrRemainingDisplay">2,850 pts ($28.50)</span>
-            </div>
-            <div class="w-full bg-gray-900 rounded-full h-1.5 overflow-hidden border border-gray-800">
-              <div id="precAdrProgressBar" class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400" style="width: 52%;"></div>
-            </div>
-            <p class="text-[11px] text-gray-400 leading-tight" id="precAdrDiagnosticText">
-              🟢 Margen óptimo: Espacio suficiente para que la orden corra hacia TP1 y TP2 sin agotamiento.
-            </p>
-          </div>
-          <div class="pt-1 border-t border-gray-800/80 flex items-center justify-between text-[10px] text-gray-500 font-mono">
-            <span>Volatilidad NY:</span>
-            <span class="text-emerald-400 font-bold">Expansión Disponible</span>
-          </div>
-        </div>
-
-      </section>
-
-      <!-- ============================================================== -->
-      <!-- MONITOR SECUENCIAL SMC DE 4 FASES (TIEMPO REAL)                -->
-      <!-- ============================================================== -->
-      <section class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl space-y-3.5">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-800 pb-2.5">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-              <i data-lucide="git-commit" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <h3 class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-                <span>Rastreador Secuencial SMC · Fases del Setup Institucional</span>
-                <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 font-mono border border-emerald-800 font-bold">Tiempo Real</span>
-              </h3>
-              <p class="text-[11px] text-gray-400">Validación lineal estricta: Toma 1H &rarr; CHoCH ITL 5M &rarr; IFVG &rarr; Disparo de Orden Límite.</p>
-            </div>
-          </div>
-          <span id="radarSetupName" class="text-[11px] font-mono font-bold text-gray-300 bg-gray-900 px-2.5 py-1 rounded-lg border border-gray-800">
-            Retesteo en IFVG (2da Onda Anti-Inducement)
-          </span>
-        </div>
-
-        <!-- 4-Step Visual Progress Bar -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs font-mono">
-          <!-- Step 1: Toma 1H -->
-          <div class="p-2.5 rounded-xl bg-gray-950/80 border border-emerald-500/40 space-y-1">
-            <div class="flex items-center justify-between text-[10px]">
-              <span class="text-gray-400 font-sans font-bold">1. TOMA 1H</span>
-              <span class="text-emerald-400 font-bold font-mono">✓ VÁLIDA</span>
-            </div>
-            <div class="text-xs font-bold text-white">Barrido en Mecha</div>
-            <div class="text-[10px] text-gray-400 font-sans">Mecha fuera y vela 1H cerró dentro del nivel.</div>
-          </div>
-
-          <!-- Step 2: CHoCH ITL 5M -->
-          <div class="p-2.5 rounded-xl bg-gray-950/80 border border-emerald-500/40 space-y-1">
-            <div class="flex items-center justify-between text-[10px]">
-              <span class="text-gray-400 font-sans font-bold">2. CHoCH ITL</span>
-              <span class="text-emerald-400 font-bold font-mono">✓ CONFIRMADO</span>
-            </div>
-            <div class="text-xs font-bold text-white">Quiebre de Cuello</div>
-            <div class="text-[10px] text-gray-400 font-sans">Cuerpo de vela &ge; 1.5&times; ATR rompió el ITL.</div>
-          </div>
-
-          <!-- Step 3: IFVG 5M -->
-          <div class="p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/50 space-y-1">
-            <div class="flex items-center justify-between text-[10px]">
-              <span class="text-amber-300 font-sans font-bold">3. IFVG (2DA ONDA)</span>
-              <span class="text-amber-400 font-bold font-mono animate-pulse">⏳ EN CURSO</span>
-            </div>
-            <div class="text-xs font-bold text-white">Zona de Mitigación</div>
-            <div class="text-[10px] text-gray-300 font-sans">Esperando retroceso a <strong class="text-amber-300" id="radarEntryZone">$3,956.25 – $3,960.09</strong>.</div>
-          </div>
-
-          <!-- Step 4: Disparo Orden Límite -->
-          <div class="p-2.5 rounded-xl bg-gray-950/60 border border-gray-800 space-y-1">
-            <div class="flex items-center justify-between text-[10px]">
-              <span class="text-gray-500 font-sans font-bold">4. ORDEN LÍMITE</span>
-              <span class="text-gray-500 font-bold font-mono">PENDIENTE</span>
-            </div>
-            <div class="text-xs font-bold text-gray-400">Gatillo en Borde</div>
-            <div class="text-[10px] text-gray-500 font-sans">Gatillar cuando toque <strong class="text-gray-400" id="radarEntryTarget">$3,958.17</strong>.</div>
-          </div>
-        </div>
-
-        <!-- Barra de Cotización Actual vs Entrada (Aclara la duda del usuario) -->
-        <div class="p-3 rounded-xl bg-gray-950 border border-blue-900/40 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div class="flex items-center gap-2.5">
-            <div class="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
-              <i data-lucide="activity" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-gray-400">Cotización en Vivo XAU/USD:</span>
-                <span class="text-white font-mono font-black text-sm" id="radarCurrentPrice">$3,947.80</span>
-                <span class="text-[9px] px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800 font-mono font-bold uppercase">Precio de Mercado (NO es la entrada)</span>
-              </div>
-              <p class="text-[11px] text-gray-400 mt-0.5">
-                El precio cotiza actualmente <strong class="text-yellow-400" id="radarDistancePts">1,037 pts ($10.37)</strong> por debajo de tu zona de venta. <strong>No vendas abajo:</strong> espera a que suba al IFVG para vender caro.
-              </p>
-            </div>
-          </div>
-          <div class="text-right shrink-0">
-            <span id="radarActionBadge" class="hidden">VENTA</span>
-            <span id="radarProximityBadge" class="hidden"><span id="radarProximityText">RETESTEO</span></span>
-            <span id="radarSlPrice" class="hidden">$3,974.50</span>
-            <span id="radarSlPoints" class="hidden">1633 pts</span>
-            <span id="radarTp1Price" class="hidden">$3,925.51</span>
-            <span id="radarTp2Price" class="hidden">$3,909.18</span>
-            <span id="radarTp3Price" class="hidden">$3,876.52</span>
-            <span id="mathTp1Price" class="hidden">$3,925.51</span>
-            <span id="mathTp1Pts" class="hidden">+326 pts</span>
-            <span id="mathTp2Price" class="hidden">$3,909.18</span>
-            <span id="mathTp2Pts" class="hidden">+490 pts</span>
-            <span id="mathTp3Price" class="hidden">$3,876.52</span>
-            <span id="mathTp3Pts" class="hidden">+816 pts</span>
-            <span id="radarActionDesc" class="hidden">Esperando retroceso</span>
-            <span id="radarProtectionNote" class="hidden">SL protegido</span>
+          <div class="bg-blue-950/60 border border-blue-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+            <span class="text-blue-300">Apal.:</span>
+            <span class="font-bold text-blue-400">1:100 Forex / 1:30 Oro</span>
           </div>
         </div>
       </section>
 
-
-      <!-- ============================================================== -->
-      <!-- ÚNICA FICHA TÉCNICA MAESTRA DE ENTRADA (ORDEN FINAL MT5)      -->
-      <!-- ============================================================== -->
-      <section class="bg-gradient-to-b from-gray-900 via-gray-950 to-gray-900 border-2 border-amber-500/60 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 relative overflow-hidden">
-        <div class="absolute -right-20 -top-20 w-52 h-52 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-        <!-- Top Header & Live State Badge -->
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800 pb-3.5">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500/20 to-yellow-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center font-bold">
-              <i data-lucide="file-check-2" class="w-5 h-5"></i>
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h3 class="text-base sm:text-lg font-black text-white tracking-wide">Ficha Técnica de Entrada · Orden Única MT5</h3>
-                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-600 font-bold">PARÁMETROS EXACTOS</span>
-              </div>
-              <p class="text-xs text-gray-400">Los únicos 4 valores que debes ingresar en tu terminal de MetaTrader 5.</p>
-            </div>
-          </div>
-
-          <!-- Live State Pill -->
-          <div id="ticketStateBadge" class="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 bg-blue-950 text-blue-300 border border-blue-600/80 shadow-md">
-            <span class="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse"></span>
-            <span id="ticketStateText">⏳ EN ESPERA DE RETESTEO (1,037 pts restantes)</span>
-          </div>
-        </div>
-
-        <!-- Direct Execution Values (6 Boxes) -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs font-mono">
-          
-          <!-- Box 1: Acción -->
-          <div class="p-3 rounded-xl bg-gray-950/80 border border-rose-500/40 space-y-1">
-            <span class="text-[10px] text-gray-400 uppercase tracking-wider block font-sans">Acción</span>
-            <span id="ticketActionText" class="text-base font-black text-rose-400 block">VENTA / SELL</span>
-            <span class="text-[10px] text-rose-300/80 block">Sell-Only Institucional</span>
-          </div>
-
-          <!-- Box 2: Entrada Exacta -->
-          <div class="p-3 rounded-xl bg-gray-950/80 border border-emerald-500/50 space-y-1">
-            <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block font-sans">Entrada Óptima</span>
-            <span id="ticketEntryText" class="text-base font-black text-emerald-400 block">$3,958.17</span>
-            <span id="ticketRangeText" class="text-[10px] text-gray-400 block">$3,956.25 – $3,960.09</span>
-          </div>
-
-          <!-- Box 3: Stop Loss -->
-          <div class="p-3 rounded-xl bg-gray-950/80 border border-rose-500/40 space-y-1">
-            <span class="text-[10px] text-rose-400 font-bold uppercase tracking-wider block font-sans">Stop Loss (SL)</span>
-            <span id="ticketSlText" class="text-base font-black text-rose-300 block">$3,974.50</span>
-            <span id="ticketSlPtsText" class="text-[10px] text-rose-400 block">1,633 pts (-$16.33)</span>
-          </div>
-
-          <!-- Box 4: TP1 (1:2.0 Mínimo) -->
-          <div class="p-3 rounded-xl bg-gray-950/80 border border-emerald-500/40 space-y-1">
-            <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block font-sans">TP1 (1:2.0 Mínimo)</span>
-            <span id="ticketTp1Text" class="text-base font-black text-emerald-400 block">$3,925.51</span>
-            <span id="ticketTp1PtsText" class="text-[10px] text-emerald-300 block">+3,266 pts (+$32.66)</span>
-          </div>
-
-          <!-- Box 5: TP2 (1:3.0 Óptimo) -->
-          <div class="p-3 rounded-xl bg-gray-950/80 border border-yellow-500/40 space-y-1">
-            <span class="text-[10px] text-yellow-400 font-bold uppercase tracking-wider block font-sans">TP2 (1:3.0 Óptimo)</span>
-            <span id="ticketTp2Text" class="text-base font-black text-yellow-300 block">$3,909.18</span>
-            <span id="ticketTp2PtsText" class="text-[10px] text-yellow-400 block">+4,899 pts (+$48.99)</span>
-          </div>
-
-          <!-- Box 6: Lotaje Sugerido -->
-          <div class="p-3 rounded-xl bg-gray-950/80 border border-gold-500/40 space-y-1">
-            <span class="text-[10px] text-gold-400 font-bold uppercase tracking-wider block font-sans">Lote en MT5</span>
-            <span id="ticketLotText" class="text-base font-black text-gold-300 block">0.01 Lotes</span>
-            <span class="text-[10px] text-gold-400 block">Riesgo 10% saldo</span>
-          </div>
-
-        </div>
-
-        <!-- Instrucción Clara y Específica: Qué Hacer Paso a Paso -->
-        <div class="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-3">
-          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-800/80 pb-2.5">
-            <div class="text-xs font-bold font-mono text-amber-400 flex items-center gap-1.5">
-              <i data-lucide="compass" class="w-4 h-4"></i>
-              <span>Instrucción Operativa Exacta (¿Qué hago en este momento?):</span>
-            </div>
+      <!-- KPI CARDS GRID (6 TARJETAS ORION NOVA) -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Card 1: Balance & Progreso a Meta ,000 -->
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
+          <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <button type="button" id="btnCopySetupToCalculator" class="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-mono font-bold transition flex items-center gap-1 cursor-pointer">
-                <i data-lucide="calculator" class="w-3.5 h-3.5"></i>
-                <span>Cargar en Calculadora</span>
-              </button>
-              <button type="button" id="btnTransferTicketToJournal" class="px-3 py-1 bg-emerald-600/30 hover:bg-emerald-600 border border-emerald-500/60 text-emerald-300 hover:text-white rounded-lg text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
-                <i data-lucide="book-plus" class="w-3.5 h-3.5 text-emerald-400"></i>
-                <span>Pre-cargar en Bitácora</span>
-              </button>
-              <button type="button" id="btnCopyTicketParams" class="px-3 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-yellow-500/60 text-gray-300 hover:text-white rounded-lg text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
-                <i data-lucide="copy" class="w-3.5 h-3.5 text-yellow-400"></i>
-                <span id="btnCopyTicketText">Copiar Orden MT5</span>
-              </button>
+              <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20">
+                <i data-lucide="target" class="w-4 h-4"></i>
+              </div>
+              <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Balance & Meta (4%)</span>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold" id="fondeoTargetPctBadge">0.0% Meta</span>
+          </div>
+          <div class="my-3">
+            <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="fondeoCurrentBalance">,000.00</div>
+            <div class="text-xs text-gray-400 mt-1 flex items-center justify-between">
+              <span>Meta: <strong class="text-emerald-400 font-mono">,000.00</strong></span>
+              <span>Falta: <strong class="text-amber-400 font-mono" id="fondeoRemainingTarget">+,000.00</strong></span>
             </div>
           </div>
+          <!-- Progress Bar -->
+          <div class="w-full bg-gray-950 rounded-full h-2.5 border border-gray-800 overflow-hidden">
+            <div id="fondeoTargetProgressBar" class="bg-gradient-to-r from-emerald-600 to-teal-400 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
 
-          <div class="space-y-2 text-xs leading-relaxed text-gray-300" id="ticketInstructionsContainer">
-            <div class="flex items-start gap-2.5 p-2 rounded-lg bg-gray-900/60 border border-gray-800/80">
-              <span class="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 font-bold font-mono flex items-center justify-center shrink-0 text-[10px]">1</span>
-              <div>
-                <strong class="text-white">Estado del Mercado:</strong> El precio cotiza en <span id="ticketStepPrice" class="text-yellow-400 font-mono font-bold">$3,947.80</span>. Como el sesgo es VENTA y estamos 1,037 pts por debajo de la entrada ($3,958.17), <strong>está TERMINANTEMENTE PROHIBIDO vender en el fondo</strong>. Manos quietas hasta que el precio retroceda.
+        <!-- Card 2: Límite de Pérdida Diaria (4% = ,000) -->
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20">
+                <i data-lucide="shield-alert" class="w-4 h-4"></i>
               </div>
+              <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Pérdida Diaria (Máx ,000)</span>
             </div>
-
-            <div class="flex items-start gap-2.5 p-2 rounded-lg bg-gray-900/60 border border-gray-800/80">
-              <span class="w-5 h-5 rounded-full bg-yellow-500/20 text-yellow-400 font-bold font-mono flex items-center justify-center shrink-0 text-[10px]">2</span>
-              <div>
-                <strong class="text-white">Zona de Activación ($3,956.25 – $3,960.09):</strong> Si el precio sube a esta zona, colocas una orden <strong>Sell Limit a $3,958.17</strong> con <strong>0.01 lotes</strong>, o disparas por mercado al segundo :02 si la vela M5 muestra mecha de rechazo.
-              </div>
+            <span id="fondeoDailyLossStatusBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold">100% SEGURO</span>
+          </div>
+          <div class="my-3">
+            <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="fondeoDailyHeadroom">,000.00</div>
+            <div class="text-xs text-gray-400 mt-1 flex items-center justify-between">
+              <span>Colchón disponible hoy:</span>
+              <span>Pérdida hoy: <strong class="text-gray-300 font-mono" id="fondeoTodayLoss">zsh.00</strong></span>
             </div>
+          </div>
+          <!-- Health Bar -->
+          <div class="w-full bg-gray-950 rounded-full h-2.5 border border-gray-800 overflow-hidden">
+            <div id="fondeoDailyHealthBar" class="bg-gradient-to-r from-emerald-500 via-yellow-500 to-red-500 h-2.5 rounded-full transition-all duration-500" style="width: 100%"></div>
+          </div>
+        </div>
 
-            <div class="flex items-start gap-2.5 p-2 rounded-lg bg-gray-900/60 border border-gray-800/80">
-              <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold font-mono flex items-center justify-center shrink-0 text-[10px]">3</span>
-              <div>
-                <strong class="text-white">Gestión de Riesgo & Salidas:</strong> Fijas tu SL en <strong class="text-rose-400 font-mono">$3,974.50</strong> (+150 pts de colchón anti-spread) y tu TP1 en <strong class="text-emerald-400 font-mono">$3,925.51</strong>. Al tocar TP1, cierras el 50% de la orden y mueves SL a <strong>Breakeven (+0.00)</strong>.
+        <!-- Card 3: Piso Drawdown Máximo (8% Trailing-Lock) -->
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="p-2 bg-red-500/10 text-red-400 rounded-lg border border-red-500/20">
+                <i data-lucide="lock" class="w-4 h-4"></i>
               </div>
+              <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Drawdown Trailing-Lock</span>
+            </div>
+            <span id="fondeoTrailingLockBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700 font-bold">Trailing Activo</span>
+          </div>
+          <div class="my-3">
+            <div class="text-2xl sm:text-3xl font-black text-red-400 font-mono" id="fondeoTrailingFloor">,000.00</div>
+            <div class="text-xs text-gray-400 mt-1 flex items-center justify-between">
+              <span>Piso de liquidación</span>
+              <span>Colchón al piso: <strong class="text-white font-mono" id="fondeoMaxDdHeadroom">,000.00</strong></span>
+            </div>
+          </div>
+          <p class="text-[11px] text-gray-400">El piso sube con el pico de balance y se <strong>bloquea fijo en ,000</strong> al pasar a profit.</p>
+        </div>
+
+        <!-- Card 4: Margen y Apalancamiento 1:100 -->
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="p-2 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/20">
+                <i data-lucide="layers" class="w-4 h-4"></i>
+              </div>
+              <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Margen Usado & Libre</span>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-950 text-blue-400 border border-blue-800 font-bold">Apal. 1:100</span>
+          </div>
+          <div class="my-3">
+            <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="fondeoFreeMargin">,000.00</div>
+            <div class="text-xs text-gray-400 mt-1 flex items-center justify-between">
+              <span>Margen Libre disponible</span>
+              <span>Último margen usado: <strong class="text-blue-400 font-mono" id="fondeoLastMargin">zsh.00</strong></span>
+            </div>
+          </div>
+          <p class="text-[11px] text-gray-400">1 lote de EUR/USD requiere solo <strong>~,085</strong> de margen (2.1% de tu capital).</p>
+        </div>
+
+        <!-- Card 5: Regla del 20% Mejor Día (Consistencia) -->
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="p-2 bg-purple-500/10 text-purple-400 rounded-lg border border-purple-500/20">
+                <i data-lucide="calendar" class="w-4 h-4"></i>
+              </div>
+              <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Regla 20% Mejor Día</span>
+            </div>
+            <span id="fondeoBestDayBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold">Cumple Regla</span>
+          </div>
+          <div class="my-3">
+            <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="fondeoBestDayPct">0.0%</div>
+            <div class="text-xs text-gray-400 mt-1 flex items-center justify-between">
+              <span>% del beneficio total</span>
+              <span>Mejor día: <strong class="text-purple-400 font-mono" id="fondeoBestDayProfit">zsh.00</strong></span>
+            </div>
+          </div>
+          <p class="text-[11px] text-gray-400">En la cuenta financiada ningún día puede superar el 20% de la ganancia total para retirar.</p>
+        </div>
+
+        <!-- Card 6: Estadísticas de Desempeño -->
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="p-2 bg-teal-500/10 text-teal-400 rounded-lg border border-teal-500/20">
+                <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+              </div>
+              <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Rendimiento Operativo</span>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700 font-bold" id="fondeoTotalTradesBadge">0 ops</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 my-2 text-xs">
+            <div class="bg-gray-950/60 p-2 rounded-lg border border-gray-800/80">
+              <span class="text-gray-400 text-[10px] block uppercase">Win Rate</span>
+              <span class="text-base font-bold text-emerald-400 font-mono" id="fondeoWinRate">0.0%</span>
+            </div>
+            <div class="bg-gray-950/60 p-2 rounded-lg border border-gray-800/80">
+              <span class="text-gray-400 text-[10px] block uppercase">Profit Factor</span>
+              <span class="text-base font-bold text-white font-mono" id="fondeoProfitFactor">0.0</span>
+            </div>
+            <div class="bg-gray-950/60 p-2 rounded-lg border border-gray-800/80">
+              <span class="text-gray-400 text-[10px] block uppercase">Victorias / Pérdidas</span>
+              <span class="text-xs font-bold text-gray-300 font-mono" id="fondeoWinLossRatio">0W / 0L</span>
+            </div>
+            <div class="bg-gray-950/60 p-2 rounded-lg border border-gray-800/80">
+              <span class="text-gray-400 text-[10px] block uppercase">PnL Neto</span>
+              <span class="text-xs font-bold font-mono" id="fondeoNetPnL">zsh.00</span>
             </div>
           </div>
         </div>
       </section>
 
+      <!-- CALCULADORA RÁPIDA ORION NOVA 50K & FORMULARIO DE TRADE MANUAL -->
+      <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- CALCULADORA ORION NOVA 50K -->
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="p-2 bg-amber-500/15 text-amber-400 rounded-xl border border-amber-500/30">
+                <i data-lucide="calculator" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-white">Calculadora Oficial Orion Nova 50K</h3>
+                <p class="text-xs text-gray-400">Lote exacto, margen y validación de seguridad contra la pérdida diaria</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">1:100 FOREX</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+            <!-- Par / Activo -->
+            <div>
+              <label class="block text-gray-400 mb-1 font-medium">Activo</label>
+              <select id="fondeoCalcAsset" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-bold focus:border-amber-500 focus:outline-none">
+                <option value="EUR/USD" selected>EUR/USD (1:100)</option>
+                <option value="GBP/USD">GBP/USD (1:100)</option>
+                <option value="USD/JPY">USD/JPY (1:100)</option>
+                <option value="XAU/USD">XAU/USD (Oro 1:30)</option>
+              </select>
+            </div>
+
+            <!-- Stop Loss en Pips -->
+            <div>
+              <label class="block text-gray-400 mb-1 font-medium">Stop Loss (Pips)</label>
+              <div class="relative">
+                <input type="number" id="fondeoCalcSlPips" value="10.0" step="0.5" min="1" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-amber-500 focus:outline-none" placeholder="10.0">
+                <span class="absolute right-3 top-2 text-gray-500 text-[10px] font-mono">pips</span>
+              </div>
+            </div>
+
+            <!-- Riesgo % -->
+            <div>
+              <label class="block text-gray-400 mb-1 font-medium">Riesgo %</label>
+              <select id="fondeoCalcRiskPct" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-emerald-400 font-bold font-mono focus:border-amber-500 focus:outline-none">
+                <option value="0.25">0.25% ()</option>
+                <option value="0.5" selected>0.50% () [Recomendado]</option>
+                <option value="0.75">0.75% ()</option>
+                <option value="1.0">1.00% ()</option>
+                <option value="manual">Manual ($ USD)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Campo Riesgo Manual si selecciona manual -->
+          <div id="fondeoCalcManualRiskGroup" class="hidden text-xs">
+            <label class="block text-gray-400 mb-1 font-medium">Riesgo Manual en Dólares ($)</label>
+            <input type="number" id="fondeoCalcManualUsd" value="250.00" step="10" min="10" max="2000" class="w-full bg-gray-950 border border-amber-500/50 rounded-xl px-3 py-2 text-amber-300 font-mono font-bold focus:outline-none">
+          </div>
+
+          <!-- Ratio R:R -->
+          <div class="flex items-center justify-between text-xs pt-1">
+            <span class="text-gray-400 font-medium">Ratio Riesgo:Beneficio (R:R):</span>
+            <div class="flex items-center gap-1.5" id="fondeoRrButtons">
+              <button type="button" class="btn-fondeo-rr px-2.5 py-1 rounded-lg text-xs font-mono font-bold border border-gray-700 bg-gray-900 text-gray-300 hover:text-white" data-rr="1.5">1:1.5</button>
+              <button type="button" class="btn-fondeo-rr px-2.5 py-1 rounded-lg text-xs font-mono font-bold border border-amber-500 bg-amber-500/20 text-amber-300" data-rr="2.0">1:2.0</button>
+              <button type="button" class="btn-fondeo-rr px-2.5 py-1 rounded-lg text-xs font-mono font-bold border border-gray-700 bg-gray-900 text-gray-300 hover:text-white" data-rr="3.0">1:3.0</button>
+            </div>
+          </div>
+
+          <!-- RESULTADOS DE LA CALCULADORA -->
+          <div class="bg-gray-950/90 border border-gray-800 rounded-xl p-4 space-y-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              <div class="bg-gray-900/80 p-2.5 rounded-lg border border-gray-800">
+                <span class="text-[10px] text-gray-400 uppercase font-bold block">Lote Sugerido</span>
+                <span class="text-xl sm:text-2xl font-black text-amber-400 font-mono" id="fondeoCalcLot">2.50</span>
+              </div>
+              <div class="bg-gray-900/80 p-2.5 rounded-lg border border-gray-800">
+                <span class="text-[10px] text-gray-400 uppercase font-bold block">Riesgo en USD</span>
+                <span class="text-lg sm:text-xl font-black text-red-400 font-mono" id="fondeoCalcDollarRisk">.00</span>
+              </div>
+              <div class="bg-gray-900/80 p-2.5 rounded-lg border border-gray-800">
+                <span class="text-[10px] text-gray-400 uppercase font-bold block">Margen Requerido</span>
+                <span class="text-lg sm:text-xl font-black text-blue-400 font-mono" id="fondeoCalcMargin">,712.50</span>
+              </div>
+              <div class="bg-gray-900/80 p-2.5 rounded-lg border border-gray-800">
+                <span class="text-[10px] text-gray-400 uppercase font-bold block">Ganancia en TP (1:2)</span>
+                <span class="text-lg sm:text-xl font-black text-emerald-400 font-mono" id="fondeoCalcReward">+.00</span>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-gray-400 pt-1">
+              <span>Valor por Pip: <strong class="text-white font-mono" id="fondeoCalcPipVal">.00/pip</strong></span>
+              <span>Consumo de Margen: <strong class="text-blue-300 font-mono" id="fondeoCalcMarginPct">5.4%</strong></span>
+            </div>
+
+            <!-- Safety Banner Orion -->
+            <div id="fondeoSafetyBanner" class="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-800/60 text-xs text-emerald-300 flex items-center gap-2">
+              <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+              <span id="fondeoSafetyBannerText">Riesgo dentro del límite: soportas <strong>8 pérdidas seguidas</strong> hoy sin violar el 4% diario.</span>
+            </div>
+
+            <button id="btnApplyCalcToForm" type="button" class="w-full py-2.5 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-black font-black text-xs rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-amber-600/20 cursor-pointer">
+              <i data-lucide="arrow-right-circle" class="w-4 h-4"></i>
+              <span>Cargar Lote y Datos al Registro Manual</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- FORMULARIO DE REGISTRO MANUAL DE TRADE (FONDEO 50K) -->
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="p-2 bg-emerald-500/15 text-emerald-400 rounded-xl border border-emerald-500/30">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-white">Registrar Trade en Orion Nova 50K</h3>
+                <p class="text-xs text-gray-400">Guarda tus operaciones manuales sin necesidad de MT5 ni EA</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold">MANUAL</span>
+          </div>
+
+          <form id="formFondeoTrade" class="space-y-3.5 text-xs">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <!-- Par / Activo -->
+              <div>
+                <label class="block text-gray-400 mb-1 font-medium">Activo</label>
+                <input type="text" id="fondeoFormAsset" value="EUR/USD" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-bold uppercase focus:border-emerald-500 focus:outline-none">
+              </div>
+              <!-- Dirección -->
+              <div>
+                <label class="block text-gray-400 mb-1 font-medium">Dirección</label>
+                <select id="fondeoFormDirection" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-bold focus:border-emerald-500 focus:outline-none">
+                  <option value="BUY">🟢 BUY (Compra)</option>
+                  <option value="SELL">🔴 SELL (Venta)</option>
+                </select>
+              </div>
+              <!-- Lote Operado -->
+              <div>
+                <label class="block text-gray-400 mb-1 font-medium">Lote Operado</label>
+                <input type="number" id="fondeoFormLot" value="2.50" step="0.01" min="0.01" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-emerald-500 focus:outline-none">
+              </div>
+              <!-- Stop Loss Pips -->
+              <div>
+                <label class="block text-gray-400 mb-1 font-medium">SL Pips</label>
+                <input type="number" id="fondeoFormSlPips" value="10.0" step="0.1" min="0.5" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-emerald-500 focus:outline-none">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <!-- Resultado -->
+              <div>
+                <label class="block text-gray-400 mb-1 font-medium">Resultado</label>
+                <select id="fondeoFormStatus" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-bold focus:border-emerald-500 focus:outline-none">
+                  <option value="win">🟢 WIN (Ganada)</option>
+                  <option value="loss">🔴 LOSS (Perdida)</option>
+                  <option value="be">⚪ BREAKEVEN (0)</option>
+                </select>
+              </div>
+              <!-- PnL en Dólares ($) -->
+              <div>
+                <label class="block text-gray-400 mb-1 font-medium">PnL en Dólares ($)</label>
+                <input type="number" id="fondeoFormPnl" value="500.00" step="0.01" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold focus:border-emerald-500 focus:outline-none">
+              </div>
+              <!-- Ratio R:R -->
+              <div>
+                <label class="block text-gray-400 mb-1 font-medium">Ratio R:R</label>
+                <input type="number" id="fondeoFormRr" value="2.0" step="0.1" min="0.5" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-emerald-500 focus:outline-none">
+              </div>
+              <!-- Sesión -->
+              <div>
+                <label class="block text-gray-400 mb-1 font-medium">Sesión</label>
+                <select id="fondeoFormSession" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-medium focus:border-emerald-500 focus:outline-none">
+                  <option value="New York" selected>New York</option>
+                  <option value="London">London</option>
+                  <option value="Asia">Asia</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- TradingView Chart URL & Notas -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-gray-400 mb-1 font-medium">TradingView Link (Captura)</label>
+                <input type="url" id="fondeoFormTvUrl" placeholder="https://www.tradingview.com/x/..." class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-gray-300 focus:border-emerald-500 focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-gray-400 mb-1 font-medium">Notas / Confluencias</label>
+                <input type="text" id="fondeoFormNotes" placeholder="Ej: Rompimiento London Low + FVG M5" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-gray-300 focus:border-emerald-500 focus:outline-none">
+              </div>
+            </div>
+
+            <button type="submit" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-600/20 cursor-pointer">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>Guardar Trade en Bitácora Fondeo</span>
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- GRÁFICO DE CURVA DE EQUIDAD ORION NOVA CON LÍNEAS DE TARGET Y TRAILING-LOCK -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 bg-indigo-500/15 text-indigo-400 rounded-xl border border-indigo-500/30">
+              <i data-lucide="trending-up" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-white">Curva de Equidad Orion Nova 50K</h3>
+              <p class="text-xs text-gray-400">Visualización en vivo con niveles de Target (k), Balance Base (k) y Piso Trailing (k)</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 text-xs font-mono">
+            <div class="flex items-center gap-1.5"><span class="w-3 h-1 bg-emerald-400 rounded"></span><span class="text-gray-400">Meta ,000</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-1 bg-blue-400 rounded"></span><span class="text-gray-400">Equidad</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-1 bg-red-400 rounded"></span><span class="text-gray-400">Piso DD Máx</span></div>
+          </div>
+        </div>
+        <div class="h-72 w-full">
+          <canvas id="fondeoEquityChart"></canvas>
+        </div>
+      </section>
+
+      <!-- TABLA DE OPERACIONES DE FONDEO 50K -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 bg-amber-500/15 text-amber-400 rounded-xl border border-amber-500/30">
+              <i data-lucide="list" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-white">Historial de Operaciones Registradas (Fondeo 50K)</h3>
+              <p class="text-xs text-gray-400">Registro detallado de forward-testing manual en la prueba Orion Nova 50K</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btnExportFondeoJson" type="button" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Exportar JSON</span>
+            </button>
+            <button id="btnClearFondeoTrades" type="button" class="px-3 py-1.5 bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/80 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              <span>Limpiar Tabla</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-gray-950/80 text-gray-400 uppercase font-mono text-[10px] border-b border-gray-800">
+              <tr>
+                <th class="py-3 px-3">#</th>
+                <th class="py-3 px-3">Fecha</th>
+                <th class="py-3 px-3">Activo</th>
+                <th class="py-3 px-3">Tipo</th>
+                <th class="py-3 px-3">Lote</th>
+                <th class="py-3 px-3">SL (Pips)</th>
+                <th class="py-3 px-3">R:R</th>
+                <th class="py-3 px-3">PnL ($)</th>
+                <th class="py-3 px-3">Retorno %</th>
+                <th class="py-3 px-3">Balance Resultante</th>
+                <th class="py-3 px-3">Margen Usado</th>
+                <th class="py-3 px-3">Sesión</th>
+                <th class="py-3 px-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="fondeoTradesTableBody" class="divide-y divide-gray-800/60 text-gray-300">
+              <tr>
+                <td colspan="13" class="py-8 text-center text-gray-500">
+                  <div class="flex flex-col items-center justify-center gap-2">
+                    <i data-lucide="award" class="w-8 h-8 text-amber-500/40"></i>
+                    <span>No hay operaciones registradas en la prueba 50k. ¡Usa el formulario arriba para registrar tu primer trade manual!</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
 
-
-  <!-- ============================================================== -->
-    <!-- VIEW 3: CALCULADORA MYFXBOOK (Oro XAU/USD en Puntos)          -->
-    <!-- ============================================================== -->
-    <!-- ============================================================== -->
-    <!-- VIEW 3: CALCULADORA MYFXBOOK (Oro XAU/USD en Puntos)          -->
-    <!-- ============================================================== -->
+<!-- ============================================================== -->
     <div id="viewCalculator" class="space-y-6">
       
       <!-- Banner / Title -->
@@ -996,6 +788,158 @@
 
         </div>
       </div>
+
+      <!-- GUÍA OFICIAL & REGLAMENTO ORION NOVA 50K (PAY AFTER YOU PASS) -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-5">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold">
+              <i data-lucide="book-open" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-base sm:text-lg font-black text-white">Manual Oficial de Reglas — Orion Nova 50K</h3>
+              <p class="text-xs text-gray-400">Todo lo que necesitas saber para operar manualmente la prueba Pay After You Pass</p>
+            </div>
+          </div>
+          <span class="px-3 py-1 rounded-xl text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            OFICIAL ORION FUNDED
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+          <!-- Regla 1: Modelo Pay After You Pass -->
+          <div class="p-4 bg-gray-950/70 border border-gray-800 rounded-xl space-y-2">
+            <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
+              <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+              <span>1. Modelo Pay After You Pass</span>
+            </div>
+            <p class="text-gray-300 leading-relaxed">
+              Pagas solo <strong>$7 USD</strong> de tarifa de entrada para iniciar la evaluación de $50,000. <strong>Solo si pasas el objetivo del 4%</strong> pagas la tarifa de activación para recibir tu cuenta financiada real.
+            </p>
+            <div class="p-2 bg-amber-950/40 border border-amber-800/40 rounded-lg text-amber-300 font-mono text-[11px]">
+              Entrada: $7 • Activación: solo al aprobar
+            </div>
+          </div>
+
+          <!-- Regla 2: Objetivo de Ganancia (4%) -->
+          <div class="p-4 bg-gray-950/70 border border-gray-800 rounded-xl space-y-2">
+            <div class="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+              <i data-lucide="target" class="w-4 h-4"></i>
+              <span>2. Objetivo de Ganancia: 4% ($2,000)</span>
+            </div>
+            <p class="text-gray-300 leading-relaxed">
+              Para aprobar el Paso 1 requieres alcanzar un balance de <strong>$52,000 USD</strong> (+4.00%). No hay límite de tiempo ni mínimo de días de trading requeridos (0 días mínimos).
+            </p>
+            <div class="p-2 bg-emerald-950/40 border border-emerald-800/40 rounded-lg text-emerald-300 font-mono text-[11px]">
+              Meta: $52,000.00 • Días mínimos: 0 • Tiempo: Ilimitado
+            </div>
+          </div>
+
+          <!-- Regla 3: Pérdida Diaria (4%) -->
+          <div class="p-4 bg-gray-950/70 border border-gray-800 rounded-xl space-y-2">
+            <div class="flex items-center gap-2 text-rose-400 font-bold text-sm">
+              <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+              <span>3. Pérdida Diaria Máxima: 4% ($2,000)</span>
+            </div>
+            <p class="text-gray-300 leading-relaxed">
+              Tu pérdida combinada del día (trades cerrados + equidad flotante) no puede superar <strong>$2,000 USD</strong>. Se calcula a partir del balance o equidad más alto al cierre del día anterior (medianoche UTC/broker).
+            </p>
+            <div class="p-2 bg-rose-950/40 border border-rose-800/40 rounded-lg text-rose-300 font-mono text-[11px]">
+              Límite diario: $2,000 USD (incluye flotante)
+            </div>
+          </div>
+
+          <!-- Regla 4: Drawdown Trailing-Lock (8%) -->
+          <div class="p-4 bg-gray-950/70 border border-gray-800 rounded-xl space-y-2">
+            <div class="flex items-center gap-2 text-red-400 font-bold text-sm">
+              <i data-lucide="lock" class="w-4 h-4"></i>
+              <span>4. Drawdown Máximo: 8% (Trailing-Lock)</span>
+            </div>
+            <p class="text-gray-300 leading-relaxed">
+              El piso de liquidación arranca en <strong>$46,000 USD</strong> ($50,000 - $4,000). A medida que tu cuenta genera ganancias, el piso sube acompañando el punto más alto, hasta que alcanza <strong>$50,000 USD</strong> donde <strong>se bloquea para siempre (Lock)</strong>.
+            </p>
+            <div class="p-2 bg-red-950/40 border border-red-800/40 rounded-lg text-red-300 font-mono text-[11px]">
+              Piso inicial: $46,000 • Candado Fijo: $50,000.00
+            </div>
+          </div>
+
+          <!-- Regla 5: Regla del 20% Mejor Día -->
+          <div class="p-4 bg-gray-950/70 border border-gray-800 rounded-xl space-y-2">
+            <div class="flex items-center gap-2 text-purple-400 font-bold text-sm">
+              <i data-lucide="pie-chart" class="w-4 h-4"></i>
+              <span>5. Regla del 20% Mejor Día (Consistencia)</span>
+            </div>
+            <p class="text-gray-300 leading-relaxed">
+              En la fase financiada, para solicitar un retiro, ninguna sesión individual de trading puede representar más del <strong>20% de tus ganancias totales</strong>. Esto garantiza consistencia y previene "gambling" o sobreapalancamiento de un solo tiro.
+            </p>
+            <div class="p-2 bg-purple-950/40 border border-purple-800/40 rounded-lg text-purple-300 font-mono text-[11px]">
+              Mejor día ≤ 20% del profit total retirado
+            </div>
+          </div>
+
+          <!-- Regla 6: Apalancamiento y Margen -->
+          <div class="p-4 bg-gray-950/70 border border-gray-800 rounded-xl space-y-2">
+            <div class="flex items-center gap-2 text-blue-400 font-bold text-sm">
+              <i data-lucide="layers" class="w-4 h-4"></i>
+              <span>6. Apalancamiento & Margen Operativo</span>
+            </div>
+            <p class="text-gray-300 leading-relaxed">
+              Apalancamiento de <strong>1:100 en Forex</strong> (EUR/USD, GBP/USD, etc.) y <strong>1:30 en Metales / Oro</strong>. Con 1:100 en Forex, abrir 1 lote estándar consume únicamente ~$1,085 de margen (2.1% de la cuenta).
+            </p>
+            <div class="p-2 bg-blue-950/40 border border-blue-800/40 rounded-lg text-blue-300 font-mono text-[11px]">
+              1:100 Forex • 1:30 Metales • Margen muy holgado
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla de Dimensionamiento de Riesgo Recomendado -->
+        <div class="mt-4 pt-4 border-t border-gray-800">
+          <h4 class="text-xs font-bold text-white mb-2 uppercase tracking-wide flex items-center gap-2">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            <span>Plan Matemático Recomendado para Aprobar sin Riesgo de Drawdown</span>
+          </h4>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs font-mono">
+              <thead class="bg-gray-950 text-gray-400 text-[10px] uppercase border-b border-gray-800">
+                <tr>
+                  <th class="p-2.5">Riesgo por Trade</th>
+                  <th class="p-2.5">Riesgo en $</th>
+                  <th class="p-2.5">Lote (SL 10 pips EURUSD)</th>
+                  <th class="p-2.5">Pérdidas para violar día ($2,000)</th>
+                  <th class="p-2.5">Ganancia a 1:2 R:R</th>
+                  <th class="p-2.5">Trades para Pasar ($2,000 target)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-800 text-gray-300">
+                <tr class="bg-emerald-950/20">
+                  <td class="p-2.5 font-bold text-emerald-400">0.50% (Recomendado)</td>
+                  <td class="p-2.5 font-bold text-white">$250.00</td>
+                  <td class="p-2.5 font-bold text-amber-300">2.50 lotes</td>
+                  <td class="p-2.5 text-emerald-400">8 pérdidas seguidas</td>
+                  <td class="p-2.5 text-emerald-300">+$500.00</td>
+                  <td class="p-2.5 font-bold text-emerald-400">4 trades ganadores netos</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-bold text-blue-400">0.75% (Intermedio)</td>
+                  <td class="p-2.5 font-bold text-white">$375.00</td>
+                  <td class="p-2.5 font-bold text-amber-300">3.75 lotes</td>
+                  <td class="p-2.5 text-blue-300">5.3 pérdidas seguidas</td>
+                  <td class="p-2.5 text-emerald-300">+$750.00</td>
+                  <td class="p-2.5 font-bold text-blue-400">2.7 trades ganadores netos</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-bold text-amber-400">1.00% (Agresivo)</td>
+                  <td class="p-2.5 font-bold text-white">$500.00</td>
+                  <td class="p-2.5 font-bold text-amber-300">5.00 lotes</td>
+                  <td class="p-2.5 text-amber-400">4 pérdidas seguidas</td>
+                  <td class="p-2.5 text-emerald-300">+$1,000.00</td>
+                  <td class="p-2.5 font-bold text-amber-400">2 trades ganadores netos</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
     </div>
 

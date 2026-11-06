@@ -5,12 +5,26 @@
 
 // Global State
 let appState = {
-  activeTab: 'real', // 'calculator' | 'real'
+  activeTab: 'fondeo',
+  fondeo: {
+    summary: {},
+    trades: [],
+    equityCurve: [],
+    config: {
+      initial_balance: 50000.0,
+      risk_pct: 0.5,
+      rr_ratio: 2.0,
+      leverage: 100.0,
+      profit_target_usd: 2000.0,
+      daily_loss_usd: 2000.0,
+      max_loss_usd: 4000.0
+    }
+  },
   config: {
-    initial_balance: 110.0,
-    risk_pct: 5.0,
-    rr_ratio: 1.0,
-    leverage: 300,
+    initial_balance: 97.72,
+    risk_pct: 1.0,
+    rr_ratio: 2.0,
+    leverage: 500,
     contract_size: 100,
     min_lot: 0.01,
     lot_step: 0.01
@@ -28,11 +42,11 @@ let appState = {
     filter: 'all'
   },
   calculator: {
-    balance: 110.0,
-    risk_pct: 5.0,
-    sl_points: 250,
-    rr: 1.0,
-    leverage: 300,
+    balance: 50000.0,
+    risk_pct: 0.5,
+    sl_points: 100,
+    rr: 2.0,
+    leverage: 100,
     gold_price: 2720.0
   }
 };
@@ -73,13 +87,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadConfig();
   await loadTrades('real');
   await loadTrades('backtest');
+  await loadFondeoTrades();
+  setupFondeoCalculator();
+  setupFondeoTradeForm();
+  setupFondeoActionButtons();
   setCurrentDateTime();
   renderRealJournalDashboard();
   renderBacktestDashboard();
   recalculateTradingViewValues();
   updateCalculatorBalances();
   loadGoldBiasData();
-  startM5RealTimeScanner();
 });
 
 function initIcons() {
@@ -154,77 +171,58 @@ function formatRiskPctText(val) {
 }
 
 // ----------------------------------------------------
-// TAB NAVIGATION: 1. Radar Precisión | 2. Macro Sesión | 3. Calculadora | 4. Bitácora | 5. Manual
+function formatMoney(val) {
+  const num = parseFloat(val);
+  if (isNaN(num)) return '0.00';
+  return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ----------------------------------------------------
+// TAB NAVIGATION: 1. Fondeo Orion Nova 50K | 2. Bitácora Real | 3. Calculadora & Reglas
 // ----------------------------------------------------
 function setupTabNavigation() {
-  const btnGoldBias = document.getElementById('tabBtnGoldBias');
-  const btnPrecision = document.getElementById('tabBtnPrecisionRadar');
-  const btnCalc = document.getElementById('tabBtnCalculator');
+  const btnFondeo = document.getElementById('tabBtnFondeo');
   const btnReal = document.getElementById('tabBtnRealJournal');
-  const btnBacktest = document.getElementById('tabBtnBacktest');
-  const btnManual = document.getElementById('tabBtnManualGuide');
+  const btnCalc = document.getElementById('tabBtnCalculator');
 
-  const viewGoldBias = document.getElementById('viewGoldBias');
-  const viewPrecision = document.getElementById('viewPrecisionRadar');
-  const viewCalc = document.getElementById('viewCalculator');
+  const viewFondeo = document.getElementById('viewFondeo');
   const viewReal = document.getElementById('viewRealJournal');
+  const viewCalc = document.getElementById('viewCalculator');
   const viewBacktest = document.getElementById('viewBacktest');
   const viewManual = document.getElementById('viewManualGuide');
-
-  const btnTabPrintManual = document.getElementById('btnTabPrintManual');
 
   function switchTab(tab) {
     appState.activeTab = tab;
     try {
-      localStorage.setItem('activeTab', tab);
-      localStorage.setItem('activeTab_current', tab);
-      localStorage.setItem('activeTab_v5', tab);
+      localStorage.setItem('activeTab_orion', tab);
     } catch (e) {}
 
-    // Reset tab button styles
-    const activeClasses = ['bg-emerald-600', 'bg-gold-500', 'bg-yellow-500', 'bg-amber-500', 'bg-blue-600', 'text-white', 'text-black', 'shadow-lg', 'shadow-emerald-600/30', 'shadow-gold-500/30', 'shadow-yellow-500/30', 'shadow-amber-500/30', 'shadow-blue-600/30', 'font-bold', 'font-black'];
+    const activeClasses = ['bg-amber-500', 'bg-emerald-600', 'bg-blue-600', 'text-black', 'text-white', 'shadow-lg', 'shadow-amber-500/30', 'shadow-emerald-600/30', 'shadow-blue-600/30', 'font-black', 'font-bold'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnGoldBias, btnPrecision, btnCalc, btnReal, btnBacktest, btnManual].forEach(btn => {
+    [btnFondeo, btnReal, btnCalc].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
       }
     });
 
-    if (viewGoldBias) viewGoldBias.classList.add('hidden');
-    if (viewPrecision) viewPrecision.classList.add('hidden');
-    if (viewCalc) viewCalc.classList.add('hidden');
+    if (viewFondeo) viewFondeo.classList.add('hidden');
     if (viewReal) viewReal.classList.add('hidden');
+    if (viewCalc) viewCalc.classList.add('hidden');
     if (viewBacktest) viewBacktest.classList.add('hidden');
     if (viewManual) viewManual.classList.add('hidden');
 
-    if (tab === 'precision_radar') {
-      if (btnPrecision) {
-        btnPrecision.classList.remove(...inactiveClasses);
-        btnPrecision.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-black');
+    if (tab === 'fondeo') {
+      if (btnFondeo) {
+        btnFondeo.classList.remove(...inactiveClasses);
+        btnFondeo.classList.add('bg-amber-500', 'text-black', 'shadow-lg', 'shadow-amber-500/30', 'font-black');
       }
-      if (viewPrecision) viewPrecision.classList.remove('hidden');
-      loadPrecisionRadarData();
-      loadGoldBiasData();
-      triggerM5Scan();
-      loadWeeklyNews();
-    } else if (tab === 'gold_bias') {
-      if (btnGoldBias) {
-        btnGoldBias.classList.remove(...inactiveClasses);
-        btnGoldBias.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-600/30', 'font-bold');
-      }
-      if (viewGoldBias) viewGoldBias.classList.remove('hidden');
-      loadGoldBiasData();
-      triggerM5Scan();
-      loadWeeklyNews();
-    } else if (tab === 'calculator') {
-      if (btnCalc) {
-        btnCalc.classList.remove(...inactiveClasses);
-        btnCalc.classList.add('bg-gold-500', 'text-black', 'shadow-lg', 'shadow-gold-500/30', 'font-black');
-      }
-      if (viewCalc) viewCalc.classList.remove('hidden');
-      runMyfxbookCalculator();
+      if (viewFondeo) viewFondeo.classList.remove('hidden');
+      renderFondeoDashboard();
+      setTimeout(() => {
+        if (fondeoEquityChart) fondeoEquityChart.resize();
+      }, 50);
     } else if (tab === 'real') {
       if (btnReal) {
         btnReal.classList.remove(...inactiveClasses);
@@ -238,26 +236,13 @@ function setupTabNavigation() {
         if (drawdownChart) drawdownChart.resize();
         updateCharts();
       }, 50);
-    } else if (tab === 'backtest') {
-      if (btnBacktest) {
-        btnBacktest.classList.remove(...inactiveClasses);
-        btnBacktest.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-600/30', 'font-bold');
+    } else if (tab === 'calculator') {
+      if (btnCalc) {
+        btnCalc.classList.remove(...inactiveClasses);
+        btnCalc.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-600/30', 'font-bold');
       }
-      if (viewBacktest) viewBacktest.classList.remove('hidden');
-      renderBacktestDashboard();
-      recalculateTradingViewValues();
-      setTimeout(() => {
-        if (backtestEquityChart) backtestEquityChart.resize();
-        if (backtestDistributionChart) backtestDistributionChart.resize();
-        if (backtestDrawdownChart) backtestDrawdownChart.resize();
-        updateBacktestCharts();
-      }, 50);
-    } else if (tab === 'manual_guide') {
-      if (btnManual) {
-        btnManual.classList.remove(...inactiveClasses);
-        btnManual.classList.add('bg-amber-500', 'text-black', 'shadow-lg', 'shadow-amber-500/30', 'font-black');
-      }
-      if (viewManual) viewManual.classList.remove('hidden');
+      if (viewCalc) viewCalc.classList.remove('hidden');
+      runMyfxbookCalculator();
     }
 
     initIcons();
@@ -265,20 +250,604 @@ function setupTabNavigation() {
 
   window.switchTabTo = switchTab;
 
-  if (btnGoldBias) btnGoldBias.addEventListener('click', () => switchTab('gold_bias'));
-  if (btnPrecision) btnPrecision.addEventListener('click', () => switchTab('precision_radar'));
-  if (btnCalc) btnCalc.addEventListener('click', () => switchTab('calculator'));
+  if (btnFondeo) btnFondeo.addEventListener('click', () => switchTab('fondeo'));
   if (btnReal) btnReal.addEventListener('click', () => switchTab('real'));
-  if (btnBacktest) btnBacktest.addEventListener('click', () => switchTab('backtest'));
-  if (btnManual) btnManual.addEventListener('click', () => switchTab('manual_guide'));
-  if (btnTabPrintManual) btnTabPrintManual.addEventListener('click', () => window.print());
+  if (btnCalc) btnCalc.addEventListener('click', () => switchTab('calculator'));
 
-  // Recordar pestaña anterior de forma fiable (Prioridad: Macro Sesión Oro por defecto si es primera visita).
-  let savedTab = localStorage.getItem('activeTab_current') || localStorage.getItem('activeTab_v5') || localStorage.getItem('activeTab');
-  if (!savedTab || !['gold_bias', 'calculator', 'real', 'backtest'].includes(savedTab)) {
-    savedTab = 'gold_bias';
+  let savedTab = localStorage.getItem('activeTab_orion');
+  if (!savedTab || !['fondeo', 'real', 'calculator'].includes(savedTab)) {
+    savedTab = 'fondeo';
   }
   switchTab(savedTab);
+}
+
+// ====================================================
+// ORION NOVA 50K EVALUATION & FONDEO MODULE
+// ====================================================
+let fondeoEquityChart = null;
+
+async function loadFondeoTrades() {
+  try {
+    const cached = localStorage.getItem('cached_fondeo_trades');
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0 && (!appState.fondeo.trades || appState.fondeo.trades.length === 0)) {
+          appState.fondeo.trades = parsed;
+        }
+      } catch (e) {}
+    }
+
+    const res = await fetch('/api/trades?mode=fondeo');
+    if (res.ok) {
+      const data = await res.json();
+      appState.fondeo.summary = data.summary || {};
+      appState.fondeo.equityCurve = data.equity_curve || [];
+      appState.fondeo.trades = data.trades || [];
+      try {
+        localStorage.setItem('cached_fondeo_trades', JSON.stringify(appState.fondeo.trades));
+      } catch (e) {}
+    }
+  } catch (err) {
+    console.warn('Error cargando trades de fondeo:', err);
+  }
+  renderFondeoDashboard();
+}
+
+function renderFondeoDashboard() {
+  const summary = appState.fondeo.summary || {};
+  const orion = summary.orion_metrics || {
+    initial_balance: 50000.0,
+    target_balance: 52000.0,
+    profit_target_usd: 2000.0,
+    remaining_target: 2000.0,
+    target_progress_pct: 0.0,
+    daily_loss_limit_usd: 2000.0,
+    today_loss_usd: 0.0,
+    daily_loss_headroom: 2000.0,
+    daily_loss_breached: false,
+    trailing_floor: 46000.0,
+    max_loss_headroom: 4000.0,
+    max_loss_breached: false,
+    is_trailing_locked: false,
+    best_day_profit: 0.0,
+    best_day_pct: 0.0,
+    best_day_compliant: true,
+    eval_status: 'FASE 1: EN EVALUACIÓN'
+  };
+
+  const curBalance = summary.current_balance !== undefined ? summary.current_balance : 50000.0;
+  const netPnl = summary.net_pnl !== undefined ? summary.net_pnl : (summary.net_profit !== undefined ? summary.net_profit : 0.0);
+  const winRate = summary.win_rate !== undefined ? summary.win_rate : 0.0;
+  const pf = summary.profit_factor !== undefined ? summary.profit_factor : 0.0;
+  const wins = summary.wins !== undefined ? summary.wins : 0;
+  const losses = summary.losses !== undefined ? summary.losses : 0;
+  const totalTrades = summary.total_trades !== undefined ? summary.total_trades : (appState.fondeo.trades ? appState.fondeo.trades.length : 0);
+
+  // Quick header badges
+  const badgeBal = document.getElementById('badgeFondeoBalance');
+  if (badgeBal) badgeBal.textContent = formatMoney(curBalance);
+  const badgeFloor = document.getElementById('badgeFondeoFloor');
+  if (badgeFloor) badgeFloor.textContent = `$${formatMoney(orion.trailing_floor)}`;
+
+  // Status Badge
+  const elStatus = document.getElementById('badgeOrionEvalStatus');
+  if (elStatus) {
+    elStatus.textContent = orion.eval_status || 'FASE 1: EN EVALUACIÓN';
+    if (orion.eval_status && orion.eval_status.includes('APROBADO')) {
+      elStatus.className = 'px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full font-bold text-xs uppercase flex items-center gap-1.5 shadow-lg shadow-emerald-500/20';
+    } else if (orion.eval_status && (orion.eval_status.includes('FALLADA') || orion.eval_status.includes('VIOLADO'))) {
+      elStatus.className = 'px-3 py-1 bg-red-500/20 text-red-300 border border-red-500/40 rounded-full font-bold text-xs uppercase flex items-center gap-1.5 shadow-lg shadow-red-500/20';
+    } else {
+      elStatus.className = 'px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full font-bold text-xs uppercase flex items-center gap-1.5 shadow-lg shadow-amber-500/20';
+    }
+  }
+
+  // 1. Balance & Target
+  const elCurBal = document.getElementById('fondeoCurrentBalance');
+  if (elCurBal) elCurBal.textContent = `$${formatMoney(curBalance)}`;
+  const elTargetPct = document.getElementById('fondeoTargetPctBadge');
+  if (elTargetPct) elTargetPct.textContent = `${(orion.target_progress_pct || 0).toFixed(1)}% Alcanzado`;
+  const elRemTarget = document.getElementById('fondeoRemainingTarget');
+  if (elRemTarget) {
+    if (orion.remaining_target <= 0) {
+      elRemTarget.textContent = '¡Meta $2,000 alcanzada!';
+      elRemTarget.className = 'text-xs text-emerald-400 font-bold';
+    } else {
+      elRemTarget.textContent = `Faltan $${formatMoney(orion.remaining_target)} para $52,000`;
+      elRemTarget.className = 'text-xs text-gray-400';
+    }
+  }
+  const elBarTarget = document.getElementById('fondeoTargetProgressBar');
+  if (elBarTarget) {
+    const w = Math.min(100, Math.max(0, orion.target_progress_pct || 0));
+    elBarTarget.style.width = `${w}%`;
+  }
+
+  // 2. Pérdida Diaria (Daily Loss Limit $2,000)
+  const elDailyBadge = document.getElementById('fondeoDailyLossStatusBadge');
+  const elDailyHeadroom = document.getElementById('fondeoDailyHeadroom');
+  const elTodayLoss = document.getElementById('fondeoTodayLoss');
+  const elDailyBar = document.getElementById('fondeoDailyHealthBar');
+
+  if (elDailyHeadroom) elDailyHeadroom.textContent = `$${formatMoney(orion.daily_loss_headroom || 2000.0)}`;
+  if (elTodayLoss) elTodayLoss.textContent = `Pérdida hoy: $${formatMoney(orion.today_loss_usd || 0.0)}`;
+  
+  const dailyHealthPct = Math.min(100, Math.max(0, ((orion.daily_loss_headroom || 2000.0) / 2000.0) * 100));
+  if (elDailyBar) elDailyBar.style.width = `${dailyHealthPct}%`;
+
+  if (elDailyBadge) {
+    if (orion.daily_loss_breached) {
+      elDailyBadge.textContent = 'LÍMITE VIOLADO';
+      elDailyBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-red-950 text-red-300 border border-red-800';
+    } else if (orion.daily_loss_headroom < 500) {
+      elDailyBadge.textContent = '¡PRECAUCIÓN!';
+      elDailyBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800';
+    } else {
+      elDailyBadge.textContent = 'SALUDABLE';
+      elDailyBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800';
+    }
+  }
+
+  // 3. Drawdown Máximo (Piso Trailing-Lock $46k -> $50k)
+  const elFloor = document.getElementById('fondeoTrailingFloor');
+  if (elFloor) elFloor.textContent = `$${formatMoney(orion.trailing_floor || 46000.0)}`;
+  const elMaxDdHeadroom = document.getElementById('fondeoMaxDdHeadroom');
+  if (elMaxDdHeadroom) elMaxDdHeadroom.textContent = `Colchón de seguridad: $${formatMoney(orion.max_loss_headroom || 4000.0)}`;
+  const elLockBadge = document.getElementById('fondeoTrailingLockBadge');
+  if (elLockBadge) {
+    if (orion.is_trailing_locked) {
+      elLockBadge.textContent = 'BLOQUEADO A $50,000';
+      elLockBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800';
+    } else {
+      elLockBadge.textContent = 'TRAILING DINÁMICO';
+      elLockBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950 text-blue-300 border border-blue-800';
+    }
+  }
+
+  // 4. Margen Disponible (1:100 Forex)
+  const elFreeMargin = document.getElementById('fondeoFreeMargin');
+  if (elFreeMargin) elFreeMargin.textContent = `$${formatMoney(curBalance)}`;
+
+  // 5. Regla 20% Mejor Día
+  const elBestDayBadge = document.getElementById('fondeoBestDayBadge');
+  const elBestDayPct = document.getElementById('fondeoBestDayPct');
+  const elBestDayProfit = document.getElementById('fondeoBestDayProfit');
+  if (elBestDayPct) elBestDayPct.textContent = `${(orion.best_day_pct || 0).toFixed(1)}% / 20.0%`;
+  if (elBestDayProfit) elBestDayProfit.textContent = `Mejor día: $${formatMoney(orion.best_day_profit || 0.0)}`;
+  if (elBestDayBadge) {
+    if (orion.best_day_compliant) {
+      elBestDayBadge.textContent = 'CONFORME (≤ 20%)';
+      elBestDayBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800';
+    } else {
+      elBestDayBadge.textContent = 'ADVERTENCIA (> 20%)';
+      elBestDayBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800';
+    }
+  }
+
+  // 6. Rendimiento y Estadísticas
+  const elTradesBadge = document.getElementById('fondeoTotalTradesBadge');
+  if (elTradesBadge) elTradesBadge.textContent = `${totalTrades} Trades`;
+  const elWinRate = document.getElementById('fondeoWinRate');
+  if (elWinRate) elWinRate.textContent = `${winRate.toFixed(1)}%`;
+  const elPf = document.getElementById('fondeoProfitFactor');
+  if (elPf) elPf.textContent = pf.toFixed(2);
+  const elWlRatio = document.getElementById('fondeoWinLossRatio');
+  if (elWlRatio) elWlRatio.textContent = `${wins}W / ${losses}L`;
+  const elNetPnl = document.getElementById('fondeoNetPnL');
+  if (elNetPnl) {
+    const sign = netPnl >= 0 ? '+' : '';
+    elNetPnl.textContent = `${sign}$${formatMoney(netPnl)}`;
+    elNetPnl.className = `text-lg font-black font-mono ${netPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
+  }
+
+  renderFondeoTradesTable();
+  updateFondeoEquityChart();
+}
+
+function renderFondeoTradesTable() {
+  const tbody = document.getElementById('fondeoTradesTableBody');
+  if (!tbody) return;
+
+  const trades = appState.fondeo.trades || [];
+  if (trades.length === 0) {
+    tbody.innerHTML = `
+      <tr class="border-b border-gray-800 text-center">
+        <td colspan="10" class="py-10 text-gray-500 font-medium">
+          <i data-lucide="award" class="w-8 h-8 mx-auto mb-2 text-gray-600 opacity-50"></i>
+          <p>Sin operaciones registradas en Orion Nova 50K aún.</p>
+          <p class="text-xs text-gray-600 mt-1">Usa la calculadora y el formulario superior para registrar tus trades de la prueba.</p>
+        </td>
+      </tr>
+    `;
+    initIcons();
+    return;
+  }
+
+  const sorted = [...trades].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  tbody.innerHTML = sorted.map((t) => {
+    const isWin = (t.status || '').toLowerCase() === 'win';
+    const isLoss = (t.status || '').toLowerCase() === 'loss';
+    const statusBadge = isWin
+      ? '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">WIN</span>'
+      : isLoss
+      ? '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-red-950 text-red-400 border border-red-800">LOSS</span>'
+      : '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-gray-800 text-gray-300 border border-gray-700">BE</span>';
+
+    const dirBadge = (t.direction || 'BUY').toUpperCase() === 'BUY'
+      ? '<span class="text-emerald-400 font-bold">BUY</span>'
+      : '<span class="text-red-400 font-bold">SELL</span>';
+
+    const pnl = t.pnl !== undefined ? t.pnl : 0;
+    const pnlClass = pnl > 0 ? 'text-emerald-400 font-bold' : pnl < 0 ? 'text-red-400 font-bold' : 'text-gray-400';
+    const pnlSign = pnl > 0 ? '+' : '';
+
+    const assetBadge = t.asset === 'EUR/USD' || t.asset === 'EURUSD'
+      ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-950 text-blue-300 border border-blue-800">EUR/USD</span>'
+      : '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">XAU/USD</span>';
+
+    return `
+      <tr class="border-b border-gray-800/80 hover:bg-gray-800/40 transition">
+        <td class="py-2.5 px-3 text-xs text-gray-400 font-mono">${t.date || '-'}</td>
+        <td class="py-2.5 px-3 text-xs">${assetBadge}</td>
+        <td class="py-2.5 px-3 text-xs">${dirBadge}</td>
+        <td class="py-2.5 px-3 text-xs font-mono font-bold text-amber-300">${(t.lot_size || t.suggested_lot || 0.01).toFixed(2)}</td>
+        <td class="py-2.5 px-3 text-xs font-mono text-gray-300">${t.sl_pips || '-'} pips</td>
+        <td class="py-2.5 px-3 text-xs">${statusBadge}</td>
+        <td class="py-2.5 px-3 text-xs font-mono ${pnlClass}">${pnlSign}$${formatMoney(pnl)}</td>
+        <td class="py-2.5 px-3 text-xs font-mono text-gray-300">1:${t.rr || 2.0}</td>
+        <td class="py-2.5 px-3 text-xs text-gray-400">${t.session || 'Nueva York'}</td>
+        <td class="py-2.5 px-3 text-right">
+          <button onclick="handleDeleteTrade('${t.id}', 'fondeo')" class="p-1.5 text-gray-500 hover:text-red-400 rounded hover:bg-red-950/40 transition" title="Eliminar Trade">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  initIcons();
+}
+
+function updateFondeoEquityChart() {
+  const canvas = document.getElementById('fondeoEquityChart');
+  if (!canvas || typeof Chart === 'undefined') return;
+
+  const curve = appState.fondeo.equityCurve || [];
+  const initial = 50000.0;
+  const target = 52000.0;
+  const summary = appState.fondeo.summary || {};
+  const orion = summary.orion_metrics || {};
+  const floor = orion.trailing_floor || 46000.0;
+
+  let labels = ['Inicio'];
+  let balances = [initial];
+  let targets = [target];
+  let floors = [floor];
+
+  if (curve.length > 0) {
+    labels = curve.map(c => c.trade_num === 0 ? 'Inicio' : `T#${c.trade_num}`);
+    balances = curve.map(c => c.balance);
+    targets = curve.map(() => target);
+    floors = curve.map(() => floor);
+  }
+
+  if (!fondeoEquityChart) {
+    const ctx = canvas.getContext('2d');
+    fondeoEquityChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Balance ($ USD)',
+            data: balances,
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.12)',
+            borderWidth: 2.5,
+            tension: 0.2,
+            fill: true,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: '#f59e0b'
+          },
+          {
+            label: 'Meta Aprobación ($52,000)',
+            data: targets,
+            borderColor: '#3b82f6',
+            borderWidth: 1.5,
+            borderDash: [6, 4],
+            pointRadius: 0,
+            fill: false
+          },
+          {
+            label: 'Piso Trailing Drawdown ($46,000)',
+            data: floors,
+            borderColor: '#ef4444',
+            borderWidth: 1.5,
+            borderDash: [4, 4],
+            pointRadius: 0,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            labels: { color: '#9ca3af', font: { size: 11 } }
+          },
+          tooltip: {
+            backgroundColor: '#111827',
+            borderColor: '#374151',
+            borderWidth: 1,
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(55, 65, 81, 0.3)' },
+            ticks: { color: '#9ca3af', font: { size: 10 } }
+          },
+          y: {
+            grid: { color: 'rgba(55, 65, 81, 0.3)' },
+            ticks: {
+              color: '#9ca3af',
+              font: { size: 10 },
+              callback: (v) => `$${v.toLocaleString('en-US')}`
+            }
+          }
+        }
+      }
+    });
+  } else {
+    fondeoEquityChart.data.labels = labels;
+    fondeoEquityChart.data.datasets[0].data = balances;
+    fondeoEquityChart.data.datasets[1].data = targets;
+    fondeoEquityChart.data.datasets[2].data = floors;
+    fondeoEquityChart.update();
+  }
+}
+
+let selectedFondeoRr = 2.0;
+
+function setupFondeoCalculator() {
+  const assetSelect = document.getElementById('fondeoCalcAsset');
+  const slInput = document.getElementById('fondeoCalcSlPips');
+  const riskSelect = document.getElementById('fondeoCalcRiskPct');
+  const manualRiskGroup = document.getElementById('fondeoCalcManualRiskGroup');
+  const manualRiskInput = document.getElementById('fondeoCalcManualUsd');
+  const rrButtons = document.querySelectorAll('#fondeoRrButtons button');
+  const btnApply = document.getElementById('btnApplyCalcToForm');
+
+  function calculateFondeoMetrics() {
+    const summary = appState.fondeo.summary || {};
+    const curBalance = summary.current_balance !== undefined ? summary.current_balance : 50000.0;
+    const asset = assetSelect ? assetSelect.value : 'EUR/USD';
+    const isGold = asset.includes('XAU') || asset.includes('GOLD');
+
+    const slPips = parseFloat(slInput ? slInput.value : 10.0) || 10.0;
+    const riskType = riskSelect ? riskSelect.value : '0.5';
+
+    let dollarRisk = 250.0;
+    let riskPct = 0.5;
+
+    if (riskType === 'manual') {
+      if (manualRiskGroup) manualRiskGroup.classList.remove('hidden');
+      dollarRisk = parseFloat(manualRiskInput ? manualRiskInput.value : 250.0) || 250.0;
+      riskPct = curBalance > 0 ? (dollarRisk / curBalance) * 100 : 0.5;
+    } else {
+      if (manualRiskGroup) manualRiskGroup.classList.add('hidden');
+      riskPct = parseFloat(riskType) || 0.5;
+      dollarRisk = curBalance * (riskPct / 100.0);
+    }
+
+    let lot = 0.01;
+    let margin = 0.0;
+    let pipVal = 10.0;
+
+    if (isGold) {
+      const points = slPips * 10.0;
+      lot = points > 0 ? dollarRisk / points : 0.01;
+      lot = Math.max(0.01, Math.round(lot * 100) / 100);
+      margin = (2700.0 * 100 * lot) / 30.0;
+      pipVal = 1.0 * lot * 10.0;
+    } else {
+      lot = (slPips * 10.0) > 0 ? dollarRisk / (slPips * 10.0) : 0.01;
+      lot = Math.max(0.01, Math.round(lot * 100) / 100);
+      margin = (100000.0 * 1.0850 * lot) / 100.0;
+      pipVal = 10.0 * lot;
+    }
+
+    const reward = dollarRisk * selectedFondeoRr;
+    const marginPct = curBalance > 0 ? (margin / curBalance) * 100 : 0;
+
+    const elLot = document.getElementById('fondeoCalcLot');
+    if (elLot) elLot.textContent = lot.toFixed(2);
+    const elRisk = document.getElementById('fondeoCalcDollarRisk');
+    if (elRisk) elRisk.textContent = `$${formatMoney(dollarRisk)}`;
+    const elMargin = document.getElementById('fondeoCalcMargin');
+    if (elMargin) elMargin.textContent = `$${formatMoney(margin)}`;
+    const elReward = document.getElementById('fondeoCalcReward');
+    if (elReward) elReward.textContent = `+$${formatMoney(reward)}`;
+    const elPipVal = document.getElementById('fondeoCalcPipVal');
+    if (elPipVal) elPipVal.textContent = `$${formatMoney(pipVal)}`;
+    const elMarginPct = document.getElementById('fondeoCalcMarginPct');
+    if (elMarginPct) elMarginPct.textContent = `${marginPct.toFixed(1)}%`;
+
+    const orion = summary.orion_metrics || {};
+    const dailyHeadroom = orion.daily_loss_headroom !== undefined ? orion.daily_loss_headroom : 2000.0;
+    const banner = document.getElementById('fondeoSafetyBanner');
+    const bannerText = document.getElementById('fondeoSafetyBannerText');
+
+    if (banner && bannerText) {
+      if (dollarRisk > dailyHeadroom) {
+        banner.className = 'p-3 rounded-xl border flex items-start gap-2 bg-red-950/40 border-red-800/80 text-red-300';
+        bannerText.innerHTML = `⚠️ <b>¡ALERTA DE RIESGO!</b> Esta operación arriesga <b>$${formatMoney(dollarRisk)}</b>, superando tu colchón diario disponible de <b>$${formatMoney(dailyHeadroom)}</b>. Podrías violar la regla de pérdida diaria del 4% ($2,000)!`;
+      } else {
+        banner.className = 'p-3 rounded-xl border flex items-start gap-2 bg-emerald-950/40 border-emerald-800/80 text-emerald-300';
+        bannerText.innerHTML = `🛡️ <b>Operación Segura:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b>. Colchón diario restante tras este trade: <b>$${formatMoney(dailyHeadroom - dollarRisk)}</b>.`;
+      }
+    }
+  }
+
+  if (assetSelect) assetSelect.addEventListener('change', calculateFondeoMetrics);
+  if (slInput) slInput.addEventListener('input', calculateFondeoMetrics);
+  if (riskSelect) riskSelect.addEventListener('change', calculateFondeoMetrics);
+  if (manualRiskInput) manualRiskInput.addEventListener('input', calculateFondeoMetrics);
+
+  rrButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      rrButtons.forEach(b => {
+        b.classList.remove('bg-amber-500', 'text-black', 'font-black');
+        b.classList.add('bg-gray-800', 'text-gray-300');
+      });
+      btn.classList.remove('bg-gray-800', 'text-gray-300');
+      btn.classList.add('bg-amber-500', 'text-black', 'font-black');
+      selectedFondeoRr = parseFloat(btn.dataset.rr || 2.0);
+      calculateFondeoMetrics();
+    });
+  });
+
+  if (btnApply) {
+    btnApply.addEventListener('click', () => {
+      const asset = assetSelect ? assetSelect.value : 'EUR/USD';
+      const lot = document.getElementById('fondeoCalcLot') ? document.getElementById('fondeoCalcLot').textContent : '2.50';
+      const sl = slInput ? slInput.value : '10';
+
+      const formAsset = document.getElementById('fondeoFormAsset');
+      const formLot = document.getElementById('fondeoFormLot');
+      const formSl = document.getElementById('fondeoFormSlPips');
+      const formRr = document.getElementById('fondeoFormRr');
+
+      if (formAsset) formAsset.value = asset;
+      if (formLot) formLot.value = lot;
+      if (formSl) formSl.value = sl;
+      if (formRr) formRr.value = selectedFondeoRr;
+
+      const form = document.getElementById('formFondeoTrade');
+      if (form) form.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  calculateFondeoMetrics();
+}
+
+function setupFondeoTradeForm() {
+  const form = document.getElementById('formFondeoTrade');
+  if (!form) return;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const asset = document.getElementById('fondeoFormAsset').value;
+    const direction = document.getElementById('fondeoFormDirection').value;
+    const lot = parseFloat(document.getElementById('fondeoFormLot').value) || 0.01;
+    const slPips = parseFloat(document.getElementById('fondeoFormSlPips').value) || 10.0;
+    const status = document.getElementById('fondeoFormStatus').value;
+    const pnlInput = document.getElementById('fondeoFormPnl').value;
+    const rr = parseFloat(document.getElementById('fondeoFormRr').value) || 2.0;
+    const session = document.getElementById('fondeoFormSession').value;
+    const tvUrl = document.getElementById('fondeoFormTvUrl').value;
+    const notes = document.getElementById('fondeoFormNotes').value;
+
+    const payload = {
+      mode: 'fondeo',
+      asset: asset,
+      direction: direction,
+      manual_lot: lot,
+      lot_size: lot,
+      sl_pips: slPips,
+      status: status,
+      rr: rr,
+      session: session,
+      tv_url: tvUrl,
+      notes: notes
+    };
+
+    if (pnlInput && pnlInput.trim() !== '') {
+      payload.pnl = parseFloat(pnlInput);
+    }
+
+    try {
+      const res = await fetch('/api/trades', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        form.reset();
+        await loadFondeoTrades();
+      } else {
+        const err = await res.json();
+        alert('Error registrando trade: ' + (err.error || 'Desconocido'));
+      }
+    } catch (err) {
+      console.error('Error enviando trade:', err);
+      alert('Error de conexión al registrar trade');
+    }
+  });
+}
+
+function setupFondeoActionButtons() {
+  const btnExport = document.getElementById('btnExportFondeoJson');
+  if (btnExport) {
+    btnExport.addEventListener('click', () => {
+      const trades = appState.fondeo.trades || [];
+      const blob = new Blob([JSON.stringify(trades, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `orion_nova_50k_trades_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  const btnClear = document.getElementById('btnClearFondeoTrades');
+  if (btnClear) {
+    btnClear.addEventListener('click', async () => {
+      if (!confirm('¿Estás seguro de reiniciar todas las operaciones de la bitácora Orion Nova 50K? Esta acción restablecerá el balance inicial a $50,000.00.')) {
+        return;
+      }
+      try {
+        const res = await fetch('/api/trades/clear?mode=fondeo', { method: 'POST' });
+        if (res.ok) {
+          await loadFondeoTrades();
+        }
+      } catch (err) {
+        console.error('Error al limpiar fondeo:', err);
+      }
+    });
+  }
+
+  const btnClearAll = document.getElementById('btnClearData');
+  if (btnClearAll) {
+    btnClearAll.addEventListener('click', async () => {
+      const currentTab = appState.activeTab;
+      const tabName = currentTab === 'fondeo' ? 'Orion Nova 50K' : currentTab === 'real' ? 'Cuenta Real' : 'Backtest';
+      if (!confirm(`¿Deseas reiniciar y limpiar los datos de la pestaña activa (${tabName})?`)) return;
+
+      try {
+        const res = await fetch(`/api/trades/clear?mode=${currentTab}`, { method: 'POST' });
+        if (res.ok) {
+          if (currentTab === 'fondeo') await loadFondeoTrades();
+          else if (currentTab === 'real') {
+            await loadTrades('real');
+            renderRealJournalDashboard();
+          }
+        }
+      } catch (err) {
+        console.error('Error al limpiar:', err);
+      }
+    });
+  }
 }
 
 // ----------------------------------------------------
@@ -2223,14 +2792,22 @@ async function handleAddRealTrade(e) {
 // Handlers: Delete, Edit, Clear
 // ----------------------------------------------------
 window.handleDeleteTrade = async function(id, mode = 'backtest') {
-  const modeText = mode === 'real' ? 'la bitácora real' : 'el backtesting';
+  const modeText = mode === 'fondeo' ? 'la bitácora Orion Nova 50K' : mode === 'real' ? 'la bitácora real' : 'el backtesting';
   if (!confirm(`¿Deseas eliminar esta operación de ${modeText}?`)) return;
 
   try {
     const res = await fetch(`/api/trades/${id}?mode=${mode}`, { method: 'DELETE' });
     if (res.ok) {
       const data = await res.json();
-      if (mode === 'real') {
+      if (mode === 'fondeo') {
+        appState.fondeo.summary = data.summary;
+        appState.fondeo.equityCurve = data.equity_curve;
+        appState.fondeo.trades = data.trades;
+        try {
+          localStorage.setItem('cached_fondeo_trades', JSON.stringify(appState.fondeo.trades));
+        } catch (e) {}
+        renderFondeoDashboard();
+      } else if (mode === 'real') {
         appState.real.summary = data.summary;
         appState.real.equityCurve = data.equity_curve;
         appState.real.trades = data.trades;

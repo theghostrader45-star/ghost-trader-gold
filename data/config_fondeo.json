@@ -1,0 +1,17 @@
+{
+  "account_type": "Orion Nova 50K (Pay After You Pass)",
+  "initial_balance": 50000.0,
+  "profit_target_pct": 4.0,
+  "profit_target_usd": 2000.0,
+  "daily_loss_pct": 4.0,
+  "daily_loss_usd": 2000.0,
+  "max_loss_pct": 8.0,
+  "max_loss_usd": 4000.0,
+  "drawdown_type": "trailing_lock",
+  "leverage": 100.0,
+  "min_trading_days": 0,
+  "best_day_rule_pct": 20.0,
+  "currency": "USD",
+  "risk_pct": 0.5,
+  "rr_ratio": 2.0
+}
