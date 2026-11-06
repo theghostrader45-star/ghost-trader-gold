@@ -59,7 +59,7 @@ DEFAULT_CONFIG = {
     "lot_step": 0.01,
     "risk_mode": "percent",     # 'percent' pure compounding
     "currency": "USD",
-    "asset": "EUR/USD (Euro)"
+    "asset": "XAU/USD (Oro)"
 }
 
 DEFAULT_FONDEO_CONFIG = {
@@ -1283,8 +1283,8 @@ def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="XAU/USD
         "safety_warnings": safety_warnings
     }
 
-def calculate_position_size(balance, risk_pct, sl_points, rr=1.0, leverage=300):
-    return calculate_position_size_universal(balance, risk_pct, sl_points, "EUR/USD", rr, leverage)
+def calculate_position_size(balance, risk_pct, sl_points, rr=1.0, leverage=30):
+    return calculate_position_size_universal(balance, risk_pct, sl_points, "XAU/USD", rr, leverage)
 
 def calculate_lot_and_margin(balance, risk_pct, sl_distance, entry_price, leverage, contract_size=100):
     """
@@ -1643,7 +1643,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 balance = float(query.get("balance", [config.get("initial_balance", 50000.0)])[0])
                 risk_pct = float(query.get("risk_pct", [config.get("risk_pct", 0.5)])[0])
                 sl_pips = float(query.get("sl_pips", query.get("sl_points", query.get("sl_distance", [10.0])))[0])
-                asset = query.get("asset", [config.get("asset", "EUR/USD")])[0]
+                asset = query.get("asset", [config.get("asset", "XAU/USD")])[0]
                 rr = float(query.get("rr", query.get("rr_ratio", [config.get("rr_ratio", 2.0)]))[0])
                 leverage = float(query.get("leverage", [config.get("leverage", 100.0)])[0])
                 res = calculate_position_size_universal(balance, risk_pct, sl_pips, asset, rr, leverage, mode)
@@ -1803,7 +1803,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             cur_bal = analytics["summary"]["current_balance"]
 
             direction = payload.get("direction", "BUY").upper()
-            asset = payload.get("asset", config.get("asset", "EUR/USD"))
+            asset = payload.get("asset", config.get("asset", "XAU/USD"))
             is_gold = any(x in str(asset).upper() for x in ["XAU", "GOLD", "ORO"])
 
             raw_sl_input = payload.get("sl_pips") or payload.get("tv_points") or payload.get("sl_points") or payload.get("sl_distance") or 10.0

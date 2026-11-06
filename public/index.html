@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pro Terminal — EUR/USD Institutional Price Action</title>
+  <title>Orion Nova 50K — Terminal Institucional XAU/USD (Oro)</title>
   
   <!-- Tailwind CSS Local Bundle -->
   <script src="vendor/tailwind.cdn.js"></script>
@@ -53,13 +53,13 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-lg sm:text-xl font-black tracking-wider text-white uppercase flex items-center gap-2">
-              <span class="bg-gradient-to-r from-white via-slate-100 to-amber-200 bg-clip-text text-transparent">Pro Terminal</span>
+              <span class="bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent">XAU/USD Pro Terminal</span>
               <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 font-mono tracking-wide">
-                <i data-lucide="shield-check" class="w-3 h-3 text-amber-400"></i> Orion Nova 50K
+                <i data-lucide="shield-check" class="w-3 h-3 text-amber-400"></i> Orion Nova 50K (Oro Spot)
               </span>
             </h1>
           </div>
-          <p class="text-xs text-gray-400">Centro de Control Oficial Orion Funded • Operativa 100% Manual • Gestión Estricta de Riesgo</p>
+          <p class="text-xs text-gray-400">Centro de Mando Exclusivo XAU/USD (Oro) • Reglas Orion Funded • Operativa 100% Manual</p>
         </div>
       </div>
 
@@ -81,9 +81,9 @@
           <span class="text-red-300">Piso DD Trailing:</span>
           <span class="font-bold text-red-400" id="badgeFondeoFloor">$46,000</span>
         </div>
-        <div class="bg-gray-950/80 border border-gray-800 px-3 py-1.5 rounded-lg flex items-center gap-2">
-          <span class="text-gray-400">Apalancamiento:</span>
-          <span class="font-bold text-amber-300 font-mono">1:30 Oro / 1:100 FX</span>
+        <div class="bg-amber-950/80 border border-amber-800/80 px-3 py-1.5 rounded-lg flex items-center gap-2">
+          <span class="text-amber-300">Apal. Oro:</span>
+          <span class="font-bold text-amber-400 font-mono">1:30 (Metales)</span>
         </div>
       </div>
 
@@ -111,7 +111,7 @@
       <button id="tabBtnFondeo" class="tab-button flex-1 min-w-[190px] px-4 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition bg-amber-500 text-black shadow-lg shadow-amber-500/30">
         <i data-lucide="award" class="w-4 h-4 text-black"></i>
         <span>1. Operativa & Bitácora 50K</span>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/20 text-black font-bold">Oro 1:30</span>
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/20 text-black font-bold">XAU/USD 1:30</span>
       </button>
 
       <!-- Tab 2: Noticias de Alto Impacto & Regla ±2 Min -->
@@ -176,9 +176,9 @@
             <span class="text-red-300">DD Máx 8%:</span>
             <span class="font-bold text-red-400">-$4,000 (Trailing-Lock)</span>
           </div>
-          <div class="bg-blue-950/60 border border-blue-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
-            <span class="text-blue-300">Apal.:</span>
-            <span class="font-bold text-blue-400">1:100 Forex / 1:30 Oro</span>
+          <div class="bg-amber-950/60 border border-amber-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+            <span class="text-amber-300">Apalancamiento:</span>
+            <span class="font-bold text-amber-400">1:30 XAU/USD (Oro)</span>
           </div>
         </div>
       </section>
@@ -360,16 +360,18 @@
                   <i data-lucide="crosshair" class="w-3.5 h-3.5"></i>
                   <span>1. Precios de Entrada, Stop Loss y Cierre</span>
                 </span>
-                <span class="text-[10px] font-mono text-gray-500">XAU/USD: $1.00 = 100 pts</span>
+                <span class="text-[10px] font-mono text-amber-400 font-semibold">Oro XAU/USD: $1.00 = 100 pts TV = 10 pips = $100/lote</span>
               </div>
 
-              <!-- Row: Activo, Dirección, Sesión -->
+              <!-- Row: Activo Exclusivo XAU/USD, Dirección, Sesión -->
               <div class="grid grid-cols-3 gap-2.5">
                 <div>
-                  <label class="block text-gray-400 mb-1 font-medium">Activo</label>
-                  <select id="fondeoFormAsset" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-2.5 py-2 text-amber-400 font-bold focus:border-amber-500 focus:outline-none">
-                    <option value="XAU/USD" selected>XAU/USD (Oro 1:30)</option>
-                    <option value="EUR/USD">EUR/USD (1:100)</option>
+                  <label class="block text-gray-400 mb-1 font-medium flex items-center justify-between">
+                    <span>Activo Exclusivo</span>
+                    <span class="text-[9px] font-mono text-amber-400 font-bold">1:30 Oro</span>
+                  </label>
+                  <select id="fondeoFormAsset" class="w-full bg-gray-900 border border-amber-500/50 rounded-xl px-2.5 py-2 text-amber-400 font-bold focus:border-amber-500 focus:outline-none">
+                    <option value="XAU/USD" selected>🟡 XAU/USD (Oro Spot 1:30)</option>
                   </select>
                 </div>
                 <div>
@@ -1157,15 +1159,15 @@
 
         <!-- Regla 6 -->
         <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl space-y-2.5">
-          <div class="flex items-center gap-2 text-blue-400 font-bold text-sm">
+          <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
             <i data-lucide="layers" class="w-4 h-4"></i>
-            <span>6. Apalancamiento en Oro (1:30)</span>
+            <span>6. Apalancamiento Exclusivo en Oro (1:30)</span>
           </div>
           <p class="text-gray-300 leading-relaxed">
-            Orion Funded otorga <strong>1:30 de apalancamiento en Metales (XAU/USD)</strong> y 1:100 en Forex. Con apalancamiento 1:30 en Oro a ~$2,720, abrir 1 lote estándar retiene <strong>$9,066 USD de margen</strong>. Operando a 0.83 lotes ($250 riesgo con SL $3.00), retienes $7,525 (15% de la cuenta), manteniendo $42,400 de margen libre.
+            Para operar XAU/USD (Oro al Contado), Orion Funded aplica un <strong>apalancamiento estricto de 1:30</strong> (regulación de commodities y metales). Con el Oro cotizando en ~$2,720 USD, abrir 1 lote estándar (100 oz) retiene <strong>$9,066.67 USD de margen</strong>. Operando a nuestro riesgo óptimo del 0.50% ($250 USD con SL de $3.00), el lote sugerido es de <strong>0.83 lotes</strong>, lo que retiene $7,525 USD (15.1% del capital), dejando intactos más de $42,400 USD de margen libre para flotaciones saludables.
           </p>
-          <div class="p-2 bg-blue-950/40 border border-blue-800/40 rounded-lg text-blue-300 font-mono text-[11px]">
-            Apalancamiento: 1:30 Metales • Margen/lote: ~$9,066
+          <div class="p-2 bg-amber-950/40 border border-amber-800/40 rounded-lg text-amber-300 font-mono text-[11px]">
+            Apalancamiento: 1:30 XAU/USD • Contrato: 100 oz • Margen/Lote: ~$9,066 USD
           </div>
         </div>
 
@@ -1441,20 +1443,20 @@
 
       <div class="space-y-3 text-xs">
         <div>
-          <label class="block text-gray-400 mb-1">Capital Inicial (USD)</label>
-          <input type="number" id="settingInitialBalance" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-white font-mono" value="110.00">
+          <label class="block text-gray-400 mb-1">Capital Inicial de la Prueba (USD)</label>
+          <input type="number" id="settingInitialBalance" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-white font-mono" value="50000.00">
         </div>
         <div>
-          <label class="block text-gray-400 mb-1">Riesgo Compuesto por Operación (%)</label>
-          <input type="number" id="settingRiskPct" step="any" min="0.01" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-white font-mono" value="5.0">
+          <label class="block text-gray-400 mb-1">Riesgo por Operación en Oro (%)</label>
+          <input type="number" id="settingRiskPct" step="any" min="0.01" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-emerald-400 font-mono font-bold" value="0.50">
         </div>
         <div>
-          <label class="block text-gray-400 mb-1">Ratio R:R Predeterminado</label>
-          <input type="number" id="settingRR" step="any" min="0.01" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-white font-mono" value="1.0">
+          <label class="block text-gray-400 mb-1">Ratio R:R Objetivo en Oro</label>
+          <input type="number" id="settingRR" step="any" min="0.01" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-blue-400 font-mono font-bold" value="2.0">
         </div>
         <div>
-          <label class="block text-gray-400 mb-1">Apalancamiento del Broker</label>
-          <input type="number" id="settingLeverage" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-white font-mono" value="300">
+          <label class="block text-gray-400 mb-1">Apalancamiento XAU/USD (Oro)</label>
+          <input type="number" id="settingLeverage" class="w-full bg-gray-950 border border-amber-800/60 rounded-lg p-2 text-amber-300 font-mono font-bold" value="30" readonly>
         </div>
       </div>
 

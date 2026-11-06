@@ -460,9 +460,7 @@ function renderFondeoTradesTable() {
     const pnlClass = pnl > 0 ? 'text-emerald-400 font-bold font-mono' : pnl < 0 ? 'text-red-400 font-bold font-mono' : 'text-gray-400 font-mono';
     const pnlSign = pnl > 0 ? '+' : '';
 
-    const assetBadge = (t.asset === 'EUR/USD' || t.asset === 'EURUSD')
-      ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-950 text-blue-300 border border-blue-800">EUR/USD</span>'
-      : '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">XAU/USD</span>';
+    const assetBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40">🟡 XAU/USD</span>';
 
     // Prices: Entry ➔ Exit
     let priceFlow = '<span class="text-gray-600">-</span>';
