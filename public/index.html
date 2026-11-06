@@ -445,14 +445,13 @@
             <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold">MANUAL</span>
           </div>
 
-          <form id="formFondeoTrade" class="space-y-3.5 text-xs">
+          <form id="formFondeoTrade" class="space-y-4 text-xs">
+            <!-- Row 1: Activo, Dirección, Lote Operado, Sesión -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <!-- Par / Activo -->
               <div>
                 <label class="block text-gray-400 mb-1 font-medium">Activo</label>
                 <input type="text" id="fondeoFormAsset" value="XAU/USD" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-amber-400 font-bold uppercase focus:border-emerald-500 focus:outline-none">
               </div>
-              <!-- Dirección -->
               <div>
                 <label class="block text-gray-400 mb-1 font-medium">Dirección</label>
                 <select id="fondeoFormDirection" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-bold focus:border-emerald-500 focus:outline-none">
@@ -460,20 +459,100 @@
                   <option value="SELL">🔴 SELL (Venta)</option>
                 </select>
               </div>
-              <!-- Lote Operado -->
               <div>
-                <label class="block text-gray-400 mb-1 font-medium">Lote Operado</label>
+                <label class="block text-gray-400 mb-1 font-medium flex items-center justify-between">
+                  <span>Lote Operado</span>
+                  <span class="text-[10px] text-gray-400 font-mono">1 lot = $100/pt</span>
+                </label>
                 <input type="number" id="fondeoFormLot" value="0.83" step="0.01" min="0.01" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-emerald-500 focus:outline-none">
               </div>
-              <!-- Stop Loss Pips -->
               <div>
-                <label class="block text-gray-400 mb-1 font-medium">SL Pips</label>
-                <input type="number" id="fondeoFormSlPips" value="30.0" step="0.1" min="0.5" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-emerald-500 focus:outline-none">
+                <label class="block text-gray-400 mb-1 font-medium">Sesión</label>
+                <select id="fondeoFormSession" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-medium focus:border-emerald-500 focus:outline-none">
+                  <option value="New York" selected>New York</option>
+                  <option value="London">London</option>
+                  <option value="Asia">Asia</option>
+                </select>
               </div>
             </div>
 
+            <!-- BLOQUE DE PRECIOS: ENTRADA, SL, TP, SALIDA CON CÁLCULO EN TIEMPO REAL -->
+            <div class="bg-gray-950/80 border border-emerald-500/30 rounded-2xl p-3.5 space-y-3">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                  <i data-lucide="crosshair" class="w-4 h-4"></i>
+                  <span>Precios de Operación (Calcula automáticamente Puntos, R:R, PnL y %)</span>
+                </span>
+                <span class="text-[10px] font-mono text-gray-400 bg-gray-900 px-2 py-0.5 rounded border border-gray-800">
+                  Oro: 1.00$ mov. = 100 pts = 10 pips
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <!-- Precio Entrada -->
+                <div>
+                  <label class="block text-gray-300 mb-1 font-semibold flex items-center justify-between">
+                    <span>Precio Entrada</span>
+                    <span class="text-[10px] text-gray-400 font-mono">Entry</span>
+                  </label>
+                  <input type="number" id="fondeoFormEntry" step="any" placeholder="ej. 2720.50" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-emerald-500 focus:outline-none shadow-inner">
+                </div>
+
+                <!-- Stop Loss -->
+                <div>
+                  <label class="block text-gray-300 mb-1 font-semibold flex items-center justify-between">
+                    <span>Stop Loss (SL)</span>
+                    <span class="text-[10px] text-rose-400 font-mono" id="fondeoFormSlPtsBadge">0 pts</span>
+                  </label>
+                  <input type="number" id="fondeoFormSl" step="any" placeholder="ej. 2717.50" class="w-full bg-gray-900 border border-rose-800/60 rounded-xl px-3 py-2 text-rose-300 font-mono font-bold focus:border-rose-500 focus:outline-none shadow-inner">
+                </div>
+
+                <!-- Take Profit -->
+                <div>
+                  <label class="block text-gray-300 mb-1 font-semibold flex items-center justify-between">
+                    <span>Take Profit (TP)</span>
+                    <span class="text-[10px] text-emerald-400 font-mono" id="fondeoFormTpPtsBadge">0 pts</span>
+                  </label>
+                  <input type="number" id="fondeoFormTp" step="any" placeholder="ej. 2726.50" class="w-full bg-gray-900 border border-emerald-800/60 rounded-xl px-3 py-2 text-emerald-300 font-mono font-bold focus:border-emerald-500 focus:outline-none shadow-inner">
+                </div>
+
+                <!-- Precio Salida con Botones de Ayuda -->
+                <div>
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="text-gray-300 font-semibold flex items-center gap-1">
+                      <span>Precio Salida</span>
+                    </label>
+                    <div class="flex items-center gap-1">
+                      <button type="button" id="btnFondeoExitTp" class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900 transition font-bold cursor-pointer" title="Cerró en Take Profit">TP</button>
+                      <button type="button" id="btnFondeoExitSl" class="text-[9px] px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900 transition font-bold cursor-pointer" title="Cerró en Stop Loss">SL</button>
+                      <button type="button" id="btnFondeoExitBe" class="text-[9px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700 transition font-bold cursor-pointer" title="Cerró en Breakeven">BE</button>
+                    </div>
+                  </div>
+                  <input type="number" id="fondeoFormExit" step="any" placeholder="ej. 2726.50" class="w-full bg-gray-900 border border-blue-700/60 rounded-xl px-3 py-2 text-blue-300 font-mono font-bold focus:border-blue-500 focus:outline-none shadow-inner">
+                </div>
+              </div>
+
+              <!-- Strip de Resumen de Cálculo Automático en Vivo -->
+              <div class="bg-gray-900/95 border border-gray-800 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+                <div class="flex items-center gap-3">
+                  <span class="text-gray-400">Puntos Recorridos:</span>
+                  <span class="font-bold text-white text-sm" id="fondeoCalcPointsDisplay">0 pts (0.0 pips)</span>
+                  <span class="text-gray-600">|</span>
+                  <span class="text-gray-400">R:R:</span>
+                  <span class="font-bold text-blue-400 text-sm" id="fondeoCalcRrDisplay">1:2.0</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="text-gray-400">PnL Resultante:</span>
+                  <span class="font-bold text-emerald-400 text-sm" id="fondeoCalcPnlDisplay">+$0.00</span>
+                  <span class="text-gray-600">|</span>
+                  <span class="text-gray-400">Retorno Cuenta:</span>
+                  <span class="font-bold text-amber-400 text-sm" id="fondeoCalcPctDisplay">0.00%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Parámetros Sincronizados y Editables -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <!-- Resultado -->
               <div>
                 <label class="block text-gray-400 mb-1 font-medium">Resultado</label>
                 <select id="fondeoFormStatus" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-bold focus:border-emerald-500 focus:outline-none">
@@ -482,24 +561,17 @@
                   <option value="be">⚪ BREAKEVEN (0)</option>
                 </select>
               </div>
-              <!-- PnL en Dólares ($) -->
               <div>
                 <label class="block text-gray-400 mb-1 font-medium">PnL en Dólares ($)</label>
                 <input type="number" id="fondeoFormPnl" value="500.00" step="0.01" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold focus:border-emerald-500 focus:outline-none">
               </div>
-              <!-- Ratio R:R -->
               <div>
                 <label class="block text-gray-400 mb-1 font-medium">Ratio R:R</label>
-                <input type="number" id="fondeoFormRr" value="2.0" step="0.1" min="0.5" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-emerald-500 focus:outline-none">
+                <input type="number" id="fondeoFormRr" value="2.0" step="0.1" min="0.1" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-blue-400 font-mono font-bold focus:border-emerald-500 focus:outline-none">
               </div>
-              <!-- Sesión -->
               <div>
-                <label class="block text-gray-400 mb-1 font-medium">Sesión</label>
-                <select id="fondeoFormSession" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-medium focus:border-emerald-500 focus:outline-none">
-                  <option value="New York" selected>New York</option>
-                  <option value="London">London</option>
-                  <option value="Asia">Asia</option>
-                </select>
+                <label class="block text-gray-400 mb-1 font-medium">SL Pips</label>
+                <input type="number" id="fondeoFormSlPips" value="30.0" step="0.1" min="0.1" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-emerald-500 focus:outline-none">
               </div>
             </div>
 
@@ -532,7 +604,7 @@
             </div>
             <div>
               <h3 class="text-base font-bold text-white">Curva de Equidad Orion Nova 50K</h3>
-              <p class="text-xs text-gray-400">Visualización en vivo con niveles de Target (k), Balance Base (k) y Piso Trailing (k)</p>
+              <p class="text-xs text-gray-400">Visualización en vivo con niveles de Target ($52k), Balance Base ($50k) y Piso Trailing ($46k)</p>
             </div>
           </div>
           <div class="flex items-center gap-3 text-xs font-mono">
@@ -576,22 +648,23 @@
               <tr>
                 <th class="py-3 px-3">#</th>
                 <th class="py-3 px-3">Fecha</th>
-                <th class="py-3 px-3">Activo</th>
-                <th class="py-3 px-3">Tipo</th>
+                <th class="py-3 px-3">Activo / Dir</th>
+                <th class="py-3 px-3">Entrada ➔ Salida</th>
+                <th class="py-3 px-3">SL / TP</th>
                 <th class="py-3 px-3">Lote</th>
-                <th class="py-3 px-3">SL (Pips)</th>
+                <th class="py-3 px-3">Puntos / Pips</th>
                 <th class="py-3 px-3">R:R</th>
+                <th class="py-3 px-3">Resultado</th>
                 <th class="py-3 px-3">PnL ($)</th>
                 <th class="py-3 px-3">Retorno %</th>
-                <th class="py-3 px-3">Balance Resultante</th>
-                <th class="py-3 px-3">Margen Usado</th>
+                <th class="py-3 px-3">Balance</th>
                 <th class="py-3 px-3">Sesión</th>
                 <th class="py-3 px-3 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody id="fondeoTradesTableBody" class="divide-y divide-gray-800/60 text-gray-300">
               <tr>
-                <td colspan="13" class="py-8 text-center text-gray-500">
+                <td colspan="14" class="py-8 text-center text-gray-500">
                   <div class="flex flex-col items-center justify-center gap-2">
                     <i data-lucide="award" class="w-8 h-8 text-amber-500/40"></i>
                     <span>No hay operaciones registradas en la prueba 50k. ¡Usa el formulario arriba para registrar tu primer trade manual!</span>
@@ -1264,11 +1337,10 @@
             </div>
           </div>
           
-          <!-- Row 1: Date, Session, Direction, SL Points, Risk %, RR -->
+          <!-- Row 1: Fecha y Hora, Sesión, Dirección, Lote Manual, Comisión Broker -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 text-xs">
-            
-            <!-- Fecha y Hora (3 cols) -->
-            <div class="lg:col-span-3">
+            <!-- Fecha y Hora (4 cols) -->
+            <div class="lg:col-span-4">
               <div class="flex items-center justify-between mb-1.5">
                 <label for="realTradeDate" class="text-gray-300 font-bold flex items-center gap-1.5">
                   <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-400"></i>
@@ -1278,12 +1350,10 @@
                   Hoy / Ahora
                 </button>
               </div>
-              <div class="relative">
-                <input type="text" id="realTradeDate" class="w-full bg-gray-950 border border-gray-800 focus:border-emerald-500 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold text-xs focus:outline-none shadow-inner" placeholder="YYYY-MM-DD HH:MM">
-              </div>
+              <input type="text" id="realTradeDate" class="w-full bg-gray-950 border border-gray-800 focus:border-emerald-500 rounded-xl px-3 py-2 text-emerald-400 font-mono font-bold text-xs focus:outline-none shadow-inner" placeholder="YYYY-MM-DD HH:MM">
             </div>
 
-            <!-- Sesión: Exclusivamente New York (2 cols) -->
+            <!-- Sesión (2 cols) -->
             <div class="lg:col-span-2">
               <label class="block text-gray-400 mb-1.5 font-semibold">Sesión</label>
               <div class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white font-bold flex items-center gap-1.5 font-mono shadow-inner">
@@ -1297,93 +1367,145 @@
             <div class="lg:col-span-2">
               <label class="block text-gray-400 mb-1.5 font-semibold">Dirección</label>
               <div class="grid grid-cols-2 gap-1 bg-gray-950 p-1 rounded-xl border border-gray-800">
-                <button type="button" id="btnRealDirBuy" class="py-1.5 rounded-lg text-center font-bold text-xs bg-tvGreen text-white shadow transition flex items-center justify-center">BUY</button>
-                <button type="button" id="btnRealDirSell" class="py-1.5 rounded-lg text-center font-bold text-xs text-gray-400 hover:text-white transition flex items-center justify-center">SELL</button>
+                <button type="button" id="btnRealDirBuy" class="py-1.5 rounded-lg text-center font-bold text-xs bg-tvGreen text-white shadow transition flex items-center justify-center cursor-pointer">BUY</button>
+                <button type="button" id="btnRealDirSell" class="py-1.5 rounded-lg text-center font-bold text-xs text-gray-400 hover:text-white transition flex items-center justify-center cursor-pointer">SELL</button>
               </div>
               <input type="hidden" id="realTradeDirection" value="BUY">
             </div>
 
-            <!-- Stop Loss Puntos Oro (3 cols) -->
+            <!-- Lotaje MT4 / MT5 (2 cols) -->
+            <div class="lg:col-span-2">
+              <label class="block text-gray-400 mb-1.5 font-semibold flex items-center justify-between">
+                <span>Lotaje MT4</span>
+                <span class="text-[10px] text-gray-400 font-mono" id="realTradeSuggestedLotBadge">0.01</span>
+              </label>
+              <input type="text" inputmode="decimal" id="realTradeManualLot" class="w-full bg-gray-950 border-2 border-gold-500/50 focus:border-gold-400 rounded-xl px-3 py-1.5 text-gold-300 font-mono font-black text-sm focus:outline-none" placeholder="0.01" value="0.01">
+            </div>
+
+            <!-- Comisión Broker (2 cols) -->
+            <div class="lg:col-span-2">
+              <label class="block text-gray-400 mb-1.5 font-semibold flex items-center justify-between">
+                <span>Comisión ($)</span>
+              </label>
+              <input type="text" inputmode="decimal" id="realTradeCommission" class="w-full bg-gray-950 border border-gray-800 focus:border-rose-500 rounded-xl px-2.5 py-1.5 text-rose-300 font-mono font-bold text-sm focus:outline-none" placeholder="-0.06" value="-0.06">
+            </div>
+          </div>
+
+          <!-- BLOQUE DE PRECIOS: ENTRADA, SL, TP, SALIDA CON CÁLCULO EN TIEMPO REAL -->
+          <div class="bg-gray-950/80 border border-emerald-500/30 rounded-2xl p-3.5 space-y-3">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                <i data-lucide="crosshair" class="w-4 h-4"></i>
+                <span>Precios de Operación (Calcula Puntos, R:R, PnL y % Automáticamente)</span>
+              </span>
+              <span class="text-[10px] font-mono text-gray-400 bg-gray-900 px-2 py-0.5 rounded border border-gray-800">
+                1 Lote Oro = $100 / $1.00 • 0.01 Lote = $1.00 / $1.00
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <!-- Precio Entrada -->
+              <div>
+                <label class="block text-gray-300 mb-1 font-semibold flex items-center justify-between">
+                  <span>Precio Entrada</span>
+                  <span class="text-[10px] text-gray-400 font-mono">Entry</span>
+                </label>
+                <input type="number" id="realTradeEntry" step="any" placeholder="ej. 2720.50" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-emerald-500 focus:outline-none shadow-inner">
+              </div>
+
+              <!-- Stop Loss -->
+              <div>
+                <label class="block text-gray-300 mb-1 font-semibold flex items-center justify-between">
+                  <span>Stop Loss (SL)</span>
+                  <span class="text-[10px] text-rose-400 font-mono" id="realTradeSlPtsBadge">0 pts</span>
+                </label>
+                <input type="number" id="realTradeSl" step="any" placeholder="ej. 2718.00" class="w-full bg-gray-900 border border-rose-800/60 rounded-xl px-3 py-2 text-rose-300 font-mono font-bold focus:border-rose-500 focus:outline-none shadow-inner">
+              </div>
+
+              <!-- Take Profit -->
+              <div>
+                <label class="block text-gray-300 mb-1 font-semibold flex items-center justify-between">
+                  <span>Take Profit (TP)</span>
+                  <span class="text-[10px] text-emerald-400 font-mono" id="realTradeTpPtsBadge">0 pts</span>
+                </label>
+                <input type="number" id="realTradeTp" step="any" placeholder="ej. 2726.50" class="w-full bg-gray-900 border border-emerald-800/60 rounded-xl px-3 py-2 text-emerald-300 font-mono font-bold focus:border-emerald-500 focus:outline-none shadow-inner">
+              </div>
+
+              <!-- Precio Salida con Botones Rápidos -->
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-gray-300 font-semibold flex items-center gap-1">
+                    <span>Precio Salida</span>
+                  </label>
+                  <div class="flex items-center gap-1">
+                    <button type="button" id="btnRealExitTp" class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900 transition font-bold cursor-pointer" title="Cerró en Take Profit">TP</button>
+                    <button type="button" id="btnRealExitSl" class="text-[9px] px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900 transition font-bold cursor-pointer" title="Cerró en Stop Loss">SL</button>
+                    <button type="button" id="btnRealExitBe" class="text-[9px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700 transition font-bold cursor-pointer" title="Cerró en Breakeven">BE</button>
+                  </div>
+                </div>
+                <input type="number" id="realTradeExit" step="any" placeholder="ej. 2726.50" class="w-full bg-gray-900 border border-blue-700/60 rounded-xl px-3 py-2 text-blue-300 font-mono font-bold focus:border-blue-500 focus:outline-none shadow-inner">
+              </div>
+            </div>
+
+            <!-- Live Calculation Summary Strip -->
+            <div class="bg-gray-900/95 border border-gray-800 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+              <div class="flex items-center gap-3">
+                <span class="text-gray-400">Puntos Recorridos:</span>
+                <span class="font-bold text-white text-sm" id="realCalcPointsDisplay">0 pts</span>
+                <span class="text-gray-600">|</span>
+                <span class="text-gray-400">R:R:</span>
+                <span class="font-bold text-blue-400 text-sm" id="realCalcRrDisplay">1:1.0</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-gray-400">PnL Neto Calculado:</span>
+                <span class="font-bold text-emerald-400 text-sm" id="realCalcPnlDisplay">+$0.00</span>
+                <span class="text-gray-600">|</span>
+                <span class="text-gray-400">Retorno Cuenta:</span>
+                <span class="font-bold text-amber-400 text-sm" id="realCalcPctDisplay">0.00%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 3: Parámetros Auxiliares Sincronizados y Editables -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 text-xs">
+            <!-- Stop Loss Puntos (3 cols) -->
             <div class="lg:col-span-3">
               <div class="flex items-center justify-between mb-1.5">
-                <label class="text-gray-300 font-bold">Stop Loss (Puntos Oro)</label>
+                <label class="text-gray-300 font-bold">SL (Puntos Oro)</label>
                 <span class="text-emerald-400 text-[10px]" id="realSlExplain">250 ($2.50)</span>
               </div>
               <div class="relative">
-                <input type="number" id="realTradeTvPoints" min="1" step="any" class="w-full bg-gray-950 border-2 border-emerald-500/50 focus:border-emerald-400 rounded-xl px-3.5 py-1.5 text-white font-mono font-black text-base focus:outline-none" value="250" placeholder="250">
+                <input type="number" id="realTradeTvPoints" min="1" step="any" class="w-full bg-gray-950 border border-gray-800 focus:border-emerald-400 rounded-xl px-3.5 py-1.5 text-white font-mono font-bold text-sm focus:outline-none" value="250" placeholder="250">
                 <span class="absolute right-3 top-2 text-xs text-gray-400 font-bold uppercase">pts</span>
               </div>
             </div>
 
-            <!-- Riesgo % & RR (2 cols) -->
-            <div class="lg:col-span-2 grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-gray-400 mb-1.5 font-semibold">Riesgo %</label>
-                <input type="text" inputmode="decimal" id="realTradeRiskPct" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-2 py-2 text-amber-400 font-mono font-bold text-center focus:border-emerald-500 focus:outline-none" value="5.00" placeholder="12.19">
-              </div>
-              <div>
-                <label class="block text-gray-400 mb-1.5 font-semibold">R:R</label>
-                <input type="text" inputmode="decimal" id="realTradeRR" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-2 py-2 text-blue-400 font-mono font-bold text-center focus:border-emerald-500 focus:outline-none" value="1.0" placeholder="2.99">
-              </div>
+            <!-- Riesgo % (2 cols) -->
+            <div class="lg:col-span-2">
+              <label class="block text-gray-400 mb-1.5 font-semibold">Riesgo %</label>
+              <input type="text" inputmode="decimal" id="realTradeRiskPct" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-2 py-1.5 text-amber-400 font-mono font-bold text-center focus:border-emerald-500 focus:outline-none" value="5.00" placeholder="5.00">
             </div>
 
-          </div>
-
-          <!-- Row 2: Lotaje Manual, Beneficio Neto en $, Comisión Broker & TradingView Chart Link -->
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5 text-xs">
-            
-            <!-- Lote Manual / Operado MT4/MT5 (3 cols) -->
-            <div class="md:col-span-3">
-              <label class="block text-gray-400 mb-1.5 font-semibold flex items-center justify-between">
-                <span class="flex items-center gap-1.5">
-                  <i data-lucide="layers" class="w-3.5 h-3.5 text-gold-400"></i>
-                  <span>Lotaje MT4 / MT5</span>
-                </span>
-                <span class="text-[10px] text-gray-400 font-mono">Sugerido: <b id="realTradeSuggestedLotBadge" class="text-gold-400">0.01</b></span>
-              </label>
-              <div class="relative">
-                <input type="text" inputmode="decimal" id="realTradeManualLot" class="w-full bg-gray-950 border-2 border-gold-500/50 focus:border-gold-400 rounded-xl px-3.5 py-2 text-gold-300 font-mono font-black text-sm focus:outline-none" placeholder="0.01">
-                <span class="absolute right-3 top-2 text-xs text-gray-500 font-mono font-bold uppercase">Lotes</span>
-              </div>
+            <!-- R:R (2 cols) -->
+            <div class="lg:col-span-2">
+              <label class="block text-gray-400 mb-1.5 font-semibold">Ratio R:R</label>
+              <input type="text" inputmode="decimal" id="realTradeRR" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-2 py-1.5 text-blue-400 font-mono font-bold text-center focus:border-emerald-500 focus:outline-none" value="1.0" placeholder="1.0">
             </div>
 
-            <!-- Beneficio Neto en $ (3 cols) -->
-            <div class="md:col-span-3">
-              <label class="block text-gray-400 mb-1.5 font-semibold flex items-center justify-between">
-                <span class="flex items-center gap-1.5">
-                  <i data-lucide="dollar-sign" class="w-3.5 h-3.5 text-emerald-400"></i>
-                  <span>PnL Neto ($ Opcional)</span>
-                </span>
-                <span class="text-[10px] text-gray-500 font-mono">ej. +19.11</span>
-              </label>
-              <div class="relative">
-                <input type="text" inputmode="decimal" id="realTradeManualPnl" class="w-full bg-gray-950 border border-gray-800 focus:border-emerald-500 rounded-xl px-3.5 py-2 text-emerald-400 font-mono font-bold text-sm focus:outline-none" placeholder="Vacío = Auto">
-                <span class="absolute right-3 top-2 text-xs text-gray-500 font-mono font-bold uppercase">USD</span>
-              </div>
+            <!-- PnL Neto en $ (2 cols) -->
+            <div class="lg:col-span-2">
+              <label class="block text-gray-400 mb-1.5 font-semibold">PnL Neto ($)</label>
+              <input type="text" inputmode="decimal" id="realTradeManualPnl" class="w-full bg-gray-950 border border-gray-800 focus:border-emerald-500 rounded-xl px-2.5 py-1.5 text-emerald-400 font-mono font-bold text-sm focus:outline-none text-center" placeholder="Auto">
             </div>
 
-            <!-- Comisión Broker USD (2 cols) -->
-            <div class="md:col-span-2">
-              <label class="block text-gray-400 mb-1.5 font-semibold flex items-center justify-between">
-                <span class="flex items-center gap-1.5">
-                  <i data-lucide="receipt" class="w-3.5 h-3.5 text-rose-400"></i>
-                  <span>Comisión ($)</span>
-                </span>
-              </label>
-              <div class="relative">
-                <input type="text" inputmode="decimal" id="realTradeCommission" class="w-full bg-gray-950 border border-gray-800 focus:border-rose-500 rounded-xl px-2.5 py-2 text-rose-300 font-mono font-bold text-sm focus:outline-none" placeholder="-0.06" value="-0.06">
-              </div>
-            </div>
-
-            <!-- TradingView Chart URL (4 cols) -->
-            <div class="md:col-span-4">
+            <!-- Link TradingView (3 cols) -->
+            <div class="lg:col-span-3">
               <label class="block text-gray-400 mb-1.5 font-semibold flex items-center gap-1.5">
                 <i data-lucide="link" class="w-3.5 h-3.5 text-blue-400"></i>
-                <span>Link TradingView (Captura)</span>
+                <span>TradingView Captura</span>
               </label>
-              <input type="url" id="realTradeChartUrl" placeholder="https://www.tradingview.com/x/..." class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-400 focus:outline-none">
+              <input type="url" id="realTradeChartUrl" placeholder="https://www.tradingview.com/x/..." class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-white focus:border-blue-400 focus:outline-none">
             </div>
-
           </div>
 
           <!-- Live Preview Strip (Myfxbook lot & projected $ risk) -->
@@ -1484,19 +1606,19 @@
           </div>
           <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-gray-300">
-            <thead class="bg-gray-950/70 uppercase text-[10px] text-gray-400 tracking-wider">
+            <thead class="bg-gray-950/70 uppercase text-[10px] text-gray-400 tracking-wider font-mono">
               <tr>
                 <th class="py-2.5 px-3">#</th>
                 <th class="py-2.5 px-3">Fecha</th>
-                <th class="py-2.5 px-3">Sesión</th>
-                <th class="py-2.5 px-3">Tipo</th>
-                <th class="py-2.5 px-3">Stop Loss</th>
-                <th class="py-2.5 px-3">Ratio R:R</th>
-                <th class="py-2.5 px-3">Riesgo ($)</th>
+                <th class="py-2.5 px-3">Sesión / Dir</th>
+                <th class="py-2.5 px-3">Entrada ➔ Salida</th>
+                <th class="py-2.5 px-3">SL / TP</th>
                 <th class="py-2.5 px-3">Lote MT4</th>
+                <th class="py-2.5 px-3">Puntos</th>
+                <th class="py-2.5 px-3">Ratio R:R</th>
                 <th class="py-2.5 px-3">Resultado</th>
-                <th class="py-2.5 px-3">Comisión</th>
                 <th class="py-2.5 px-3">PnL Neto ($)</th>
+                <th class="py-2.5 px-3">Retorno %</th>
                 <th class="py-2.5 px-3">Balance</th>
                 <th class="py-2.5 px-3">Gráfico TV</th>
                 <th class="py-2.5 px-3 text-right">Acciones</th>
@@ -2386,6 +2508,25 @@
             <span>Fecha y Hora de la Operación</span>
           </label>
           <input type="text" id="editTradeDate" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-emerald-400 font-mono font-bold text-xs focus:border-emerald-500 focus:outline-none" placeholder="YYYY-MM-DD HH:MM">
+        </div>
+        <!-- Precios de Ejecución Entrada / Salida / SL / TP -->
+        <div class="grid grid-cols-2 gap-2 bg-gray-950 p-2.5 rounded-xl border border-gray-800">
+          <div>
+            <label class="block text-gray-400 mb-1 text-[11px] font-semibold">Precio Entrada</label>
+            <input type="number" id="editTradeEntry" step="any" placeholder="ej. 2720.50" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-white font-mono font-bold text-xs focus:border-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-gray-400 mb-1 text-[11px] font-semibold">Precio Salida</label>
+            <input type="number" id="editTradeExit" step="any" placeholder="ej. 2726.50" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-blue-300 font-mono font-bold text-xs focus:border-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-gray-400 mb-1 text-[11px] font-semibold">Stop Loss</label>
+            <input type="number" id="editTradeSl" step="any" placeholder="ej. 2717.50" class="w-full bg-gray-900 border border-rose-800/60 rounded-lg p-1.5 text-rose-300 font-mono font-bold text-xs focus:border-rose-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-gray-400 mb-1 text-[11px] font-semibold">Take Profit</label>
+            <input type="number" id="editTradeTp" step="any" placeholder="ej. 2726.50" class="w-full bg-gray-900 border border-emerald-800/60 rounded-lg p-1.5 text-emerald-300 font-mono font-bold text-xs focus:border-emerald-500 focus:outline-none">
+          </div>
         </div>
         <div>
           <label class="block text-gray-400 mb-1">Stop Loss en Puntos (Oro)</label>

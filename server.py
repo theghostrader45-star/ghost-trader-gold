@@ -114,6 +114,17 @@ def save_json(path, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
+def parse_float_safe(val, default=None):
+    if val is None:
+        return default
+    try:
+        s = str(val).strip().replace(",", ".")
+        if s == "" or s.lower() in ("none", "nan", "null"):
+            return default
+        return float(s)
+    except (ValueError, TypeError):
+        return default
+
 def get_trades_file(mode="backtest"):
     if mode == "fondeo":
         return TRADES_FONDEO_FILE
@@ -782,39 +793,6 @@ def recalculate_trade_history(trades, config, mode="backtest"):
         else:
             ret_pct = 0.0
             
-        trade_mode = t.get("mode") or mode
-        if trade_mode == "backtest":
-            pnl = round(curr_bal * (ret_pct / 100.0), 2)
-        else:
-            raw_pnl = None
-            if "pnl" in t and t["pnl"] is not None and str(t["pnl"]).strip() != "":
-                try:
-                    raw_pnl = round(float(str(t["pnl"]).replace(",", ".")), 2)
-                except (ValueError, TypeError):
-                    raw_pnl = None
-
-            if raw_pnl is not None:
-                if status == "win" and raw_pnl > 0:
-                    pnl = raw_pnl
-                elif status == "loss" and raw_pnl < 0:
-                    pnl = raw_pnl
-                elif status == "be" and abs(raw_pnl) < 1.0:
-                    pnl = raw_pnl
-                else:
-                    if status == "win":
-                        pnl = round(curr_bal * (ret_pct / 100.0) - commission, 2)
-                    elif status == "loss":
-                        pnl = -round(curr_bal * (trade_risk / 100.0) + commission, 2)
-                    else:
-                        pnl = -commission
-            else:
-                if status == "win":
-                    pnl = round(curr_bal * (ret_pct / 100.0) - commission, 2)
-                elif status == "loss":
-                    pnl = -round(curr_bal * (trade_risk / 100.0) + commission, 2)
-                else:
-                    pnl = -commission
-        
         # Reference lot size for MT4/MT5 based on Gold SL points
         dollar_risk = curr_bal * (trade_risk / 100.0)
         raw_lot = dollar_risk / tv_points if tv_points > 0 else 0.01
@@ -827,6 +805,72 @@ def recalculate_trade_history(trades, config, mode="backtest"):
         except (ValueError, TypeError):
             user_lot = 0.0
         lot_size = round(user_lot, 2) if user_lot > 0 else suggested_lot
+
+        # Check for price-based execution (entry, exit, sl, tp)
+        entry_price = parse_float_safe(t.get("entry_price"))
+        exit_price = parse_float_safe(t.get("exit_price"))
+        sl_price = parse_float_safe(t.get("sl_price"))
+        tp_price = parse_float_safe(t.get("tp_price"))
+        calc_pts = parse_float_safe(t.get("points"))
+        calc_pips = parse_float_safe(t.get("pips"))
+
+        asset = t.get("asset", "XAU/USD")
+        is_gold = any(x in str(asset).upper() for x in ["XAU", "GOLD", "ORO"])
+        direction = str(t.get("direction", "BUY")).upper()
+        mult = 100.0 if is_gold else 100000.0
+        pt_mult = 100.0 if is_gold else 100000.0
+        pip_mult = 10.0 if is_gold else 10000.0
+
+        if entry_price is not None and exit_price is not None:
+            exit_diff = (exit_price - entry_price) if direction == "BUY" else (entry_price - exit_price)
+            calc_pts = round(exit_diff * pt_mult)
+            calc_pips = round(exit_diff * pip_mult, 1)
+            pnl = round(lot_size * mult * exit_diff - commission, 2)
+            if pnl > 0.05:
+                status = "win"
+            elif pnl < -0.05:
+                status = "loss"
+            else:
+                status = "be"
+            if curr_bal > 0:
+                ret_pct = round((pnl / curr_bal) * 100.0, 2)
+            if sl_price is not None:
+                sl_dist = abs(entry_price - sl_price)
+                if sl_dist > 0:
+                    trade_rr = round(abs(exit_diff) / sl_dist, 2)
+        else:
+            trade_mode = t.get("mode") or mode
+            if trade_mode == "backtest":
+                pnl = round(curr_bal * (ret_pct / 100.0), 2)
+            else:
+                raw_pnl = None
+                if "pnl" in t and t["pnl"] is not None and str(t["pnl"]).strip() != "":
+                    try:
+                        raw_pnl = round(float(str(t["pnl"]).replace(",", ".")), 2)
+                    except (ValueError, TypeError):
+                        raw_pnl = None
+
+                if raw_pnl is not None:
+                    if status == "win" and raw_pnl > 0:
+                        pnl = raw_pnl
+                    elif status == "loss" and raw_pnl < 0:
+                        pnl = raw_pnl
+                    elif status == "be" and abs(raw_pnl) < 1.0:
+                        pnl = raw_pnl
+                    else:
+                        if status == "win":
+                            pnl = round(curr_bal * (ret_pct / 100.0) - commission, 2)
+                        elif status == "loss":
+                            pnl = -round(curr_bal * (trade_risk / 100.0) + commission, 2)
+                        else:
+                            pnl = -commission
+                else:
+                    if status == "win":
+                        pnl = round(curr_bal * (ret_pct / 100.0) - commission, 2)
+                    elif status == "loss":
+                        pnl = -round(curr_bal * (trade_risk / 100.0) + commission, 2)
+                    else:
+                        pnl = -commission
             
         margin_used = round((2700.0 * 100 * lot_size) / leverage, 2)
         
@@ -846,6 +890,13 @@ def recalculate_trade_history(trades, config, mode="backtest"):
         t_new["margin_used"] = margin_used
         t_new["commission"] = commission
         t_new["pnl"] = pnl
+        t_new["status"] = status
+        t_new["entry_price"] = entry_price
+        t_new["exit_price"] = exit_price
+        t_new["sl_price"] = sl_price
+        t_new["tp_price"] = tp_price
+        t_new["points"] = calc_pts if (entry_price is not None and exit_price is not None) else t.get("points")
+        t_new["pips"] = calc_pips if (entry_price is not None and exit_price is not None) else t.get("pips")
         t_new["balance_before"] = round(curr_bal, 2)
         
         curr_bal += pnl
@@ -1818,25 +1869,82 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             raw_comm = payload.get("commission", 0.0)
             commission = round(abs(float(str(raw_comm).replace(",", "."))), 2)
 
-            if "pnl" in payload and payload["pnl"] is not None and str(payload["pnl"]).strip() != "":
-                pnl = round(float(str(payload["pnl"]).replace(",", ".")), 2)
-                dollar_risk = round(float(str(payload.get("dollar_risk", dollar_risk)).replace(",", ".")), 2)
+            entry_price = parse_float_safe(payload.get("entry_price"))
+            exit_price = parse_float_safe(payload.get("exit_price"))
+            sl_price = parse_float_safe(payload.get("sl_price"))
+            tp_price = parse_float_safe(payload.get("tp_price"))
+            user_points = parse_float_safe(payload.get("points"))
+            user_pips = parse_float_safe(payload.get("pips"))
+
+            mult = 100.0 if is_gold else 100000.0
+            pt_mult = 100.0 if is_gold else 100000.0
+            pip_mult = 10.0 if is_gold else 10000.0
+
+            calc_points = user_points
+            calc_pips = user_pips
+
+            if entry_price is not None and sl_price is not None:
+                sl_diff = abs(entry_price - sl_price)
+                sl_price_dist = sl_diff
+                sl_points = round(sl_diff * pt_mult)
+                sl_pips = round(sl_diff * pip_mult, 1)
+                dollar_risk = round(lot_size * mult * sl_diff, 2)
+                if cur_bal > 0:
+                    trade_risk_pct = round((dollar_risk / cur_bal) * 100.0, 2)
+
+            if entry_price is not None and tp_price is not None:
+                tp_diff = abs(tp_price - entry_price)
+                tp_points = round(tp_diff * pt_mult)
+                tp_pips = round(tp_diff * pip_mult, 1)
+                if entry_price is not None and sl_price is not None and abs(entry_price - sl_price) > 0:
+                    trade_rr = round(tp_diff / abs(entry_price - sl_price), 2)
             else:
-                if status == "win":
-                    pnl = round(cur_bal * (ret_pct / 100.0) - commission, 2)
-                elif status == "loss":
-                    pnl = -round(dollar_risk + commission, 2)
+                tp_points = round(sl_pips * trade_rr * (10.0 if not is_gold else 1.0))
+                tp_pips = round(sl_pips * trade_rr, 1)
+
+            if entry_price is not None and exit_price is not None:
+                exit_diff = (exit_price - entry_price) if direction == "BUY" else (entry_price - exit_price)
+                calc_points = round(exit_diff * pt_mult)
+                calc_pips = round(exit_diff * pip_mult, 1)
+                gross_pnl = round(lot_size * mult * exit_diff, 2)
+                pnl = round(gross_pnl - commission, 2)
+                if pnl > 0.05:
+                    status = "win"
+                elif pnl < -0.05:
+                    status = "loss"
                 else:
-                    pnl = -commission
+                    status = "be"
+                if cur_bal > 0:
+                    ret_pct = round((pnl / cur_bal) * 100.0, 2)
+                if entry_price is not None and sl_price is not None and abs(entry_price - sl_price) > 0:
+                    trade_rr = round(abs(exit_diff) / abs(entry_price - sl_price), 2)
+            else:
+                if "pnl" in payload and payload["pnl"] is not None and str(payload["pnl"]).strip() != "":
+                    pnl = round(float(str(payload["pnl"]).replace(",", ".")), 2)
+                    dollar_risk = round(float(str(payload.get("dollar_risk", dollar_risk)).replace(",", ".")), 2)
+                else:
+                    if status == "win":
+                        pnl = round(cur_bal * (ret_pct / 100.0) - commission, 2)
+                    elif status == "loss":
+                        pnl = -round(dollar_risk + commission, 2)
+                    else:
+                        pnl = -commission
 
             trade = {
                 "id": str(uuid.uuid4()),
                 "date": payload.get("date") or datetime.now().strftime("%Y-%m-%d %H:%M"),
                 "asset": asset,
                 "direction": direction,
+                "entry_price": entry_price,
+                "exit_price": exit_price,
+                "sl_price": sl_price,
+                "tp_price": tp_price,
+                "points": calc_points,
+                "pips": calc_pips,
                 "sl_pips": sl_pips,
                 "sl_points": round(sl_pips * 10.0) if not is_gold else sl_pips,
                 "tp_pips": round(sl_pips * trade_rr, 1),
+                "tp_points": tp_points,
                 "risk_pct": trade_risk_pct,
                 "risk_pct_custom": trade_risk_pct,
                 "ret_pct": round(ret_pct, 2),

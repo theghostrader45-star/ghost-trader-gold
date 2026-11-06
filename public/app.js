@@ -458,10 +458,10 @@ function renderFondeoTradesTable() {
   if (trades.length === 0) {
     tbody.innerHTML = `
       <tr class="border-b border-gray-800 text-center">
-        <td colspan="10" class="py-10 text-gray-500 font-medium">
+        <td colspan="14" class="py-10 text-gray-500 font-medium">
           <i data-lucide="award" class="w-8 h-8 mx-auto mb-2 text-gray-600 opacity-50"></i>
           <p>Sin operaciones registradas en Orion Nova 50K aún.</p>
-          <p class="text-xs text-gray-600 mt-1">Usa la calculadora y el formulario superior para registrar tus trades de la prueba.</p>
+          <p class="text-xs text-gray-600 mt-1">Usa el formulario superior para registrar tus operaciones con precios de Entrada, Salida, SL y TP.</p>
         </td>
       </tr>
     `;
@@ -471,7 +471,7 @@ function renderFondeoTradesTable() {
 
   const sorted = [...trades].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  tbody.innerHTML = sorted.map((t) => {
+  tbody.innerHTML = sorted.map((t, idx) => {
     const isWin = (t.status || '').toLowerCase() === 'win';
     const isLoss = (t.status || '').toLowerCase() === 'loss';
     const statusBadge = isWin
@@ -481,32 +481,85 @@ function renderFondeoTradesTable() {
       : '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-gray-800 text-gray-300 border border-gray-700">BE</span>';
 
     const dirBadge = (t.direction || 'BUY').toUpperCase() === 'BUY'
-      ? '<span class="text-emerald-400 font-bold">BUY</span>'
-      : '<span class="text-red-400 font-bold">SELL</span>';
+      ? '<span class="text-emerald-400 font-bold flex items-center gap-0.5">🟢 BUY</span>'
+      : '<span class="text-red-400 font-bold flex items-center gap-0.5">🔴 SELL</span>';
 
-    const pnl = t.pnl !== undefined ? t.pnl : 0;
-    const pnlClass = pnl > 0 ? 'text-emerald-400 font-bold' : pnl < 0 ? 'text-red-400 font-bold' : 'text-gray-400';
+    const pnl = t.pnl !== undefined ? Number(t.pnl) : 0;
+    const pnlClass = pnl > 0 ? 'text-emerald-400 font-bold font-mono' : pnl < 0 ? 'text-red-400 font-bold font-mono' : 'text-gray-400 font-mono';
     const pnlSign = pnl > 0 ? '+' : '';
 
-    const assetBadge = t.asset === 'EUR/USD' || t.asset === 'EURUSD'
+    const assetBadge = (t.asset === 'EUR/USD' || t.asset === 'EURUSD')
       ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-950 text-blue-300 border border-blue-800">EUR/USD</span>'
       : '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">XAU/USD</span>';
 
+    // Prices: Entry ➔ Exit
+    let priceFlow = '<span class="text-gray-600">-</span>';
+    if (t.entry_price != null && t.exit_price != null) {
+      priceFlow = `<span class="font-mono text-gray-200 font-semibold">${Number(t.entry_price).toFixed(2)}</span> <span class="text-gray-500 font-bold">➔</span> <span class="font-mono ${pnlClass}">${Number(t.exit_price).toFixed(2)}</span>`;
+    } else if (t.entry_price != null) {
+      priceFlow = `<span class="font-mono text-gray-200">${Number(t.entry_price).toFixed(2)}</span>`;
+    }
+
+    // SL / TP
+    let slTpDisplay = '<span class="text-gray-600">-</span>';
+    if (t.sl_price != null || t.tp_price != null) {
+      const slTxt = t.sl_price != null ? `<span class="text-rose-400 font-mono">${Number(t.sl_price).toFixed(2)}</span>` : '-';
+      const tpTxt = t.tp_price != null ? `<span class="text-emerald-400 font-mono">${Number(t.tp_price).toFixed(2)}</span>` : '-';
+      slTpDisplay = `${slTxt} <span class="text-gray-600">/</span> ${tpTxt}`;
+    } else if (t.sl_pips) {
+      slTpDisplay = `<span class="font-mono text-gray-400">${t.sl_pips} pips</span>`;
+    }
+
+    // Points / Pips
+    let ptsDisplay = '<span class="text-gray-600">-</span>';
+    if (t.points != null) {
+      const ptSign = t.points > 0 ? '+' : '';
+      const ptColor = t.points > 0 ? 'text-emerald-400' : (t.points < 0 ? 'text-rose-400' : 'text-gray-400');
+      const pipTxt = t.pips != null ? ` (${t.pips > 0 ? '+' : ''}${t.pips} pips)` : '';
+      ptsDisplay = `<span class="font-mono font-bold ${ptColor}">${ptSign}${t.points} pts</span><span class="text-[10px] text-gray-500">${pipTxt}</span>`;
+    } else if (t.sl_pips) {
+      ptsDisplay = `<span class="font-mono text-gray-400">${t.sl_pips} pips</span>`;
+    }
+
+    // Return %
+    const retPct = t.ret_pct !== undefined ? Number(t.ret_pct) : 0;
+    const retSign = retPct > 0 ? '+' : '';
+    const retColor = retPct > 0 ? 'text-emerald-400' : (retPct < 0 ? 'text-rose-400' : 'text-gray-400');
+    const retDisplay = `<span class="font-mono font-bold ${retColor}">${retSign}${retPct.toFixed(2)}%</span>`;
+
+    const rrDisplay = t.rr != null ? `1:${Number(t.rr).toFixed(1)}` : '1:2.0';
+
+    const chartBtn = (t.tv_url || t.tv_chart_url)
+      ? `<a href="${t.tv_url || t.tv_chart_url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-950/70 hover:bg-blue-900 border border-blue-800/80 text-blue-300 text-[10px] font-medium transition" title="Ver captura en TradingView">
+           <i data-lucide="external-link" class="w-3 h-3"></i>
+         </a>`
+      : '';
+
     return `
       <tr class="border-b border-gray-800/80 hover:bg-gray-800/40 transition">
-        <td class="py-2.5 px-3 text-xs text-gray-400 font-mono">${t.date || '-'}</td>
-        <td class="py-2.5 px-3 text-xs">${assetBadge}</td>
-        <td class="py-2.5 px-3 text-xs">${dirBadge}</td>
+        <td class="py-2.5 px-3 text-xs text-gray-500 font-mono">${trades.length - idx}</td>
+        <td class="py-2.5 px-3 text-xs text-gray-400 font-mono whitespace-nowrap">${t.date || '-'}</td>
+        <td class="py-2.5 px-3 text-xs whitespace-nowrap"><div class="flex items-center gap-1.5">${assetBadge} ${dirBadge}</div></td>
+        <td class="py-2.5 px-3 text-xs whitespace-nowrap">${priceFlow}</td>
+        <td class="py-2.5 px-3 text-xs whitespace-nowrap">${slTpDisplay}</td>
         <td class="py-2.5 px-3 text-xs font-mono font-bold text-amber-300">${(t.lot_size || t.suggested_lot || 0.01).toFixed(2)}</td>
-        <td class="py-2.5 px-3 text-xs font-mono text-gray-300">${t.sl_pips || '-'} pips</td>
+        <td class="py-2.5 px-3 text-xs whitespace-nowrap">${ptsDisplay}</td>
+        <td class="py-2.5 px-3 text-xs font-mono text-blue-300">${rrDisplay}</td>
         <td class="py-2.5 px-3 text-xs">${statusBadge}</td>
-        <td class="py-2.5 px-3 text-xs font-mono ${pnlClass}">${pnlSign}$${formatMoney(pnl)}</td>
-        <td class="py-2.5 px-3 text-xs font-mono text-gray-300">1:${t.rr || 2.0}</td>
-        <td class="py-2.5 px-3 text-xs text-gray-400">${t.session || 'Nueva York'}</td>
-        <td class="py-2.5 px-3 text-right">
-          <button onclick="handleDeleteTrade('${t.id}', 'fondeo')" class="p-1.5 text-gray-500 hover:text-red-400 rounded hover:bg-red-950/40 transition" title="Eliminar Trade">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          </button>
+        <td class="py-2.5 px-3 text-xs ${pnlClass}">${pnlSign}$${formatMoney(pnl)}</td>
+        <td class="py-2.5 px-3 text-xs whitespace-nowrap">${retDisplay}</td>
+        <td class="py-2.5 px-3 text-xs font-mono font-bold text-white whitespace-nowrap">$${formatMoney(t.balance_after || 50000)}</td>
+        <td class="py-2.5 px-3 text-xs text-gray-400">${t.session || 'New York'}</td>
+        <td class="py-2.5 px-3 text-right whitespace-nowrap">
+          <div class="flex items-center justify-end gap-1">
+            ${chartBtn}
+            <button onclick="handleOpenEditModal('${t.id}', 'fondeo')" class="p-1.5 text-gray-500 hover:text-amber-400 rounded hover:bg-amber-950/40 transition cursor-pointer" title="Editar Operación">
+              <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+            </button>
+            <button onclick="handleDeleteTrade('${t.id}', 'fondeo')" class="p-1.5 text-gray-500 hover:text-red-400 rounded hover:bg-red-950/40 transition cursor-pointer" title="Eliminar Trade">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
         </td>
       </tr>
     `;
@@ -763,9 +816,245 @@ function setupFondeoCalculator() {
 
   calculateFondeoMetrics();
 }
+
+function calculateTradePrices({
+  asset = 'XAU/USD',
+  direction = 'BUY',
+  lot = 0.83,
+  entry = null,
+  sl = null,
+  tp = null,
+  exit = null,
+  commission = 0.0,
+  balance = 50000.0
+}) {
+  const isGold = /XAU|GOLD|ORO/i.test(asset || '');
+  const dir = (direction || 'BUY').toUpperCase();
+  const mult = isGold ? 100.0 : 100000.0;
+  const pointMult = isGold ? 100.0 : 100000.0;
+  const pipMult = isGold ? 10.0 : 10000.0;
+
+  let slDist = null;
+  let slPoints = null;
+  let slPips = null;
+  let riskUsd = null;
+  let riskPct = null;
+
+  if (entry != null && sl != null && !isNaN(entry) && !isNaN(sl) && entry > 0 && sl > 0) {
+    slDist = Math.abs(entry - sl);
+    slPoints = Math.round(slDist * pointMult);
+    slPips = Number((slDist * pipMult).toFixed(1));
+    riskUsd = Number((lot * mult * slDist).toFixed(2));
+    if (balance > 0) {
+      riskPct = Number(((riskUsd / balance) * 100).toFixed(2));
+    }
+  }
+
+  let tpDist = null;
+  let tpPoints = null;
+  let tpPips = null;
+  let projectedRr = null;
+  let projectedRewardUsd = null;
+
+  if (entry != null && tp != null && !isNaN(entry) && !isNaN(tp) && entry > 0 && tp > 0) {
+    tpDist = Math.abs(tp - entry);
+    tpPoints = Math.round(tpDist * pointMult);
+    tpPips = Number((tpDist * pipMult).toFixed(1));
+    projectedRewardUsd = Number((lot * mult * tpDist).toFixed(2));
+    if (slDist && slDist > 0) {
+      projectedRr = Number((tpDist / slDist).toFixed(2));
+    }
+  }
+
+  let exitDiff = null;
+  let points = null;
+  let pips = null;
+  let grossPnl = null;
+  let netPnl = null;
+  let realizedRr = null;
+  let retPct = null;
+  let status = 'win';
+
+  if (entry != null && exit != null && !isNaN(entry) && !isNaN(exit) && entry > 0 && exit > 0) {
+    exitDiff = dir === 'BUY' ? (exit - entry) : (entry - exit);
+    points = Math.round(exitDiff * pointMult);
+    pips = Number((exitDiff * pipMult).toFixed(1));
+    grossPnl = Number((lot * mult * exitDiff).toFixed(2));
+    netPnl = Number((grossPnl - Math.abs(commission)).toFixed(2));
+    
+    if (slDist && slDist > 0) {
+      realizedRr = Number((Math.abs(exitDiff) / slDist).toFixed(2));
+    }
+    if (balance > 0) {
+      retPct = Number(((netPnl / balance) * 100).toFixed(2));
+    }
+    
+    if (netPnl > 0.05) {
+      status = 'win';
+    } else if (netPnl < -0.05) {
+      status = 'loss';
+    } else {
+      status = 'be';
+    }
+  }
+
+  return {
+    isGold,
+    slDist,
+    slPoints,
+    slPips,
+    riskUsd,
+    riskPct,
+    tpDist,
+    tpPoints,
+    tpPips,
+    projectedRr,
+    projectedRewardUsd,
+    exitDiff,
+    points,
+    pips,
+    grossPnl,
+    netPnl,
+    realizedRr,
+    retPct,
+    status
+  };
+}
+
 function setupFondeoTradeForm() {
   const form = document.getElementById('formFondeoTrade');
   if (!form) return;
+
+  const entryEl = document.getElementById('fondeoFormEntry');
+  const slEl = document.getElementById('fondeoFormSl');
+  const tpEl = document.getElementById('fondeoFormTp');
+  const exitEl = document.getElementById('fondeoFormExit');
+  const lotEl = document.getElementById('fondeoFormLot');
+  const dirEl = document.getElementById('fondeoFormDirection');
+  const assetEl = document.getElementById('fondeoFormAsset');
+  const pnlEl = document.getElementById('fondeoFormPnl');
+  const rrEl = document.getElementById('fondeoFormRr');
+  const slPipsEl = document.getElementById('fondeoFormSlPips');
+  const statusEl = document.getElementById('fondeoFormStatus');
+
+  const slBadge = document.getElementById('fondeoFormSlPtsBadge');
+  const tpBadge = document.getElementById('fondeoFormTpPtsBadge');
+  const ptsDisp = document.getElementById('fondeoCalcPointsDisplay');
+  const rrDisp = document.getElementById('fondeoCalcRrDisplay');
+  const pnlDisp = document.getElementById('fondeoCalcPnlDisplay');
+  const pctDisp = document.getElementById('fondeoCalcPctDisplay');
+
+  const btnTp = document.getElementById('btnFondeoExitTp');
+  const btnSl = document.getElementById('btnFondeoExitSl');
+  const btnBe = document.getElementById('btnFondeoExitBe');
+
+  function updateFondeoCalculation() {
+    const entry = parseFloat(entryEl?.value);
+    const sl = parseFloat(slEl?.value);
+    const tp = parseFloat(tpEl?.value);
+    const exit = parseFloat(exitEl?.value);
+    const lot = parseFloat(lotEl?.value) || 0.83;
+    const dir = dirEl?.value || 'BUY';
+    const asset = assetEl?.value || 'XAU/USD';
+    const curBal = (appState.fondeo?.summary?.current_balance !== undefined) 
+      ? Number(appState.fondeo.summary.current_balance) 
+      : 50000.0;
+
+    const calc = calculateTradePrices({
+      asset,
+      direction: dir,
+      lot,
+      entry: isNaN(entry) ? null : entry,
+      sl: isNaN(sl) ? null : sl,
+      tp: isNaN(tp) ? null : tp,
+      exit: isNaN(exit) ? null : exit,
+      commission: 0.0,
+      balance: curBal
+    });
+
+    if (calc.slPoints !== null) {
+      if (slBadge) slBadge.textContent = `${calc.slPoints} pts ($${calc.slDist.toFixed(2)})`;
+      if (slPipsEl) slPipsEl.value = calc.slPips;
+    } else {
+      if (slBadge) slBadge.textContent = '0 pts';
+    }
+
+    if (calc.tpPoints !== null) {
+      if (tpBadge) tpBadge.textContent = `${calc.tpPoints} pts ($${calc.tpDist.toFixed(2)})`;
+      if (calc.projectedRr !== null && rrEl && isNaN(parseFloat(exitEl?.value))) {
+        rrEl.value = calc.projectedRr;
+      }
+    } else {
+      if (tpBadge) tpBadge.textContent = '0 pts';
+    }
+
+    if (calc.points !== null) {
+      const sign = calc.points > 0 ? '+' : '';
+      if (ptsDisp) ptsDisp.textContent = `${sign}${calc.points} pts (${calc.pips > 0 ? '+' : ''}${calc.pips} pips)`;
+      if (pnlDisp) {
+        const pSign = calc.netPnl > 0 ? '+' : '';
+        pnlDisp.textContent = `${pSign}$${formatMoney(calc.netPnl)}`;
+        pnlDisp.className = `font-bold text-sm ${calc.netPnl > 0 ? 'text-emerald-400' : (calc.netPnl < 0 ? 'text-rose-400' : 'text-gray-400')}`;
+      }
+      if (pctDisp) {
+        const pctSign = calc.retPct > 0 ? '+' : '';
+        pctDisp.textContent = `${pctSign}${calc.retPct.toFixed(2)}%`;
+        pctDisp.className = `font-bold text-sm ${calc.retPct > 0 ? 'text-emerald-400' : (calc.retPct < 0 ? 'text-rose-400' : 'text-amber-400')}`;
+      }
+      if (pnlEl) pnlEl.value = calc.netPnl.toFixed(2);
+      if (statusEl) statusEl.value = calc.status;
+      if (calc.realizedRr !== null && rrEl) {
+        rrEl.value = calc.realizedRr;
+      }
+      if (rrDisp) {
+        const displayRr = calc.realizedRr !== null ? calc.realizedRr : (calc.projectedRr || 2.0);
+        rrDisp.textContent = `1:${displayRr}`;
+      }
+    } else {
+      if (ptsDisp) ptsDisp.textContent = '0 pts (0.0 pips)';
+      if (pnlDisp) {
+        pnlDisp.textContent = '+$0.00';
+        pnlDisp.className = 'font-bold text-emerald-400 text-sm';
+      }
+      if (pctDisp) {
+        pctDisp.textContent = '0.00%';
+        pctDisp.className = 'font-bold text-amber-400 text-sm';
+      }
+      if (rrDisp) rrDisp.textContent = `1:${calc.projectedRr || (rrEl?.value || '2.0')}`;
+    }
+  }
+
+  [entryEl, slEl, tpEl, exitEl, lotEl, dirEl, assetEl].forEach(el => {
+    if (el) {
+      el.addEventListener('input', updateFondeoCalculation);
+      el.addEventListener('change', updateFondeoCalculation);
+    }
+  });
+
+  if (btnTp) {
+    btnTp.addEventListener('click', () => {
+      if (tpEl && tpEl.value) {
+        exitEl.value = tpEl.value;
+        updateFondeoCalculation();
+      }
+    });
+  }
+  if (btnSl) {
+    btnSl.addEventListener('click', () => {
+      if (slEl && slEl.value) {
+        exitEl.value = slEl.value;
+        updateFondeoCalculation();
+      }
+    });
+  }
+  if (btnBe) {
+    btnBe.addEventListener('click', () => {
+      if (entryEl && entryEl.value) {
+        exitEl.value = entryEl.value;
+        updateFondeoCalculation();
+      }
+    });
+  }
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -781,6 +1070,11 @@ function setupFondeoTradeForm() {
     const tvUrl = document.getElementById('fondeoFormTvUrl').value;
     const notes = document.getElementById('fondeoFormNotes').value;
 
+    const entry = parseFloat(entryEl?.value);
+    const sl = parseFloat(slEl?.value);
+    const tp = parseFloat(tpEl?.value);
+    const exit = parseFloat(exitEl?.value);
+
     const payload = {
       mode: 'fondeo',
       asset: asset,
@@ -795,6 +1089,11 @@ function setupFondeoTradeForm() {
       notes: notes
     };
 
+    if (!isNaN(entry)) payload.entry_price = entry;
+    if (!isNaN(sl)) payload.sl_price = sl;
+    if (!isNaN(tp)) payload.tp_price = tp;
+    if (!isNaN(exit)) payload.exit_price = exit;
+
     if (pnlInput && pnlInput.trim() !== '') {
       payload.pnl = parseFloat(pnlInput);
     }
@@ -808,7 +1107,15 @@ function setupFondeoTradeForm() {
 
       if (res.ok) {
         form.reset();
+        if (slBadge) slBadge.textContent = '0 pts';
+        if (tpBadge) tpBadge.textContent = '0 pts';
+        if (ptsDisp) ptsDisp.textContent = '0 pts (0.0 pips)';
+        if (pnlDisp) pnlDisp.textContent = '+$0.00';
+        if (pctDisp) pctDisp.textContent = '0.00%';
         await loadFondeoTrades();
+        if (typeof showToast === 'function') {
+          showToast('✅ Operación registrada en Orion Nova 50K con éxito.', 'success', 3000);
+        }
       } else {
         const err = await res.json();
         alert('Error registrando trade: ' + (err.error || 'Desconocido'));
@@ -1273,14 +1580,58 @@ function recalculateTradingViewValues() {
 // ----------------------------------------------------
 function recalculateRealJournalPreview() {
   const curBal = (appState.real.summary && appState.real.summary.current_balance !== undefined)
-    ? appState.real.summary.current_balance
-    : appState.config.initial_balance;
+    ? Number(appState.real.summary.current_balance)
+    : Number(appState.config.initial_balance || 110.0);
+
+  const entryEl = document.getElementById('realTradeEntry');
+  const slEl = document.getElementById('realTradeSl');
+  const tpEl = document.getElementById('realTradeTp');
+  const exitEl = document.getElementById('realTradeExit');
+  const dirInput = document.getElementById('realTradeDirection');
+  const direction = dirInput?.value || 'BUY';
+
+  const entry = parseFloat(entryEl?.value);
+  const sl = parseFloat(slEl?.value);
+  const tp = parseFloat(tpEl?.value);
+  const exit = parseFloat(exitEl?.value);
+
+  const slBadge = document.getElementById('realTradeSlPtsBadge');
+  const tpBadge = document.getElementById('realTradeTpPtsBadge');
+  const ptsDisp = document.getElementById('realCalcPointsDisplay');
+  const rrDisp = document.getElementById('realCalcRrDisplay');
+  const pnlDisp = document.getElementById('realCalcPnlDisplay');
+  const pctDisp = document.getElementById('realCalcPctDisplay');
+
+  let slDist = null;
+  if (!isNaN(entry) && !isNaN(sl) && entry > 0 && sl > 0) {
+    slDist = Math.abs(entry - sl);
+    const slPts = Math.round(slDist * 100);
+    const ptsInput = document.getElementById('realTradeTvPoints');
+    if (ptsInput) ptsInput.value = slPts;
+    if (slBadge) slBadge.textContent = `${slPts} pts ($${slDist.toFixed(2)})`;
+  } else {
+    if (slBadge) slBadge.textContent = '0 pts';
+  }
+
+  let tpDist = null;
+  if (!isNaN(entry) && !isNaN(tp) && entry > 0 && tp > 0) {
+    tpDist = Math.abs(tp - entry);
+    const tpPts = Math.round(tpDist * 100);
+    if (tpBadge) tpBadge.textContent = `${tpPts} pts ($${tpDist.toFixed(2)})`;
+    if (slDist && slDist > 0) {
+      const projRR = roundNum(tpDist / slDist, 2);
+      const rrInput = document.getElementById('realTradeRR');
+      if (rrInput && isNaN(exit)) rrInput.value = projRR;
+    }
+  } else {
+    if (tpBadge) tpBadge.textContent = '0 pts';
+  }
 
   const rawInput = document.getElementById('realTradeTvPoints')?.value || '250';
   const { points, price } = parseTradingViewInput(rawInput);
   
   const riskPctStr = document.getElementById('realTradeRiskPct')?.value || '5.0';
-  const riskPct = parseFloat(String(riskPctStr).replace(',', '.').trim()) || 5.0;
+  let riskPct = parseFloat(String(riskPctStr).replace(',', '.').trim()) || 5.0;
   
   const rrStr = document.getElementById('realTradeRR')?.value || '1.0';
   const rr = parseFloat(String(rrStr).replace(',', '.').trim()) || 1.0;
@@ -1306,6 +1657,59 @@ function recalculateRealJournalPreview() {
   if (commInput && commInput.value) {
     const rawComm = parseFloat(String(commInput.value).replace(',', '.').trim());
     if (!isNaN(rawComm)) commVal = Math.abs(rawComm);
+  }
+
+  // Si hay Entrada y Salida, calcular PnL y puntos exactos
+  if (!isNaN(entry) && !isNaN(exit) && entry > 0 && exit > 0) {
+    const exitDiff = direction === 'BUY' ? (exit - entry) : (entry - exit);
+    const wonPts = Math.round(exitDiff * 100);
+    const calcPnl = roundNum((effectiveLot * 100 * exitDiff) - commVal, 2);
+    const calcRetPct = curBal > 0 ? roundNum((calcPnl / curBal) * 100, 2) : 0.0;
+
+    const manualPnlInput = document.getElementById('realTradeManualPnl');
+    if (manualPnlInput) manualPnlInput.value = calcPnl.toFixed(2);
+
+    const winRadio = document.querySelector('input[name="realTradeResult"][value="win"]');
+    const lossRadio = document.querySelector('input[name="realTradeResult"][value="loss"]');
+    const beRadio = document.querySelector('input[name="realTradeResult"][value="be"]');
+
+    if (calcPnl > 0.05 && winRadio) winRadio.checked = true;
+    else if (calcPnl < -0.05 && lossRadio) lossRadio.checked = true;
+    else if (beRadio) beRadio.checked = true;
+
+    if (ptsDisp) {
+      const sign = wonPts > 0 ? '+' : '';
+      ptsDisp.textContent = `${sign}${wonPts} pts`;
+      ptsDisp.className = `font-bold text-sm ${wonPts > 0 ? 'text-emerald-400' : (wonPts < 0 ? 'text-rose-400' : 'text-gray-400')}`;
+    }
+    if (pnlDisp) {
+      const sign = calcPnl > 0 ? '+' : '';
+      pnlDisp.textContent = `${sign}$${Number(calcPnl).toFixed(2)}`;
+      pnlDisp.className = `font-bold text-sm ${calcPnl > 0 ? 'text-emerald-400' : (calcPnl < 0 ? 'text-rose-400' : 'text-gray-400')}`;
+    }
+    if (pctDisp) {
+      const sign = calcRetPct > 0 ? '+' : '';
+      pctDisp.textContent = `${sign}${calcRetPct.toFixed(2)}%`;
+      pctDisp.className = `font-bold text-sm ${calcRetPct > 0 ? 'text-emerald-400' : (calcRetPct < 0 ? 'text-rose-400' : 'text-amber-400')}`;
+    }
+    if (rrDisp) {
+      const rRatio = slDist && slDist > 0 ? roundNum(Math.abs(exitDiff) / slDist, 2) : rr;
+      rrDisp.textContent = `1:${rRatio}`;
+    }
+  } else {
+    if (ptsDisp) {
+      ptsDisp.textContent = '0 pts';
+      ptsDisp.className = 'font-bold text-white text-sm';
+    }
+    if (pnlDisp) {
+      pnlDisp.textContent = '+$0.00';
+      pnlDisp.className = 'font-bold text-emerald-400 text-sm';
+    }
+    if (pctDisp) {
+      pctDisp.textContent = '0.00%';
+      pctDisp.className = 'font-bold text-amber-400 text-sm';
+    }
+    if (rrDisp) rrDisp.textContent = `1:${rr}`;
   }
 
   const effectiveMargin = roundNum((2720.0 * 100 * effectiveLot) / leverage, 2);
@@ -2274,11 +2678,13 @@ function setupEventListeners() {
       realDirInput.value = 'BUY';
       btnRealBuy.className = 'py-1.5 rounded-lg text-center font-bold text-xs bg-tvGreen text-white shadow transition flex items-center justify-center';
       btnRealSell.className = 'py-1.5 rounded-lg text-center font-bold text-xs text-gray-400 hover:text-white transition flex items-center justify-center';
+      recalculateRealJournalPreview();
     });
     btnRealSell.addEventListener('click', () => {
       realDirInput.value = 'SELL';
       btnRealSell.className = 'py-1.5 rounded-lg text-center font-bold text-xs bg-tvRed text-white shadow transition flex items-center justify-center';
       btnRealBuy.className = 'py-1.5 rounded-lg text-center font-bold text-xs text-gray-400 hover:text-white transition flex items-center justify-center';
+      recalculateRealJournalPreview();
     });
   }
 
@@ -2484,6 +2890,50 @@ function setupEventListeners() {
     if (rLot) rLot.addEventListener('input', recalculateRealJournalPreview);
     const rComm = document.getElementById('realTradeCommission');
     if (rComm) rComm.addEventListener('input', recalculateRealJournalPreview);
+
+    // Price inputs (Entry, SL, TP, Exit)
+    ['realTradeEntry', 'realTradeSl', 'realTradeTp', 'realTradeExit'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', recalculateRealJournalPreview);
+        el.addEventListener('change', recalculateRealJournalPreview);
+      }
+    });
+
+    // Helper buttons for Exit (TP, SL, BE)
+    const btnRealTp = document.getElementById('btnRealExitTp');
+    const btnRealSl = document.getElementById('btnRealExitSl');
+    const btnRealBe = document.getElementById('btnRealExitBe');
+    if (btnRealTp) {
+      btnRealTp.addEventListener('click', () => {
+        const tpVal = document.getElementById('realTradeTp')?.value;
+        const exitEl = document.getElementById('realTradeExit');
+        if (tpVal && exitEl) {
+          exitEl.value = tpVal;
+          recalculateRealJournalPreview();
+        }
+      });
+    }
+    if (btnRealSl) {
+      btnRealSl.addEventListener('click', () => {
+        const slVal = document.getElementById('realTradeSl')?.value;
+        const exitEl = document.getElementById('realTradeExit');
+        if (slVal && exitEl) {
+          exitEl.value = slVal;
+          recalculateRealJournalPreview();
+        }
+      });
+    }
+    if (btnRealBe) {
+      btnRealBe.addEventListener('click', () => {
+        const entryVal = document.getElementById('realTradeEntry')?.value;
+        const exitEl = document.getElementById('realTradeExit');
+        if (entryVal && exitEl) {
+          exitEl.value = entryVal;
+          recalculateRealJournalPreview();
+        }
+      });
+    }
   }
 
   // Clear Button
@@ -2755,6 +3205,11 @@ async function handleAddRealTrade(e) {
   const leverage = parseFloat(appState.config.leverage) || 300;
   const margin_used = roundNum((2720.0 * 100 * lot_size / leverage), 2);
 
+  const entry = parseFloat(document.getElementById('realTradeEntry')?.value);
+  const sl = parseFloat(document.getElementById('realTradeSl')?.value);
+  const tp = parseFloat(document.getElementById('realTradeTp')?.value);
+  const exit = parseFloat(document.getElementById('realTradeExit')?.value);
+
   const payload = {
     mode: 'real',
     date,
@@ -2782,6 +3237,11 @@ async function handleAddRealTrade(e) {
     notes: `Sesión New York`
   };
 
+  if (!isNaN(entry)) payload.entry_price = entry;
+  if (!isNaN(sl)) payload.sl_price = sl;
+  if (!isNaN(tp)) payload.tp_price = tp;
+  if (!isNaN(exit)) payload.exit_price = exit;
+
   try {
     const res = await fetch('/api/trades?mode=real', {
       method: 'POST',
@@ -2806,6 +3266,25 @@ async function handleAddRealTrade(e) {
       if (manualPnlInput) manualPnlInput.value = '';
       const chartUrlEl = document.getElementById('realTradeChartUrl');
       if (chartUrlEl) chartUrlEl.value = '';
+
+      if (document.getElementById('realTradeEntry')) document.getElementById('realTradeEntry').value = '';
+      if (document.getElementById('realTradeSl')) document.getElementById('realTradeSl').value = '';
+      if (document.getElementById('realTradeTp')) document.getElementById('realTradeTp').value = '';
+      if (document.getElementById('realTradeExit')) document.getElementById('realTradeExit').value = '';
+      const slBadge = document.getElementById('realTradeSlPtsBadge');
+      if (slBadge) slBadge.textContent = '0 pts';
+      const tpBadge = document.getElementById('realTradeTpPtsBadge');
+      if (tpBadge) tpBadge.textContent = '0 pts';
+      const ptsDisp = document.getElementById('realCalcPointsDisplay');
+      if (ptsDisp) ptsDisp.textContent = '0 pts';
+      const pnlDisp = document.getElementById('realCalcPnlDisplay');
+      if (pnlDisp) pnlDisp.textContent = '+$0.00';
+      const pctDisp = document.getElementById('realCalcPctDisplay');
+      if (pctDisp) pctDisp.textContent = '0.00%';
+
+      if (typeof showToast === 'function') {
+        showToast('✅ Operación registrada en Bitácora Real con éxito.', 'success', 3000);
+      }
     }
   } catch (err) {
     console.error('Error al guardar trade real:', err);
@@ -2854,7 +3333,7 @@ window.handleDeleteTrade = async function(id, mode = 'backtest') {
 };
 
 window.handleOpenEditModal = function(id, mode = 'backtest') {
-  const tradeList = mode === 'real' ? appState.real.trades : appState.backtest.trades;
+  const tradeList = mode === 'fondeo' ? (appState.fondeo.trades || []) : (mode === 'real' ? appState.real.trades : appState.backtest.trades);
   const trade = tradeList.find(t => t.id === id);
   if (!trade) return;
 
@@ -2876,20 +3355,63 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
   const commEl = document.getElementById('editTradeCommission');
   if (commEl) commEl.value = trade.commission ? `-${Math.abs(trade.commission).toFixed(2)}` : '-0.00';
   const stratEl = document.getElementById('editTradeStrategy');
-  if (stratEl) stratEl.value = trade.strategy || 'Adaptive Supertrend M5';
+  if (stratEl) stratEl.value = trade.strategy || 'Price Action';
   const emoEl = document.getElementById('editTradeEmotion');
   if (emoEl) emoEl.value = trade.emotion || '';
-  document.getElementById('editTradeChartUrl').value = trade.tv_chart_url || '';
+  document.getElementById('editTradeChartUrl').value = trade.tv_chart_url || trade.tv_url || '';
+
+  // Execution Prices
+  const entryEl = document.getElementById('editTradeEntry');
+  if (entryEl) entryEl.value = (trade.entry_price !== undefined && trade.entry_price !== null) ? trade.entry_price : '';
+  const exitEl = document.getElementById('editTradeExit');
+  if (exitEl) exitEl.value = (trade.exit_price !== undefined && trade.exit_price !== null) ? trade.exit_price : '';
+  const slEl = document.getElementById('editTradeSl');
+  if (slEl) slEl.value = (trade.sl_price !== undefined && trade.sl_price !== null) ? trade.sl_price : '';
+  const tpEl = document.getElementById('editTradeTp');
+  if (tpEl) tpEl.value = (trade.tp_price !== undefined && trade.tp_price !== null) ? trade.tp_price : '';
 
   // Setup live dynamic preview calculation on modal inputs
   const recalculateModalPnlPreview = () => {
     const curStatus = document.getElementById('editTradeStatus').value;
     const curRR = parseFloat(String(document.getElementById('editTradeRR').value).replace(',', '.')) || 1.0;
     const curRisk = parseFloat(String(document.getElementById('editTradeRiskPct').value).replace(',', '.')) || 5.0;
-    const curPts = parseFloat(String(document.getElementById('editTradeTvPoints').value).replace(',', '.')) || 250;
+    let curPts = parseFloat(String(document.getElementById('editTradeTvPoints').value).replace(',', '.')) || 250;
     const curComm = Math.abs(parseFloat(String(document.getElementById('editTradeCommission').value).replace(',', '.')) || 0.0);
     const balBefore = trade.balance_before !== undefined ? Number(trade.balance_before) : (Number(appState.config.initial_balance) || 110.0);
-    
+    const curDir = document.getElementById('editTradeDirection').value;
+    const curLot = parseFloat(String(document.getElementById('editTradeLot').value).replace(',', '.')) || 0.01;
+
+    const curEntry = parseFloat(String(document.getElementById('editTradeEntry')?.value || '').replace(',', '.'));
+    const curExit = parseFloat(String(document.getElementById('editTradeExit')?.value || '').replace(',', '.'));
+    const curSl = parseFloat(String(document.getElementById('editTradeSl')?.value || '').replace(',', '.'));
+
+    if (!isNaN(curEntry) && !isNaN(curExit)) {
+      const exitDiff = curDir === 'BUY' ? (curExit - curEntry) : (curEntry - curExit);
+      const pointsDiff = Math.round(exitDiff * 100);
+      curPts = Math.abs(pointsDiff);
+      if (document.getElementById('editTradeTvPoints')) {
+        document.getElementById('editTradeTvPoints').value = curPts;
+      }
+      const mult = 100.0;
+      const computedPnl = roundNum(curLot * mult * exitDiff - curComm, 2);
+      if (pnlEl) {
+        pnlEl.value = computedPnl >= 0 ? `+${computedPnl.toFixed(2)}` : `${computedPnl.toFixed(2)}`;
+      }
+      if (statusEl) {
+        if (computedPnl > 0.05) statusEl.value = 'win';
+        else if (computedPnl < -0.05) statusEl.value = 'loss';
+        else statusEl.value = 'be';
+      }
+      if (!isNaN(curSl)) {
+        const slDiff = Math.abs(curEntry - curSl);
+        if (slDiff > 0 && rrInputEl) {
+          const rrVal = roundNum(Math.abs(exitDiff) / slDiff, 2);
+          rrInputEl.value = rrVal.toFixed(2);
+        }
+      }
+      return;
+    }
+
     let ret = 0.0;
     if (curStatus === 'win') {
       ret = curRisk * curRR;
@@ -2914,11 +3436,21 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
   const rrInputEl = document.getElementById('editTradeRR');
   const riskInputEl = document.getElementById('editTradeRiskPct');
   const ptsInputEl = document.getElementById('editTradeTvPoints');
+  const entryInp = document.getElementById('editTradeEntry');
+  const exitInp = document.getElementById('editTradeExit');
+  const slInp = document.getElementById('editTradeSl');
+  const tpInp = document.getElementById('editTradeTp');
+  const dirInp = document.getElementById('editTradeDirection');
 
   if (statusEl) statusEl.onchange = recalculateModalPnlPreview;
   if (rrInputEl) rrInputEl.oninput = recalculateModalPnlPreview;
   if (riskInputEl) riskInputEl.oninput = recalculateModalPnlPreview;
   if (ptsInputEl) ptsInputEl.oninput = recalculateModalPnlPreview;
+  if (entryInp) entryInp.oninput = recalculateModalPnlPreview;
+  if (exitInp) exitInp.oninput = recalculateModalPnlPreview;
+  if (slInp) slInp.oninput = recalculateModalPnlPreview;
+  if (tpInp) tpInp.oninput = recalculateModalPnlPreview;
+  if (dirInp) dirInp.onchange = recalculateModalPnlPreview;
 
   document.getElementById('modalEditTrade').classList.remove('hidden');
   initIcons();
@@ -2936,9 +3468,19 @@ async function handleSaveEditedTrade() {
   const direction = document.getElementById('editTradeDirection').value;
   const lotEl = document.getElementById('editTradeLot');
   const manualLot = (lotEl && lotEl.value) ? roundNum(parseFloat(String(lotEl.value).replace(',', '.')), 2) : null;
-  const strategy = document.getElementById('editTradeStrategy')?.value || 'Adaptive Supertrend M5';
+  const strategy = document.getElementById('editTradeStrategy')?.value || 'Price Action';
   const emotion = document.getElementById('editTradeEmotion')?.value || '';
   const tvChartUrl = document.getElementById('editTradeChartUrl')?.value || '';
+
+  const entryVal = document.getElementById('editTradeEntry')?.value;
+  const exitVal = document.getElementById('editTradeExit')?.value;
+  const slVal = document.getElementById('editTradeSl')?.value;
+  const tpVal = document.getElementById('editTradeTp')?.value;
+
+  const parsedEntry = (entryVal !== undefined && entryVal !== null && String(entryVal).trim() !== '') ? parseFloat(String(entryVal).replace(',', '.')) : null;
+  const parsedExit = (exitVal !== undefined && exitVal !== null && String(exitVal).trim() !== '') ? parseFloat(String(exitVal).replace(',', '.')) : null;
+  const parsedSl = (slVal !== undefined && slVal !== null && String(slVal).trim() !== '') ? parseFloat(String(slVal).replace(',', '.')) : null;
+  const parsedTp = (tpVal !== undefined && tpVal !== null && String(tpVal).trim() !== '') ? parseFloat(String(tpVal).replace(',', '.')) : null;
 
   const riskEl = document.getElementById('editTradeRiskPct');
   let riskVal = null;
@@ -2979,7 +3521,12 @@ async function handleSaveEditedTrade() {
     tv_chart_url: tvChartUrl
   };
 
-  if (mode === 'real') {
+  if (parsedEntry !== null && !isNaN(parsedEntry)) payload.entry_price = parsedEntry;
+  if (parsedExit !== null && !isNaN(parsedExit)) payload.exit_price = parsedExit;
+  if (parsedSl !== null && !isNaN(parsedSl)) payload.sl_price = parsedSl;
+  if (parsedTp !== null && !isNaN(parsedTp)) payload.tp_price = parsedTp;
+
+  if (mode === 'real' || mode === 'fondeo') {
     if (pnlVal !== null) {
       payload.pnl = pnlVal;
     }
@@ -2987,7 +3534,6 @@ async function handleSaveEditedTrade() {
       payload.commission = commVal;
     }
   }
-  // In backtest mode, do not freeze PnL so backend computes dynamic compounding
 
   if (riskVal !== null) {
     payload.risk_pct = riskVal;
@@ -3009,7 +3555,12 @@ async function handleSaveEditedTrade() {
 
     if (res.ok) {
       const data = await res.json();
-      if (mode === 'real') {
+      if (mode === 'fondeo') {
+        appState.fondeo.trades = data.trades || [];
+        appState.fondeo.summary = data.summary || {};
+        renderFondeoDashboard();
+        renderFondeoTradesTable();
+      } else if (mode === 'real') {
         appState.real.summary = data.summary;
         appState.real.equityCurve = data.equity_curve;
         appState.real.trades = data.trades;
@@ -3028,7 +3579,7 @@ async function handleSaveEditedTrade() {
       }
       updateCalculatorBalances();
       document.getElementById('modalEditTrade').classList.add('hidden');
-      showToast('Operación actualizada y gráficos recalculados.', 'success', 2500);
+      showToast('Operación actualizada y métricas recalculadas.', 'success', 2500);
     }
   } catch (err) {
     console.error('Error editando trade:', err);
