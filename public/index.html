@@ -142,7 +142,7 @@
             <div class="flex items-center gap-2 flex-wrap">
               <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wide">Orion Funded — Orion Nova 50K</h2>
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                PAY AFTER YOU PASS ()
+                PAY AFTER YOU PASS ($7)
               </span>
               <span id="badgeOrionEvalStatus" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                 EN EVALUACIÓN ACTIVA
@@ -158,19 +158,19 @@
         <div class="flex items-center gap-2 flex-wrap text-xs font-mono">
           <div class="bg-gray-950/80 border border-gray-800 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <span class="text-gray-400">Capital:</span>
-            <span class="font-bold text-white">,000</span>
+            <span class="font-bold text-white">$50,000</span>
           </div>
           <div class="bg-emerald-950/60 border border-emerald-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <span class="text-emerald-300">Meta 4%:</span>
-            <span class="font-bold text-emerald-400">+,000 (,000)</span>
+            <span class="font-bold text-emerald-400">+$2,000 ($52,000)</span>
           </div>
           <div class="bg-amber-950/60 border border-amber-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <span class="text-amber-300">Pérdida Diaria 4%:</span>
-            <span class="font-bold text-amber-400">-,000</span>
+            <span class="font-bold text-amber-400">-$2,000</span>
           </div>
           <div class="bg-red-950/60 border border-red-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <span class="text-red-300">DD Máx 8%:</span>
-            <span class="font-bold text-red-400">-,000 (Trailing-Lock)</span>
+            <span class="font-bold text-red-400">-$4,000 (Trailing-Lock)</span>
           </div>
           <div class="bg-blue-950/60 border border-blue-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <span class="text-blue-300">Apal.:</span>
@@ -181,7 +181,7 @@
 
       <!-- KPI CARDS GRID (6 TARJETAS ORION NOVA) -->
       <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Card 1: Balance & Progreso a Meta ,000 -->
+        <!-- Card 1: Balance & Progreso a Meta $52,000 -->
         <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -193,10 +193,10 @@
             <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold" id="fondeoTargetPctBadge">0.0% Meta</span>
           </div>
           <div class="my-3">
-            <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="fondeoCurrentBalance">,000.00</div>
+            <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="fondeoCurrentBalance">$50,000.00</div>
             <div class="text-xs text-gray-400 mt-1 flex items-center justify-between">
-              <span>Meta: <strong class="text-emerald-400 font-mono">,000.00</strong></span>
-              <span>Falta: <strong class="text-amber-400 font-mono" id="fondeoRemainingTarget">+,000.00</strong></span>
+              <span>Meta: <strong class="text-emerald-400 font-mono">$52,000.00</strong></span>
+              <span>Falta: <strong class="text-amber-400 font-mono" id="fondeoRemainingTarget">$2,000.00</strong></span>
             </div>
           </div>
           <!-- Progress Bar -->
@@ -205,22 +205,22 @@
           </div>
         </div>
 
-        <!-- Card 2: Límite de Pérdida Diaria (4% = ,000) -->
+        <!-- Card 2: Límite de Pérdida Diaria (4% = $2,000) -->
         <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20">
                 <i data-lucide="shield-alert" class="w-4 h-4"></i>
               </div>
-              <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Pérdida Diaria (Máx ,000)</span>
+              <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Pérdida Diaria (Máx $2,000)</span>
             </div>
             <span id="fondeoDailyLossStatusBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold">100% SEGURO</span>
           </div>
           <div class="my-3">
-            <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="fondeoDailyHeadroom">,000.00</div>
+            <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="fondeoDailyHeadroom">$2,000.00</div>
             <div class="text-xs text-gray-400 mt-1 flex items-center justify-between">
               <span>Colchón disponible hoy:</span>
-              <span>Pérdida hoy: <strong class="text-gray-300 font-mono" id="fondeoTodayLoss">zsh.00</strong></span>
+              <span>Pérdida hoy: <strong class="text-gray-300 font-mono" id="fondeoTodayLoss">$0.00</strong></span>
             </div>
           </div>
           <!-- Health Bar -->
@@ -241,16 +241,16 @@
             <span id="fondeoTrailingLockBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700 font-bold">Trailing Activo</span>
           </div>
           <div class="my-3">
-            <div class="text-2xl sm:text-3xl font-black text-red-400 font-mono" id="fondeoTrailingFloor">,000.00</div>
+            <div class="text-2xl sm:text-3xl font-black text-red-400 font-mono" id="fondeoTrailingFloor">$46,000.00</div>
             <div class="text-xs text-gray-400 mt-1 flex items-center justify-between">
               <span>Piso de liquidación</span>
-              <span>Colchón al piso: <strong class="text-white font-mono" id="fondeoMaxDdHeadroom">,000.00</strong></span>
+              <span>Colchón al piso: <strong class="text-white font-mono" id="fondeoMaxDdHeadroom">$4,000.00</strong></span>
             </div>
           </div>
-          <p class="text-[11px] text-gray-400">El piso sube con el pico de balance y se <strong>bloquea fijo en ,000</strong> al pasar a profit.</p>
+          <p class="text-[11px] text-gray-400">El piso sube con el pico de balance y se <strong>bloquea fijo en $50,000</strong> al pasar a profit.</p>
         </div>
 
-        <!-- Card 4: Margen y Apalancamiento 1:100 -->
+        <!-- Card 4: Margen y Apalancamiento 1:30 (Metales / Oro) -->
         <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -259,16 +259,16 @@
               </div>
               <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Margen Usado & Libre</span>
             </div>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-950 text-blue-400 border border-blue-800 font-bold">Apal. 1:100</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-950 text-blue-400 border border-blue-800 font-bold">Apal. 1:30 XAU/USD</span>
           </div>
           <div class="my-3">
-            <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="fondeoFreeMargin">,000.00</div>
+            <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="fondeoFreeMargin">$50,000.00</div>
             <div class="text-xs text-gray-400 mt-1 flex items-center justify-between">
               <span>Margen Libre disponible</span>
-              <span>Último margen usado: <strong class="text-blue-400 font-mono" id="fondeoLastMargin">zsh.00</strong></span>
+              <span>Último margen usado: <strong class="text-blue-400 font-mono" id="fondeoLastMargin">$0.00</strong></span>
             </div>
           </div>
-          <p class="text-[11px] text-gray-400">1 lote de EUR/USD requiere solo <strong>~,085</strong> de margen (2.1% de tu capital).</p>
+          <p class="text-[11px] text-gray-400">1 lote de Oro requiere <strong>~$9,066</strong> de margen (1:30). 0.83 lotes retienen <strong>~$7,525</strong> (15.1%).</p>
         </div>
 
         <!-- Card 5: Regla del 20% Mejor Día (Consistencia) -->
@@ -286,7 +286,7 @@
             <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="fondeoBestDayPct">0.0%</div>
             <div class="text-xs text-gray-400 mt-1 flex items-center justify-between">
               <span>% del beneficio total</span>
-              <span>Mejor día: <strong class="text-purple-400 font-mono" id="fondeoBestDayProfit">zsh.00</strong></span>
+              <span>Mejor día: <strong class="text-purple-400 font-mono" id="fondeoBestDayProfit">$0.00</strong></span>
             </div>
           </div>
           <p class="text-[11px] text-gray-400">En la cuenta financiada ningún día puede superar el 20% de la ganancia total para retirar.</p>
@@ -318,7 +318,7 @@
             </div>
             <div class="bg-gray-950/60 p-2 rounded-lg border border-gray-800/80">
               <span class="text-gray-400 text-[10px] block uppercase">PnL Neto</span>
-              <span class="text-xs font-bold font-mono" id="fondeoNetPnL">zsh.00</span>
+              <span class="text-xs font-bold font-mono" id="fondeoNetPnL">+$0.00</span>
             </div>
           </div>
         </div>
@@ -395,37 +395,37 @@
           <div class="bg-gray-950/90 border border-gray-800 rounded-xl p-4 space-y-3">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
               <div class="bg-gray-900/80 p-2.5 rounded-lg border border-gray-800">
-                <span class="text-[10px] text-gray-400 uppercase font-bold block">Lote Sugerido</span>
-                <span class="text-xl sm:text-2xl font-black text-amber-400 font-mono" id="fondeoCalcLot">2.50</span>
+                <span class="text-[10px] text-gray-400 uppercase font-bold block">Lote Sugerido en Oro</span>
+                <span class="text-xl sm:text-2xl font-black text-amber-400 font-mono" id="fondeoCalcLot">0.83</span>
               </div>
               <div class="bg-gray-900/80 p-2.5 rounded-lg border border-gray-800">
-                <span class="text-[10px] text-gray-400 uppercase font-bold block">Riesgo en USD</span>
-                <span class="text-lg sm:text-xl font-black text-red-400 font-mono" id="fondeoCalcDollarRisk">.00</span>
+                <span class="text-[10px] text-gray-400 uppercase font-bold block">Riesgo Monetario</span>
+                <span class="text-lg sm:text-xl font-black text-red-400 font-mono" id="fondeoCalcDollarRisk">$250.00</span>
               </div>
               <div class="bg-gray-900/80 p-2.5 rounded-lg border border-gray-800">
-                <span class="text-[10px] text-gray-400 uppercase font-bold block">Margen Requerido</span>
-                <span class="text-lg sm:text-xl font-black text-blue-400 font-mono" id="fondeoCalcMargin">,712.50</span>
+                <span class="text-[10px] text-gray-400 uppercase font-bold block">Margen Retenido (1:30)</span>
+                <span class="text-lg sm:text-xl font-black text-blue-400 font-mono" id="fondeoCalcMargin">$7,525.33</span>
               </div>
               <div class="bg-gray-900/80 p-2.5 rounded-lg border border-gray-800">
                 <span class="text-[10px] text-gray-400 uppercase font-bold block">Ganancia en TP (1:2)</span>
-                <span class="text-lg sm:text-xl font-black text-emerald-400 font-mono" id="fondeoCalcReward">+.00</span>
+                <span class="text-lg sm:text-xl font-black text-emerald-400 font-mono" id="fondeoCalcReward">+$500.00</span>
               </div>
             </div>
 
             <div class="flex items-center justify-between text-xs text-gray-400 pt-1">
-              <span>Valor por Pip: <strong class="text-white font-mono" id="fondeoCalcPipVal">.00/pip</strong></span>
-              <span>Consumo de Margen: <strong class="text-blue-300 font-mono" id="fondeoCalcMarginPct">5.4%</strong></span>
+              <span>Valor por Pip: <strong class="text-white font-mono" id="fondeoCalcPipVal">$8.30/pip</strong></span>
+              <span>Consumo de Margen: <strong class="text-blue-300 font-mono" id="fondeoCalcMarginPct">15.1% (1:30 Metales)</strong></span>
             </div>
 
             <!-- Safety Banner Orion -->
             <div id="fondeoSafetyBanner" class="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-800/60 text-xs text-emerald-300 flex items-center gap-2">
               <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0"></i>
-              <span id="fondeoSafetyBannerText">Riesgo dentro del límite: soportas <strong>8 pérdidas seguidas</strong> hoy sin violar el 4% diario.</span>
+              <span id="fondeoSafetyBannerText">🛡️ <b>Operación Segura en Oro:</b> Arriesgas 0.50% ($250.00) con SL de $3.00. Soportas <strong>8 pérdidas seguidas</strong> hoy sin violar el 4% diario ($2,000). Margen retenido: $7,525.33 (15.1%).</span>
             </div>
 
             <button id="btnApplyCalcToForm" type="button" class="w-full py-2.5 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-black font-black text-xs rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-amber-600/20 cursor-pointer">
               <i data-lucide="arrow-right-circle" class="w-4 h-4"></i>
-              <span>Cargar Lote y Datos al Registro Manual</span>
+              <span>Cargar Lote (0.83) y Parámetros al Formulario de Registro</span>
             </button>
           </div>
         </div>
@@ -536,7 +536,7 @@
             </div>
           </div>
           <div class="flex items-center gap-3 text-xs font-mono">
-            <div class="flex items-center gap-1.5"><span class="w-3 h-1 bg-emerald-400 rounded"></span><span class="text-gray-400">Meta ,000</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-1 bg-emerald-400 rounded"></span><span class="text-gray-400">Meta $52,000</span></div>
             <div class="flex items-center gap-1.5"><span class="w-3 h-1 bg-blue-400 rounded"></span><span class="text-gray-400">Equidad</span></div>
             <div class="flex items-center gap-1.5"><span class="w-3 h-1 bg-red-400 rounded"></span><span class="text-gray-400">Piso DD Máx</span></div>
           </div>
