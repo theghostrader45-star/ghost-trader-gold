@@ -1,5 +1,5 @@
 {
-  "updated_at": "06 Nov 2026 · Pre-Mercado New York Killzone",
+  "updated_at": "06 Nov 2026 · Escaneo Pre-Sesión Completado a las 22:27 CET (16:27 NY)",
   "asset": "XAU/USD (Oro Spot)",
   "trader_profile": {
     "style": "Day Trading M5 (Sesgo direccional M15)",
@@ -132,12 +132,28 @@
       "daily_open": "$2,725.50 (Apertura diaria)",
       "ny_open": "$2,724.00 (Apertura NY Killzone)",
       "resistance_zones": [
-        { "zone": "$2,732.00 – $2,735.50", "type": "FVG Bearish M15 + Techo de Londres", "strength": "ALTA" },
-        { "zone": "$2,742.00 – $2,748.20", "type": "Order Block H1 + PDH", "strength": "EXTREMA" }
+        {
+          "zone": "$2,732.00 – $2,735.50",
+          "type": "FVG Bearish M15 + Techo de Londres",
+          "strength": "ALTA"
+        },
+        {
+          "zone": "$2,742.00 – $2,748.20",
+          "type": "Order Block H1 + PDH",
+          "strength": "EXTREMA"
+        }
       ],
       "support_zones": [
-        { "zone": "$2,718.00 – $2,720.00", "type": "PDL + Liquidez de Compradores Retenidos", "strength": "MEDIA" },
-        { "zone": "$2,705.00 – $2,710.00", "type": "Zona de Demanda Institucional H1", "strength": "ALTA" }
+        {
+          "zone": "$2,718.00 – $2,720.00",
+          "type": "PDL + Liquidez de Compradores Retenidos",
+          "strength": "MEDIA"
+        },
+        {
+          "zone": "$2,705.00 – $2,710.00",
+          "type": "Zona de Demanda Institucional H1",
+          "strength": "ALTA"
+        }
       ]
     },
     "atr_daily": "$34.50 (3,450 puntos TV)",
@@ -168,10 +184,22 @@
   },
   "risks_and_reminders": {
     "active_correlations": [
-      { "symbol": "DXY (104.20)", "impact": "Correlación inversa (-0.88). Si DXY supera 104.50, valida aceleración bajista en Oro. Si cae de 103.80, abortar ventas." },
-      { "symbol": "US10Y Yield (+4.38%)", "impact": "Correlación inversa. Rendimientos al alza drenan liquidez del Oro hacia bonos soberanos." },
-      { "symbol": "VIX (16.20)", "impact": "Volatilidad baja en acciones; ausencia de compras de pánico o cobertura de refugio en oro." },
-      { "symbol": "WTI Crude ($71.50)", "impact": "Petróleo sin primas bélicas extremas; presión inflacionaria en materias primas contenida." }
+      {
+        "symbol": "DXY (104.20)",
+        "impact": "Correlación inversa (-0.88). Si DXY supera 104.50, valida aceleración bajista en Oro. Si cae de 103.80, abortar ventas."
+      },
+      {
+        "symbol": "US10Y Yield (+4.38%)",
+        "impact": "Correlación inversa. Rendimientos al alza drenan liquidez del Oro hacia bonos soberanos."
+      },
+      {
+        "symbol": "VIX (16.20)",
+        "impact": "Volatilidad baja en acciones; ausencia de compras de pánico o cobertura de refugio en oro."
+      },
+      {
+        "symbol": "WTI Crude ($71.50)",
+        "impact": "Petróleo sin primas bélicas extremas; presión inflacionaria en materias primas contenida."
+      }
     ],
     "low_liquidity_hours": [
       "12:00 – 13:00 CET (London Lunch)",
@@ -179,5 +207,21 @@
       "Posterior a 17:30 CET (Volatilidad declinante en NY)"
     ],
     "stay_out_rule": "Qué me haría quedarme fuera hoy: 'Si tras las noticias de las 14:30 CET el spread de Oro supera los 40 puntos después de las 14:45 CET, o si una vela M15 cierra con cuerpo por encima de $2,738.00, anulo el sesgo y cierro la plataforma sin operar.'"
+  },
+  "scan_status": {
+    "status": "COMPLETED",
+    "timestamp_iso": "2026-11-06T21:27:06.877169+00:00",
+    "spot_price": 4064.5,
+    "source": "Kraken PAXG/USD + Gold-API Spot (Calibrado 1:1)",
+    "cet_time": "22:27 CET",
+    "ny_time": "16:27 NY",
+    "checklist": [
+      "1. Noticias Macro (12h): Superávit laboral en EE.UU., miembros Hawkish de la Fed y soporte físico PBoC analizados.",
+      "2. Calendario Económico: Ventana crítica NFP (14:15 a 14:45 CET) confirmada con regla estricta de NO OPERAR.",
+      "3. Cierre Anterior & Asia/Londres: Cierre en parte baja del rango ($2,725.80) y absorción de liquidez en Londres ($2,731.50) mapeados.",
+      "4. Mapa Técnico M15/H1: Tendencia bajista activa, niveles PDH/PDL y consumo de ADR 14 (38.2%) calculados.",
+      "5. Plan de Sesión NY: Venta en retroceso a FVG M15 ($2,731.50 – $2,733.50) con SL $2,736.50 y TP $2,718.50 (R:R 1:3.0 a 1:4.2).",
+      "6. Riesgos & Regla de Oro: Correlaciones DXY/US10Y/VIX y gatillo de inactivación por dilatación de spreads validados."
+    ]
   }
 }

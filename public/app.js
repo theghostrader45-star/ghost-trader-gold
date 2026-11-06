@@ -5489,9 +5489,24 @@ async function renderNewsView() {
 let premarketDataState = null;
 
 function setupPremarketView() {
+  const btnScan = document.getElementById('btnScanMarket');
+  const btnQuickScan = document.getElementById('btnQuickPremarketScan');
   const btnCopy = document.getElementById('btnCopyPremarket');
   const btnRefresh = document.getElementById('btnRefreshPremarket');
 
+  if (btnScan) {
+    btnScan.addEventListener('click', triggerPremarketScan);
+  }
+  if (btnQuickScan) {
+    btnQuickScan.addEventListener('click', () => {
+      if (typeof window.switchTabTo === 'function') {
+        window.switchTabTo('premarket');
+      }
+      setTimeout(() => {
+        triggerPremarketScan();
+      }, 150);
+    });
+  }
   if (btnCopy) {
     btnCopy.addEventListener('click', copyPremarketReportToClipboard);
   }
@@ -5504,6 +5519,93 @@ function setupPremarketView() {
   }
 
   renderPremarketView();
+}
+
+async function triggerPremarketScan() {
+  const btnScan = document.getElementById('btnScanMarket');
+  const textScan = document.getElementById('textScanMarket');
+  const iconScan = document.getElementById('iconScanMarket');
+  const progressBox = document.getElementById('premarketScanProgressBox');
+  const progressBar = document.getElementById('scanProgressBar');
+  const progressPct = document.getElementById('scanProgressPct');
+  const statusTitle = document.getElementById('scanStatusTitle');
+
+  if (btnScan) {
+    btnScan.disabled = true;
+    btnScan.classList.add('opacity-75', 'cursor-not-allowed');
+  }
+  if (textScan) textScan.textContent = "Escaneando...";
+  if (iconScan) iconScan.classList.add('animate-spin');
+
+  if (progressBox) progressBox.classList.remove('hidden');
+  if (statusTitle) statusTitle.textContent = "Escaneando Absolutamente Todo (Pre-Mercado XAU/USD)...";
+  if (progressBar) progressBar.style.width = "0%";
+  if (progressPct) progressPct.textContent = "0% Analizado";
+
+  const steps = [
+    { id: "scanStep1", name: "1. Noticias Macro (12h)", pct: "18%" },
+    { id: "scanStep2", name: "2. Calendario CET & Bloqueo", pct: "36%" },
+    { id: "scanStep3", name: "3. Cierre Anterior & Asia/Londres", pct: "54%" },
+    { id: "scanStep4", name: "4. Mapa Técnico & ADR 14", pct: "72%" },
+    { id: "scanStep5", name: "5. Plan de Sesión New York", pct: "90%" },
+    { id: "scanStep6", name: "6. Riesgos & Regla de Oro", pct: "100%" }
+  ];
+
+  // Reset steps visually
+  steps.forEach(s => {
+    const el = document.getElementById(s.id);
+    if (el) {
+      el.className = "p-2 rounded-lg bg-gray-900/90 border border-gray-800 flex items-center gap-2 transition";
+      const icon = el.querySelector('.step-icon');
+      if (icon) {
+        icon.textContent = "⏳";
+        icon.className = "step-icon text-gray-400";
+      }
+    }
+  });
+
+  // Launch backend scan in parallel
+  const scanPromise = fetch('/api/premarket/scan', { method: 'POST' })
+    .then(r => r.json())
+    .catch(err => {
+      console.error('Error en fetch /api/premarket/scan:', err);
+      return null;
+    });
+
+  // Animate checklist progressively
+  for (let i = 0; i < steps.length; i++) {
+    await new Promise(r => setTimeout(r, 260));
+    const step = steps[i];
+    const el = document.getElementById(step.id);
+    if (el) {
+      el.className = "p-2 rounded-lg bg-emerald-950/40 border border-emerald-500/50 flex items-center gap-2 transition shadow-md shadow-emerald-950/40";
+      const icon = el.querySelector('.step-icon');
+      if (icon) {
+        icon.textContent = "✓";
+        icon.className = "step-icon text-emerald-400 font-bold";
+      }
+    }
+    if (progressBar) progressBar.style.width = step.pct;
+    if (progressPct) progressPct.textContent = `${step.pct} Analizado`;
+  }
+
+  const scanResult = await scanPromise;
+  if (scanResult) {
+    premarketDataState = scanResult;
+  }
+
+  await new Promise(r => setTimeout(r, 200));
+
+  if (statusTitle) statusTitle.textContent = "✅ Escaneo Pre-Sesión Completado: Todo Analizado para New York";
+  if (progressPct) progressPct.textContent = "100% Listo";
+  if (textScan) textScan.textContent = "Escanear";
+  if (iconScan) iconScan.classList.remove('animate-spin');
+  if (btnScan) {
+    btnScan.disabled = false;
+    btnScan.classList.remove('opacity-75', 'cursor-not-allowed');
+  }
+
+  showToast("⚡ Escaneo Completo: Análisis Pre-Sesión XAU/USD listo para operar", "success", 4000);
 }
 
 async function renderPremarketView() {

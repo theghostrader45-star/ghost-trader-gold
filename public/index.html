@@ -187,6 +187,10 @@
             <span class="text-amber-300">Apalancamiento:</span>
             <span class="font-bold text-amber-400">1:30 XAU/USD (Oro)</span>
           </div>
+          <button id="btnQuickPremarketScan" type="button" class="bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-600 hover:from-emerald-400 hover:to-sky-500 text-black font-black px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs shadow-lg shadow-emerald-500/20 cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]">
+            <i data-lucide="radar" class="w-3.5 h-3.5 text-black"></i>
+            <span>Escanear Pre-Mercado</span>
+          </button>
         </div>
       </section>
 
@@ -701,6 +705,11 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
+          <!-- BOTÓN HERO ESCANEAR -->
+          <button id="btnScanMarket" type="button" class="px-4 py-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-600 hover:from-emerald-400 hover:to-sky-500 text-black font-black rounded-xl text-xs sm:text-sm transition flex items-center gap-2 shadow-xl shadow-emerald-500/25 cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]">
+            <i data-lucide="radar" id="iconScanMarket" class="w-4 h-4 text-black"></i>
+            <span id="textScanMarket">Escanear</span>
+          </button>
           <button id="btnCopyPremarket" type="button" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-sky-600/20 cursor-pointer">
             <i data-lucide="copy" class="w-4 h-4"></i>
             <span>Copiar Informe Completo</span>
@@ -709,6 +718,55 @@
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
             <span>Actualizar</span>
           </button>
+        </div>
+      </section>
+
+      <!-- PANEL DE PROGRESO DE ESCANEO PRE-SESIÓN (INTERACTIVO & ANIMADO) -->
+      <section id="premarketScanProgressBox" class="hidden bg-gradient-to-r from-emerald-950/60 via-gray-900 to-sky-950/60 border-2 border-emerald-500/60 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-3 transition-all duration-300">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center gap-2.5">
+            <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
+            <span class="text-xs sm:text-sm font-black text-emerald-300 uppercase tracking-wide flex items-center gap-2">
+              <i data-lucide="radar" class="w-4 h-4 text-emerald-400 animate-spin" style="animation-duration: 3s;"></i>
+              <span id="scanStatusTitle">Escaneando Absolutamente Todo (Pre-Mercado XAU/USD)...</span>
+            </span>
+          </div>
+          <span id="scanProgressPct" class="text-xs font-mono font-bold text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-800">
+            0% Analizado
+          </span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-gray-950 rounded-full h-2.5 border border-emerald-500/30 overflow-hidden">
+          <div id="scanProgressBar" class="h-2.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-sky-400 transition-all duration-300 rounded-full" style="width: 0%"></div>
+        </div>
+
+        <!-- Checklist 6 Steps -->
+        <div id="scanStepsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs font-mono pt-1 text-gray-300">
+          <div id="scanStep1" class="p-2 rounded-lg bg-gray-900/90 border border-gray-800 flex items-center gap-2 transition">
+            <span class="step-icon text-gray-400">⏳</span>
+            <span>1. Noticias Macro (12h)</span>
+          </div>
+          <div id="scanStep2" class="p-2 rounded-lg bg-gray-900/90 border border-gray-800 flex items-center gap-2 transition">
+            <span class="step-icon text-gray-400">⏳</span>
+            <span>2. Calendario CET & Bloqueo</span>
+          </div>
+          <div id="scanStep3" class="p-2 rounded-lg bg-gray-900/90 border border-gray-800 flex items-center gap-2 transition">
+            <span class="step-icon text-gray-400">⏳</span>
+            <span>3. Cierre Anterior & Asia/Londres</span>
+          </div>
+          <div id="scanStep4" class="p-2 rounded-lg bg-gray-900/90 border border-gray-800 flex items-center gap-2 transition">
+            <span class="step-icon text-gray-400">⏳</span>
+            <span>4. Mapa Técnico & ADR 14</span>
+          </div>
+          <div id="scanStep5" class="p-2 rounded-lg bg-gray-900/90 border border-gray-800 flex items-center gap-2 transition">
+            <span class="step-icon text-gray-400">⏳</span>
+            <span>5. Plan de Sesión New York</span>
+          </div>
+          <div id="scanStep6" class="p-2 rounded-lg bg-gray-900/90 border border-gray-800 flex items-center gap-2 transition">
+            <span class="step-icon text-gray-400">⏳</span>
+            <span>6. Riesgos & Regla de Oro</span>
+          </div>
         </div>
       </section>
 
