@@ -167,18 +167,20 @@ function formatMoney(val) {
 }
 
 // ----------------------------------------------------
-// TAB NAVIGATION: 1. Operativa & Bitácora 50K | 2. Pre-Mercado XAU/USD | 3. Noticias de Alto Impacto | 4. Reglamento Oficial Orion
+// TAB NAVIGATION: 1. Operativa & Bitácora 50K | 2. Pre-Mercado XAU/USD | 3. Noticias de Alto Impacto | 4. Reglamento Oficial Orion | 5. Manual de Uso
 // ----------------------------------------------------
 function setupTabNavigation() {
   const btnFondeo = document.getElementById('tabBtnFondeo');
   const btnPremarket = document.getElementById('tabBtnPremarket');
   const btnNews = document.getElementById('tabBtnNews');
   const btnRules = document.getElementById('tabBtnRules');
+  const btnManual = document.getElementById('tabBtnManual');
 
   const viewFondeo = document.getElementById('viewFondeo');
   const viewPremarket = document.getElementById('viewPremarket');
   const viewNews = document.getElementById('viewNews');
   const viewRules = document.getElementById('viewRules');
+  const viewManual = document.getElementById('viewManual');
 
   function switchTab(tab) {
     appState.activeTab = tab;
@@ -186,10 +188,10 @@ function setupTabNavigation() {
       localStorage.setItem('activeTab_orion_v3', tab);
     } catch (e) {}
 
-    const activeClasses = ['bg-amber-500', 'bg-sky-600', 'bg-rose-600', 'bg-emerald-600', 'text-black', 'text-white', 'shadow-lg', 'shadow-amber-500/30', 'shadow-sky-600/30', 'shadow-rose-600/30', 'shadow-emerald-600/30', 'font-black', 'font-bold'];
+    const activeClasses = ['bg-amber-500', 'bg-sky-600', 'bg-rose-600', 'bg-emerald-600', 'bg-purple-600', 'text-black', 'text-white', 'shadow-lg', 'shadow-amber-500/30', 'shadow-sky-600/30', 'shadow-rose-600/30', 'shadow-emerald-600/30', 'shadow-purple-600/30', 'font-black', 'font-bold'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnFondeo, btnPremarket, btnNews, btnRules].forEach(btn => {
+    [btnFondeo, btnPremarket, btnNews, btnRules, btnManual].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
@@ -200,6 +202,7 @@ function setupTabNavigation() {
     if (viewPremarket) viewPremarket.classList.add('hidden');
     if (viewNews) viewNews.classList.add('hidden');
     if (viewRules) viewRules.classList.add('hidden');
+    if (viewManual) viewManual.classList.add('hidden');
 
     if (tab === 'fondeo') {
       if (btnFondeo) {
@@ -231,6 +234,12 @@ function setupTabNavigation() {
         btnRules.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-bold');
       }
       if (viewRules) viewRules.classList.remove('hidden');
+    } else if (tab === 'manual') {
+      if (btnManual) {
+        btnManual.classList.remove(...inactiveClasses);
+        btnManual.classList.add('bg-purple-600', 'text-white', 'shadow-lg', 'shadow-purple-600/30', 'font-bold');
+      }
+      if (viewManual) viewManual.classList.remove('hidden');
     }
 
     initIcons();
@@ -242,9 +251,10 @@ function setupTabNavigation() {
   if (btnPremarket) btnPremarket.addEventListener('click', () => switchTab('premarket'));
   if (btnNews) btnNews.addEventListener('click', () => switchTab('news'));
   if (btnRules) btnRules.addEventListener('click', () => switchTab('rules'));
+  if (btnManual) btnManual.addEventListener('click', () => switchTab('manual'));
 
   let savedTab = localStorage.getItem('activeTab_orion_v3');
-  if (!savedTab || !['fondeo', 'premarket', 'news', 'rules'].includes(savedTab)) {
+  if (!savedTab || !['fondeo', 'premarket', 'news', 'rules', 'manual'].includes(savedTab)) {
     savedTab = 'fondeo';
   }
   switchTab(savedTab);
