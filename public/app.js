@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupFondeoTradeForm();
   setupFondeoActionButtons();
   setupNewsView();
+  setupPremarketView();
   setCurrentDateTime();
   loadGoldBiasData();
 });
@@ -166,14 +167,16 @@ function formatMoney(val) {
 }
 
 // ----------------------------------------------------
-// TAB NAVIGATION: 1. Operativa & Bitácora 50K | 2. Noticias de Alto Impacto | 3. Reglamento Oficial Orion
+// TAB NAVIGATION: 1. Operativa & Bitácora 50K | 2. Pre-Mercado XAU/USD | 3. Noticias de Alto Impacto | 4. Reglamento Oficial Orion
 // ----------------------------------------------------
 function setupTabNavigation() {
   const btnFondeo = document.getElementById('tabBtnFondeo');
+  const btnPremarket = document.getElementById('tabBtnPremarket');
   const btnNews = document.getElementById('tabBtnNews');
   const btnRules = document.getElementById('tabBtnRules');
 
   const viewFondeo = document.getElementById('viewFondeo');
+  const viewPremarket = document.getElementById('viewPremarket');
   const viewNews = document.getElementById('viewNews');
   const viewRules = document.getElementById('viewRules');
 
@@ -183,10 +186,10 @@ function setupTabNavigation() {
       localStorage.setItem('activeTab_orion_v3', tab);
     } catch (e) {}
 
-    const activeClasses = ['bg-amber-500', 'bg-rose-600', 'bg-emerald-600', 'text-black', 'text-white', 'shadow-lg', 'shadow-amber-500/30', 'shadow-rose-600/30', 'shadow-emerald-600/30', 'font-black', 'font-bold'];
+    const activeClasses = ['bg-amber-500', 'bg-sky-600', 'bg-rose-600', 'bg-emerald-600', 'text-black', 'text-white', 'shadow-lg', 'shadow-amber-500/30', 'shadow-sky-600/30', 'shadow-rose-600/30', 'shadow-emerald-600/30', 'font-black', 'font-bold'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnFondeo, btnNews, btnRules].forEach(btn => {
+    [btnFondeo, btnPremarket, btnNews, btnRules].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
@@ -194,6 +197,7 @@ function setupTabNavigation() {
     });
 
     if (viewFondeo) viewFondeo.classList.add('hidden');
+    if (viewPremarket) viewPremarket.classList.add('hidden');
     if (viewNews) viewNews.classList.add('hidden');
     if (viewRules) viewRules.classList.add('hidden');
 
@@ -207,6 +211,13 @@ function setupTabNavigation() {
       setTimeout(() => {
         if (fondeoEquityChart) fondeoEquityChart.resize();
       }, 50);
+    } else if (tab === 'premarket') {
+      if (btnPremarket) {
+        btnPremarket.classList.remove(...inactiveClasses);
+        btnPremarket.classList.add('bg-sky-600', 'text-white', 'shadow-lg', 'shadow-sky-600/30', 'font-bold');
+      }
+      if (viewPremarket) viewPremarket.classList.remove('hidden');
+      renderPremarketView();
     } else if (tab === 'news') {
       if (btnNews) {
         btnNews.classList.remove(...inactiveClasses);
@@ -228,11 +239,12 @@ function setupTabNavigation() {
   window.switchTabTo = switchTab;
 
   if (btnFondeo) btnFondeo.addEventListener('click', () => switchTab('fondeo'));
+  if (btnPremarket) btnPremarket.addEventListener('click', () => switchTab('premarket'));
   if (btnNews) btnNews.addEventListener('click', () => switchTab('news'));
   if (btnRules) btnRules.addEventListener('click', () => switchTab('rules'));
 
   let savedTab = localStorage.getItem('activeTab_orion_v3');
-  if (!savedTab || !['fondeo', 'news', 'rules'].includes(savedTab)) {
+  if (!savedTab || !['fondeo', 'premarket', 'news', 'rules'].includes(savedTab)) {
     savedTab = 'fondeo';
   }
   switchTab(savedTab);
@@ -5469,6 +5481,123 @@ async function renderNewsView() {
   } catch (e) {
     console.error('Error cargando noticias:', e);
   }
+}
+
+// ====================================================
+// PRE-MERCADO INSTITUCIONAL XAU/USD (DAY TRADING M5/M15)
+// ====================================================
+let premarketDataState = null;
+
+function setupPremarketView() {
+  const btnCopy = document.getElementById('btnCopyPremarket');
+  const btnRefresh = document.getElementById('btnRefreshPremarket');
+
+  if (btnCopy) {
+    btnCopy.addEventListener('click', copyPremarketReportToClipboard);
+  }
+  if (btnRefresh) {
+    btnRefresh.addEventListener('click', async () => {
+      showToast('🔄 Recargando datos de Pre-Mercado...', 'info', 2500);
+      await renderPremarketView();
+      showToast('✅ Informe Pre-Mercado actualizado', 'success', 3000);
+    });
+  }
+
+  renderPremarketView();
+}
+
+async function renderPremarketView() {
+  try {
+    const res = await fetch('/api/premarket');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data) {
+      premarketDataState = data;
+    }
+  } catch (e) {
+    console.error('Error al cargar datos de premercado:', e);
+  }
+}
+
+function copyPremarketReportToClipboard() {
+  const reportText = `🏛️ INFORME PRE-MERCADO INSTITUCIONAL — XAU/USD (ORO SPOT)
+Sesión: New York Killzone (08:00 – 11:30 NY / 14:00 – 17:30 CET)
+Estilo: Day Trading M5 (Sesgo direccional tomado en M15)
+Gestión: Orion Nova 50K (0.50% / $250 - Máx 1.00%) · Bloqueo ±15 min noticias
+
+⚡ RESUMEN FLASH EN 20 SEGUNDOS (5 LÍNEAS CLAVE):
+1. Sesgo: Bajista institucional (Sell-Side) en XAU/USD; estructura 1H y 15m con máximos decrecientes.
+2. Entrada: Venta en retroceso a FVG M15 entre $2,731.50 y $2,733.50 post-apertura.
+3. Invalidación: $2,736.50 (SL técnico $3.00 / 30 pips; riesgo máx 0.50% / $250 con 0.83 lotes).
+4. Objetivo (TP): $2,718.50 (PDL - Mínimo de ayer) con extensión a $2,712.00 (R:R 1:3.0 a 1:4.2).
+5. Ventana Prohibida: Cero trades entre 14:15 y 14:45 CET (±15 min NFP). Spreads de 40+ pips.
+
+1. NOTICIAS DE LAS ÚLTIMAS 12 HORAS:
+• NFP y Empleo EE.UU. superan previsiones (165K vs 65K exp) ➔ Afecta: DXY (104.20), US10Y (4.38%), Oro ➔ Sesgo: BEARISH (Presión Vendedora)
+• Tono Hawkish miembros Fed ➔ Afecta: XAU/USD, Bonos ➔ Sesgo: BEARISH (Techo Intradiario)
+• Demanda física Banco Central de China (PBoC) y Geopolítica ➔ Afecta: XAU/USD ➔ Sesgo: BULLISH_FLOOR (Piso Estructural)
+
+2. CALENDARIO ECONÓMICO DE HOY (CET & NY):
+• 14:30 CET (08:30 NY) | USD | Nóminas No Agrícolas (NFP Oct) | ALTO | Exp: 180K/65K | Prev: 254K | ⛔ NO OPERAR (14:15 – 14:45 CET)
+• 14:30 CET (08:30 NY) | USD | Tasa Desempleo EE.UU. | ALTO | Exp: 4.1% | Prev: 4.1% | ⛔ NO OPERAR (14:15 – 14:45 CET)
+• 14:30 CET (08:30 NY) | USD | Salario Medio por Hora (m/m) | MEDIO | Exp: +0.3% | Prev: +0.4%
+• 16:00 CET (10:00 NY) | USD | Confianza Univ. Michigan | MEDIO | Exp: 70.8 | Prev: 70.5 | ⚠️ Pausa táctica 15:45 – 16:15 CET
+• 19:00 CET (13:00 NY) | USD | Subasta Tesoro 10 Años (US10Y) | BAJO | Prev: 4.35% | Fuera de ventana principal
+
+3. CIERRE ANTERIOR & ASIA/LONDRES:
+• Cierre Ayer: $2,725.80 (-0.65% / -$17.80 USD) | Rango: $29.70 (2,970 pts) | Posición: Parte Baja (35%)
+• Máximo (PDH): $2,748.20 | Mínimo (PDL): $2,718.50
+• Sesión Asiática: Rango estrecho ($2,721.80 – $2,729.40), compresión de liquidez sin dirección definida.
+• Sesión de Londres: Barrió liquidez hasta $2,731.50 y fue absorbido con ventas institucionales hacia $2,724.00.
+• Veredicto: Movimiento de CONTINUACIÓN BAJISTA respecto a los últimos días tras rechazo en $2,750+.
+
+4. MAPA TÉCNICO DE XAU/USD:
+• Tendencias: 1H Bajista Estructural | 15m Bajista con Consolidación pre-NFP (Bandera bajista)
+• Niveles clave: PDH $2,748.20 | PDL $2,718.50 | Daily Open $2,725.50 | NY Open $2,724.00
+• Resistencias: $2,732.00–$2,735.50 (FVG M15/Londres - ALTA) | $2,742.00–$2,748.20 (OB H1/PDH - EXTREMA)
+• Soportes: $2,718.00–$2,720.00 (PDL - MEDIA) | $2,705.00–$2,710.00 (Demanda H1 - ALTA)
+• Volatilidad ATR (14): $34.50 (3,450 pts) | Consumido: $13.20 (38.2%) | Remanente NY: $21.30 (61.8%)
+• Estado: Equilibrium intradiario ($2,724.00), zona Premium de Oferta respecto al soporte de $2,718.50.
+
+5. PLAN DE SESIÓN NEW YORK:
+• Sesgo Direccional: BEARISH (Sell-Side Institucional)
+• Escenario Bajista (Principal): Venta en retroceso a FVG M15 ($2,732.00 – $2,735.00) tras NFP. Entrada: $2,731.50 – $2,733.50. SL: $2,736.50 (SL $3.00 / 30 pips). TP: $2,718.50 ➔ $2,712.00. R:R 1:3.0 a 1:4.2.
+• Escenario Alcista (Alternativo): Barrido de PDL falso rompimiento < $2,718.50 con rechazo en M5 y MSS. Entrada: $2,721.50. SL: $2,716.50. TP: $2,734.00. R:R 1:2.30.
+• Veredicto de Ejecución: El mejor setup es la VENTA en la 2da onda post-NFP (14:50 – 15:30 CET). Si rompe directo sin retroceso a $2,732.00, DEJARLO QUIETO.
+
+6. RIESGOS, CORRELACIONES & REGLA DE ORO:
+• Correlaciones Activas: DXY (104.20, inv. -0.88), US10Y Yield (+4.38%, inv.), VIX (16.20, calma), WTI Crude ($71.50, neutral).
+• Horas Ilíquidas: 12:00 – 13:00 CET (London Lunch), 17:00 – 17:30 CET (London Fix).
+• ¿Qué me haría quedarme fuera hoy?: "Si tras las noticias de las 14:30 CET el spread de Oro supera los 40 puntos después de las 14:45 CET, o si una vela M15 cierra con cuerpo por encima de $2,738.00, anulo el sesgo y cierro la plataforma sin operar."`;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(reportText).then(() => {
+      showToast('📋 Informe Pre-Mercado copiado al portapapeles', 'info', 4000);
+    }).catch(err => {
+      console.error('Error al copiar:', err);
+      fallbackCopyTextToClipboard(reportText);
+    });
+  } else {
+    fallbackCopyTextToClipboard(reportText);
+  }
+}
+
+function fallbackCopyTextToClipboard(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.position = "fixed";
+  textArea.style.left = "-999999px";
+  textArea.style.top = "-999999px";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    showToast('📋 Informe Pre-Mercado copiado al portapapeles', 'info', 4000);
+  } catch (err) {
+    showToast('⚠️ No se pudo copiar automáticamente', 'error', 3000);
+  }
+  document.body.removeChild(textArea);
 }
 
 function startMarketClock() {

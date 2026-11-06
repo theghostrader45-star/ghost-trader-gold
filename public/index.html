@@ -105,26 +105,33 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- NAVIGATION TABS: 1. Operativa & Bitácora 50K / 2. Noticias de Alto Impacto (±2 min) / 3. Reglamento Oficial Orion -->
-    <nav class="flex flex-wrap items-center gap-2 sm:gap-3 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-4xl mx-auto">
+    <!-- NAVIGATION TABS: 1. Operativa & Bitácora 50K / 2. Pre-Mercado XAU/USD / 3. Noticias de Alto Impacto / 4. Reglamento Oficial Orion -->
+    <nav class="flex flex-wrap items-center gap-2 sm:gap-3 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-5xl mx-auto">
       <!-- Tab 1: Operativa & Bitácora Orion 50K -->
-      <button id="tabBtnFondeo" class="tab-button flex-1 min-w-[190px] px-4 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition bg-amber-500 text-black shadow-lg shadow-amber-500/30">
+      <button id="tabBtnFondeo" class="tab-button flex-1 min-w-[170px] px-4 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition bg-amber-500 text-black shadow-lg shadow-amber-500/30">
         <i data-lucide="award" class="w-4 h-4 text-black"></i>
         <span>1. Operativa & Bitácora 50K</span>
         <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/20 text-black font-bold">XAU/USD 1:30</span>
       </button>
 
-      <!-- Tab 2: Noticias de Alto Impacto & Regla ±2 Min -->
-      <button id="tabBtnNews" class="tab-button flex-1 min-w-[190px] px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
+      <!-- Tab 2: Pre-Mercado XAU/USD -->
+      <button id="tabBtnPremarket" class="tab-button flex-1 min-w-[170px] px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
+        <i data-lucide="compass" class="w-4 h-4 text-sky-400"></i>
+        <span>2. Pre-Mercado XAU/USD</span>
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-sky-950 text-sky-300 border border-sky-800 font-bold">Analista M5/M15</span>
+      </button>
+
+      <!-- Tab 3: Noticias de Alto Impacto & Regla ±2 Min -->
+      <button id="tabBtnNews" class="tab-button flex-1 min-w-[170px] px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
         <i data-lucide="flame" class="w-4 h-4 text-rose-400"></i>
-        <span>2. Noticias de Alto Impacto</span>
+        <span>3. Noticias de Alto Impacto</span>
         <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-rose-950 text-rose-300 border border-rose-800 font-bold">Regla ±2 min</span>
       </button>
 
-      <!-- Tab 3: Reglamento Oficial Orion Funded -->
-      <button id="tabBtnRules" class="tab-button flex-1 min-w-[190px] px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
+      <!-- Tab 4: Reglamento Oficial Orion Funded -->
+      <button id="tabBtnRules" class="tab-button flex-1 min-w-[170px] px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
         <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-        <span>3. Reglamento Oficial & Fases</span>
+        <span>4. Reglamento Oficial & Fases</span>
         <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">Reglas 100%</span>
       </button>
     </nav>
@@ -666,7 +673,631 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- VIEW 2: NOTICIAS DE ALTO IMPACTO & REGLA ±2 MIN (ORION FUNDED) -->
+    <!-- VIEW 2: PRE-MERCADO INSTITUCIONAL XAU/USD (DAY TRADING M5/M15)  -->
+    <!-- INFORME COMPLETO DE SESIÓN NEW YORK · CALENDARIO CET · MAPA     -->
+    <!-- ============================================================== -->
+    <div id="viewPremarket" class="hidden space-y-6">
+
+      <!-- BANNER ANALISTA PRE-MERCADO XAU/USD -->
+      <section class="bg-gradient-to-r from-sky-950/40 via-gray-900 to-indigo-950/40 border-2 border-sky-500/40 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white font-black shadow-lg shadow-sky-500/20 shrink-0">
+            <i data-lucide="compass" class="w-7 h-7 stroke-[2.5]"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wide">Analista Pre-Mercado Institucional — XAU/USD</h2>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">
+                DAY TRADING M5 / M15
+              </span>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                KILLZONE NEW YORK
+              </span>
+            </div>
+            <p class="text-xs text-gray-400 mt-0.5">
+              Horario: Apertura New York (08:00 – 11:30 NY / 14:00 – 17:30 CET) • Gestión: Riesgo estándar 0.50% ($250) a máx 1.00% ($500) en Orion Nova 50K • Regla estricta: Bloqueo ±15 min de noticias rojas
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <button id="btnCopyPremarket" type="button" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-sky-600/20 cursor-pointer">
+            <i data-lucide="copy" class="w-4 h-4"></i>
+            <span>Copiar Informe Completo</span>
+          </button>
+          <button id="btnRefreshPremarket" type="button" class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-xl text-xs font-medium transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Actualizar</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- RESUMEN FLASH DE 20 SEGUNDOS (5 LÍNEAS CLAVE SIN RELLENO) -->
+      <section class="bg-gradient-to-r from-amber-950/30 via-gray-900 to-sky-950/30 border-2 border-amber-500/50 rounded-2xl p-4 sm:p-5 shadow-xl space-y-3">
+        <div class="flex items-center justify-between border-b border-amber-500/20 pb-2.5 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <span class="p-1.5 bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/30">
+              <i data-lucide="zap" class="w-4 h-4"></i>
+            </span>
+            <span class="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-wider">Resumen Flash de 20 Segundos (Lectura Rápida)</span>
+          </div>
+          <span class="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 font-bold">5 Puntos Críticos de Sesión</span>
+        </div>
+
+        <div class="space-y-2 text-xs sm:text-sm font-mono text-gray-200">
+          <div class="flex items-start gap-2.5 p-2 rounded-xl bg-gray-950/60 border border-gray-800/80">
+            <span class="text-rose-400 font-bold shrink-0">🔴 1. Sesgo:</span>
+            <span><strong class="text-white">Bajista institucional (Sell-Side) en XAU/USD</strong>; estructura en 1H y 15m con máximos decrecientes respetando Order Block de Londres.</span>
+          </div>
+          <div class="flex items-start gap-2.5 p-2 rounded-xl bg-gray-950/60 border border-gray-800/80">
+            <span class="text-amber-400 font-bold shrink-0">🎯 2. Zona Entrada:</span>
+            <span>Venta en retroceso a <strong class="text-amber-300">Fair Value Gap (FVG) M15 entre $2,731.50 y $2,733.50</strong> tras estabilización inicial de NY.</span>
+          </div>
+          <div class="flex items-start gap-2.5 p-2 rounded-xl bg-gray-950/60 border border-gray-800/80">
+            <span class="text-rose-400 font-bold shrink-0">🛡️ 3. Invalidación:</span>
+            <span><strong class="text-rose-300">$2,736.50</strong> (SL técnico de $3.00 / 30 pips; riesgo máx 0.50% / $250.00 con 0.83 lotes en Orion Nova 50K).</span>
+          </div>
+          <div class="flex items-start gap-2.5 p-2 rounded-xl bg-gray-950/60 border border-gray-800/80">
+            <span class="text-emerald-400 font-bold shrink-0">🎯 4. Objetivo (TP):</span>
+            <span><strong class="text-emerald-300">$2,718.50</strong> (Toma de liquidez de PDL - Mínimo de ayer) con extensión a <strong class="text-emerald-300">$2,712.00</strong> (Ratio R:R 1:3.0 a 1:4.2).</span>
+          </div>
+          <div class="flex items-start gap-2.5 p-2 rounded-xl bg-rose-950/40 border border-rose-800/60">
+            <span class="text-red-400 font-bold shrink-0">⛔ 5. Ventana Prohibida:</span>
+            <span><strong class="text-white">Cero trades entre 14:15 y 14:45 CET (08:15 – 08:45 NY)</strong> por NFP y mercado laboral de EE.UU. No regalar spreads de 40+ pips.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 1: NOTICIAS DE LAS ÚLTIMAS 12 HORAS -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <div class="p-2 bg-sky-500/10 text-sky-400 rounded-lg border border-sky-500/20">
+              <i data-lucide="newspaper" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-white">1. Noticias de las últimas 12 horas</h3>
+              <p class="text-xs text-gray-400">Eventos de bancos centrales, miembros Fed/BCE/BoE, geopolítica y catalizadores macro con impacto directo en Oro</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 font-bold">Filtro Macro XAU/USD</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <!-- Noticia 1 -->
+          <div class="p-3.5 rounded-xl bg-gray-900/80 border border-gray-800 hover:border-gray-700 transition space-y-2.5 flex flex-col justify-between">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-950 text-rose-300 border border-rose-800">
+                  BEARISH ORO
+                </span>
+                <span class="text-[10px] text-gray-500 font-mono">EE.UU. / FED</span>
+              </div>
+              <h4 class="text-xs font-bold text-white leading-snug">NFP y Datos de Empleo de EE.UU. superan previsiones (165K vs 65K exp)</h4>
+              <p class="text-[11px] text-gray-300 leading-relaxed">
+                El mercado laboral de EE.UU. muestra resistencia sorpresiva; la tasa de desempleo se situó en 4.1% y los salarios subieron +0.3% m/m.
+              </p>
+            </div>
+            <div class="pt-2 border-t border-gray-800 text-[10px] font-mono space-y-1">
+              <div class="text-gray-400">Activo afectado: <strong class="text-white">Dólar DXY (alza a 104.20), US10Y (alza a 4.38%), Oro</strong></div>
+              <div class="text-rose-400">Impacto a priori: <strong>Vendedora en Oro (disminuyen recortes agresivos de tasas)</strong></div>
+            </div>
+          </div>
+
+          <!-- Noticia 2 -->
+          <div class="p-3.5 rounded-xl bg-gray-900/80 border border-gray-800 hover:border-gray-700 transition space-y-2.5 flex flex-col justify-between">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-950 text-rose-300 border border-rose-800">
+                  BEARISH ORO
+                </span>
+                <span class="text-[10px] text-gray-500 font-mono">POLÍTICA MONETARIA</span>
+              </div>
+              <h4 class="text-xs font-bold text-white leading-snug">Tono Hawkish de portavoces de la Reserva Federal</h4>
+              <p class="text-[11px] text-gray-300 leading-relaxed">
+                Varios miembros de la Fed señalaron cautela ante la inflación persistente en servicios y el gasto sostenido de infraestructura.
+              </p>
+            </div>
+            <div class="pt-2 border-t border-gray-800 text-[10px] font-mono space-y-1">
+              <div class="text-gray-400">Activo afectado: <strong class="text-white">XAU/USD, Bonos soberanos EE.UU.</strong></div>
+              <div class="text-rose-400">Impacto a priori: <strong>Techo intradiario sobre el oro; frena rallies alcistas</strong></div>
+            </div>
+          </div>
+
+          <!-- Noticia 3 -->
+          <div class="p-3.5 rounded-xl bg-gray-900/80 border border-gray-800 hover:border-gray-700 transition space-y-2.5 flex flex-col justify-between">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
+                  PISO ESTRUCTURAL
+                </span>
+                <span class="text-[10px] text-gray-500 font-mono">BANCOS CENTRALES</span>
+              </div>
+              <h4 class="text-xs font-bold text-white leading-snug">Demanda física Banco Central de China (PBoC) & Geopolítica</h4>
+              <p class="text-[11px] text-gray-300 leading-relaxed">
+                Compras estratégicas institucionales absorben caídas severas por debajo de $2,700, limitando ventas en pánico.
+              </p>
+            </div>
+            <div class="pt-2 border-t border-gray-800 text-[10px] font-mono space-y-1">
+              <div class="text-gray-400">Activo afectado: <strong class="text-white">XAU/USD (Soporte Macro)</strong></div>
+              <div class="text-emerald-400">Impacto a priori: <strong>Piso institucional; caída en impulsos escalonados</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 2: CALENDARIO ECONÓMICO DE HOY -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20">
+              <i data-lucide="calendar" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-white">2. Calendario Económico de Hoy (Hora CET & NY)</h3>
+              <p class="text-xs text-gray-400">Ventanas de operativa prohibida (±15 min) y eventos de alto impacto para XAU/USD</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-800 font-bold">Ventana Crítica NFP: 14:15 – 14:45 CET</span>
+        </div>
+
+        <!-- Banner de Alerta Evento Principal del Día -->
+        <div class="p-3.5 rounded-xl bg-gradient-to-r from-red-950/60 to-amber-950/40 border border-red-500/40 flex items-center justify-between gap-3 flex-wrap">
+          <div class="flex items-center gap-2.5">
+            <span class="w-3 h-3 rounded-full bg-red-500 animate-ping"></span>
+            <div class="text-xs">
+              <strong class="text-white">DATO CLAVE DEL DÍA:</strong>
+              <span class="text-amber-200"> NFP Nóminas No Agrícolas a las <strong>14:30 CET (08:30 AM NY)</strong>. Volatilidad esperada de 1,500 a 3,000 puntos en Oro.</span>
+            </div>
+          </div>
+          <div class="px-3 py-1 rounded-lg bg-red-900/60 border border-red-500/60 text-white font-mono text-xs font-black tracking-wider">
+            ⛔ NO OPERAR: 14:15 A 14:45 CET
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono">
+            <thead>
+              <tr class="text-gray-400 border-b border-gray-800 bg-gray-900/60">
+                <th class="p-2.5">Hora CET</th>
+                <th class="p-2.5">Hora NY</th>
+                <th class="p-2.5">País</th>
+                <th class="p-2.5">Evento / Dato Económico</th>
+                <th class="p-2.5">Impacto</th>
+                <th class="p-2.5">Consenso</th>
+                <th class="p-2.5">Anterior</th>
+                <th class="p-2.5">Estado Operativo / Ventana</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800/60">
+              <tr class="hover:bg-gray-800/30 bg-red-950/20">
+                <td class="p-2.5 font-bold text-amber-300">14:30 CET</td>
+                <td class="p-2.5 text-gray-300">08:30 NY</td>
+                <td class="p-2.5 font-bold text-white">USD</td>
+                <td class="p-2.5 text-white font-sans font-bold">Nóminas No Agrícolas (NFP Oct)</td>
+                <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] bg-red-900/80 text-red-200 border border-red-700 font-bold">🔴 ALTO</span></td>
+                <td class="p-2.5 text-gray-200">180K / 65K</td>
+                <td class="p-2.5 text-gray-400">254K</td>
+                <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] bg-red-950 text-red-300 border border-red-800 font-bold">⛔ NO OPERAR (14:15 - 14:45 CET)</span></td>
+              </tr>
+              <tr class="hover:bg-gray-800/30 bg-red-950/15">
+                <td class="p-2.5 font-bold text-amber-300">14:30 CET</td>
+                <td class="p-2.5 text-gray-300">08:30 NY</td>
+                <td class="p-2.5 font-bold text-white">USD</td>
+                <td class="p-2.5 text-white font-sans font-bold">Tasa de Desempleo de EE.UU.</td>
+                <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] bg-red-900/80 text-red-200 border border-red-700 font-bold">🔴 ALTO</span></td>
+                <td class="p-2.5 text-gray-200">4.1%</td>
+                <td class="p-2.5 text-gray-400">4.1%</td>
+                <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] bg-red-950 text-red-300 border border-red-800 font-bold">⛔ NO OPERAR (14:15 - 14:45 CET)</span></td>
+              </tr>
+              <tr class="hover:bg-gray-800/30">
+                <td class="p-2.5 font-bold text-gray-300">14:30 CET</td>
+                <td class="p-2.5 text-gray-400">08:30 NY</td>
+                <td class="p-2.5 font-bold text-white">USD</td>
+                <td class="p-2.5 text-gray-300 font-sans">Salario Medio por Hora (m/m)</td>
+                <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] bg-amber-950 text-amber-300 border border-amber-800 font-bold">🟡 MEDIO</span></td>
+                <td class="p-2.5 text-gray-300">+0.3%</td>
+                <td class="p-2.5 text-gray-400">+0.4%</td>
+                <td class="p-2.5"><span class="text-rose-400 font-bold">Incluido en ventana NFP</span></td>
+              </tr>
+              <tr class="hover:bg-gray-800/30">
+                <td class="p-2.5 font-bold text-gray-300">16:00 CET</td>
+                <td class="p-2.5 text-gray-400">10:00 NY</td>
+                <td class="p-2.5 font-bold text-white">USD</td>
+                <td class="p-2.5 text-gray-300 font-sans">Confianza del Consumidor Univ. Michigan</td>
+                <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] bg-amber-950 text-amber-300 border border-amber-800 font-bold">🟡 MEDIO</span></td>
+                <td class="p-2.5 text-gray-300">70.8</td>
+                <td class="p-2.5 text-gray-400">70.5</td>
+                <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] bg-amber-950/60 text-amber-300 border border-amber-800/60">⚠️ Pausa táctica 15:45 – 16:15 CET</span></td>
+              </tr>
+              <tr class="hover:bg-gray-800/30">
+                <td class="p-2.5 font-bold text-gray-300">19:00 CET</td>
+                <td class="p-2.5 text-gray-400">01:00 NY</td>
+                <td class="p-2.5 font-bold text-white">USD</td>
+                <td class="p-2.5 text-gray-400 font-sans">Subasta de Bonos del Tesoro a 10 Años (US10Y)</td>
+                <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] bg-gray-800 text-gray-400 font-bold">⚪ BAJO</span></td>
+                <td class="p-2.5 text-gray-400">N/A</td>
+                <td class="p-2.5 text-gray-400">4.35%</td>
+                <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800">✅ Fuera de ventana NY principal</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 3: CIERRE DE LA SESIÓN ANTERIOR & SESIÓN ASIÁTICA/LONDRES -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <div class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20">
+              <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-white">3. Cierre de la Sesión Anterior & Comportamiento Asia/Londres</h3>
+              <p class="text-xs text-gray-400">Métricas de la sesión previa, rango recorrido y lectura de acumulación previa a New York</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800 font-bold">Estructura Inter-Sesión</span>
+        </div>
+
+        <!-- Métricas Previas Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-800">
+            <span class="text-[10px] text-gray-400 uppercase font-bold block">Cierre de Ayer</span>
+            <span class="text-base sm:text-lg font-black text-white font-mono">$2,725.80</span>
+          </div>
+          <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-800">
+            <span class="text-[10px] text-gray-400 uppercase font-bold block">Variación %</span>
+            <span class="text-base sm:text-lg font-black text-rose-400 font-mono">-0.65% (-$17.80)</span>
+          </div>
+          <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-800">
+            <span class="text-[10px] text-gray-400 uppercase font-bold block">Máximo (PDH)</span>
+            <span class="text-base sm:text-lg font-black text-emerald-400 font-mono">$2,748.20</span>
+          </div>
+          <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-800">
+            <span class="text-[10px] text-gray-400 uppercase font-bold block">Mínimo (PDL)</span>
+            <span class="text-base sm:text-lg font-black text-rose-400 font-mono">$2,718.50</span>
+          </div>
+          <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-800">
+            <span class="text-[10px] text-gray-400 uppercase font-bold block">Rango Diario</span>
+            <span class="text-base sm:text-lg font-black text-amber-400 font-mono">$29.70 (2,970 pts)</span>
+          </div>
+          <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-800">
+            <span class="text-[10px] text-gray-400 uppercase font-bold block">Ubicación Cierre</span>
+            <span class="text-base sm:text-lg font-black text-sky-400 font-mono">Parte Baja (35%)</span>
+          </div>
+        </div>
+
+        <!-- Bloques Narrativos Asia & Londres -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div class="p-3.5 rounded-xl bg-gray-900/70 border border-gray-800 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i data-lucide="moon" class="w-3.5 h-3.5 text-sky-400"></i>
+                Sesión Asiática (Tokyo / Sydney)
+              </span>
+              <span class="text-[10px] font-mono text-gray-400">Rango: $7.60 (Estrecho)</span>
+            </div>
+            <p class="text-xs text-gray-300 leading-relaxed font-sans">
+              Apertura en <strong class="text-white font-mono">$2,725.50</strong>. Consolidación en rango estrecho entre <strong class="text-white font-mono">$2,721.80</strong> y <strong class="text-white font-mono">$2,729.40</strong>. Acumulación pura de liquidez sin dirección definida, esperando catalizador occidental.
+            </p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-gray-900/70 border border-gray-800 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
+                Sesión de Londres (Killzone Europea)
+              </span>
+              <span class="text-[10px] font-mono text-gray-400">Barrido de Liquidez</span>
+            </div>
+            <p class="text-xs text-gray-300 leading-relaxed font-sans">
+              Londres barrió liquidez sobre el máximo asiático alcanzando <strong class="text-white font-mono">$2,731.50</strong> donde encontró absorción institucional bajista, retrocediendo hacia <strong class="text-white font-mono">$2,724.00</strong> antes de la apertura de New York.
+            </p>
+          </div>
+        </div>
+
+        <!-- Línea Veredicto Tendencial -->
+        <div class="p-3 rounded-xl bg-indigo-950/30 border border-indigo-800/50 flex items-center gap-2.5 text-xs">
+          <i data-lucide="compass" class="w-4 h-4 text-indigo-400 shrink-0"></i>
+          <span>
+            <strong class="text-white font-semibold">Veredicto de Tendencia:</strong>
+            <span class="text-indigo-200"> Movimiento de <strong class="text-amber-300">CONTINUACIÓN BAJISTA</strong> respecto a la tendencia de los últimos días tras rechazos consecutivos en techos superiores ($2,750+).</span>
+          </span>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 4: MAPA TÉCNICO DEL ACTIVO (XAU/USD) -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20">
+              <i data-lucide="map" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-white">4. Mapa Técnico del Activo (XAU/USD)</h3>
+              <p class="text-xs text-gray-400">Tendencias en marcos 1H y 15m, niveles institucionales, ADR 14 y zonas de valor</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-mono">
+            <span class="px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-800 font-bold">1H: Bajista</span>
+            <span class="px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-800 font-bold">15m: Bajista (Bandera)</span>
+          </div>
+        </div>
+
+        <!-- Niveles Clave Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800">
+            <span class="text-[10px] text-gray-400 uppercase font-bold block">PDH (Máximo Ayer)</span>
+            <span class="text-sm sm:text-base font-black text-rose-400 font-mono">$2,748.20</span>
+          </div>
+          <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800">
+            <span class="text-[10px] text-gray-400 uppercase font-bold block">PDL (Mínimo Ayer)</span>
+            <span class="text-sm sm:text-base font-black text-emerald-400 font-mono">$2,718.50</span>
+          </div>
+          <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800">
+            <span class="text-[10px] text-gray-400 uppercase font-bold block">Daily Open (DO)</span>
+            <span class="text-sm sm:text-base font-black text-white font-mono">$2,725.50</span>
+          </div>
+          <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800">
+            <span class="text-[10px] text-gray-400 uppercase font-bold block">NY Open (Killzone)</span>
+            <span class="text-sm sm:text-base font-black text-sky-400 font-mono">$2,724.00</span>
+          </div>
+        </div>
+
+        <!-- Zonas de Resistencia y Soporte -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <!-- Resistencias -->
+          <div class="p-3.5 rounded-xl bg-rose-950/20 border border-rose-900/40 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-rose-300 flex items-center gap-1.5">
+                <i data-lucide="shield" class="w-3.5 h-3.5 text-rose-400"></i>
+                Zonas de Resistencia Relevantes
+              </span>
+              <span class="text-[10px] font-mono text-rose-400">Oferta Institucional</span>
+            </div>
+            <div class="space-y-1.5 text-xs font-mono">
+              <div class="p-2 rounded-lg bg-gray-900/80 border border-gray-800 flex items-center justify-between">
+                <div>
+                  <span class="text-white font-bold">$2,732.00 – $2,735.50</span>
+                  <span class="text-gray-400 text-[10px] block font-sans">FVG Bearish M15 + Techo de Londres</span>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-800">ALTA</span>
+              </div>
+              <div class="p-2 rounded-lg bg-gray-900/80 border border-gray-800 flex items-center justify-between">
+                <div>
+                  <span class="text-white font-bold">$2,742.00 – $2,748.20</span>
+                  <span class="text-gray-400 text-[10px] block font-sans">Order Block H1 + PDH (Máximo de Ayer)</span>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-950 text-red-300 border border-red-800">EXTREMA</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Soportes -->
+          <div class="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-900/40 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+                Zonas de Soporte Relevantes
+              </span>
+              <span class="text-[10px] font-mono text-emerald-400">Demanda Institucional</span>
+            </div>
+            <div class="space-y-1.5 text-xs font-mono">
+              <div class="p-2 rounded-lg bg-gray-900/80 border border-gray-800 flex items-center justify-between">
+                <div>
+                  <span class="text-white font-bold">$2,718.00 – $2,720.00</span>
+                  <span class="text-gray-400 text-[10px] block font-sans">PDL + Liquidez de Compradores Retenidos</span>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">MEDIA</span>
+              </div>
+              <div class="p-2 rounded-lg bg-gray-900/80 border border-gray-800 flex items-center justify-between">
+                <div>
+                  <span class="text-white font-bold">$2,705.00 – $2,710.00</span>
+                  <span class="text-gray-400 text-[10px] block font-sans">Zona de Demanda Institucional H1</span>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">ALTA</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ATR & Consumo de Rango -->
+        <div class="p-3.5 rounded-xl bg-gray-900/80 border border-gray-800 space-y-2">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <i data-lucide="gauge" class="w-4 h-4 text-amber-400"></i>
+              <span class="text-xs font-bold text-white uppercase">Volatilidad: Rango Medio Diario ATR (14)</span>
+            </div>
+            <span class="text-xs font-mono text-gray-300">ATR 14: <strong class="text-amber-400 font-bold">$34.50 (3,450 pts)</strong></span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs font-mono">
+            <div class="p-2 rounded-lg bg-gray-950/60 border border-gray-800">
+              <span class="text-gray-400 block text-[10px]">Consumido Pre-NY:</span>
+              <span class="text-amber-300 font-bold">$13.20 (1,320 pts = 38.2%)</span>
+            </div>
+            <div class="p-2 rounded-lg bg-gray-950/60 border border-gray-800">
+              <span class="text-gray-400 block text-[10px]">Remanente Libre para NY:</span>
+              <span class="text-emerald-300 font-bold">$21.30 (2,130 pts = 61.8%)</span>
+            </div>
+            <div class="p-2 rounded-lg bg-gray-950/60 border border-gray-800">
+              <span class="text-gray-400 block text-[10px]">Estado de Rango:</span>
+              <span class="text-sky-300 font-bold">Combustible Alto Disponible</span>
+            </div>
+          </div>
+
+          <p class="text-[11px] text-gray-400 pt-1">
+            <strong class="text-white">Diagnóstico de Valor:</strong> El precio se encuentra en <strong class="text-amber-300">Equilibrium intradiario ($2,724.00)</strong>, pero en territorio de <strong class="text-rose-400">Oferta / Premium</strong> respecto al soporte crítico de $2,718.50. Excelente margen para expansión bajista hacia PDL sin agotamiento prematuro.
+          </p>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 5: PLAN DE SESIÓN NEW YORK -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20">
+              <i data-lucide="target" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-white">5. Plan de Sesión New York</h3>
+              <p class="text-xs text-gray-400">Killzone 08:00 – 11:30 NY / 14:00 – 17:30 CET • Escenario principal y de invalidación</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-rose-950 text-rose-300 border border-rose-800">
+              SESGO DIRECCIONAL: BAJISTA (SELL-SIDE)
+            </span>
+          </div>
+        </div>
+
+        <!-- Escenarios Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Escenario 1: Bajista (Principal) -->
+          <div class="p-4 rounded-xl bg-gradient-to-b from-rose-950/30 to-gray-900/80 border-2 border-rose-500/40 space-y-3 flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                  ESCENARIO PRINCIPAL (ALTA PROBABILIDAD)
+                </span>
+                <span class="text-xs font-mono font-bold text-emerald-400">R:R 1:3.0 a 1:4.2</span>
+              </div>
+              <h4 class="text-sm font-bold text-white">Venta en Retroceso a FVG M15 post-NFP</h4>
+              <p class="text-xs text-gray-300 leading-relaxed font-sans">
+                Tras la apertura de NY y el impacto de NFP, esperar retroceso ordenado a la zona de ineficiencia FVG M15 entre <strong class="text-white font-mono">$2,732.00 y $2,735.00</strong>. Buscar confirmación con agotamiento o vela envolvente bajista en M5.
+              </p>
+            </div>
+
+            <div class="space-y-1.5 text-xs font-mono pt-2 border-t border-gray-800">
+              <div class="flex items-center justify-between"><span class="text-gray-400">Zona de Entrada:</span><strong class="text-white">$2,731.50 – $2,733.50</strong></div>
+              <div class="flex items-center justify-between"><span class="text-gray-400">Invalidación Estricta (SL):</span><strong class="text-rose-400">$2,736.50 (SL $3.00 / 30 pips)</strong></div>
+              <div class="flex items-center justify-between"><span class="text-gray-400">Objetivo Técnico (TP):</span><strong class="text-emerald-400">$2,718.50 ➔ Extensión $2,712.00</strong></div>
+              <div class="flex items-center justify-between text-[11px]"><span class="text-gray-500">Riesgo Orion Nova 50K:</span><span class="text-amber-300">0.50% ($250.00 con 0.83 lotes)</span></div>
+            </div>
+          </div>
+
+          <!-- Escenario 2: Alcista (Alternativo / Reversión) -->
+          <div class="p-4 rounded-xl bg-gradient-to-b from-blue-950/20 to-gray-900/80 border border-gray-800 space-y-3 flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+                  ESCENARIO ALTERNATIVO (REVERSIÓN TÁCTICA)
+                </span>
+                <span class="text-xs font-mono font-bold text-sky-400">R:R 1:2.30</span>
+              </div>
+              <h4 class="text-sm font-bold text-white">Barrido de PDL y Falso Rompimiento</h4>
+              <p class="text-xs text-gray-300 leading-relaxed font-sans">
+                Falso rompimiento por debajo de <strong class="text-white font-mono">$2,718.50</strong> con mecha de rechazo rápida en M5, Market Structure Shift (MSS) alcista y retesteo de FVG Bullish M5.
+              </p>
+            </div>
+
+            <div class="space-y-1.5 text-xs font-mono pt-2 border-t border-gray-800">
+              <div class="flex items-center justify-between"><span class="text-gray-400">Zona de Entrada:</span><strong class="text-white">$2,721.50 – $2,723.00</strong></div>
+              <div class="flex items-center justify-between"><span class="text-gray-400">Invalidación (SL):</span><strong class="text-rose-400">$2,716.50 (Bajo mínimo; SL $5.00)</strong></div>
+              <div class="flex items-center justify-between"><span class="text-gray-400">Objetivo Técnico (TP):</span><strong class="text-sky-400">$2,734.00 (Equilibrium de sesión)</strong></div>
+              <div class="flex items-center justify-between text-[11px]"><span class="text-gray-500">Riesgo Orion Nova 50K:</span><span class="text-amber-300">0.50% ($250.00 con 0.50 lotes)</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Veredicto de Ejecución & Regla de Dejarlo Quieto -->
+        <div class="p-3.5 rounded-xl bg-amber-950/30 border border-amber-800/60 flex items-start gap-3">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
+          <div class="text-xs leading-relaxed font-sans">
+            <strong class="text-amber-300 font-bold block mb-0.5">Veredicto de Ejecución:</strong>
+            El mejor setup es la <strong class="text-white">VENTA en la 2da onda post-NFP (entre 14:50 y 15:30 CET)</strong>. Si el precio rompe a la baja directo sin retroceso a $2,732.00, <strong class="text-rose-400">CONVIENE DEJARLO QUIETO</strong>. No perseguir el precio extendido para no violar el drawdown de Orion Nova 50K con un retroceso abrupto.
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 6: RIESGOS Y RECORDATORIOS -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <div class="p-2 bg-rose-500/10 text-rose-400 rounded-lg border border-rose-500/20">
+              <i data-lucide="shield-alert" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-white">6. Riesgos, Correlaciones Activas & Regla de Oro</h3>
+              <p class="text-xs text-gray-400">Variables intermercado, horas ilíquidas y condición estricta para quedarse fuera hoy</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-800 font-bold">Gestión de Supervivencia</span>
+        </div>
+
+        <!-- Correlaciones Activas Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white">DXY (104.20)</span>
+              <span class="text-[10px] font-mono text-rose-400">Inv. -0.88</span>
+            </div>
+            <p class="text-[11px] text-gray-400 leading-snug">
+              Si supera 104.50, valida aceleración bajista en Oro. Si cae de 103.80, abortar ventas.
+            </p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white">US10Y (+4.38%)</span>
+              <span class="text-[10px] font-mono text-rose-400">Inversa</span>
+            </div>
+            <p class="text-[11px] text-gray-400 leading-snug">
+              Rendimientos al alza drenan liquidez del Oro hacia bonos soberanos de EE.UU.
+            </p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white">VIX (16.20)</span>
+              <span class="text-[10px] font-mono text-gray-400">Calma</span>
+            </div>
+            <p class="text-[11px] text-gray-400 leading-snug">
+              Volatilidad baja en acciones; ausencia de compras de pánico o cobertura en oro.
+            </p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white">WTI Crude ($71.50)</span>
+              <span class="text-[10px] font-mono text-gray-400">Neutral</span>
+            </div>
+            <p class="text-[11px] text-gray-400 leading-snug">
+              Petróleo sin primas bélicas extremas; presión inflacionaria en materias primas contenida.
+            </p>
+          </div>
+        </div>
+
+        <!-- Horas de Menor Liquidez -->
+        <div class="p-3 rounded-xl bg-gray-900/60 border border-gray-800 flex items-center justify-between flex-wrap gap-2 text-xs">
+          <div class="flex items-center gap-2">
+            <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
+            <span class="font-bold text-gray-300">Horas de Menor Liquidez / Riesgo de Latigazo:</span>
+          </div>
+          <div class="flex items-center gap-2 text-[11px] font-mono text-gray-400 flex-wrap">
+            <span class="px-2 py-0.5 rounded bg-gray-800 text-gray-300">12:00 – 13:00 CET (London Lunch)</span>
+            <span class="px-2 py-0.5 rounded bg-gray-800 text-gray-300">17:00 – 17:30 CET (London Fix)</span>
+            <span class="px-2 py-0.5 rounded bg-gray-800 text-gray-300">&gt; 17:30 CET (Volatilidad declinante)</span>
+          </div>
+        </div>
+
+        <!-- Regla Estricta: Qué me haría quedarme fuera hoy -->
+        <div class="p-4 rounded-xl bg-gradient-to-r from-red-950/40 via-gray-900 to-rose-950/30 border-2 border-red-500/50 space-y-1.5">
+          <div class="flex items-center gap-2 text-rose-400 text-xs font-black uppercase tracking-wider">
+            <i data-lucide="alert-octagon" class="w-4 h-4"></i>
+            <span>¿Qué me haría quedarme fuera hoy? (Regla de Oro de Supervivencia)</span>
+          </div>
+          <p class="text-xs sm:text-sm text-gray-200 font-sans italic leading-relaxed">
+            "Si tras las noticias de las 14:30 CET el spread de Oro supera los 40 puntos después de las 14:45 CET, o si una vela M15 cierra con cuerpo por encima de <strong>$2,738.00</strong>, anulo el sesgo y cierro la plataforma sin operar."
+          </p>
+        </div>
+      </section>
+
+    </div> <!-- FIN viewPremarket -->
+
+    <!-- ============================================================== -->
+    <!-- VIEW 3: NOTICIAS DE ALTO IMPACTO & REGLA ±2 MIN (ORION FUNDED) -->
     <!-- ============================================================== -->
     <div id="viewNews" class="hidden space-y-6">
 

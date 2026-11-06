@@ -44,6 +44,7 @@ CONFIG_FONDEO_FILE = os.path.join(DATA_DIR, "config_fondeo.json")
 GOLD_BIAS_FILE = os.path.join(DATA_DIR, "gold_bias.json")
 GOLD_BIAS_HISTORY_FILE = os.path.join(DATA_DIR, "gold_bias_history.json")
 WEEKLY_NEWS_FILE = os.path.join(DATA_DIR, "weekly_news.json")
+PREMARKET_FILE = os.path.join(DATA_DIR, "premarket.json")
 LATEST_SIGNAL_FILE = os.path.join(DATA_DIR, "latest_signal.json")
 
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -187,6 +188,9 @@ def save_gold_bias_history(data):
 
 def get_weekly_news():
     return load_json(WEEKLY_NEWS_FILE, {})
+
+def get_premarket():
+    return load_json(PREMARKET_FILE, {})
 
 def save_weekly_news(data):
     save_json(WEEKLY_NEWS_FILE, data)
@@ -1522,6 +1526,10 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             self.send_json(get_weekly_news())
             return
 
+        elif path == "/api/premarket":
+            self.send_json(get_premarket())
+            return
+
         elif path == "/api/live-signal":
             signal = load_json(LATEST_SIGNAL_FILE, {})
             self.send_json(signal)
@@ -1761,6 +1769,13 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             news_data.update(payload)
             save_weekly_news(news_data)
             self.send_json({"success": True, "news": news_data})
+            return
+
+        elif path == "/api/premarket":
+            current_pm = get_premarket()
+            current_pm.update(payload)
+            save_json(PREMARKET_FILE, current_pm)
+            self.send_json({"success": True, "premarket": current_pm})
             return
 
         elif path == "/api/mt5/feed":
