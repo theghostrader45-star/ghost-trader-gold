@@ -436,6 +436,38 @@
                 </div>
               </div>
 
+              <!-- R:R Obtenido Manual / Auto al finalizar la operación -->
+              <div class="p-3 bg-gradient-to-r from-blue-950/40 via-gray-900 to-indigo-950/40 rounded-xl border border-blue-500/40 space-y-2">
+                <div class="flex items-center justify-between">
+                  <label class="text-xs font-bold text-blue-300 flex items-center gap-1.5">
+                    <i data-lucide="scale" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span>R:R Obtenido (Realizado)</span>
+                  </label>
+                  <div class="flex items-center gap-2">
+                    <span id="badgeRrMode" class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 font-bold">AUTO</span>
+                    <button type="button" id="btnResetRrAuto" class="text-[9px] text-gray-400 hover:text-white underline cursor-pointer hidden">Restablecer Auto</button>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <div class="relative flex-1">
+                    <span class="absolute left-3 top-2 text-blue-400 font-mono font-bold text-xs pointer-events-none">1:</span>
+                    <input type="number" id="fondeoFormRr" step="0.01" min="-20" max="100" value="2.00" class="w-full bg-gray-950 border border-blue-500/60 rounded-xl pl-7 pr-3 py-1.5 text-blue-300 font-mono font-bold text-sm focus:border-blue-400 focus:outline-none shadow-inner" placeholder="2.00">
+                  </div>
+                  <!-- Botones rápidos de R:R obtenido -->
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button type="button" class="btnQuickRr px-2 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg text-[10px] font-mono font-bold transition cursor-pointer" data-rr="1.0">1:1</button>
+                    <button type="button" class="btnQuickRr px-2 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg text-[10px] font-mono font-bold transition cursor-pointer" data-rr="1.5">1:1.5</button>
+                    <button type="button" class="btnQuickRr px-2 py-1.5 bg-gray-800 hover:bg-gray-700 text-blue-300 hover:text-white rounded-lg text-[10px] font-mono font-bold transition cursor-pointer" data-rr="2.0">1:2</button>
+                    <button type="button" class="btnQuickRr px-2 py-1.5 bg-gray-800 hover:bg-gray-700 text-emerald-300 hover:text-white rounded-lg text-[10px] font-mono font-bold transition cursor-pointer" data-rr="2.5">1:2.5</button>
+                    <button type="button" class="btnQuickRr px-2 py-1.5 bg-gray-800 hover:bg-gray-700 text-amber-300 hover:text-white rounded-lg text-[10px] font-mono font-bold transition cursor-pointer" data-rr="3.0">1:3</button>
+                  </div>
+                </div>
+                <p class="text-[10px] text-gray-400 leading-snug">
+                  Se calcula con Precio Entrada ➔ Salida, o <strong>puedes escribirlo manualmente</strong> si cerraste parciales, tuviste deslizamiento o saliste antes de tiempo.
+                </p>
+              </div>
+
               <!-- Fecha y Hora -->
               <div>
                 <label class="block text-gray-400 mb-1 font-medium">Fecha y Hora de Ejecución</label>
@@ -541,7 +573,7 @@
           <!-- Campos Ocultos de Sincronización -->
           <input type="hidden" id="fondeoFormStatus" value="win">
           <input type="hidden" id="fondeoFormPnl" value="0.00">
-          <input type="hidden" id="fondeoFormRr" value="2.0">
+          <input type="hidden" id="fondeoFormIsManualRr" value="0">
           <input type="hidden" id="fondeoFormSlPips" value="30.0">
 
           <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-black font-black text-sm rounded-xl flex items-center justify-center gap-2 transition shadow-xl shadow-amber-500/20 cursor-pointer">

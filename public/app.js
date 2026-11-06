@@ -497,7 +497,19 @@ function renderFondeoTradesTable() {
     const retColor = retPct > 0 ? 'text-emerald-400' : (retPct < 0 ? 'text-rose-400' : 'text-gray-400');
     const retDisplay = `<span class="font-mono font-bold ${retColor}">${retSign}${retPct.toFixed(2)}%</span>`;
 
-    const rrDisplay = t.rr != null ? `1:${Number(t.rr).toFixed(1)}` : '1:2.0';
+    const isManualBadge = t.is_manual_rr 
+      ? '<span class="text-[9px] px-1 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800 font-mono font-bold" title="R:R ajustado manualmente">M</span>' 
+      : '';
+    const rrFormatted = t.rr != null ? `1:${Number(t.rr).toFixed(2)}` : '1:2.00';
+    const rrDisplay = `
+      <div class="flex items-center gap-1.5">
+        <span class="font-mono font-bold text-blue-300">${rrFormatted}</span>
+        ${isManualBadge}
+        <button onclick="handleQuickEditRr('${t.id}')" class="p-1 text-gray-500 hover:text-amber-400 rounded hover:bg-gray-800 transition cursor-pointer" title="Modificar R:R obtenido">
+          <i data-lucide="edit-3" class="w-3 h-3"></i>
+        </button>
+      </div>
+    `;
 
     const chartBtn = (t.tv_url || t.tv_chart_url)
       ? `<a href="${t.tv_url || t.tv_chart_url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-950/70 hover:bg-blue-900 border border-blue-800/80 text-blue-300 text-[10px] font-medium transition" title="Ver captura en TradingView">
@@ -909,6 +921,9 @@ function setupFondeoTradeForm() {
 
   const pnlEl = document.getElementById('fondeoFormPnl');
   const rrEl = document.getElementById('fondeoFormRr');
+  const badgeRrMode = document.getElementById('badgeRrMode');
+  const btnResetRrAuto = document.getElementById('btnResetRrAuto');
+  const isManualRrEl = document.getElementById('fondeoFormIsManualRr');
   const slPipsEl = document.getElementById('fondeoFormSlPips');
   const statusEl = document.getElementById('fondeoFormStatus');
 
@@ -1026,56 +1041,158 @@ function setupFondeoTradeForm() {
     if (calc.tpPoints !== null) {
       const projRr = calc.projectedRr ? `1:${calc.projectedRr}` : '1:2.0';
       if (tpBadge) tpBadge.textContent = `${calc.tpPoints} pts (${projRr})`;
-      if (calc.projectedRr !== null && rrEl && isNaN(parseFloat(exitEl?.value))) {
-        rrEl.value = calc.projectedRr;
+      if (calc.projectedRr !== null && rrEl && !rrEl.dataset.userManual && isNaN(parseFloat(exitEl?.value))) {
+        rrEl.value = calc.projectedRr.toFixed(2);
       }
     } else {
       if (tpBadge) tpBadge.textContent = '0 pts (1:2.0)';
     }
 
+    const isManualRr = rrEl?.dataset.userManual === 'true';
+
     if (calc.points !== null) {
       const sign = calc.points > 0 ? '+' : '';
       if (ptsDisp) ptsDisp.textContent = `${sign}${calc.points} pts (${calc.pips > 0 ? '+' : ''}${calc.pips} pips)`;
+      
+      let finalPnl = calc.netPnl;
+      let finalRetPct = calc.retPct;
+      let finalStatus = calc.status;
+
+      // Si el usuario especificó manualmente el R:R obtenido al finalizar:
+      if (isManualRr && dollarRisk > 0) {
+        const manualRrVal = parseFloat(rrEl.value) || 2.0;
+        finalPnl = roundNum(dollarRisk * manualRrVal, 2);
+        finalRetPct = roundNum(riskPct * manualRrVal, 2);
+        finalStatus = manualRrVal > 0 ? 'win' : (manualRrVal < 0 ? 'loss' : 'be');
+      }
+
       if (pnlDisp) {
-        const pSign = calc.netPnl > 0 ? '+' : '';
-        pnlDisp.textContent = `${pSign}$${formatMoney(calc.netPnl)}`;
-        pnlDisp.className = `font-bold text-sm ${calc.netPnl > 0 ? 'text-emerald-400' : (calc.netPnl < 0 ? 'text-rose-400' : 'text-gray-400')}`;
+        const pSign = finalPnl > 0 ? '+' : '';
+        pnlDisp.textContent = `${pSign}$${formatMoney(finalPnl)}`;
+        pnlDisp.className = `font-bold text-sm ${finalPnl > 0 ? 'text-emerald-400' : (finalPnl < 0 ? 'text-rose-400' : 'text-gray-400')}`;
       }
       if (pctDisp) {
-        const pctSign = calc.retPct > 0 ? '+' : '';
-        pctDisp.textContent = `${pctSign}${calc.retPct.toFixed(2)}%`;
-        pctDisp.className = `font-bold text-sm ${calc.retPct > 0 ? 'text-emerald-400' : (calc.retPct < 0 ? 'text-rose-400' : 'text-amber-400')}`;
+        const pctSign = finalRetPct > 0 ? '+' : '';
+        pctDisp.textContent = `${pctSign}${finalRetPct.toFixed(2)}%`;
+        pctDisp.className = `font-bold text-sm ${finalRetPct > 0 ? 'text-emerald-400' : (finalRetPct < 0 ? 'text-rose-400' : 'text-amber-400')}`;
       }
       if (statusDisp) {
-        statusDisp.textContent = calc.status.toUpperCase();
-        statusDisp.className = `font-bold px-2 py-0.5 rounded text-[10px] ${calc.status === 'win' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : (calc.status === 'loss' ? 'bg-rose-950 text-rose-400 border border-rose-800' : 'bg-gray-800 text-gray-300 border border-gray-700')}`;
+        statusDisp.textContent = finalStatus.toUpperCase();
+        statusDisp.className = `font-bold px-2 py-0.5 rounded text-[10px] ${finalStatus === 'win' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : (finalStatus === 'loss' ? 'bg-rose-950 text-rose-400 border border-rose-800' : 'bg-gray-800 text-gray-300 border border-gray-700')}`;
       }
-      if (pnlEl) pnlEl.value = calc.netPnl.toFixed(2);
-      if (statusEl) statusEl.value = calc.status;
-      if (calc.realizedRr !== null && rrEl) {
-        rrEl.value = calc.realizedRr;
+      if (pnlEl) pnlEl.value = finalPnl.toFixed(2);
+      if (statusEl) statusEl.value = finalStatus;
+
+      if (!isManualRr) {
+        if (calc.realizedRr !== null && rrEl) {
+          rrEl.value = calc.realizedRr.toFixed(2);
+        }
       }
+
       if (rrDisp) {
-        const displayRr = calc.realizedRr !== null ? calc.realizedRr : (calc.projectedRr || 2.0);
+        const displayRr = isManualRr ? (parseFloat(rrEl?.value) || 2.0).toFixed(2) : (calc.realizedRr !== null ? calc.realizedRr.toFixed(2) : (calc.projectedRr ? calc.projectedRr.toFixed(2) : '2.00'));
         rrDisp.textContent = `1:${displayRr}`;
       }
     } else {
-      if (ptsDisp) ptsDisp.textContent = '0 pts (0.0 pips)';
-      if (pnlDisp) {
-        pnlDisp.textContent = '+$0.00';
-        pnlDisp.className = 'font-bold text-emerald-400 text-sm';
+      if (isManualRr && dollarRisk > 0) {
+        const manualRrVal = parseFloat(rrEl.value) || 2.0;
+        const manualPnl = roundNum(dollarRisk * manualRrVal, 2);
+        const manualPct = roundNum(riskPct * manualRrVal, 2);
+        if (ptsDisp) ptsDisp.textContent = `${Math.round(manualRrVal * (calc.slPoints || 300))} pts (implícito)`;
+        if (pnlDisp) {
+          pnlDisp.textContent = `+$${formatMoney(manualPnl)}`;
+          pnlDisp.className = 'font-bold text-emerald-400 text-sm';
+        }
+        if (pctDisp) {
+          pctDisp.textContent = `+${manualPct.toFixed(2)}%`;
+          pctDisp.className = 'font-bold text-emerald-400 text-sm';
+        }
+        if (pnlEl) pnlEl.value = manualPnl.toFixed(2);
+        if (statusEl) statusEl.value = 'win';
+        if (statusDisp) {
+          statusDisp.textContent = 'WIN';
+          statusDisp.className = 'font-bold px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800';
+        }
+        if (rrDisp) rrDisp.textContent = `1:${manualRrVal.toFixed(2)}`;
+      } else {
+        if (ptsDisp) ptsDisp.textContent = '0 pts (0.0 pips)';
+        if (pnlDisp) {
+          pnlDisp.textContent = '+$0.00';
+          pnlDisp.className = 'font-bold text-emerald-400 text-sm';
+        }
+        if (pctDisp) {
+          pctDisp.textContent = '+0.00%';
+          pctDisp.className = 'font-bold text-amber-400 text-sm';
+        }
+        if (statusDisp) {
+          statusDisp.textContent = 'WIN';
+          statusDisp.className = 'font-bold px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800';
+        }
+        if (rrDisp) rrDisp.textContent = `1:${calc.projectedRr ? calc.projectedRr.toFixed(2) : (rrEl?.value || '2.00')}`;
       }
-      if (pctDisp) {
-        pctDisp.textContent = '+0.00%';
-        pctDisp.className = 'font-bold text-amber-400 text-sm';
-      }
-      if (statusDisp) {
-        statusDisp.textContent = 'WIN';
-        statusDisp.className = 'font-bold px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800';
-      }
-      if (rrDisp) rrDisp.textContent = `1:${calc.projectedRr || (rrEl?.value || '2.0')}`;
     }
   }
+
+  function setManualRr(val) {
+    if (rrEl) {
+      rrEl.value = Number(val).toFixed(2);
+      rrEl.dataset.userManual = 'true';
+    }
+    if (isManualRrEl) isManualRrEl.value = '1';
+    if (badgeRrMode) {
+      badgeRrMode.textContent = 'MANUAL';
+      badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold';
+    }
+    if (btnResetRrAuto) btnResetRrAuto.classList.remove('hidden');
+
+    // Si el precio de salida está vacío pero hay entrada y sl, autocompletar precio de salida implícito
+    const entry = parseFloat(entryEl?.value);
+    const sl = parseFloat(slEl?.value);
+    const dir = dirEl?.value || 'BUY';
+    if (!isNaN(entry) && !isNaN(sl) && (!exitEl || !exitEl.value)) {
+      const slDist = Math.abs(entry - sl);
+      const impliedExit = dir === 'BUY' ? (entry + slDist * val) : (entry - slDist * val);
+      if (exitEl) exitEl.placeholder = `Implícito 1:${val}: ${impliedExit.toFixed(2)}`;
+    }
+    updateFondeoCalculation();
+  }
+
+  function resetAutoRr() {
+    if (rrEl) delete rrEl.dataset.userManual;
+    if (isManualRrEl) isManualRrEl.value = '0';
+    if (badgeRrMode) {
+      badgeRrMode.textContent = 'AUTO';
+      badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 font-bold';
+    }
+    if (btnResetRrAuto) btnResetRrAuto.classList.add('hidden');
+    if (exitEl) exitEl.placeholder = 'ej. 2726.50';
+    updateFondeoCalculation();
+  }
+
+  if (rrEl) {
+    rrEl.addEventListener('input', () => {
+      rrEl.dataset.userManual = 'true';
+      if (isManualRrEl) isManualRrEl.value = '1';
+      if (badgeRrMode) {
+        badgeRrMode.textContent = 'MANUAL';
+        badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold';
+      }
+      if (btnResetRrAuto) btnResetRrAuto.classList.remove('hidden');
+      updateFondeoCalculation();
+    });
+  }
+
+  if (btnResetRrAuto) {
+    btnResetRrAuto.addEventListener('click', resetAutoRr);
+  }
+
+  document.querySelectorAll('.btnQuickRr').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const val = parseFloat(btn.dataset.rr);
+      if (!isNaN(val)) setManualRr(val);
+    });
+  });
 
   function anyStringIncludes(str, arr) {
     if (!str) return false;
@@ -1132,6 +1249,7 @@ function setupFondeoTradeForm() {
     const status = statusEl?.value || 'win';
     const pnlInput = pnlEl?.value;
     const rr = parseFloat(rrEl?.value) || 2.0;
+    const isManualRr = rrEl?.dataset.userManual === 'true' || isManualRrEl?.value === '1';
     const session = document.getElementById('fondeoFormSession')?.value || 'New York';
     const tvUrl = document.getElementById('fondeoFormTvUrl')?.value || '';
     const notes = document.getElementById('fondeoFormNotes')?.value || '';
@@ -1151,6 +1269,8 @@ function setupFondeoTradeForm() {
       sl_pips: slPips,
       status: status,
       rr: rr,
+      manual_rr: rr,
+      is_manual_rr: isManualRr,
       session: session,
       tv_url: tvUrl,
       notes: notes
@@ -1175,6 +1295,7 @@ function setupFondeoTradeForm() {
 
       if (res.ok) {
         form.reset();
+        resetAutoRr();
         if (lotEl) delete lotEl.dataset.userModified;
         if (slBadge) slBadge.textContent = '0 pts';
         if (tpBadge) tpBadge.textContent = '0 pts';
@@ -3404,6 +3525,44 @@ window.handleDeleteTrade = async function(id, mode = 'backtest') {
   }
 };
 
+window.handleQuickEditRr = async function(id) {
+  const trade = (appState.fondeo.trades || []).find(t => t.id === id);
+  if (!trade) return;
+  const currentRr = trade.rr !== undefined ? Number(trade.rr).toFixed(2) : '2.00';
+  const input = prompt(`Ajustar R:R obtenido final para esta operación (ID: ${id.slice(0, 8)}...):\nActualmente: 1:${currentRr}\n\nIngresa el nuevo R:R obtenido final (ej: 2.5):`, currentRr);
+  if (input === null) return;
+  const newRr = parseFloat(String(input).replace(',', '.').trim());
+  if (isNaN(newRr)) {
+    alert('Por favor ingresa un número válido (ej. 2.5)');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/trades/${id}?mode=fondeo`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'fondeo',
+        rr: newRr,
+        manual_rr: newRr,
+        is_manual_rr: true
+      })
+    });
+    if (res.ok) {
+      await loadFondeoTrades();
+      if (typeof showToast === 'function') {
+        showToast(`✅ R:R de la operación actualizado a 1:${newRr.toFixed(2)}`, 'success', 3000);
+      }
+    } else {
+      const err = await res.json();
+      alert('Error actualizando R:R: ' + (err.error || 'Desconocido'));
+    }
+  } catch (err) {
+    console.error('Error al actualizar R:R:', err);
+    alert('Error de conexión al actualizar R:R.');
+  }
+};
+
 window.handleOpenEditModal = function(id, mode = 'backtest') {
   const tradeList = mode === 'fondeo' ? (appState.fondeo.trades || []) : (mode === 'real' ? appState.real.trades : appState.backtest.trades);
   const trade = tradeList.find(t => t.id === id);
@@ -3415,7 +3574,11 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
   const dateEl = document.getElementById('editTradeDate');
   if (dateEl) dateEl.value = trade.date || '';
   document.getElementById('editTradeTvPoints').value = pts;
-  document.getElementById('editTradeRR').value = trade.rr !== undefined ? formatRRText(trade.rr) : '1.0';
+  const modalRrEl = document.getElementById('editTradeRR');
+  if (modalRrEl) {
+    modalRrEl.value = trade.rr !== undefined ? formatRRText(trade.rr) : '1.0';
+    modalRrEl.dataset.userModified = trade.is_manual_rr ? 'true' : 'false';
+  }
   document.getElementById('editTradeDirection').value = trade.direction || 'BUY';
   document.getElementById('editTradeStatus').value = trade.status || 'win';
   const lotEl = document.getElementById('editTradeLot');
@@ -3465,7 +3628,22 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
         document.getElementById('editTradeTvPoints').value = curPts;
       }
       const mult = 100.0;
-      const computedPnl = roundNum(curLot * mult * exitDiff - curComm, 2);
+      let computedPnl = roundNum(curLot * mult * exitDiff - curComm, 2);
+      
+      if (!isNaN(curSl)) {
+        const slDiff = Math.abs(curEntry - curSl);
+        if (slDiff > 0 && rrInputEl && rrInputEl.dataset.userModified !== 'true') {
+          const rrVal = roundNum(Math.abs(exitDiff) / slDiff, 2);
+          rrInputEl.value = rrVal.toFixed(2);
+        } else if (rrInputEl && rrInputEl.dataset.userModified === 'true') {
+          const userManualRr = parseFloat(String(rrInputEl.value).replace(',', '.')) || 1.0;
+          const dRisk = curLot * mult * slDiff;
+          if (curStatus === 'win') {
+            computedPnl = roundNum(dRisk * userManualRr - curComm, 2);
+          }
+        }
+      }
+
       if (pnlEl) {
         pnlEl.value = computedPnl >= 0 ? `+${computedPnl.toFixed(2)}` : `${computedPnl.toFixed(2)}`;
       }
@@ -3473,13 +3651,6 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
         if (computedPnl > 0.05) statusEl.value = 'win';
         else if (computedPnl < -0.05) statusEl.value = 'loss';
         else statusEl.value = 'be';
-      }
-      if (!isNaN(curSl)) {
-        const slDiff = Math.abs(curEntry - curSl);
-        if (slDiff > 0 && rrInputEl) {
-          const rrVal = roundNum(Math.abs(exitDiff) / slDiff, 2);
-          rrInputEl.value = rrVal.toFixed(2);
-        }
       }
       return;
     }
@@ -3513,6 +3684,12 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
   const slInp = document.getElementById('editTradeSl');
   const tpInp = document.getElementById('editTradeTp');
   const dirInp = document.getElementById('editTradeDirection');
+
+  if (rrInputEl) {
+    rrInputEl.addEventListener('input', () => {
+      rrInputEl.dataset.userModified = 'true';
+    });
+  }
 
   if (statusEl) statusEl.onchange = recalculateModalPnlPreview;
   if (rrInputEl) rrInputEl.oninput = recalculateModalPnlPreview;
@@ -3588,6 +3765,8 @@ async function handleSaveEditedTrade() {
     manual_lot: manualLot,
     rr: tradeRR,
     rr_custom: tradeRR,
+    manual_rr: tradeRR,
+    is_manual_rr: true,
     strategy,
     emotion,
     tv_chart_url: tvChartUrl

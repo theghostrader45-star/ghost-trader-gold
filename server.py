@@ -806,6 +806,13 @@ def recalculate_trade_history(trades, config, mode="backtest"):
             user_lot = 0.0
         lot_size = round(user_lot, 2) if user_lot > 0 else suggested_lot
 
+        is_manual_rr = bool(t.get("is_manual_rr") or t.get("manual_rr") is not None)
+        if is_manual_rr:
+            try:
+                trade_rr = round(float(t.get("manual_rr") or t.get("rr")), 2)
+            except Exception:
+                pass
+
         # Check for price-based execution (entry, exit, sl, tp)
         entry_price = parse_float_safe(t.get("entry_price"))
         exit_price = parse_float_safe(t.get("exit_price"))
@@ -834,10 +841,42 @@ def recalculate_trade_history(trades, config, mode="backtest"):
                 status = "be"
             if curr_bal > 0:
                 ret_pct = round((pnl / curr_bal) * 100.0, 2)
-            if sl_price is not None:
+            if is_manual_rr:
+                try:
+                    trade_rr = round(float(t.get("manual_rr") or t.get("rr")), 2)
+                    if status == "win":
+                        ret_pct = round(trade_risk * trade_rr, 2)
+                        pnl = round(dollar_risk * trade_rr - commission, 2)
+                    elif status == "loss":
+                        ret_pct = -round(trade_risk, 2)
+                        pnl = -round(dollar_risk + commission, 2)
+                except Exception:
+                    pass
+            elif sl_price is not None:
                 sl_dist = abs(entry_price - sl_price)
                 if sl_dist > 0:
                     trade_rr = round(abs(exit_diff) / sl_dist, 2)
+        elif entry_price is not None and exit_price is None and sl_price is not None and is_manual_rr:
+            sl_diff = abs(entry_price - sl_price)
+            if status == "win":
+                implied_exit = entry_price + (sl_diff * trade_rr) if direction == "BUY" else entry_price - (sl_diff * trade_rr)
+                exit_price = round(implied_exit, 2)
+                calc_pts = round(sl_diff * trade_rr * pt_mult)
+                calc_pips = round(sl_diff * trade_rr * pip_mult, 1)
+                pnl = round(dollar_risk * trade_rr - commission, 2)
+                ret_pct = round(trade_risk * trade_rr, 2)
+            elif status == "loss":
+                exit_price = sl_price
+                calc_pts = -round(sl_diff * pt_mult)
+                calc_pips = -round(sl_diff * pip_mult, 1)
+                pnl = -round(dollar_risk + commission, 2)
+                ret_pct = -round(trade_risk, 2)
+            else:
+                exit_price = entry_price
+                calc_pts = 0
+                calc_pips = 0.0
+                pnl = -commission
+                ret_pct = 0.0
         else:
             trade_mode = t.get("mode") or mode
             if trade_mode == "backtest":
@@ -884,6 +923,8 @@ def recalculate_trade_history(trades, config, mode="backtest"):
         t_new["risk_pct_custom"] = trade_risk
         t_new["ret_pct"] = round(ret_pct, 2)
         t_new["rr"] = trade_rr
+        t_new["is_manual_rr"] = is_manual_rr
+        t_new["manual_rr"] = trade_rr if is_manual_rr else None
         t_new["dollar_risk"] = round(dollar_risk, 2)
         t_new["suggested_lot"] = suggested_lot
         t_new["lot_size"] = lot_size
@@ -1902,6 +1943,13 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 tp_points = round(sl_pips * trade_rr * (10.0 if not is_gold else 1.0))
                 tp_pips = round(sl_pips * trade_rr, 1)
 
+            is_manual_rr = bool(payload.get("is_manual_rr") or payload.get("manual_rr") is not None)
+            if is_manual_rr and payload.get("rr") is not None:
+                try:
+                    trade_rr = round(float(str(payload.get("manual_rr") or payload.get("rr")).replace(",", ".")), 2)
+                except Exception:
+                    pass
+
             if entry_price is not None and exit_price is not None:
                 exit_diff = (exit_price - entry_price) if direction == "BUY" else (entry_price - exit_price)
                 calc_points = round(exit_diff * pt_mult)
@@ -1916,8 +1964,36 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                     status = "be"
                 if cur_bal > 0:
                     ret_pct = round((pnl / cur_bal) * 100.0, 2)
-                if entry_price is not None and sl_price is not None and abs(entry_price - sl_price) > 0:
+                if is_manual_rr:
+                    if status == "win":
+                        ret_pct = round(trade_risk_pct * trade_rr, 2)
+                        pnl = round(dollar_risk * trade_rr - commission, 2)
+                    elif status == "loss":
+                        ret_pct = -round(trade_risk_pct, 2)
+                        pnl = -round(dollar_risk + commission, 2)
+                elif entry_price is not None and sl_price is not None and abs(entry_price - sl_price) > 0:
                     trade_rr = round(abs(exit_diff) / abs(entry_price - sl_price), 2)
+            elif entry_price is not None and exit_price is None and sl_price is not None and is_manual_rr:
+                sl_diff = abs(entry_price - sl_price)
+                if status == "win":
+                    implied_exit = entry_price + (sl_diff * trade_rr) if direction == "BUY" else entry_price - (sl_diff * trade_rr)
+                    exit_price = round(implied_exit, 2)
+                    calc_points = round(sl_diff * trade_rr * pt_mult)
+                    calc_pips = round(sl_diff * trade_rr * pip_mult, 1)
+                    pnl = round(dollar_risk * trade_rr - commission, 2)
+                    ret_pct = round(trade_risk_pct * trade_rr, 2)
+                elif status == "loss":
+                    exit_price = sl_price
+                    calc_points = -round(sl_diff * pt_mult)
+                    calc_pips = -round(sl_diff * pip_mult, 1)
+                    pnl = -round(dollar_risk + commission, 2)
+                    ret_pct = -round(trade_risk_pct, 2)
+                else:
+                    exit_price = entry_price
+                    calc_points = 0
+                    calc_pips = 0.0
+                    pnl = -commission
+                    ret_pct = 0.0
             else:
                 if "pnl" in payload and payload["pnl"] is not None and str(payload["pnl"]).strip() != "":
                     pnl = round(float(str(payload["pnl"]).replace(",", ".")), 2)
@@ -1948,6 +2024,9 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 "risk_pct": trade_risk_pct,
                 "risk_pct_custom": trade_risk_pct,
                 "ret_pct": round(ret_pct, 2),
+                "rr": trade_rr,
+                "is_manual_rr": is_manual_rr,
+                "manual_rr": trade_rr if is_manual_rr else None,
                 "dollar_risk": dollar_risk,
                 "suggested_lot": suggested_lot,
                 "lot_size": lot_size,
@@ -2112,6 +2191,11 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                     for k, v in payload.items():
                         if k != "id":
                             t[k] = v
+                    if "rr" in payload or "manual_rr" in payload or payload.get("is_manual_rr"):
+                        t["is_manual_rr"] = True
+                        if "rr" in payload:
+                            t["manual_rr"] = payload["rr"]
+                            t["rr"] = payload["rr"]
                     updated = True
                     break
 
