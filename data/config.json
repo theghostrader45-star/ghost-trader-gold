@@ -2,11 +2,13 @@
   "initial_balance": 50000.0,
   "risk_pct": 0.5,
   "leverage": 30,
-  "rr_ratio": 2.0,
+  "rr_ratio": 3.0,
   "contract_size": 100,
   "min_lot": 0.01,
   "lot_step": 0.01,
   "risk_mode": "compound",
   "currency": "USD",
-  "asset": "XAU/USD (Oro)"
+  "asset": "XAU/USD (Oro)",
+  "sl_points": 300,
+  "tp_points": 900
 }

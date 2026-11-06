@@ -522,7 +522,7 @@ function renderFondeoTradesTable() {
     const isManualBadge = t.is_manual_rr 
       ? '<span class="text-[9px] px-1 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800 font-mono font-bold" title="R:R ajustado manualmente">M</span>' 
       : '';
-    const rrFormatted = t.rr != null ? `1:${Number(t.rr).toFixed(2)}` : '1:2.00';
+    const rrFormatted = t.rr != null ? `1:${Number(t.rr).toFixed(2)}` : '1:3.00';
     const rrDisplay = `
       <div class="flex items-center gap-1.5">
         <span class="font-mono font-bold text-blue-300">${rrFormatted}</span>
@@ -676,7 +676,7 @@ function updateFondeoEquityChart() {
   }
 }
 
-let selectedFondeoRr = 2.0;
+let selectedFondeoRr = 3.0;
 
 function setupFondeoCalculator() {
   const assetSelect = document.getElementById('fondeoCalcAsset');
@@ -992,26 +992,39 @@ function setupFondeoTradeForm() {
     }
 
     const entry = parseFloat(entryEl?.value);
-    const sl = parseFloat(slEl?.value);
-    const tp = parseFloat(tpEl?.value);
-    const exit = parseFloat(exitEl?.value);
     const dir = dirEl?.value || 'BUY';
     const asset = assetEl?.value || 'XAU/USD';
 
-    // Auto-lot calculation based on SL distance in points
+    // Auto-completar SL (300 pts / $3.00) y TP (900 pts / $9.00 - R:R 1:3) si el usuario ingresó Entrada
+    if (!isNaN(entry) && entry > 0) {
+      if (slEl && (!slEl.dataset.userEdited || !slEl.value)) {
+        const autoSl = dir === 'BUY' ? roundNum(entry - 3.00, 2) : roundNum(entry + 3.00, 2);
+        slEl.value = autoSl.toFixed(2);
+      }
+      if (tpEl && (!tpEl.dataset.userEdited || !tpEl.value)) {
+        const autoTp = dir === 'BUY' ? roundNum(entry + 9.00, 2) : roundNum(entry - 9.00, 2);
+        tpEl.value = autoTp.toFixed(2);
+      }
+    }
+
+    const sl = parseFloat(slEl?.value);
+    const tp = parseFloat(tpEl?.value);
+    const exit = parseFloat(exitEl?.value);
+
+    // Cálculo de lotaje automático basado estrictamente en SL 300 puntos ($3.00 en Oro)
     let slPts = null;
     if (!isNaN(entry) && !isNaN(sl)) {
       slPts = Math.round(Math.abs(entry - sl) * 100);
     }
-    if (slPts !== null && slPts > 0) {
-      const autoLot = Math.max(0.01, roundNum(dollarRisk / slPts, 2));
-      if (autoLotHint) autoLotHint.textContent = `Auto: ${autoLot.toFixed(2)}`;
-      if (lotEl && !lotEl.dataset.userModified) {
-        lotEl.value = autoLot.toFixed(2);
-      }
+    const pointsForLot = (slPts !== null && slPts > 0) ? slPts : 300;
+    const autoLot = Math.max(0.01, roundNum(dollarRisk / pointsForLot, 2));
+
+    if (autoLotHint) autoLotHint.textContent = `Auto (300 SL): ${autoLot.toFixed(2)} lotes`;
+    if (lotEl && !lotEl.dataset.userModified) {
+      lotEl.value = autoLot.toFixed(2);
     }
 
-    const lot = parseFloat(lotEl?.value) || 0.83;
+    const lot = parseFloat(lotEl?.value) || autoLot;
 
     // Margin calculation (1:30 leverage for Gold, 1:100 for Forex)
     const isGold = anyStringIncludes(asset, ['XAU', 'GOLD', 'ORO']);
@@ -1036,7 +1049,7 @@ function setupFondeoTradeForm() {
         safetyText.innerHTML = `⚠️ <b>Riesgo Elevado:</b> Arriesgas <b>$${formatMoney(dollarRisk)}</b>, consumiendo más del 50% de tu colchón diario ($${formatMoney(dailyHeadroom)}). Soportas solo <strong>${lossesAllowed} pérdidas</strong> hoy.`;
         if (safetyBanner) safetyBanner.className = 'text-[11px] p-2 rounded-lg bg-rose-950/40 border border-rose-800/60 text-rose-300 flex items-center gap-1.5';
       } else {
-        safetyText.innerHTML = `🛡️ <b>Riesgo Óptimo en Oro:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b>. Soportas <strong>${lossesAllowed} pérdidas seguidas</strong> hoy sin violar el 4% diario ($2,000).`;
+        safetyText.innerHTML = `🛡️ <b>Riesgo Óptimo en Oro (SL 300 / TP 900):</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b>. Soportas <strong>${lossesAllowed} pérdidas seguidas</strong> hoy sin violar el 4% diario ($2,000).`;
         if (safetyBanner) safetyBanner.className = 'text-[11px] p-2 rounded-lg bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 flex items-center gap-1.5';
       }
     }
@@ -1057,17 +1070,17 @@ function setupFondeoTradeForm() {
       if (slBadge) slBadge.textContent = `${calc.slPoints} pts ($${calc.slDist.toFixed(2)})`;
       if (slPipsEl) slPipsEl.value = calc.slPips;
     } else {
-      if (slBadge) slBadge.textContent = '0 pts';
+      if (slBadge) slBadge.textContent = '300 pts ($3.00)';
     }
 
     if (calc.tpPoints !== null) {
-      const projRr = calc.projectedRr ? `1:${calc.projectedRr}` : '1:2.0';
+      const projRr = calc.projectedRr ? `1:${calc.projectedRr}` : '1:3.0';
       if (tpBadge) tpBadge.textContent = `${calc.tpPoints} pts (${projRr})`;
       if (calc.projectedRr !== null && rrEl && !rrEl.dataset.userManual && isNaN(parseFloat(exitEl?.value))) {
         rrEl.value = calc.projectedRr.toFixed(2);
       }
     } else {
-      if (tpBadge) tpBadge.textContent = '0 pts (1:2.0)';
+      if (tpBadge) tpBadge.textContent = '900 pts (1:3.0)';
     }
 
     const isManualRr = rrEl?.dataset.userManual === 'true';
@@ -1082,7 +1095,7 @@ function setupFondeoTradeForm() {
 
       // Si el usuario especificó manualmente el R:R obtenido al finalizar:
       if (isManualRr && dollarRisk > 0) {
-        const manualRrVal = parseFloat(rrEl.value) || 2.0;
+        const manualRrVal = parseFloat(rrEl.value) || 3.0;
         finalPnl = roundNum(dollarRisk * manualRrVal, 2);
         finalRetPct = roundNum(riskPct * manualRrVal, 2);
         finalStatus = manualRrVal > 0 ? 'win' : (manualRrVal < 0 ? 'loss' : 'be');
@@ -1112,12 +1125,12 @@ function setupFondeoTradeForm() {
       }
 
       if (rrDisp) {
-        const displayRr = isManualRr ? (parseFloat(rrEl?.value) || 2.0).toFixed(2) : (calc.realizedRr !== null ? calc.realizedRr.toFixed(2) : (calc.projectedRr ? calc.projectedRr.toFixed(2) : '2.00'));
+        const displayRr = isManualRr ? (parseFloat(rrEl?.value) || 3.0).toFixed(2) : (calc.realizedRr !== null ? calc.realizedRr.toFixed(2) : (calc.projectedRr ? calc.projectedRr.toFixed(2) : '3.00'));
         rrDisp.textContent = `1:${displayRr}`;
       }
     } else {
       if (isManualRr && dollarRisk > 0) {
-        const manualRrVal = parseFloat(rrEl.value) || 2.0;
+        const manualRrVal = parseFloat(rrEl.value) || 3.0;
         const manualPnl = roundNum(dollarRisk * manualRrVal, 2);
         const manualPct = roundNum(riskPct * manualRrVal, 2);
         if (ptsDisp) ptsDisp.textContent = `${Math.round(manualRrVal * (calc.slPoints || 300))} pts (implícito)`;
@@ -1132,25 +1145,27 @@ function setupFondeoTradeForm() {
         if (pnlEl) pnlEl.value = manualPnl.toFixed(2);
         if (statusEl) statusEl.value = 'win';
         if (statusDisp) {
-          statusDisp.textContent = 'WIN';
+          statusDisp.textContent = 'WIN (3R)';
           statusDisp.className = 'font-bold px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800';
         }
         if (rrDisp) rrDisp.textContent = `1:${manualRrVal.toFixed(2)}`;
       } else {
-        if (ptsDisp) ptsDisp.textContent = '0 pts (0.0 pips)';
+        if (ptsDisp) ptsDisp.textContent = '300 SL / 900 TP';
+        const expectedPnl = roundNum(dollarRisk * 3.0, 2);
+        const expectedPct = roundNum(riskPct * 3.0, 2);
         if (pnlDisp) {
-          pnlDisp.textContent = '+$0.00';
+          pnlDisp.textContent = `+$${formatMoney(expectedPnl)}`;
           pnlDisp.className = 'font-bold text-emerald-400 text-sm';
         }
         if (pctDisp) {
-          pctDisp.textContent = '+0.00%';
-          pctDisp.className = 'font-bold text-amber-400 text-sm';
+          pctDisp.textContent = `+${expectedPct.toFixed(2)}%`;
+          pctDisp.className = 'font-bold text-emerald-400 text-sm';
         }
         if (statusDisp) {
-          statusDisp.textContent = 'WIN';
+          statusDisp.textContent = 'WIN (3R)';
           statusDisp.className = 'font-bold px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800';
         }
-        if (rrDisp) rrDisp.textContent = `1:${calc.projectedRr ? calc.projectedRr.toFixed(2) : (rrEl?.value || '2.00')}`;
+        if (rrDisp) rrDisp.textContent = `1:${calc.projectedRr ? calc.projectedRr.toFixed(2) : (rrEl?.value || '3.00')}`;
       }
     }
   }
@@ -1162,8 +1177,8 @@ function setupFondeoTradeForm() {
     }
     if (isManualRrEl) isManualRrEl.value = '1';
     if (badgeRrMode) {
-      badgeRrMode.textContent = 'MANUAL';
-      badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold';
+      badgeRrMode.textContent = val === 3.0 ? '1:3 FIJO' : 'MANUAL';
+      badgeRrMode.className = `text-[9px] font-mono px-2 py-0.5 rounded-full ${val === 3.0 ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-amber-950 text-amber-300 border border-amber-800'} font-bold`;
     }
     if (btnResetRrAuto) btnResetRrAuto.classList.remove('hidden');
 
@@ -1180,15 +1195,51 @@ function setupFondeoTradeForm() {
   }
 
   function resetAutoRr() {
-    if (rrEl) delete rrEl.dataset.userManual;
+    if (rrEl) {
+      delete rrEl.dataset.userManual;
+      rrEl.value = '3.00';
+    }
     if (isManualRrEl) isManualRrEl.value = '0';
     if (badgeRrMode) {
-      badgeRrMode.textContent = 'AUTO';
-      badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 font-bold';
+      badgeRrMode.textContent = '1:3 FIJO';
+      badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold';
     }
     if (btnResetRrAuto) btnResetRrAuto.classList.add('hidden');
-    if (exitEl) exitEl.placeholder = 'ej. 2726.50';
+    if (exitEl) exitEl.placeholder = 'ej. 2729.50 (TP) o 2717.50 (SL)';
     updateFondeoCalculation();
+  }
+
+  // Botón para fijar estrictamente 300 SL / 900 TP (1:3 Fondeo)
+  const btnLockSlTp = document.getElementById('btnLock300Sl900Tp');
+  if (btnLockSlTp) {
+    btnLockSlTp.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (slEl) delete slEl.dataset.userEdited;
+      if (tpEl) delete tpEl.dataset.userEdited;
+      if (lotEl) delete lotEl.dataset.userModified;
+      if (rrEl) {
+        delete rrEl.dataset.userManual;
+        rrEl.value = '3.00';
+      }
+      if (isManualRrEl) isManualRrEl.value = '0';
+      if (badgeRrMode) {
+        badgeRrMode.textContent = '1:3 FIJO';
+        badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold';
+      }
+      
+      const entryVal = parseFloat(entryEl?.value);
+      const dirVal = dirEl?.value || 'BUY';
+      if (!isNaN(entryVal) && entryVal > 0) {
+        const fixedSl = dirVal === 'BUY' ? roundNum(entryVal - 3.00, 2) : roundNum(entryVal + 3.00, 2);
+        const fixedTp = dirVal === 'BUY' ? roundNum(entryVal + 9.00, 2) : roundNum(entryVal - 9.00, 2);
+        if (slEl) slEl.value = fixedSl.toFixed(2);
+        if (tpEl) tpEl.value = fixedTp.toFixed(2);
+      }
+      updateFondeoCalculation();
+      if (typeof showToast === 'function') {
+        showToast('⚡ Stop Loss (300 pts) y Take Profit (900 pts - 1:3) fijados con éxito.', 'success', 2500);
+      }
+    });
   }
 
   if (rrEl) {
@@ -1222,7 +1273,35 @@ function setupFondeoTradeForm() {
     return arr.some(a => upper.includes(a));
   }
 
-  [entryEl, slEl, tpEl, exitEl, dirEl, assetEl, riskPctEl, manualUsdInp].forEach(el => {
+  if (slEl) {
+    slEl.addEventListener('input', () => {
+      slEl.dataset.userEdited = 'true';
+    });
+  }
+
+  if (tpEl) {
+    tpEl.addEventListener('input', () => {
+      tpEl.dataset.userEdited = 'true';
+    });
+  }
+
+  if (dirEl) {
+    dirEl.addEventListener('change', () => {
+      const entryVal = parseFloat(entryEl?.value);
+      const dirVal = dirEl.value || 'BUY';
+      if (!isNaN(entryVal) && entryVal > 0) {
+        if (slEl && (!slEl.dataset.userEdited || !slEl.value)) {
+          slEl.value = (dirVal === 'BUY' ? roundNum(entryVal - 3.00, 2) : roundNum(entryVal + 3.00, 2)).toFixed(2);
+        }
+        if (tpEl && (!tpEl.dataset.userEdited || !tpEl.value)) {
+          tpEl.value = (dirVal === 'BUY' ? roundNum(entryVal + 9.00, 2) : roundNum(entryVal - 9.00, 2)).toFixed(2);
+        }
+      }
+      updateFondeoCalculation();
+    });
+  }
+
+  [entryEl, slEl, tpEl, exitEl, assetEl, riskPctEl, manualUsdInp].forEach(el => {
     if (el) {
       el.addEventListener('input', updateFondeoCalculation);
       el.addEventListener('change', updateFondeoCalculation);
@@ -1270,7 +1349,7 @@ function setupFondeoTradeForm() {
     const slPips = parseFloat(slPipsEl?.value) || 30.0;
     const status = statusEl?.value || 'win';
     const pnlInput = pnlEl?.value;
-    const rr = parseFloat(rrEl?.value) || 2.0;
+    const rr = parseFloat(rrEl?.value) || 3.0;
     const isManualRr = rrEl?.dataset.userManual === 'true' || isManualRrEl?.value === '1';
     const session = document.getElementById('fondeoFormSession')?.value || 'New York';
     const tvUrl = document.getElementById('fondeoFormTvUrl')?.value || '';
@@ -1317,13 +1396,11 @@ function setupFondeoTradeForm() {
 
       if (res.ok) {
         form.reset();
-        resetAutoRr();
+        if (slEl) delete slEl.dataset.userEdited;
+        if (tpEl) delete tpEl.dataset.userEdited;
         if (lotEl) delete lotEl.dataset.userModified;
-        if (slBadge) slBadge.textContent = '0 pts';
-        if (tpBadge) tpBadge.textContent = '0 pts';
-        if (ptsDisp) ptsDisp.textContent = '0 pts (0.0 pips)';
-        if (pnlDisp) pnlDisp.textContent = '+$0.00';
-        if (pctDisp) pctDisp.textContent = '0.00%';
+        resetAutoRr();
+        updateFondeoCalculation();
         await loadFondeoTrades();
         if (typeof showToast === 'function') {
           showToast('✅ Operación registrada en Orion Nova 50K con éxito.', 'success', 3000);

@@ -793,9 +793,9 @@ def recalculate_trade_history(trades, config, mode="backtest"):
         except Exception:
             pass
 
-    risk_pct = float(config.get("risk_pct", 5.0))
-    global_rr = float(config.get("rr_ratio", 1.0))
-    leverage = float(config.get("leverage", 300))
+    risk_pct = float(config.get("risk_pct", 0.5))
+    global_rr = float(config.get("rr_ratio", 3.0))
+    leverage = float(config.get("leverage", 30))
     
     curr_bal = initial_balance
     updated_trades = []
@@ -1032,7 +1032,7 @@ def calculate_analytics(trades, config, mode="backtest"):
     sl_points_list = []
     
     global_risk = float(config.get("risk_pct", 0.5 if mode == "fondeo" else (1.0 if mode == "real" else 5.0)))
-    global_rr = float(config.get("rr_ratio", 2.0))
+    global_rr = float(config.get("rr_ratio", 3.0))
 
     daily_pnl_map = {}
 
@@ -1734,7 +1734,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 risk_pct = float(query.get("risk_pct", [config.get("risk_pct", 0.5)])[0])
                 sl_pips = float(query.get("sl_pips", query.get("sl_points", query.get("sl_distance", [10.0])))[0])
                 asset = query.get("asset", [config.get("asset", "XAU/USD")])[0]
-                rr = float(query.get("rr", query.get("rr_ratio", [config.get("rr_ratio", 2.0)]))[0])
+                rr = float(query.get("rr", query.get("rr_ratio", [config.get("rr_ratio", 3.0)]))[0])
                 leverage = float(query.get("leverage", [config.get("leverage", 100.0)])[0])
                 res = calculate_position_size_universal(balance, risk_pct, sl_pips, asset, rr, leverage, mode)
                 self.send_json(res if res else {"error": "Invalid inputs"})
@@ -1917,7 +1917,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
 
             raw_risk = payload.get("risk_pct") or payload.get("risk_pct_custom") or config.get("risk_pct", 0.5 if mode == "fondeo" else 1.0)
             trade_risk_pct = round(float(str(raw_risk).replace(",", ".")), 2)
-            trade_rr = round(float(str(payload.get("rr") or config.get("rr_ratio", 2.0)).replace(",", ".")), 2)
+            trade_rr = round(float(str(payload.get("rr") or config.get("rr_ratio", 3.0)).replace(",", ".")), 2)
             status = payload.get("status", "win").lower()
             
             if status == "win":

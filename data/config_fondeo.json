@@ -13,10 +13,14 @@
   "best_day_rule_pct": 20.0,
   "currency": "USD",
   "risk_pct": 0.5,
-  "rr_ratio": 2.0,
+  "rr_ratio": 3.0,
   "asset": "XAU/USD",
   "asset_name": "Oro (XAU/USD)",
   "gold_price": 2720.0,
   "contract_size": 100,
-  "sl_default": 30
+  "sl_default": 30,
+  "sl_points": 300,
+  "tp_points": 900,
+  "sl_distance_usd": 3.0,
+  "tp_distance_usd": 9.0
 }
