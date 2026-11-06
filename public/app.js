@@ -5554,7 +5554,7 @@ async function triggerPremarketScan() {
 
   const steps = [
     { id: "scanStep1", name: "1. Noticias Macro (12h)", pct: "18%" },
-    { id: "scanStep2", name: "2. Calendario CET & Bloqueo", pct: "36%" },
+    { id: "scanStep2", name: "2. Calendario UTC-5 & Bloqueo", pct: "36%" },
     { id: "scanStep3", name: "3. Cierre Anterior & Asia/Londres", pct: "54%" },
     { id: "scanStep4", name: "4. Mapa Técnico & ADR 14", pct: "72%" },
     { id: "scanStep5", name: "5. Plan de Sesión New York", pct: "90%" },
@@ -5633,8 +5633,9 @@ async function renderPremarketView() {
 
 function copyPremarketReportToClipboard() {
   const reportText = `🏛️ INFORME PRE-MERCADO INSTITUCIONAL — XAU/USD (ORO SPOT)
-Sesión: New York Killzone (08:00 – 11:30 NY / 14:00 – 17:30 CET)
+Sesión: New York Killzone (08:00 – 11:30 AM UTC-5 NY)
 Estilo: Day Trading M5 (Sesgo direccional tomado en M15)
+Horario Base: UTC-5 (New York / Eastern Time - ET)
 Gestión: Orion Nova 50K (0.50% / $250 - Máx 1.00%) · Bloqueo ±15 min noticias
 
 ⚡ RESUMEN FLASH EN 20 SEGUNDOS (5 LÍNEAS CLAVE):
@@ -5642,19 +5643,19 @@ Gestión: Orion Nova 50K (0.50% / $250 - Máx 1.00%) · Bloqueo ±15 min noticia
 2. Entrada: Venta en retroceso a FVG M15 entre $2,731.50 y $2,733.50 post-apertura.
 3. Invalidación: $2,736.50 (SL técnico $3.00 / 30 pips; riesgo máx 0.50% / $250 con 0.83 lotes).
 4. Objetivo (TP): $2,718.50 (PDL - Mínimo de ayer) con extensión a $2,712.00 (R:R 1:3.0 a 1:4.2).
-5. Ventana Prohibida: Cero trades entre 14:15 y 14:45 CET (±15 min NFP). Spreads de 40+ pips.
+5. Ventana Prohibida: Cero trades entre 08:15 y 08:45 AM (UTC-5 NY) por NFP y empleo de EE.UU.
 
 1. NOTICIAS DE LAS ÚLTIMAS 12 HORAS:
 • NFP y Empleo EE.UU. superan previsiones (165K vs 65K exp) ➔ Afecta: DXY (104.20), US10Y (4.38%), Oro ➔ Sesgo: BEARISH (Presión Vendedora)
 • Tono Hawkish miembros Fed ➔ Afecta: XAU/USD, Bonos ➔ Sesgo: BEARISH (Techo Intradiario)
 • Demanda física Banco Central de China (PBoC) y Geopolítica ➔ Afecta: XAU/USD ➔ Sesgo: BULLISH_FLOOR (Piso Estructural)
 
-2. CALENDARIO ECONÓMICO DE HOY (CET & NY):
-• 14:30 CET (08:30 NY) | USD | Nóminas No Agrícolas (NFP Oct) | ALTO | Exp: 180K/65K | Prev: 254K | ⛔ NO OPERAR (14:15 – 14:45 CET)
-• 14:30 CET (08:30 NY) | USD | Tasa Desempleo EE.UU. | ALTO | Exp: 4.1% | Prev: 4.1% | ⛔ NO OPERAR (14:15 – 14:45 CET)
-• 14:30 CET (08:30 NY) | USD | Salario Medio por Hora (m/m) | MEDIO | Exp: +0.3% | Prev: +0.4%
-• 16:00 CET (10:00 NY) | USD | Confianza Univ. Michigan | MEDIO | Exp: 70.8 | Prev: 70.5 | ⚠️ Pausa táctica 15:45 – 16:15 CET
-• 19:00 CET (13:00 NY) | USD | Subasta Tesoro 10 Años (US10Y) | BAJO | Prev: 4.35% | Fuera de ventana principal
+2. CALENDARIO ECONÓMICO DE HOY (HORA UTC-5 NY):
+• 08:30 AM (UTC-5 NY) | USD | Nóminas No Agrícolas (NFP Oct) | ALTO | Exp: 180K/65K | Prev: 254K | ⛔ NO OPERAR (08:15 – 08:45 AM)
+• 08:30 AM (UTC-5 NY) | USD | Tasa Desempleo EE.UU. | ALTO | Exp: 4.1% | Prev: 4.1% | ⛔ NO OPERAR (08:15 – 08:45 AM)
+• 08:30 AM (UTC-5 NY) | USD | Salario Medio por Hora (m/m) | MEDIO | Exp: +0.3% | Prev: +0.4%
+• 10:00 AM (UTC-5 NY) | USD | Confianza Univ. Michigan | MEDIO | Exp: 70.8 | Prev: 70.5 | ⚠️ Pausa táctica 09:45 – 10:15 AM
+• 01:00 PM (UTC-5 NY) | USD | Subasta Tesoro 10 Años (US10Y) | BAJO | Prev: 4.35% | Fuera de Killzone principal
 
 3. CIERRE ANTERIOR & ASIA/LONDRES:
 • Cierre Ayer: $2,725.80 (-0.65% / -$17.80 USD) | Rango: $29.70 (2,970 pts) | Posición: Parte Baja (35%)
@@ -5675,12 +5676,12 @@ Gestión: Orion Nova 50K (0.50% / $250 - Máx 1.00%) · Bloqueo ±15 min noticia
 • Sesgo Direccional: BEARISH (Sell-Side Institucional)
 • Escenario Bajista (Principal): Venta en retroceso a FVG M15 ($2,732.00 – $2,735.00) tras NFP. Entrada: $2,731.50 – $2,733.50. SL: $2,736.50 (SL $3.00 / 30 pips). TP: $2,718.50 ➔ $2,712.00. R:R 1:3.0 a 1:4.2.
 • Escenario Alcista (Alternativo): Barrido de PDL falso rompimiento < $2,718.50 con rechazo en M5 y MSS. Entrada: $2,721.50. SL: $2,716.50. TP: $2,734.00. R:R 1:2.30.
-• Veredicto de Ejecución: El mejor setup es la VENTA en la 2da onda post-NFP (14:50 – 15:30 CET). Si rompe directo sin retroceso a $2,732.00, DEJARLO QUIETO.
+• Veredicto de Ejecución: El mejor setup es la VENTA en la 2da onda post-NFP (08:50 – 09:30 AM UTC-5 NY). Si rompe directo sin retroceso a $2,732.00, DEJARLO QUIETO.
 
 6. RIESGOS, CORRELACIONES & REGLA DE ORO:
 • Correlaciones Activas: DXY (104.20, inv. -0.88), US10Y Yield (+4.38%, inv.), VIX (16.20, calma), WTI Crude ($71.50, neutral).
-• Horas Ilíquidas: 12:00 – 13:00 CET (London Lunch), 17:00 – 17:30 CET (London Fix).
-• ¿Qué me haría quedarme fuera hoy?: "Si tras las noticias de las 14:30 CET el spread de Oro supera los 40 puntos después de las 14:45 CET, o si una vela M15 cierra con cuerpo por encima de $2,738.00, anulo el sesgo y cierro la plataforma sin operar."`;
+• Horas Ilíquidas: 06:00 – 07:00 AM UTC-5 NY (London Lunch), 11:00 – 11:30 AM UTC-5 NY (London Fix).
+• ¿Qué me haría quedarme fuera hoy?: "Si tras las noticias de las 08:30 AM (UTC-5 NY) el spread de Oro supera los 40 puntos después de las 08:45 AM (UTC-5 NY), o si una vela M15 cierra con cuerpo por encima de $2,738.00, anulo el sesgo y cierro la plataforma sin operar."`;
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(reportText).then(() => {

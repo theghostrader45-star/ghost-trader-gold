@@ -1,10 +1,11 @@
 {
-  "updated_at": "06 Nov 2026 · Escaneo Pre-Sesión Completado a las 22:27 CET (16:27 NY)",
+  "updated_at": "06 Nov 2026 · Escaneo Pre-Sesión a las 16:46 (UTC-5 NY)",
   "asset": "XAU/USD (Oro Spot)",
   "trader_profile": {
     "style": "Day Trading M5 (Sesgo direccional M15)",
     "asset": "XAU/USD (Oro Spot)",
-    "hours": "Apertura New York (08:00 – 11:30 NY / 14:00 – 17:30 CET)",
+    "hours": "Apertura New York Killzone (08:00 AM – 11:30 AM UTC-5 NY)",
+    "timezone": "UTC-5 (New York / Eastern Time - ET)",
     "risk_rule": "Riesgo estándar 0.50% ($250) a máx 1.00% ($500) en Orion Nova 50K (Límite 4% día). Bloqueo total ±15 min de noticias rojas."
   },
   "flash_summary_20s": [
@@ -12,7 +13,7 @@
     "🎯 Zona de Entrada Óptima: Venta en retroceso a Fair Value Gap (FVG) M15 entre $2,731.50 y $2,733.50 post-apertura.",
     "🛡️ Nivel de Invalidación Estricto: $2,736.50 (SL técnico de $3.00 / 30 pips; riesgo máx 0.50% / $250 con 0.83 lotes).",
     "🎯 Objetivo de Beneficio (TP): $2,718.50 (Mínimo de ayer - PDL) con extensión a $2,712.00 (Ratio R:R 1:3.0+).",
-    "⛔ Ventana Prohibida Estricta: Cero trades entre 14:15 y 14:45 CET (08:15 – 08:45 NY) por NFP y datos de empleo de EE.UU."
+    "⛔ Ventana Prohibida Estricta: Cero trades entre 08:15 y 08:45 AM (UTC-5 NY) por NFP y empleo de EE.UU."
   ],
   "news_last_12h": [
     {
@@ -41,74 +42,69 @@
     }
   ],
   "economic_calendar": {
-    "key_event_highlight": "💥 NFP (Nóminas No Agrícolas de EE.UU.) a las 14:30 CET (08:30 NY) — Volatilidad esperada de 1,500 a 3,000 puntos.",
-    "blackout_window": "⛔ VENTANA CRÍTICA DE NO OPERAR: 14:15 a 14:45 CET (±15 min de NFP)",
+    "key_event_highlight": "💥 NFP Nóminas No Agrícolas a las 08:30 AM (UTC-5 NY) — Volatilidad esperada de 1,500 a 3,000 puntos en Oro.",
+    "blackout_window": "⛔ VENTANA CRÍTICA DE NO OPERAR: 08:15 a 08:45 AM (UTC-5 NY) (±15 min de NFP)",
+    "timezone_label": "Horario Oficial: UTC-5 (New York / Eastern Time)",
     "events": [
       {
-        "time_cet": "14:30 CET",
-        "time_ny": "08:30 AM NY",
+        "time_ny": "08:30 AM (UTC-5 NY)",
         "country": "USD",
         "title": "Nóminas No Agrícolas (NFP Oct)",
         "impact": "CRITICAL",
         "impact_label": "🔴 ALTO",
         "consensus": "180K / 65K",
         "previous": "254K",
-        "window": "⛔ 14:15 – 14:45 CET (Bloqueo Total)"
+        "window": "⛔ 08:15 – 08:45 AM (Bloqueo Total)"
       },
       {
-        "time_cet": "14:30 CET",
-        "time_ny": "08:30 AM NY",
+        "time_ny": "08:30 AM (UTC-5 NY)",
         "country": "USD",
         "title": "Tasa de Desempleo (Oct)",
         "impact": "HIGH",
         "impact_label": "🔴 ALTO",
         "consensus": "4.1%",
         "previous": "4.1%",
-        "window": "⛔ 14:15 – 14:45 CET (Bloqueo Total)"
+        "window": "⛔ 08:15 – 08:45 AM (Bloqueo Total)"
       },
       {
-        "time_cet": "14:30 CET",
-        "time_ny": "08:30 AM NY",
+        "time_ny": "08:30 AM (UTC-5 NY)",
         "country": "USD",
         "title": "Ingresos Medios por Hora (m/m)",
         "impact": "HIGH",
         "impact_label": "🔴 ALTO",
         "consensus": "+0.3%",
         "previous": "+0.4%",
-        "window": "⛔ 14:15 – 14:45 CET (Bloqueo Total)"
+        "window": "⛔ 08:15 – 08:45 AM (Bloqueo Total)"
       },
       {
-        "time_cet": "16:00 CET",
-        "time_ny": "10:00 AM NY",
+        "time_ny": "10:00 AM (UTC-5 NY)",
         "country": "USD",
         "title": "Sentimiento del Consumidor Univ. Michigan Prelim",
         "impact": "MEDIUM",
         "impact_label": "🟡 MEDIO",
         "consensus": "71.0",
         "previous": "70.5",
-        "window": "⚠️ 15:45 – 16:15 CET (Pausa Táctica)"
+        "window": "⚠️ 09:45 – 10:15 AM (Pausa Táctica)"
       },
       {
-        "time_cet": "16:00 CET",
-        "time_ny": "10:00 AM NY",
+        "time_ny": "10:00 AM (UTC-5 NY)",
         "country": "USD",
         "title": "Expectativas de Inflación a 5 años Univ. Michigan",
         "impact": "MEDIUM",
         "impact_label": "🟡 MEDIO",
         "consensus": "3.0%",
         "previous": "3.0%",
-        "window": "⚠️ 15:45 – 16:15 CET (Pausa Táctica)"
+        "window": "⚠️ 09:45 – 10:15 AM (Pausa Táctica)"
       },
       {
-        "time_cet": "19:00 CET",
-        "time_ny": "01:00 PM NY",
+        "time_ny": "01:00 PM (UTC-5 NY)",
         "country": "USD",
         "title": "Subasta de Bonos del Tesoro a 10 Años (US10Y)",
         "impact": "LOW",
         "impact_label": "⚪ BAJO",
         "consensus": "N/A",
         "previous": "4.35%",
-        "window": "Fuera de ventana NY principal"
+        "window": "Fuera de Killzone principal"
       }
     ]
   },
@@ -180,7 +176,7 @@
       "target_tp": "$2,718.50 (Toma de PDL) con extensión a $2,712.00",
       "projected_rr": "1:3.0 a 1:4.2"
     },
-    "execution_verdict": "El mejor setup es la VENTA en la 2da onda post-NFP (entre 14:50 y 15:30 CET). Si el precio rompe a la baja directo sin retroceso a $2,732, DEJARLO QUIETO para evitar perseguir el precio extendido."
+    "execution_verdict": "El mejor setup es la VENTA en la 2da onda post-NFP (entre 08:50 y 09:30 AM UTC-5 NY). Si el precio rompe a la baja directo sin retroceso a $2,732, DEJARLO QUIETO para evitar perseguir el precio extendido."
   },
   "risks_and_reminders": {
     "active_correlations": [
@@ -202,22 +198,22 @@
       }
     ],
     "low_liquidity_hours": [
-      "12:00 – 13:00 CET (London Lunch)",
-      "17:00 – 17:30 CET (Cierre de sesión de Londres / London Fix)",
-      "Posterior a 17:30 CET (Volatilidad declinante en NY)"
+      "06:00 – 07:00 AM UTC-5 NY (London Lunch)",
+      "11:00 – 11:30 AM UTC-5 NY (Cierre de Londres / London Fix)",
+      "Posterior a 11:30 AM UTC-5 NY (Volatilidad declinante en NY)"
     ],
-    "stay_out_rule": "Qué me haría quedarme fuera hoy: 'Si tras las noticias de las 14:30 CET el spread de Oro supera los 40 puntos después de las 14:45 CET, o si una vela M15 cierra con cuerpo por encima de $2,738.00, anulo el sesgo y cierro la plataforma sin operar.'"
+    "stay_out_rule": "Qué me haría quedarme fuera hoy: 'Si tras las noticias de las 08:30 AM (UTC-5 NY) el spread de Oro supera los 40 puntos después de las 08:45 AM (UTC-5 NY), o si una vela M15 cierra con cuerpo por encima de $2,738.00, anulo el sesgo y cierro la plataforma sin operar.'"
   },
   "scan_status": {
     "status": "COMPLETED",
-    "timestamp_iso": "2026-11-06T21:27:06.877169+00:00",
-    "spot_price": 4064.5,
+    "timestamp_iso": "2026-11-06T21:46:38.326030+00:00",
+    "spot_price": 4067.0,
     "source": "Kraken PAXG/USD + Gold-API Spot (Calibrado 1:1)",
-    "cet_time": "22:27 CET",
-    "ny_time": "16:27 NY",
+    "ny_time": "16:46 (UTC-5 NY)",
+    "timezone_base": "UTC-5 (New York / Eastern Time)",
     "checklist": [
-      "1. Noticias Macro (12h): Superávit laboral en EE.UU., miembros Hawkish de la Fed y soporte físico PBoC analizados.",
-      "2. Calendario Económico: Ventana crítica NFP (14:15 a 14:45 CET) confirmada con regla estricta de NO OPERAR.",
+      "1. Noticias Macro (12h): Superávit laboral en EE.UU., tono Hawkish de la Fed y soporte físico PBoC analizados.",
+      "2. Calendario Económico (UTC-5 NY): Ventana crítica NFP (08:15 a 08:45 AM NY) confirmada con regla estricta de NO OPERAR.",
       "3. Cierre Anterior & Asia/Londres: Cierre en parte baja del rango ($2,725.80) y absorción de liquidez en Londres ($2,731.50) mapeados.",
       "4. Mapa Técnico M15/H1: Tendencia bajista activa, niveles PDH/PDL y consumo de ADR 14 (38.2%) calculados.",
       "5. Plan de Sesión NY: Venta en retroceso a FVG M15 ($2,731.50 – $2,733.50) con SL $2,736.50 y TP $2,718.50 (R:R 1:3.0 a 1:4.2).",

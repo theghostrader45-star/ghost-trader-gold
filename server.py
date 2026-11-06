@@ -194,10 +194,8 @@ def get_premarket():
 
 def execute_premarket_scan():
     now_utc = datetime.now(timezone.utc)
-    cet_hour = (now_utc.hour + 1) % 24
-    cet_str = f"{cet_hour:02d}:{now_utc.minute:02d} CET"
     ny_hour = (now_utc.hour - 5) % 24
-    ny_str = f"{ny_hour:02d}:{now_utc.minute:02d} NY"
+    ny_str = f"{ny_hour:02d}:{now_utc.minute:02d} (UTC-5 NY)"
     date_str = now_utc.strftime("%d %b %Y")
 
     try:
@@ -211,17 +209,17 @@ def execute_premarket_scan():
     if not current_pm:
         current_pm = {}
 
-    current_pm["updated_at"] = f"{date_str} · Escaneo Pre-Sesión Completado a las {cet_str} ({ny_str})"
+    current_pm["updated_at"] = f"{date_str} · Escaneo Pre-Sesión a las {ny_str}"
     current_pm["scan_status"] = {
         "status": "COMPLETED",
         "timestamp_iso": now_utc.isoformat(),
         "spot_price": spot_price,
         "source": source,
-        "cet_time": cet_str,
         "ny_time": ny_str,
+        "timezone_base": "UTC-5 (New York / Eastern Time)",
         "checklist": [
-            "1. Noticias Macro (12h): Superávit laboral en EE.UU., miembros Hawkish de la Fed y soporte físico PBoC analizados.",
-            "2. Calendario Económico: Ventana crítica NFP (14:15 a 14:45 CET) confirmada con regla estricta de NO OPERAR.",
+            "1. Noticias Macro (12h): Superávit laboral en EE.UU., tono Hawkish de la Fed y soporte físico PBoC analizados.",
+            "2. Calendario Económico (UTC-5 NY): Ventana crítica NFP (08:15 a 08:45 AM NY) confirmada con regla estricta de NO OPERAR.",
             "3. Cierre Anterior & Asia/Londres: Cierre en parte baja del rango ($2,725.80) y absorción de liquidez en Londres ($2,731.50) mapeados.",
             "4. Mapa Técnico M15/H1: Tendencia bajista activa, niveles PDH/PDL y consumo de ADR 14 (38.2%) calculados.",
             "5. Plan de Sesión NY: Venta en retroceso a FVG M15 ($2,731.50 – $2,733.50) con SL $2,736.50 y TP $2,718.50 (R:R 1:3.0 a 1:4.2).",
