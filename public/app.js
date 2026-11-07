@@ -63,6 +63,8 @@ let drawdownChart = null;
 let backtestEquityChart = null;
 let backtestDistributionChart = null;
 let backtestDrawdownChart = null;
+let btSimpleEquityChartInstance = null;
+let btSimpleDrawdownChartInstance = null;
 
 // Initialize on DOM Loaded
 document.addEventListener('DOMContentLoaded', async () => {
@@ -86,6 +88,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupPremarketView();
   setCurrentDateTime();
   loadGoldBiasData();
+
+  // Backtesting Simple (Interés Compuesto)
+  await loadBacktestSimpleData();
+  setupBacktestSimpleView();
 });
 
 function initIcons() {
@@ -167,7 +173,7 @@ function formatMoney(val) {
 }
 
 // ----------------------------------------------------
-// TAB NAVIGATION: 1. Operativa & Bitácora 50K | 2. Pre-Mercado XAU/USD | 3. Noticias de Alto Impacto | 4. Reglamento Oficial Orion | 5. Manual de Uso
+// TAB NAVIGATION: 1. Operativa & Bitácora 50K | 2. Pre-Mercado XAU/USD | 3. Noticias de Alto Impacto | 4. Reglamento Oficial Orion | 5. Manual de Uso | 6. Backtesting Simple
 // ----------------------------------------------------
 function setupTabNavigation() {
   const btnFondeo = document.getElementById('tabBtnFondeo');
@@ -175,12 +181,14 @@ function setupTabNavigation() {
   const btnNews = document.getElementById('tabBtnNews');
   const btnRules = document.getElementById('tabBtnRules');
   const btnManual = document.getElementById('tabBtnManual');
+  const btnBacktestSimple = document.getElementById('tabBtnBacktestSimple');
 
   const viewFondeo = document.getElementById('viewFondeo');
   const viewPremarket = document.getElementById('viewPremarket');
   const viewNews = document.getElementById('viewNews');
   const viewRules = document.getElementById('viewRules');
   const viewManual = document.getElementById('viewManual');
+  const viewBacktestSimple = document.getElementById('viewBacktestSimple');
 
   function switchTab(tab) {
     appState.activeTab = tab;
@@ -191,7 +199,7 @@ function setupTabNavigation() {
     const activeClasses = ['bg-amber-500', 'bg-sky-600', 'bg-rose-600', 'bg-emerald-600', 'bg-purple-600', 'text-black', 'text-white', 'shadow-lg', 'shadow-amber-500/30', 'shadow-sky-600/30', 'shadow-rose-600/30', 'shadow-emerald-600/30', 'shadow-purple-600/30', 'font-black', 'font-bold'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnFondeo, btnPremarket, btnNews, btnRules, btnManual].forEach(btn => {
+    [btnFondeo, btnPremarket, btnNews, btnRules, btnManual, btnBacktestSimple].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
@@ -203,6 +211,7 @@ function setupTabNavigation() {
     if (viewNews) viewNews.classList.add('hidden');
     if (viewRules) viewRules.classList.add('hidden');
     if (viewManual) viewManual.classList.add('hidden');
+    if (viewBacktestSimple) viewBacktestSimple.classList.add('hidden');
 
     if (tab === 'fondeo') {
       if (btnFondeo) {
@@ -240,6 +249,17 @@ function setupTabNavigation() {
         btnManual.classList.add('bg-purple-600', 'text-white', 'shadow-lg', 'shadow-purple-600/30', 'font-bold');
       }
       if (viewManual) viewManual.classList.remove('hidden');
+    } else if (tab === 'backtest') {
+      if (btnBacktestSimple) {
+        btnBacktestSimple.classList.remove(...inactiveClasses);
+        btnBacktestSimple.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-bold');
+      }
+      if (viewBacktestSimple) viewBacktestSimple.classList.remove('hidden');
+      renderBacktestSimpleDashboard();
+      setTimeout(() => {
+        if (btSimpleEquityChartInstance) btSimpleEquityChartInstance.resize();
+        if (btSimpleDrawdownChartInstance) btSimpleDrawdownChartInstance.resize();
+      }, 50);
     }
 
     initIcons();
@@ -252,9 +272,10 @@ function setupTabNavigation() {
   if (btnNews) btnNews.addEventListener('click', () => switchTab('news'));
   if (btnRules) btnRules.addEventListener('click', () => switchTab('rules'));
   if (btnManual) btnManual.addEventListener('click', () => switchTab('manual'));
+  if (btnBacktestSimple) btnBacktestSimple.addEventListener('click', () => switchTab('backtest'));
 
   let savedTab = localStorage.getItem('activeTab_orion_v3');
-  if (!savedTab || !['fondeo', 'premarket', 'news', 'rules', 'manual'].includes(savedTab)) {
+  if (!savedTab || !['fondeo', 'premarket', 'news', 'rules', 'manual', 'backtest'].includes(savedTab)) {
     savedTab = 'fondeo';
   }
   switchTab(savedTab);
@@ -2153,199 +2174,785 @@ function runMyfxbookCalculator() {
 }
 
 // ----------------------------------------------------
-// Render Backtest Dashboard & KPIs
+// BACKTESTING SIMPLE (INTERÉS COMPUESTO PURO) MODULE
 // ----------------------------------------------------
-function renderBacktestDashboard() {
+async function loadBacktestSimpleData() {
+  try {
+    const [resTrades, resConfig] = await Promise.all([
+      fetch('/api/trades?mode=backtest'),
+      fetch('/api/config?mode=backtest')
+    ]);
+
+    if (resConfig.ok) {
+      const cfg = await resConfig.json();
+      appState.backtest.config = cfg;
+      const inpBal = document.getElementById('btSimpleInitialBalance');
+      if (inpBal && (!inpBal.value || document.activeElement !== inpBal)) {
+        inpBal.value = cfg.initial_balance !== undefined ? cfg.initial_balance : 1000.0;
+      }
+      const inpRr = document.getElementById('btSimpleRR');
+      if (inpRr && (!inpRr.value || document.activeElement !== inpRr)) {
+        inpRr.value = cfg.rr_ratio !== undefined ? cfg.rr_ratio : 3.0;
+      }
+      const inpRisk = document.getElementById('btSimpleRiskPct');
+      if (inpRisk && (!inpRisk.value || document.activeElement !== inpRisk)) {
+        inpRisk.value = cfg.risk_pct !== undefined ? cfg.risk_pct : 1.0;
+      }
+    }
+
+    if (resTrades.ok) {
+      const data = await resTrades.json();
+      appState.backtest.summary = data.summary || {};
+      appState.backtest.equityCurve = data.equity_curve || [];
+      appState.backtest.trades = data.trades || [];
+    }
+
+    updateBacktestSimplePreviews();
+    renderBacktestSimpleDashboard();
+  } catch (err) {
+    console.error('Error cargando backtesting simple:', err);
+  }
+}
+
+function updateBacktestSimplePreviews() {
+  const inpBal = document.getElementById('btSimpleInitialBalance');
+  const inpRr = document.getElementById('btSimpleRR');
+  const inpRisk = document.getElementById('btSimpleRiskPct');
+
+  const curBal = (appState.backtest.summary && appState.backtest.summary.current_balance !== undefined)
+    ? Number(appState.backtest.summary.current_balance)
+    : (parseFloat(inpBal ? inpBal.value : '1000') || 1000.0);
+
+  const rrVal = parseFloat(inpRr ? inpRr.value : '3.0') || 3.0;
+  const riskPctVal = parseFloat(inpRisk ? inpRisk.value : '1.0') || 1.0;
+
+  // Breakeven Win Rate formula: 1 / (1 + RR)
+  const bePct = rrVal > 0 ? ((1 / (1 + rrVal)) * 100).toFixed(1) : '50.0';
+  const beBadge = document.getElementById('btSimpleBreakevenBadge');
+  if (beBadge) beBadge.textContent = `BE: ${bePct}%`;
+
+  // Dynamic next trade risk / win preview
+  const nextRiskUsd = curBal * (riskPctVal / 100.0);
+  const nextWinUsd = nextRiskUsd * rrVal;
+  const nextWinPct = (riskPctVal * rrVal).toFixed(2);
+
+  const riskPreview = document.getElementById('btSimpleRiskUsdPreview');
+  if (riskPreview) riskPreview.textContent = `$${nextRiskUsd.toFixed(2)} / op`;
+
+  const liveBalText = document.getElementById('btSimpleLiveBalText');
+  if (liveBalText) liveBalText.textContent = `$${formatMoney(curBal)}`;
+
+  const liveRiskText = document.getElementById('btSimpleLiveRiskText');
+  if (liveRiskText) liveRiskText.textContent = `$${nextRiskUsd.toFixed(2)} (${riskPctVal.toFixed(1)}%)`;
+
+  const winSubtext = document.getElementById('btSimpleWinRewardSubtext');
+  if (winSubtext) {
+    winSubtext.textContent = `+${nextWinPct}% (+${rrVal.toFixed(1)}R) · Ganancia: +$${nextWinUsd.toFixed(2)}`;
+  }
+
+  const lossSubtext = document.getElementById('btSimpleLossRiskSubtext');
+  if (lossSubtext) {
+    lossSubtext.textContent = `-${riskPctVal.toFixed(2)}% (-1R) · Pérdida: -$${nextRiskUsd.toFixed(2)}`;
+  }
+}
+
+function setupBacktestSimpleView() {
+  // Preset Chips: Capital Inicial
+  document.querySelectorAll('.btn-bt-chip-balance').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const val = parseFloat(btn.dataset.val);
+      const inp = document.getElementById('btSimpleInitialBalance');
+      if (inp) {
+        inp.value = val;
+        updateBacktestSimplePreviews();
+      }
+    });
+  });
+
+  // Preset Chips: R:R
+  document.querySelectorAll('.btn-bt-chip-rr').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const val = parseFloat(btn.dataset.val);
+      const inp = document.getElementById('btSimpleRR');
+      if (inp) {
+        inp.value = val;
+        updateBacktestSimplePreviews();
+      }
+    });
+  });
+
+  // Preset Chips: % Riesgo
+  document.querySelectorAll('.btn-bt-chip-risk').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const val = parseFloat(btn.dataset.val);
+      const inp = document.getElementById('btSimpleRiskPct');
+      if (inp) {
+        inp.value = val;
+        updateBacktestSimplePreviews();
+      }
+    });
+  });
+
+  // Live input events for dynamic recalculation previews
+  ['btSimpleInitialBalance', 'btSimpleRR', 'btSimpleRiskPct'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', updateBacktestSimplePreviews);
+      el.addEventListener('change', updateBacktestSimplePreviews);
+    }
+  });
+
+  // Botón: Recalcular Todo con Interés Compuesto
+  const btnRecalc = document.getElementById('btnBtSimpleRecalculate');
+  if (btnRecalc) {
+    btnRecalc.addEventListener('click', async () => {
+      const initBal = parseFloat(document.getElementById('btSimpleInitialBalance')?.value) || 1000.0;
+      const rr = parseFloat(document.getElementById('btSimpleRR')?.value) || 3.0;
+      const risk = parseFloat(document.getElementById('btSimpleRiskPct')?.value) || 1.0;
+
+      btnRecalc.disabled = true;
+      btnRecalc.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Recalculando...</span>';
+      initIcons();
+
+      try {
+        const res = await fetch('/api/recalculate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'backtest',
+            initial_balance: initBal,
+            rr_ratio: rr,
+            risk_pct: risk
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          appState.backtest.summary = data.summary || {};
+          appState.backtest.equityCurve = data.equity_curve || [];
+          appState.backtest.trades = data.trades || [];
+          renderBacktestSimpleDashboard();
+        }
+      } catch (err) {
+        console.error('Error recalculando backtesting simple:', err);
+      } finally {
+        btnRecalc.disabled = false;
+        btnRecalc.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i><span>⚡ Recalcular Todo con Interés Compuesto</span>';
+        initIcons();
+      }
+    });
+  }
+
+  // Helper para registrar trade rápido
+  async function submitQuickBtTrade(status) {
+    const rr = parseFloat(document.getElementById('btSimpleRR')?.value) || 3.0;
+    const risk = parseFloat(document.getElementById('btSimpleRiskPct')?.value) || 1.0;
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const dateStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+    try {
+      const res = await fetch('/api/trades?mode=backtest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'backtest',
+          status: status,
+          direction: status === 'loss' ? 'SELL' : 'BUY',
+          rr: rr,
+          risk_pct: risk,
+          sl_pips: 300,
+          date: dateStr,
+          strategy: 'Estrategia Rápida 1-Click',
+          emotion: 'Plan 100% Seguido',
+          notes: `Trade Rápido ${status.toUpperCase()} (${status === 'win' ? `+${rr}R` : (status === 'loss' ? '-1R' : 'BE')})`
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        appState.backtest.summary = data.analytics.summary || {};
+        appState.backtest.equityCurve = data.analytics.equity_curve || [];
+        appState.backtest.trades = data.analytics.trades || [];
+        renderBacktestSimpleDashboard();
+      }
+    } catch (e) {
+      console.error('Error enviando trade rápido backtest:', e);
+    }
+  }
+
+  const btnWin = document.getElementById('btnBtSimpleQuickWin');
+  if (btnWin) btnWin.addEventListener('click', () => submitQuickBtTrade('win'));
+  const btnLoss = document.getElementById('btnBtSimpleQuickLoss');
+  if (btnLoss) btnLoss.addEventListener('click', () => submitQuickBtTrade('loss'));
+  const btnBe = document.getElementById('btnBtSimpleQuickBe');
+  if (btnBe) btnBe.addEventListener('click', () => submitQuickBtTrade('be'));
+
+  // Formulario Manual Detallado
+  const btnAddManual = document.getElementById('btnBtSimpleAddManualTrade');
+  if (btnAddManual) {
+    btnAddManual.addEventListener('click', async () => {
+      const dir = document.getElementById('btSimpleManualDirection')?.value || 'BUY';
+      const status = document.getElementById('btSimpleManualStatus')?.value || 'win';
+      const manualRrInput = document.getElementById('btSimpleManualRR')?.value;
+      const globalRr = parseFloat(document.getElementById('btSimpleRR')?.value) || 3.0;
+      const slPoints = parseFloat(document.getElementById('btSimpleManualSlPoints')?.value) || 300;
+      const dateVal = document.getElementById('btSimpleManualDate')?.value;
+      const notes = document.getElementById('btSimpleManualNotes')?.value || '';
+      const risk = parseFloat(document.getElementById('btSimpleRiskPct')?.value) || 1.0;
+
+      const tradeRr = (manualRrInput && !isNaN(parseFloat(manualRrInput))) ? parseFloat(manualRrInput) : globalRr;
+      const isManualRr = Boolean(manualRrInput && !isNaN(parseFloat(manualRrInput)));
+
+      try {
+        const res = await fetch('/api/trades?mode=backtest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'backtest',
+            direction: dir,
+            status: status,
+            rr: tradeRr,
+            is_manual_rr: isManualRr,
+            manual_rr: isManualRr ? tradeRr : null,
+            sl_pips: slPoints,
+            tv_points: slPoints,
+            risk_pct: risk,
+            date: dateVal || undefined,
+            strategy: 'Manual Backtest',
+            notes: notes
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          appState.backtest.summary = data.analytics.summary || {};
+          appState.backtest.equityCurve = data.analytics.equity_curve || [];
+          appState.backtest.trades = data.analytics.trades || [];
+          if (document.getElementById('btSimpleManualNotes')) document.getElementById('btSimpleManualNotes').value = '';
+          renderBacktestSimpleDashboard();
+        }
+      } catch (err) {
+        console.error('Error registrando trade manual backtest:', err);
+      }
+    });
+  }
+
+  // Cargar Muestra
+  const btnSample = document.getElementById('btnBtSimpleLoadSample');
+  if (btnSample) {
+    btnSample.addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/trades/sample', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'backtest' })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          appState.backtest.summary = data.summary || {};
+          appState.backtest.equityCurve = data.equity_curve || [];
+          appState.backtest.trades = data.trades || [];
+          renderBacktestSimpleDashboard();
+        }
+      } catch (e) {
+        console.error('Error cargando muestra:', e);
+      }
+    });
+  }
+
+  // Limpiar Backtest
+  const btnClear = document.getElementById('btnBtSimpleClear');
+  if (btnClear) {
+    btnClear.addEventListener('click', async () => {
+      if (!confirm('¿Estás seguro de que deseas limpiar todas las operaciones del Backtesting Simple?')) return;
+      try {
+        const res = await fetch('/api/trades/clear', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'backtest' })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          appState.backtest.summary = data.summary || {};
+          appState.backtest.equityCurve = data.equity_curve || [];
+          appState.backtest.trades = data.trades || [];
+          renderBacktestSimpleDashboard();
+        }
+      } catch (e) {
+        console.error('Error limpiando backtest:', e);
+      }
+    });
+  }
+
+  // Filtros de tabla
+  document.querySelectorAll('.btn-bt-filter').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const filter = btn.dataset.filter;
+      appState.backtest.filter = filter;
+      document.querySelectorAll('.btn-bt-filter').forEach(b => {
+        b.className = 'btn-bt-filter px-3 py-1 rounded-lg font-semibold transition text-gray-400 hover:text-white cursor-pointer';
+      });
+      btn.className = 'btn-bt-filter px-3 py-1 rounded-lg font-semibold transition bg-emerald-600 text-white cursor-pointer';
+      renderBacktestSimpleTradesTable();
+    });
+  });
+
+  // Exportar CSV
+  const btnCsv = document.getElementById('btnBtSimpleExportCsv');
+  if (btnCsv) {
+    btnCsv.addEventListener('click', () => exportTradesToCsv('backtest'));
+  }
+
+  // Modal de Simulación en Serie
+  const modalSim = document.getElementById('modalBtSimpleSimulate');
+  const btnOpenSim = document.getElementById('btnBtSimpleSimulateModalOpen');
+  const btnCloseSim = document.getElementById('btnCloseBtSimulateModal');
+  const btnCancelSim = document.getElementById('btnCancelBtSimulation');
+  const btnExecSim = document.getElementById('btnExecuteBtSimulation');
+
+  if (btnOpenSim && modalSim) {
+    btnOpenSim.addEventListener('click', () => {
+      modalSim.classList.remove('hidden');
+      initIcons();
+    });
+  }
+  [btnCloseSim, btnCancelSim].forEach(btn => {
+    if (btn && modalSim) {
+      btn.addEventListener('click', () => modalSim.classList.add('hidden'));
+    }
+  });
+
+  const numRange = document.getElementById('btSimModalNumRange');
+  const numInput = document.getElementById('btSimModalNumInput');
+  if (numRange && numInput) {
+    numRange.addEventListener('input', () => { numInput.value = numRange.value; });
+    numInput.addEventListener('input', () => { numRange.value = numInput.value; });
+  }
+
+  const wrRange = document.getElementById('btSimModalWrRange');
+  const wrInput = document.getElementById('btSimModalWrInput');
+  if (wrRange && wrInput) {
+    wrRange.addEventListener('input', () => { wrInput.value = wrRange.value; });
+    wrInput.addEventListener('input', () => { wrRange.value = wrInput.value; });
+  }
+
+  document.querySelectorAll('.btn-bt-sim-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const trades = btn.dataset.trades;
+      const wr = btn.dataset.wr;
+      if (numRange) numRange.value = trades;
+      if (numInput) numInput.value = trades;
+      if (wrRange) wrRange.value = wr;
+      if (wrInput) wrInput.value = wr;
+    });
+  });
+
+  if (btnExecSim) {
+    btnExecSim.addEventListener('click', async () => {
+      const nTrades = parseInt(document.getElementById('btSimModalNumInput')?.value) || 30;
+      const winRate = parseFloat(document.getElementById('btSimModalWrInput')?.value) || 50.0;
+      const initBal = parseFloat(document.getElementById('btSimpleInitialBalance')?.value) || 1000.0;
+      const rr = parseFloat(document.getElementById('btSimpleRR')?.value) || 3.0;
+      const risk = parseFloat(document.getElementById('btSimpleRiskPct')?.value) || 1.0;
+
+      btnExecSim.disabled = true;
+      btnExecSim.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Simulando...</span>';
+      initIcons();
+
+      try {
+        const res = await fetch('/api/trades/generate-series', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'backtest',
+            num_trades: nTrades,
+            win_rate: winRate,
+            initial_balance: initBal,
+            risk_pct: risk,
+            rr_ratio: rr
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          appState.backtest.summary = data.summary || {};
+          appState.backtest.equityCurve = data.equity_curve || [];
+          appState.backtest.trades = data.trades || [];
+          if (modalSim) modalSim.classList.add('hidden');
+          renderBacktestSimpleDashboard();
+        }
+      } catch (err) {
+        console.error('Error generando simulación:', err);
+      } finally {
+        btnExecSim.disabled = false;
+        btnExecSim.innerHTML = '<i data-lucide="zap" class="w-4 h-4"></i><span>Generar y Calcular Curva</span>';
+        initIcons();
+      }
+    });
+  }
+}
+
+function renderBacktestSimpleDashboard() {
   const s = appState.backtest.summary || {};
-  const cfg = appState.config || {};
-  
-  const curBal = s.current_balance !== undefined ? s.current_balance : cfg.initial_balance;
-  const netPnl = s.net_pnl !== undefined ? s.net_pnl : 0.0;
-  const netRet = s.net_return_pct !== undefined ? s.net_return_pct : 0.0;
-  const winRate = s.win_rate !== undefined ? s.win_rate : 0.0;
-  const wins = s.wins || 0;
-  const losses = s.losses || 0;
-  const total = s.total_trades || 0;
-  const pf = s.profit_factor !== undefined ? s.profit_factor : 0.0;
-  const maxDd = s.max_drawdown_pct !== undefined ? s.max_drawdown_pct : 0.0;
-  const maxDdUsd = s.max_drawdown_amount !== undefined ? s.max_drawdown_amount : 0.0;
+  const trades = appState.backtest.trades || [];
+
+  const initBal = s.initial_balance !== undefined ? s.initial_balance : (parseFloat(document.getElementById('btSimpleInitialBalance')?.value) || 1000.0);
+  const curBal = s.current_balance !== undefined ? s.current_balance : initBal;
+  const netPnl = s.net_pnl !== undefined ? s.net_pnl : (curBal - initBal);
+  const netRet = s.net_return_pct !== undefined ? s.net_return_pct : (initBal > 0 ? (netPnl / initBal * 100) : 0);
+  const total = s.total_trades !== undefined ? s.total_trades : trades.length;
+  const wins = s.wins !== undefined ? s.wins : trades.filter(t => t.status === 'win').length;
+  const losses = s.losses !== undefined ? s.losses : trades.filter(t => t.status === 'loss').length;
+  const be = s.breakevens !== undefined ? s.breakevens : trades.filter(t => t.status === 'be').length;
+  const winRate = s.win_rate !== undefined ? s.win_rate : (total > 0 ? (wins / total * 100) : 0);
+  const pf = s.profit_factor !== undefined ? s.profit_factor : 0;
+  const maxDd = s.max_drawdown_pct !== undefined ? s.max_drawdown_pct : 0;
+  const maxDdUsd = s.max_drawdown_amount !== undefined ? s.max_drawdown_amount : 0;
   const maxWinStreak = s.max_streak_win || 0;
   const maxLossStreak = s.max_streak_loss || 0;
-  const expectancy = s.expectancy_usd !== undefined ? s.expectancy_usd : 0.0;
-  const beWinrate = s.be_winrate !== undefined ? s.be_winrate : 50.0;
+  const expectancy = s.expectancy_usd !== undefined ? s.expectancy_usd : 0;
+  const beWinrate = s.be_winrate !== undefined ? s.be_winrate : 25.0;
+  const totalGain = s.total_gain || 0;
+  const totalLoss = s.total_loss || 0;
+  const avgWin = s.avg_win || (wins > 0 ? totalGain / wins : 0);
+  const avgLoss = s.avg_loss || (losses > 0 ? totalLoss / losses : 0);
 
-  document.getElementById('tabBadgeBacktest').textContent = `${total} ops`;
-  document.getElementById('recalcTradesCount').textContent = total;
-
-  // Win Rate Card
-  document.getElementById('statWinRate').textContent = `${winRate.toFixed(1)}%`;
-  document.getElementById('statWins').textContent = wins;
-  document.getElementById('statLosses').textContent = losses;
-  document.getElementById('statWinRateBar').style.width = `${Math.min(100, winRate)}%`;
-
-  const winRateBadge = document.getElementById('winRateBadge');
-  if (total === 0) {
-    winRateBadge.className = 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-gray-800 text-gray-400';
-    winRateBadge.textContent = '0 Trades';
-  } else if (winRate >= beWinrate) {
-    winRateBadge.className = 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-950 text-emerald-400 border border-emerald-800';
-    winRateBadge.textContent = `Rentable (>${beWinrate}%)`;
-  } else {
-    winRateBadge.className = 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-rose-950 text-rose-400 border border-rose-800';
-    winRateBadge.textContent = `Bajo BE (${beWinrate}%)`;
+  // 1. Balance Final Card
+  const elBal = document.getElementById('btSimpleStatBalance');
+  if (elBal) elBal.textContent = `$${formatMoney(curBal)}`;
+  const elNetPnl = document.getElementById('btSimpleStatNetPnl');
+  if (elNetPnl) {
+    const sign = netPnl >= 0 ? '+' : '';
+    const color = netPnl >= 0 ? 'text-emerald-400' : 'text-rose-400';
+    elNetPnl.innerHTML = `<span class="${color}">${sign}$${formatMoney(netPnl)} (${sign}${netRet.toFixed(2)}%)</span>`;
   }
 
-  // Balance Card
-  document.getElementById('statCurrentBalance').textContent = `$${curBal.toFixed(2)}`;
-  const sign = netPnl >= 0 ? '+' : '';
-  const netPnlEl = document.getElementById('statNetPnL');
-  netPnlEl.textContent = `${sign}$${netPnl.toFixed(2)} (${sign}${netRet.toFixed(1)}%)`;
-  netPnlEl.className = netPnl >= 0 ? 'font-bold text-emerald-400' : 'font-bold text-rose-400';
+  // 2. Max DD Card
+  const elMaxDd = document.getElementById('btSimpleStatMaxDd');
+  if (elMaxDd) elMaxDd.textContent = `${maxDd.toFixed(1)}%`;
+  const elMaxDdUsd = document.getElementById('btSimpleStatMaxDdUsd');
+  if (elMaxDdUsd) elMaxDdUsd.textContent = `-$${formatMoney(maxDdUsd)} USD`;
 
-  const returnBadge = document.getElementById('statReturnBadge');
-  returnBadge.textContent = `${sign}${netRet.toFixed(1)}%`;
-  returnBadge.className = netPnl >= 0 
-    ? 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800/40'
-    : 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-rose-950/60 text-rose-400 border border-rose-800/40';
+  // 3. Win Rate Card
+  const elWr = document.getElementById('btSimpleStatWinRate');
+  if (elWr) elWr.textContent = `${winRate.toFixed(1)}%`;
+  const elWrBadge = document.getElementById('btSimpleStatWinRateBadge');
+  if (elWrBadge) {
+    if (total === 0) {
+      elWrBadge.className = 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-gray-800 text-gray-400';
+      elWrBadge.textContent = '0 ops';
+    } else if (winRate >= beWinrate) {
+      elWrBadge.className = 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-950 text-emerald-400 border border-emerald-800';
+      elWrBadge.textContent = `Rentable (>${beWinrate}%)`;
+    } else {
+      elWrBadge.className = 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-rose-950 text-rose-400 border border-rose-800';
+      elWrBadge.textContent = `Bajo BE (${beWinrate}%)`;
+    }
+  }
+  const elWrBar = document.getElementById('btSimpleStatWinRateBar');
+  if (elWrBar) elWrBar.style.width = `${Math.min(100, Math.max(0, winRate))}%`;
+  const elBeComp = document.getElementById('btSimpleStatBeComparison');
+  if (elBeComp) elBeComp.textContent = `BE necesario: ${beWinrate}%`;
 
-  // Profit Factor Card
-  document.getElementById('statProfitFactor').textContent = pf === '∞' ? '∞' : Number(pf).toFixed(2);
-  document.getElementById('statTotalGain').textContent = Number(s.total_gain || 0).toFixed(2);
-  document.getElementById('statTotalLoss').textContent = Number(s.total_loss || 0).toFixed(2);
-  document.getElementById('breakevenTargetText').textContent = `BE objetivo: ${beWinrate}% (R:R 1:${formatRRText(cfg.rr_ratio || 1.0)})`;
+  // 4. Profit Factor Card
+  const elPf = document.getElementById('btSimpleStatProfitFactor');
+  if (elPf) elPf.textContent = pf === '∞' ? '∞' : (Number(pf) >= 999 ? '∞' : Number(pf).toFixed(2));
+  const elGainsVsLosses = document.getElementById('btSimpleStatGainsVsLosses');
+  if (elGainsVsLosses) elGainsVsLosses.textContent = `Ganado: $${formatMoney(totalGain)} | Perdido: $${formatMoney(totalLoss)}`;
 
-  // Max DD Card
-  document.getElementById('statMaxDD').textContent = `${maxDd.toFixed(1)}%`;
-  document.getElementById('statMaxDDUsd').textContent = `-$${maxDdUsd.toFixed(2)}`;
-  const btDdDisplay = document.getElementById('backtestCurrentDrawdownDisplay');
-  if (btDdDisplay) btDdDisplay.textContent = `${maxDd.toFixed(1)}%`;
-  const donutCount = document.getElementById('backtestDonutTotalCount');
-  if (donutCount) donutCount.textContent = `${total} trades`;
-  const btBalDisplay = document.getElementById('backtestFormCurrentBalDisplay');
-  if (btBalDisplay) btBalDisplay.textContent = `$${curBal.toFixed(2)}`;
-  const btInitInput = document.getElementById('backtestInitialBalInput');
-  if (btInitInput && (!btInitInput.value || document.activeElement !== btInitInput)) {
-    btInitInput.value = s.initial_balance !== undefined ? s.initial_balance : (cfg.initial_balance || 110.0);
+  // 5. Expectancy Card
+  const elExp = document.getElementById('btSimpleStatExpectancy');
+  if (elExp) {
+    const expSign = expectancy >= 0 ? '+' : '';
+    elExp.textContent = `${expSign}$${formatMoney(expectancy)}`;
+    elExp.className = expectancy >= 0 ? 'text-xl sm:text-2xl font-black text-emerald-400 font-mono' : 'text-xl sm:text-2xl font-black text-rose-400 font-mono';
   }
 
-  // Streaks Card
-  document.getElementById('statMaxWinStreak').textContent = maxWinStreak;
-  document.getElementById('statMaxLossStreak').textContent = maxLossStreak;
+  // 6. Streaks Card
+  const elStreakWin = document.getElementById('btSimpleStatMaxStreakWin');
+  if (elStreakWin) elStreakWin.textContent = `${maxWinStreak} W`;
+  const elStreakLoss = document.getElementById('btSimpleStatMaxStreakLoss');
+  if (elStreakLoss) elStreakLoss.textContent = `${maxLossStreak} L`;
 
-  // Expectancy Card
-  const expSign = expectancy >= 0 ? '+' : '';
-  const expEl = document.getElementById('statExpectancy');
-  expEl.textContent = `${expSign}$${expectancy.toFixed(2)}`;
-  expEl.className = expectancy >= 0 ? 'text-2xl font-black text-emerald-400' : 'text-2xl font-black text-rose-400';
-  document.getElementById('statTotalTrades').textContent = total;
-
-  // Average Stop Loss Metrics
-  const avgSlPts = s.avg_sl_points !== undefined ? s.avg_sl_points : 0;
-  const avgSlPr = s.avg_sl_price !== undefined ? s.avg_sl_price : 0;
-  const minSlPts = s.min_sl_points !== undefined ? s.min_sl_points : 0;
-  const maxSlPts = s.max_sl_points !== undefined ? s.max_sl_points : 0;
-
-  const recalcAvgSlBadge = document.getElementById('recalcAvgSlBadge');
-  if (recalcAvgSlBadge) {
-    recalcAvgSlBadge.textContent = total > 0 ? `${avgSlPts} pts ($${avgSlPr.toFixed(2)})` : '0 pts ($0.00)';
-  }
-  const statAvgSlPoints = document.getElementById('statAvgSlPoints');
-  if (statAvgSlPoints) {
-    statAvgSlPoints.textContent = total > 0 ? avgSlPts : '0';
-  }
-  const statAvgSlPrice = document.getElementById('statAvgSlPrice');
-  if (statAvgSlPrice) {
-    statAvgSlPrice.textContent = avgSlPr.toFixed(2);
-  }
-  const statMinMaxSl = document.getElementById('statMinMaxSl');
-  if (statMinMaxSl) {
-    statMinMaxSl.textContent = total > 0 ? `${minSlPts} - ${maxSlPts} pts` : '-';
-  }
-  const labelFormAvgSl = document.getElementById('labelFormAvgSl');
-  if (labelFormAvgSl) {
-    labelFormAvgSl.textContent = total > 0 ? avgSlPts : '250';
+  // 7. Total Trades Card
+  const elTotal = document.getElementById('btSimpleStatTotalTrades');
+  if (elTotal) elTotal.textContent = total;
+  const elBreakdown = document.getElementById('btSimpleStatBreakdown');
+  if (elBreakdown) {
+    elBreakdown.innerHTML = `<span class="text-emerald-400">${wins} W</span> · <span class="text-rose-400">${losses} L</span> · <span class="text-gray-400">${be} BE</span>`;
   }
 
-  // Header dynamic risk budget
-  const currentRisk = curBal * (parseFloat(cfg.risk_pct || 5.0) / 100.0);
-  document.getElementById('badgeCurrentRiskUsd').textContent = `$${currentRisk.toFixed(2)}`;
+  // 8. Avg Win / Avg Loss Card
+  const elAvgWinLoss = document.getElementById('btSimpleStatAvgWinLoss');
+  if (elAvgWinLoss) {
+    elAvgWinLoss.textContent = `+$${formatMoney(avgWin)} / -$${formatMoney(avgLoss)}`;
+  }
+  const elRatioReal = document.getElementById('btSimpleStatRatioReal');
+  if (elRatioReal) {
+    const realRatio = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '0.00';
+    elRatioReal.textContent = `Ratio Real: ${realRatio}R`;
+  }
 
-  // Update Charts & Table
-  updateCharts();
-  updateBacktestCharts();
-  renderBacktestTradesTable();
-  updateCalculatorBalances();
+  updateBacktestSimplePreviews();
+  updateBacktestSimpleCharts();
+  renderBacktestSimpleTradesTable();
   initIcons();
 }
 
-function renderBacktestTradesTable() {
-  const tbody = document.getElementById('tradesTableBody');
-  const countAll = document.getElementById('countAll');
-  const countWins = document.getElementById('countWins');
-  const countLosses = document.getElementById('countLosses');
+// Retrocompatibilidad con otros módulos
+function renderBacktestDashboard() {
+  renderBacktestSimpleDashboard();
+}
 
-  const trades = appState.backtest.trades;
+function initBacktestSimpleCharts() {
+  const canvasEquity = document.getElementById('btSimpleEquityChart');
+  const canvasDd = document.getElementById('btSimpleDrawdownChart');
+
+  if (canvasEquity && !btSimpleEquityChartInstance) {
+    const ctxEq = canvasEquity.getContext('2d');
+    btSimpleEquityChartInstance = new Chart(ctxEq, {
+      type: 'line',
+      data: {
+        labels: ['Inicio'],
+        datasets: [
+          {
+            label: 'Balance Compuesto ($)',
+            data: [1000],
+            borderColor: '#10B981',
+            backgroundColor: 'rgba(16, 185, 129, 0.12)',
+            borderWidth: 2.5,
+            tension: 0.25,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+            pointBackgroundColor: '#10B981'
+          },
+          {
+            label: 'Base Inicial',
+            data: [1000],
+            borderColor: 'rgba(156, 163, 175, 0.4)',
+            borderWidth: 1.5,
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0F172A',
+            borderColor: '#059669',
+            borderWidth: 1,
+            titleColor: '#F8FAFC',
+            bodyColor: '#34D399',
+            callbacks: {
+              label: (ctx) => ` ${ctx.dataset.label}: $${Number(ctx.parsed.y).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: { color: '#94A3B8', font: { family: 'monospace', size: 10 } }
+          },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: {
+              color: '#94A3B8',
+              font: { family: 'monospace', size: 10 },
+              callback: (v) => `$${Number(v).toLocaleString('en-US')}`
+            }
+          }
+        }
+      }
+    });
+  }
+
+  if (canvasDd && !btSimpleDrawdownChartInstance) {
+    const ctxDd = canvasDd.getContext('2d');
+    btSimpleDrawdownChartInstance = new Chart(ctxDd, {
+      type: 'line',
+      data: {
+        labels: ['Inicio'],
+        datasets: [{
+          label: 'Drawdown (%)',
+          data: [0],
+          borderColor: '#F43F5E',
+          backgroundColor: 'rgba(244, 63, 94, 0.15)',
+          borderWidth: 2,
+          tension: 0.2,
+          fill: true,
+          pointRadius: 2,
+          pointBackgroundColor: '#F43F5E'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0F172A',
+            borderColor: '#BE123C',
+            borderWidth: 1,
+            titleColor: '#F8FAFC',
+            bodyColor: '#FB7185',
+            callbacks: {
+              label: (ctx) => ` Drawdown: -${Number(ctx.parsed.y).toFixed(2)}%`
+            }
+          }
+        },
+        scales: {
+          x: { display: false },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: {
+              color: '#FB7185',
+              font: { family: 'monospace', size: 10 },
+              callback: (v) => `-${v}%`
+            }
+          }
+        }
+      }
+    });
+  }
+}
+
+function updateBacktestSimpleCharts() {
+  initBacktestSimpleCharts();
+  const curve = appState.backtest.equityCurve || [];
+  const s = appState.backtest.summary || {};
+  const initBal = s.initial_balance !== undefined ? s.initial_balance : (parseFloat(document.getElementById('btSimpleInitialBalance')?.value) || 1000.0);
+  const curBal = s.current_balance !== undefined ? s.current_balance : initBal;
+
+  if (btSimpleEquityChartInstance) {
+    if (curve.length <= 1) {
+      btSimpleEquityChartInstance.data.labels = ['Inicio'];
+      btSimpleEquityChartInstance.data.datasets[0].data = [initBal];
+      btSimpleEquityChartInstance.data.datasets[1].data = [initBal];
+    } else {
+      btSimpleEquityChartInstance.data.labels = curve.map(c => c.trade_num === 0 ? 'Inicio' : `T#${c.trade_num}`);
+      btSimpleEquityChartInstance.data.datasets[0].data = curve.map(c => c.balance);
+      btSimpleEquityChartInstance.data.datasets[1].data = curve.map(() => initBal);
+
+      const isProfitable = curBal >= initBal;
+      const color = isProfitable ? '#10B981' : '#F43F5E';
+      const bg = isProfitable ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)';
+      btSimpleEquityChartInstance.data.datasets[0].borderColor = color;
+      btSimpleEquityChartInstance.data.datasets[0].backgroundColor = bg;
+      btSimpleEquityChartInstance.data.datasets[0].pointBackgroundColor = color;
+    }
+    btSimpleEquityChartInstance.update();
+  }
+
+  if (btSimpleDrawdownChartInstance) {
+    if (curve.length <= 1) {
+      btSimpleDrawdownChartInstance.data.labels = ['Inicio'];
+      btSimpleDrawdownChartInstance.data.datasets[0].data = [0];
+    } else {
+      btSimpleDrawdownChartInstance.data.labels = curve.map(c => c.trade_num === 0 ? 'Inicio' : `T#${c.trade_num}`);
+      btSimpleDrawdownChartInstance.data.datasets[0].data = curve.map(c => c.drawdown_pct);
+    }
+    btSimpleDrawdownChartInstance.update();
+
+    const ddDisp = document.getElementById('btSimpleChartCurrentDdDisplay');
+    if (ddDisp) {
+      const maxDd = s.max_drawdown_pct !== undefined ? s.max_drawdown_pct : 0;
+      ddDisp.textContent = `${maxDd.toFixed(1)}% Max DD`;
+    }
+  }
+}
+
+function renderBacktestSimpleTradesTable() {
+  const tbody = document.getElementById('btSimpleTradesTableBody');
+  if (!tbody) return;
+
+  const countAll = document.getElementById('btFilterCountAll');
+  const countWins = document.getElementById('btFilterCountWins');
+  const countLosses = document.getElementById('btFilterCountLosses');
+
+  const trades = appState.backtest.trades || [];
   const winsCount = trades.filter(t => t.status === 'win').length;
   const lossesCount = trades.filter(t => t.status === 'loss').length;
 
-  countAll.textContent = trades.length;
-  countWins.textContent = winsCount;
-  countLosses.textContent = lossesCount;
+  if (countAll) countAll.textContent = trades.length;
+  if (countWins) countWins.textContent = winsCount;
+  if (countLosses) countLosses.textContent = lossesCount;
 
   let filtered = trades;
-  if (appState.backtest.filter === 'win') {
+  const filter = appState.backtest.filter || 'all';
+  if (filter === 'win') {
     filtered = trades.filter(t => t.status === 'win');
-  } else if (appState.backtest.filter === 'loss') {
+  } else if (filter === 'loss') {
     filtered = trades.filter(t => t.status === 'loss');
   }
 
   if (filtered.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="14" class="py-12 text-center text-gray-500 font-sans">
+        <td colspan="12" class="py-12 text-center text-gray-500 font-sans">
           ${trades.length === 0 
-            ? 'Aún no has registrado operaciones. Ingresa los puntos de Stop Loss arriba y haz clic en <strong>"REGISTRAR OPERACIÓN AL BACKTEST"</strong>.' 
-            : 'No hay operaciones con este filtro seleccionado.'}
+            ? 'Aún no has registrado operaciones. Usa los botones rápidos 🟢 WIN / 🔴 LOSS o simula una serie con el botón superior.' 
+            : 'No hay operaciones que coincidan con el filtro seleccionado.'}
         </td>
       </tr>
     `;
     return;
   }
 
+  const globalRr = parseFloat(document.getElementById('btSimpleRR')?.value) || 3.0;
+
   const rowsHtml = filtered.slice().reverse().map((t, idx) => {
     const isWin = t.status === 'win';
     const isLoss = t.status === 'loss';
-    const pnlSign = t.pnl > 0 ? '+' : '';
+    const pnlNum = Number(t.pnl || 0);
+    const pnlSign = pnlNum > 0 ? '+' : '';
     const pnlColor = isWin ? 'text-emerald-400 font-bold' : (isLoss ? 'text-rose-400 font-bold' : 'text-gray-400');
     
-    const tradeRR = Number(t.rr || appState.config.rr_ratio || 1.0);
+    const tradeRr = Number(t.rr || globalRr);
     const badgeOutcome = isWin
-      ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">WIN (+${formatRRText(tradeRR)}R)</span>`
+      ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">WIN (+${tradeRr.toFixed(1)}R)</span>`
       : (isLoss 
           ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-800">LOSS (-1R)</span>'
-          : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-800 text-gray-400">BE (0)</span>');
+          : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-800 text-gray-400">BE ($0)</span>');
 
     const dirBadge = t.direction === 'BUY'
-      ? '<span class="text-tvGreen font-bold flex items-center gap-0.5"><i data-lucide="arrow-up-right" class="w-3 h-3"></i> Compra</span>'
-      : '<span class="text-tvRed font-bold flex items-center gap-0.5"><i data-lucide="arrow-down-right" class="w-3 h-3"></i> Venta</span>';
+      ? '<span class="text-emerald-400 font-bold flex items-center gap-0.5"><i data-lucide="arrow-up-right" class="w-3 h-3"></i> BUY</span>'
+      : '<span class="text-rose-400 font-bold flex items-center gap-0.5"><i data-lucide="arrow-down-right" class="w-3 h-3"></i> SELL</span>';
 
-    const riskBudget = t.risk_budget ? `$${Number(t.risk_budget).toFixed(2)}` : (t.dollar_risk ? `$${Number(t.dollar_risk).toFixed(2)}` : `$${(t.balance_before * (appState.config.risk_pct / 100)).toFixed(2)}`);
+    const riskBudgetUsd = t.dollar_risk !== undefined ? `$${Number(t.dollar_risk).toFixed(2)}` : (t.balance_before ? `$${(t.balance_before * ((t.risk_pct || 1) / 100)).toFixed(2)}` : '$0.00');
+    const riskPctStr = `${Number(t.risk_pct || t.risk_pct_custom || 1.0).toFixed(1)}%`;
+    const retPctStr = t.ret_pct !== undefined ? `${t.ret_pct >= 0 ? '+' : ''}${Number(t.ret_pct).toFixed(2)}%` : '-';
+    const balBeforeStr = t.balance_before !== undefined ? `$${formatMoney(t.balance_before)}` : '-';
+    const balAfterStr = t.balance_after !== undefined ? `$${formatMoney(t.balance_after)}` : '-';
+
+    const curvePoint = (appState.backtest.equityCurve || []).find(c => c.trade_num === (filtered.length - idx));
+    const ddStr = curvePoint ? `${curvePoint.drawdown_pct.toFixed(1)}%` : '0.0%';
 
     return `
       <tr class="transition hover:bg-gray-800/40">
         <td class="py-2.5 px-3 text-gray-500">${filtered.length - idx}</td>
+        <td class="py-2.5 px-3 text-gray-400 text-[11px] whitespace-nowrap">${t.date || '-'}</td>
         <td class="py-2.5 px-3">${dirBadge}</td>
-        <td class="py-2.5 px-3 text-blue-300 font-bold font-mono">1:${formatRRText(tradeRR)}</td>
-        <td class="py-2.5 px-3 text-amber-300 font-mono">${riskBudget} <span class="text-[10px] text-amber-400/90 font-bold">(${formatRiskPctText(t.risk_pct || t.risk_pct_custom || 5.0)}%)</span></td>
+        <td class="py-2.5 px-3 text-blue-300 font-bold font-mono">1:${tradeRr.toFixed(1)}</td>
+        <td class="py-2.5 px-3 text-amber-300 font-mono">${riskBudgetUsd} <span class="text-[10px] text-amber-400/90 font-bold">(${riskPctStr})</span></td>
         <td class="py-2.5 px-3">${badgeOutcome}</td>
-        <td class="py-2.5 px-3 ${pnlColor}">${pnlSign}$${Number(t.pnl).toFixed(2)}</td>
-        <td class="py-2.5 px-3 text-white font-bold font-mono">$${Number(t.balance_after || 0).toFixed(2)}</td>
+        <td class="py-2.5 px-3 ${pnlColor}">${pnlSign}$${formatMoney(pnlNum)}</td>
+        <td class="py-2.5 px-3 ${pnlColor}">${retPctStr}</td>
+        <td class="py-2.5 px-3 text-gray-400 font-mono">${balBeforeStr}</td>
+        <td class="py-2.5 px-3 text-white font-bold font-mono">${balAfterStr}</td>
+        <td class="py-2.5 px-3 text-rose-400 font-mono">${ddStr}</td>
         <td class="py-2.5 px-3 text-right">
           <div class="flex items-center justify-end gap-1.5">
-            <button onclick="handleOpenEditModal('${t.id}', 'backtest')" class="p-1 rounded hover:bg-gray-800 text-gray-400 hover:text-gold-400 transition" title="Editar este trade">
+            <button onclick="handleOpenEditModal('${t.id}', 'backtest')" class="p-1 rounded hover:bg-gray-800 text-gray-400 hover:text-emerald-400 transition cursor-pointer" title="Editar trade">
               <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
             </button>
-            <button onclick="handleDeleteTrade('${t.id}', 'backtest')" class="p-1 rounded hover:bg-gray-800 text-gray-400 hover:text-rose-400 transition" title="Borrar este trade">
+            <button onclick="handleDeleteTrade('${t.id}', 'backtest')" class="p-1 rounded hover:bg-gray-800 text-gray-400 hover:text-rose-400 transition cursor-pointer" title="Borrar trade">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           </div>
@@ -2355,6 +2962,12 @@ function renderBacktestTradesTable() {
   }).join('');
 
   tbody.innerHTML = rowsHtml;
+  initIcons();
+}
+
+// Retrocompatibilidad
+function renderBacktestTradesTable() {
+  renderBacktestSimpleTradesTable();
 }
 
 // ----------------------------------------------------
@@ -2842,6 +3455,7 @@ function initCharts() {
 }
 
 function updateBacktestCharts() {
+  updateBacktestSimpleCharts();
   const curve = appState.backtest.equityCurve || [];
   const s = appState.backtest.summary || {};
   const initial = s.initial_balance !== undefined ? s.initial_balance : (appState.config.initial_balance || 110);

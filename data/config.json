@@ -1,6 +1,6 @@
 {
-  "initial_balance": 50000.0,
-  "risk_pct": 0.5,
+  "initial_balance": 1000.0,
+  "risk_pct": 1.0,
   "leverage": 30,
   "rr_ratio": 3.0,
   "contract_size": 100,

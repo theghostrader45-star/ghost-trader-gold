@@ -819,9 +819,18 @@ def recalculate_trade_history(trades, config, mode="backtest"):
                 tv_points = round(raw_val * 100.0)
                 price_dist = round(raw_val, 2)
             
-        raw_risk = t.get("risk_pct_custom") or t.get("risk_pct") or risk_pct
-        trade_risk = round(float(str(raw_risk).replace(",", ".")), 2)
-        trade_rr = round(float(str(t.get("rr_custom") or t.get("rr") or global_rr).replace(",", ".")), 2)
+        is_manual_risk = bool(t.get("is_manual_risk") or (t.get("risk_pct_custom") is not None and mode != "backtest"))
+        if is_manual_risk and (t.get("risk_pct_custom") is not None or t.get("risk_pct") is not None):
+            trade_risk = round(float(str(t.get("risk_pct_custom") or t.get("risk_pct")).replace(",", ".")), 2)
+        else:
+            trade_risk = round(risk_pct, 2)
+
+        is_manual_rr = bool(t.get("is_manual_rr") or (t.get("manual_rr") is not None and mode != "backtest"))
+        if is_manual_rr and (t.get("manual_rr") is not None or t.get("rr_custom") is not None):
+            trade_rr = round(float(str(t.get("manual_rr") or t.get("rr_custom") or t.get("rr")).replace(",", ".")), 2)
+        else:
+            trade_rr = round(global_rr, 2)
+
         status = t.get("status", "win").lower()
         raw_comm = t.get("commission", 0.0)
         commission = round(abs(float(str(raw_comm).replace(",", "."))), 2)
@@ -1000,9 +1009,9 @@ def calculate_analytics(trades, config, mode="backtest"):
         leverage = float(config.get("leverage", 500.0))
         mt5_broker = "Tickmill Real ($97.72)"
     else:
-        initial_balance = float(config.get("initial_balance", 110.0))
-        leverage = float(config.get("leverage", 300.0))
-        mt5_broker = "Demo Backtesting"
+        initial_balance = float(config.get("initial_balance", 1000.0))
+        leverage = float(config.get("leverage", 30.0))
+        mt5_broker = "Backtesting Simple"
 
     current_balance = initial_balance
     peak_balance = initial_balance
@@ -1038,9 +1047,15 @@ def calculate_analytics(trades, config, mode="backtest"):
 
     for idx, t in enumerate(trades, start=1):
         status = str(t.get("status", "win")).lower()
-        raw_risk = t.get("risk_pct_custom") or t.get("risk_pct") or global_risk
-        trade_risk = round(float(str(raw_risk).replace(",", ".")), 2)
-        trade_rr = round(float(str(t.get("rr_custom") or t.get("rr") or global_rr).replace(",", ".")), 2)
+        if mode == "backtest":
+            is_manual_risk = bool(t.get("is_manual_risk"))
+            trade_risk = round(float(str(t.get("risk_pct_custom") or t.get("risk_pct")).replace(",", ".")), 2) if is_manual_risk else global_risk
+            is_manual_rr = bool(t.get("is_manual_rr"))
+            trade_rr = round(float(str(t.get("manual_rr") or t.get("rr_custom") or t.get("rr")).replace(",", ".")), 2) if is_manual_rr else global_rr
+        else:
+            raw_risk = t.get("risk_pct_custom") or t.get("risk_pct") or global_risk
+            trade_risk = round(float(str(raw_risk).replace(",", ".")), 2)
+            trade_rr = round(float(str(t.get("rr_custom") or t.get("rr") or global_rr).replace(",", ".")), 2)
 
         if status == "win":
             ret_pct = round(trade_risk * trade_rr, 2)
@@ -1059,7 +1074,9 @@ def calculate_analytics(trades, config, mode="backtest"):
             except (ValueError, TypeError):
                 raw_pnl = None
 
-        if raw_pnl is not None:
+        if mode == "backtest":
+            pnl = round(current_balance * (ret_pct / 100.0), 2)
+        elif raw_pnl is not None:
             pnl = raw_pnl
         else:
             if status == "win":
@@ -1876,7 +1893,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             self.send_json({"success": True})
             return
 
-        elif path == "/api/recalculate":
+        elif path == "/api/recalculate" or path == "/api/trades/recalculate":
             mode = payload.get("mode", "fondeo")
             config = get_config(mode)
             if "risk_pct" in payload:
@@ -2123,10 +2140,105 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             return
 
         elif path == "/api/trades/sample":
-            config = get_config()
+            mode = payload.get("mode", "backtest")
+            config = get_config(mode)
             sample = generate_sample_trades(config)
-            save_json(TRADES_FILE, sample)
-            analytics = calculate_analytics(sample, config)
+            save_trades(sample, mode)
+            recalculated = recalculate_trade_history(sample, config, mode=mode)
+            save_trades(recalculated, mode)
+            analytics = calculate_analytics(recalculated, config, mode=mode)
+            analytics["mode"] = mode
+            self.send_json(analytics)
+            return
+
+        elif path == "/api/trades/generate-series":
+            mode = payload.get("mode", "backtest")
+            num_trades = int(payload.get("num_trades", 30))
+            if num_trades < 5: num_trades = 5
+            if num_trades > 300: num_trades = 300
+            sim_winrate = float(payload.get("win_rate", 50.0))
+            if sim_winrate < 5.0: sim_winrate = 5.0
+            if sim_winrate > 95.0: sim_winrate = 95.0
+            
+            config = get_config(mode)
+            if "initial_balance" in payload:
+                config["initial_balance"] = float(payload["initial_balance"])
+            if "risk_pct" in payload:
+                config["risk_pct"] = float(payload["risk_pct"])
+            if "rr_ratio" in payload:
+                config["rr_ratio"] = float(payload["rr_ratio"])
+            save_config(config, mode)
+
+            initial_balance = float(config.get("initial_balance", 1000.0))
+            risk_pct = float(config.get("risk_pct", 1.0))
+            rr_ratio = float(config.get("rr_ratio", 3.0))
+            asset = payload.get("asset", "XAU/USD (Oro)")
+
+            import random
+            from datetime import timedelta
+            num_wins = int(round(num_trades * (sim_winrate / 100.0)))
+            num_losses = num_trades - num_wins
+            outcomes = ["win"] * num_wins + ["loss"] * num_losses
+            random.seed(int(time.time() * 1000) % 100000)
+            random.shuffle(outcomes)
+
+            new_trades = []
+            curr_bal = initial_balance
+            now_dt = datetime.now()
+            base_date = now_dt - timedelta(days=max(1, int(num_trades * 0.7)))
+
+            strategies = [
+                "Sweep Liquidez NY + FVG M5",
+                "Quiebre Estructural + Retesteo M5",
+                "Order Block M15 + Gatillo M5",
+                "Ruptura de Rango Apertura NY",
+                "Rechazo en Soporte Institucional"
+            ]
+
+            for i, st in enumerate(outcomes, start=1):
+                t_dt = base_date + timedelta(hours=int(i * 4.5) + random.randint(0, 59))
+                t_date_str = t_dt.strftime("%Y-%m-%d %H:%M")
+                dollar_risk = round(curr_bal * (risk_pct / 100.0), 2)
+                if st == "win":
+                    ret_pct = round(risk_pct * rr_ratio, 2)
+                    pnl = round(dollar_risk * rr_ratio, 2)
+                else:
+                    ret_pct = -round(risk_pct, 2)
+                    pnl = -round(dollar_risk, 2)
+
+                bal_before = curr_bal
+                curr_bal = max(0.0, round(curr_bal + pnl, 2))
+
+                trade = {
+                    "id": str(uuid.uuid4()),
+                    "date": t_date_str,
+                    "asset": asset,
+                    "direction": random.choice(["BUY", "SELL"]),
+                    "sl_points": 300,
+                    "tp_points": int(round(300 * rr_ratio)),
+                    "risk_pct": risk_pct,
+                    "risk_pct_custom": risk_pct,
+                    "ret_pct": ret_pct,
+                    "rr": rr_ratio,
+                    "is_manual_rr": False,
+                    "dollar_risk": dollar_risk,
+                    "suggested_lot": round(dollar_risk / 300.0, 2) if dollar_risk >= 3.0 else 0.01,
+                    "lot_size": round(dollar_risk / 300.0, 2) if dollar_risk >= 3.0 else 0.01,
+                    "status": st,
+                    "pnl": pnl,
+                    "balance_before": bal_before,
+                    "balance_after": curr_bal,
+                    "session": "New York",
+                    "strategy": random.choice(strategies),
+                    "emotion": "Plan Institucional Seguido",
+                    "notes": f"Simulación Serie Trade #{i}",
+                    "mode": mode
+                }
+                new_trades.append(trade)
+
+            save_trades(new_trades, mode)
+            analytics = calculate_analytics(new_trades, config, mode=mode)
+            analytics["mode"] = mode
             self.send_json(analytics)
             return
 
