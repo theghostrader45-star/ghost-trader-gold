@@ -177,33 +177,42 @@ function formatMoney(val) {
 }
 
 // ----------------------------------------------------
-// TAB NAVIGATION: 1. Fondeo Orion 50K | 2. Bitácora Real (Tickmill) | 3. Pre-Mercado NY | 4. Noticias | 5. Reglas | 6. Backtest Simple
+// TAB NAVIGATION: 1. Fondeo Orion 50K | 2. Bitácora Real (Tickmill) | 3. Noticias | 4. Backtest Simple
 // ----------------------------------------------------
 function setupTabNavigation() {
   const btnFondeo = document.getElementById('tabBtnFondeo');
   const btnReal = document.getElementById('tabBtnReal');
-  const btnPremarket = document.getElementById('tabBtnPremarket');
   const btnNews = document.getElementById('tabBtnNews');
-  const btnRules = document.getElementById('tabBtnRules');
   const btnBacktestSimple = document.getElementById('tabBtnBacktestSimple');
 
   const viewFondeo = document.getElementById('viewFondeo');
   const viewRealJournal = document.getElementById('viewRealJournal');
-  const viewPremarket = document.getElementById('viewPremarket');
   const viewNews = document.getElementById('viewNews');
-  const viewRules = document.getElementById('viewRules');
   const viewBacktestSimple = document.getElementById('viewBacktestSimple');
 
   function switchTab(tab) {
+    // Si se invoca 'rules', redirigir a fondeo y hacer scroll a las reglas integradas
+    if (tab === 'rules') {
+      tab = 'fondeo';
+      setTimeout(() => {
+        const rulesSec = document.getElementById('sectionFondeoRules');
+        if (rulesSec) rulesSec.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+    // Si se invoca 'premarket', redirigir a noticias
+    if (tab === 'premarket') {
+      tab = 'news';
+    }
+
     appState.activeTab = tab;
     try {
       localStorage.setItem('activeTab_orion_v3', tab);
     } catch (e) {}
 
-    const activeClasses = ['bg-amber-500', 'bg-sky-600', 'bg-rose-600', 'bg-emerald-600', 'bg-purple-600', 'text-black', 'text-white', 'shadow-lg', 'shadow-amber-500/30', 'shadow-sky-600/30', 'shadow-rose-600/30', 'shadow-emerald-600/30', 'shadow-purple-600/30', 'font-black', 'font-bold'];
+    const activeClasses = ['bg-amber-500', 'bg-rose-600', 'bg-emerald-600', 'text-black', 'text-white', 'shadow-lg', 'shadow-amber-500/30', 'shadow-rose-600/30', 'shadow-emerald-600/30', 'font-black', 'font-bold'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnFondeo, btnReal, btnPremarket, btnNews, btnRules, btnBacktestSimple].forEach(btn => {
+    [btnFondeo, btnReal, btnNews, btnBacktestSimple].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
@@ -212,53 +221,8 @@ function setupTabNavigation() {
 
     if (viewFondeo) viewFondeo.classList.add('hidden');
     if (viewRealJournal) viewRealJournal.classList.add('hidden');
-    if (viewPremarket) viewPremarket.classList.add('hidden');
     if (viewNews) viewNews.classList.add('hidden');
-    if (viewRules) viewRules.classList.add('hidden');
     if (viewBacktestSimple) viewBacktestSimple.classList.add('hidden');
-
-    // Adaptive Top Bar Badges according to current Active Tab / Account
-    const headerModeBadge = document.getElementById('topHeaderModeBadge');
-    const headerSubtitle = document.getElementById('topHeaderSubtitle');
-    const fondeoBadges = document.getElementById('topHeaderFondeoBadges');
-    const realBadges = document.getElementById('topHeaderRealBadges');
-
-    if (tab === 'real') {
-      if (headerModeBadge) {
-        headerModeBadge.innerHTML = '<i data-lucide="wallet" class="w-3 h-3 text-emerald-400"></i> Tickmill Real MT5 (1:500)';
-        headerModeBadge.className = 'hidden sm:inline-flex text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold items-center gap-1 font-mono tracking-wide';
-      }
-      if (headerSubtitle) {
-        headerSubtitle.textContent = 'Operativa Personal Real • Broker Tickmill (1:500) • Contrato 100 oz • Cálculo Dinámico';
-      }
-      if (fondeoBadges) {
-        fondeoBadges.classList.remove('lg:flex');
-        fondeoBadges.classList.add('hidden');
-      }
-      if (realBadges) {
-        realBadges.classList.remove('hidden');
-        realBadges.classList.add('lg:flex');
-        const s = appState.real.summary || {};
-        const bEl = document.getElementById('badgeTopRealBalance');
-        if (bEl) bEl.textContent = `$${(s.current_balance !== undefined ? s.current_balance : 97.72).toFixed(2)}`;
-      }
-    } else {
-      if (headerModeBadge) {
-        headerModeBadge.innerHTML = '<i data-lucide="shield-check" class="w-3 h-3 text-amber-400"></i> Orion Nova 50K';
-        headerModeBadge.className = 'hidden sm:inline-flex text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold items-center gap-1 font-mono tracking-wide';
-      }
-      if (headerSubtitle) {
-        headerSubtitle.textContent = 'Centro de Mando Exclusivo XAU/USD (Oro) • Reglas Orion Funded • Operativa 100% Manual';
-      }
-      if (realBadges) {
-        realBadges.classList.remove('lg:flex');
-        realBadges.classList.add('hidden');
-      }
-      if (fondeoBadges) {
-        fondeoBadges.classList.remove('hidden');
-        fondeoBadges.classList.add('lg:flex');
-      }
-    }
 
     if (tab === 'fondeo') {
       if (btnFondeo) {
@@ -280,13 +244,6 @@ function setupTabNavigation() {
         renderRealJournalDashboard();
         if (typeof recalculateRealQuickLot === 'function') recalculateRealQuickLot();
       });
-    } else if (tab === 'premarket') {
-      if (btnPremarket) {
-        btnPremarket.classList.remove(...inactiveClasses);
-        btnPremarket.classList.add('bg-sky-600', 'text-white', 'shadow-lg', 'shadow-sky-600/30', 'font-bold');
-      }
-      if (viewPremarket) viewPremarket.classList.remove('hidden');
-      renderPremarketView();
     } else if (tab === 'news') {
       if (btnNews) {
         btnNews.classList.remove(...inactiveClasses);
@@ -294,12 +251,6 @@ function setupTabNavigation() {
       }
       if (viewNews) viewNews.classList.remove('hidden');
       renderNewsView();
-    } else if (tab === 'rules') {
-      if (btnRules) {
-        btnRules.classList.remove(...inactiveClasses);
-        btnRules.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-bold');
-      }
-      if (viewRules) viewRules.classList.remove('hidden');
     } else if (tab === 'backtest') {
       if (btnBacktestSimple) {
         btnBacktestSimple.classList.remove(...inactiveClasses);
@@ -320,13 +271,11 @@ function setupTabNavigation() {
 
   if (btnFondeo) btnFondeo.addEventListener('click', () => switchTab('fondeo'));
   if (btnReal) btnReal.addEventListener('click', () => switchTab('real'));
-  if (btnPremarket) btnPremarket.addEventListener('click', () => switchTab('premarket'));
   if (btnNews) btnNews.addEventListener('click', () => switchTab('news'));
-  if (btnRules) btnRules.addEventListener('click', () => switchTab('rules'));
   if (btnBacktestSimple) btnBacktestSimple.addEventListener('click', () => switchTab('backtest'));
 
   let savedTab = localStorage.getItem('activeTab_orion_v3');
-  if (!savedTab || !['fondeo', 'real', 'premarket', 'news', 'rules', 'backtest'].includes(savedTab)) {
+  if (!savedTab || !['fondeo', 'real', 'news', 'backtest'].includes(savedTab)) {
     savedTab = 'fondeo';
   }
   switchTab(savedTab);
@@ -786,6 +735,8 @@ function setupFondeoCalculator() {
 
   function calculateFondeoMetrics() {
     const summary = appState.fondeo.summary || {};
+    // Interés Simple: cálculo basado en capital inicial fijo ($50,000 USD)
+    const baseCapital = Number(appState.fondeo?.config?.initial_balance) || 50000.0;
     const curBalance = summary.current_balance !== undefined ? summary.current_balance : 50000.0;
     const asset = assetSelect ? assetSelect.value : 'XAU/USD';
     const isGold = asset.includes('XAU') || asset.includes('GOLD') || asset.includes('ORO') || true;
@@ -799,11 +750,11 @@ function setupFondeoCalculator() {
     if (riskType === 'manual') {
       if (manualRiskGroup) manualRiskGroup.classList.remove('hidden');
       dollarRisk = parseFloat(manualRiskInput ? manualRiskInput.value : 250.0) || 250.0;
-      riskPct = curBalance > 0 ? (dollarRisk / curBalance) * 100 : 0.5;
+      riskPct = baseCapital > 0 ? (dollarRisk / baseCapital) * 100 : 0.5;
     } else {
       if (manualRiskGroup) manualRiskGroup.classList.add('hidden');
       riskPct = parseFloat(riskType) || 0.5;
-      dollarRisk = curBalance * (riskPct / 100.0);
+      dollarRisk = baseCapital * (riskPct / 100.0);
     }
 
     // Normalización de SL para Oro (XAU/USD):
@@ -1085,6 +1036,8 @@ function setupFondeoTradeForm() {
   }
 
   function updateFondeoCalculation() {
+    // Interés Simple: el riesgo se calcula siempre sobre el capital inicial fijo ($50,000 USD)
+    const baseBal = Number(appState.fondeo?.config?.initial_balance) || 50000.0;
     const curBal = (appState.fondeo?.summary?.current_balance !== undefined) 
       ? Number(appState.fondeo.summary.current_balance) 
       : 50000.0;
@@ -1096,11 +1049,11 @@ function setupFondeoTradeForm() {
     if (riskChoice === 'manual') {
       if (manualRiskGroup) manualRiskGroup.classList.remove('hidden');
       dollarRisk = parseFloat(manualUsdInp?.value) || 250.0;
-      riskPct = (dollarRisk / curBal) * 100.0;
+      riskPct = (dollarRisk / baseBal) * 100.0;
     } else {
       if (manualRiskGroup) manualRiskGroup.classList.add('hidden');
       riskPct = parseFloat(riskChoice) || 0.50;
-      dollarRisk = curBal * (riskPct / 100.0);
+      dollarRisk = baseBal * (riskPct / 100.0);
     }
 
     const entry = parseFloat(entryEl?.value);

@@ -881,7 +881,11 @@ def recalculate_trade_history(trades, config, mode="backtest"):
             eff_lev = leverage
 
         # Reference lot size based on symbol (points for Gold, pips for Forex)
-        dollar_risk = curr_bal * (trade_risk / 100.0)
+        if mode == "fondeo":
+            # Interés Simple sobre capital inicial ($50,000 USD)
+            dollar_risk = initial_balance * (trade_risk / 100.0)
+        else:
+            dollar_risk = curr_bal * (trade_risk / 100.0)
         raw_lot = dollar_risk / loss_per_lot if loss_per_lot > 0 else 0.01
         suggested_lot = max(0.01, round(raw_lot, 2))
             
@@ -975,17 +979,19 @@ def recalculate_trade_history(trades, config, mode="backtest"):
                     elif status == "be" and abs(raw_pnl) < 1.0:
                         pnl = raw_pnl
                     else:
+                        base_calc = initial_balance if mode == "fondeo" else curr_bal
                         if status == "win":
-                            pnl = round(curr_bal * (ret_pct / 100.0) - commission, 2)
+                            pnl = round(base_calc * (ret_pct / 100.0) - commission, 2)
                         elif status == "loss":
-                            pnl = -round(curr_bal * (trade_risk / 100.0) + commission, 2)
+                            pnl = -round(base_calc * (trade_risk / 100.0) + commission, 2)
                         else:
                             pnl = -commission
                 else:
+                    base_calc = initial_balance if mode == "fondeo" else curr_bal
                     if status == "win":
-                        pnl = round(curr_bal * (ret_pct / 100.0) - commission, 2)
+                        pnl = round(base_calc * (ret_pct / 100.0) - commission, 2)
                     elif status == "loss":
-                        pnl = -round(curr_bal * (trade_risk / 100.0) + commission, 2)
+                        pnl = -round(base_calc * (trade_risk / 100.0) + commission, 2)
                     else:
                         pnl = -commission
             
@@ -1107,10 +1113,11 @@ def calculate_analytics(trades, config, mode="backtest"):
         elif raw_pnl is not None:
             pnl = raw_pnl
         else:
+            base_pnl_calc = initial_balance if mode == "fondeo" else current_balance
             if status == "win":
-                pnl = round(current_balance * (ret_pct / 100.0) - commission, 2)
+                pnl = round(base_pnl_calc * (ret_pct / 100.0) - commission, 2)
             elif status == "loss":
-                pnl = -round(current_balance * (trade_risk / 100.0) + commission, 2)
+                pnl = -round(base_pnl_calc * (trade_risk / 100.0) + commission, 2)
             else:
                 pnl = -commission
 
@@ -1997,7 +2004,12 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             else:
                 ret_pct = 0.0
                 
-            dollar_risk = round(cur_bal * (trade_risk_pct / 100.0), 2)
+            init_bal = float(config.get("initial_balance", 50000.0 if mode == "fondeo" else 110.0))
+            if mode == "fondeo":
+                # Interés Simple sobre balance inicial ($50,000 USD)
+                dollar_risk = round(init_bal * (trade_risk_pct / 100.0), 2)
+            else:
+                dollar_risk = round(cur_bal * (trade_risk_pct / 100.0), 2)
             leverage = float(config.get("leverage", 100.0 if mode == "fondeo" else 500.0))
             
             if is_gold:
@@ -2146,8 +2158,9 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                     pnl = round(float(str(payload["pnl"]).replace(",", ".")), 2)
                     dollar_risk = round(float(str(payload.get("dollar_risk", dollar_risk)).replace(",", ".")), 2)
                 else:
+                    base_pnl_calc = init_bal if mode == "fondeo" else cur_bal
                     if status == "win":
-                        pnl = round(cur_bal * (ret_pct / 100.0) - commission, 2)
+                        pnl = round(base_pnl_calc * (ret_pct / 100.0) - commission, 2)
                     elif status == "loss":
                         pnl = -round(dollar_risk + commission, 2)
                     else:
