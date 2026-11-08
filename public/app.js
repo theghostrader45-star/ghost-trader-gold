@@ -103,6 +103,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Bitácora Real Tickmill (XAU/USD)
   await loadTrades('real');
   setupRealJournalView();
+
+  // 6 Nuevas Mejoras Integrales AUD/JPY (v3.4)
+  setupUsdJpyCalibrator();
+  setupPeriodFilterButtons();
+  setupMonteCarloModal();
+  setupBackupAndRestoreEvents();
 });
 
 function initIcons() {
@@ -496,14 +502,31 @@ function renderFondeoTradesTable() {
   const tbody = document.getElementById('fondeoTradesTableBody');
   if (!tbody) return;
 
-  const trades = appState.fondeo.trades || [];
+  const allTrades = appState.fondeo.trades || [];
+  const trades = (typeof filterTradesByPeriod === 'function') 
+    ? filterTradesByPeriod(allTrades, 'fondeo') 
+    : allTrades;
+
+  const periodSummaryEl = document.getElementById('fondeoPeriodSummary');
+  if (periodSummaryEl) {
+    const curPeriod = (typeof activePeriodFilters !== 'undefined') ? activePeriodFilters.fondeo : 'all';
+    if (curPeriod !== 'all' && allTrades.length > 0) {
+      const subtotalPnl = trades.reduce((sum, t) => sum + (Number(t.pnl) || 0), 0);
+      const pnlSign = subtotalPnl >= 0 ? '+' : '';
+      periodSummaryEl.textContent = `Mostrando ${trades.length} de ${allTrades.length} · PnL: ${pnlSign}$${subtotalPnl.toFixed(2)}`;
+      periodSummaryEl.classList.remove('hidden');
+    } else {
+      periodSummaryEl.classList.add('hidden');
+    }
+  }
+
   if (trades.length === 0) {
     tbody.innerHTML = `
       <tr class="border-b border-gray-800 text-center">
         <td colspan="14" class="py-10 text-gray-500 font-medium">
           <i data-lucide="award" class="w-8 h-8 mx-auto mb-2 text-gray-600 opacity-50"></i>
-          <p>Sin operaciones registradas en Orion Nova 50K aún.</p>
-          <p class="text-xs text-gray-600 mt-1">Usa el formulario superior para registrar tus operaciones con precios de Entrada, Salida, SL y TP.</p>
+          <p>${allTrades.length > 0 ? 'No hay operaciones en el período seleccionado.' : 'Sin operaciones registradas en Orion Nova 50K aún.'}</p>
+          <p class="text-xs text-gray-600 mt-1">${allTrades.length > 0 ? 'Prueba seleccionando "Todos" para ver el historial completo.' : 'Usa el formulario superior para registrar tus operaciones con precios de Entrada, Salida, SL y TP.'}</p>
         </td>
       </tr>
     `;
@@ -1066,17 +1089,18 @@ function setupFondeoTradeForm() {
     if (slLabel) slLabel.textContent = 'Stop Loss en Pips (AUD/JPY)';
     if (slSuffix) slSuffix.textContent = 'PIPS';
 
-    // Auto-completar SL y TP de acuerdo a AUD/JPY (1 pip = 0.01 JPY = ~$6.50 USD/lote)
+    // Auto-completar SL y TP de acuerdo a AUD/JPY (1 pip = 0.01 JPY = ~$6.50 USD/lote calibrado)
+    const pipValUsd = (typeof getAudJpyPipValueUsd === 'function') ? getAudJpyPipValueUsd() : 6.50;
     const slPointsEl = document.getElementById('fondeoFormSlPoints');
     const slValCustom = parseFloat(slPointsEl?.value) || 25;
     const rrVal = parseFloat(rrEl?.value) || 3.0;
 
     const slDollarDist = slValCustom * 0.01; // en JPY (ej. 25 pips = 0.25)
     const tpDollarDist = slDollarDist * rrVal;
-    const lossPerLot = slValCustom * 6.50;
+    const lossPerLot = slValCustom * pipValUsd;
     const slDistEl = document.getElementById('fondeoSlDollarDist');
-    if (slDistEl) slDistEl.textContent = `≈$6.50/pip por lote`;
-    const formulaHtml = `Cálculo dinámico: <code>Lote = Riesgo $ / (Pips × $6.50)</code>`;
+    if (slDistEl) slDistEl.textContent = `≈$${pipValUsd.toFixed(2)}/pip por lote`;
+    const formulaHtml = `Cálculo dinámico: <code>Lote = Riesgo $ / (Pips × $${pipValUsd.toFixed(2)})</code>`;
 
     if (dynamicFormula) dynamicFormula.innerHTML = formulaHtml;
 
@@ -1100,7 +1124,7 @@ function setupFondeoTradeForm() {
     const autoLot = Math.max(0.01, roundNum(dollarRisk / lossPerLot, 2));
     const formulaPrevEl = document.getElementById('fondeoLotFormulaPreview');
     if (formulaPrevEl) {
-      formulaPrevEl.textContent = `$${dollarRisk.toFixed(0)} / (${slValCustom} pips × $6.50) = ${autoLot.toFixed(2)} lotes`;
+      formulaPrevEl.textContent = `$${dollarRisk.toFixed(0)} / (${slValCustom} pips × $${pipValUsd.toFixed(2)}) = ${autoLot.toFixed(2)} lotes`;
     }
 
     if (autoLotHint) autoLotHint.textContent = `Auto (${slValCustom} pips): ${autoLot.toFixed(2)} lotes`;
@@ -1501,6 +1525,15 @@ function setupFondeoTradeForm() {
         exitEl.value = entryEl.value;
         updateFondeoCalculation();
       }
+    });
+  }
+
+  const btnCopyFondeo = document.getElementById('btnCopyFondeoLot');
+  if (btnCopyFondeo) {
+    btnCopyFondeo.addEventListener('click', (e) => {
+      e.preventDefault();
+      const lotVal = lotEl ? lotEl.value : '0.83';
+      copyToClipboard(lotVal, 'Lotaje Fondeo (Orion Nova)');
     });
   }
 
@@ -3408,12 +3441,28 @@ function renderBacktestSimpleTradesTable() {
   if (countWins) countWins.textContent = winsCount;
   if (countLosses) countLosses.textContent = lossesCount;
 
-  let filtered = trades;
+  let filtered = (typeof filterTradesByPeriod === 'function') 
+    ? filterTradesByPeriod(trades, 'backtest') 
+    : trades;
+
+  const periodSummaryEl = document.getElementById('btPeriodSummary');
+  if (periodSummaryEl) {
+    const curPeriod = (typeof activePeriodFilters !== 'undefined') ? activePeriodFilters.backtest : 'all';
+    if (curPeriod !== 'all' && trades.length > 0) {
+      const subtotalPnl = filtered.reduce((sum, t) => sum + (Number(t.pnl) || 0), 0);
+      const pnlSign = subtotalPnl >= 0 ? '+' : '';
+      periodSummaryEl.textContent = `Mostrando ${filtered.length} de ${trades.length} · PnL: ${pnlSign}$${subtotalPnl.toFixed(2)}`;
+      periodSummaryEl.classList.remove('hidden');
+    } else {
+      periodSummaryEl.classList.add('hidden');
+    }
+  }
+
   const filter = appState.backtest.filter || 'all';
   if (filter === 'win') {
-    filtered = trades.filter(t => t.status === 'win');
+    filtered = filtered.filter(t => t.status === 'win');
   } else if (filter === 'loss') {
-    filtered = trades.filter(t => t.status === 'loss');
+    filtered = filtered.filter(t => t.status === 'loss');
   }
 
   if (filtered.length === 0) {
@@ -3993,13 +4042,29 @@ function renderRealJournalDashboard() {
 
 function renderRealTradesTable() {
   const tbody = document.getElementById('realTradesTableBody');
-  const trades = appState.real.trades || [];
+  const allTrades = appState.real.trades || [];
+  const trades = (typeof filterTradesByPeriod === 'function') 
+    ? filterTradesByPeriod(allTrades, 'real') 
+    : allTrades;
+
+  const periodSummaryEl = document.getElementById('realPeriodSummary');
+  if (periodSummaryEl) {
+    const curPeriod = (typeof activePeriodFilters !== 'undefined') ? activePeriodFilters.real : 'all';
+    if (curPeriod !== 'all' && allTrades.length > 0) {
+      const subtotalPnl = trades.reduce((sum, t) => sum + (Number(t.pnl) || 0), 0);
+      const pnlSign = subtotalPnl >= 0 ? '+' : '';
+      periodSummaryEl.textContent = `Mostrando ${trades.length} de ${allTrades.length} · PnL: ${pnlSign}$${subtotalPnl.toFixed(2)}`;
+      periodSummaryEl.classList.remove('hidden');
+    } else {
+      periodSummaryEl.classList.add('hidden');
+    }
+  }
 
   if (trades.length === 0) {
     tbody.innerHTML = `
       <tr>
         <td colspan="14" class="py-12 text-center text-gray-500 font-sans">
-          Aún no has registrado operaciones en tu Bitácora Real. Llena el formulario superior para documentar tu primera operación.
+          ${allTrades.length > 0 ? 'No hay operaciones en el período seleccionado. Prueba seleccionando "Todos".' : 'Aún no has registrado operaciones en tu Bitácora Real. Llena el formulario superior para documentar tu primera operación.'}
         </td>
       </tr>
     `;
@@ -4104,11 +4169,12 @@ function recalculateRealQuickLot() {
   const dollarRisk = bal * (riskPct / 100.0);
 
   // Pérdida por lote para AUD/JPY (Forex Cross):
-  // 1 pip = 0.01 JPY = 1,000 JPY ≈ $6.50 USD por 1.00 lote estándar (100,000 AUD)
-  const lossPerLot = slPts * 6.50;
-  const pointValue = 6.50;
+  // 1 pip = 0.01 JPY = 1,000 JPY. Calibrado dinámicamente con tasa USD/JPY
+  const pipValUsd = (typeof getAudJpyPipValueUsd === 'function') ? getAudJpyPipValueUsd() : 6.50;
+  const lossPerLot = slPts * pipValUsd;
+  const pointValue = pipValUsd;
   const pointUnit = 'pip';
-  const formulaText = `Lote = $${dollarRisk.toFixed(2)} / (${slPts} pips × $6.50)`;
+  const formulaText = `Lote = $${dollarRisk.toFixed(2)} / (${slPts} pips × $${pipValUsd.toFixed(2)})`;
 
   const rawLot = (slPts > 0 && lossPerLot > 0) ? (dollarRisk / lossPerLot) : 0.01;
   const recommendedLot = Math.max(0.01, roundNum(rawLot, 2));
@@ -4168,7 +4234,8 @@ function recalculateRealQuickLot() {
 
   const heroPtValSub = document.getElementById('realHeroPtValSub');
   if (heroPtValSub) {
-    heroPtValSub.textContent = '100k AUD · ~$6.50/pip por lote';
+    const activeRate = (typeof getActiveUsdJpyRate === 'function') ? getActiveUsdJpyRate() : 153.80;
+    heroPtValSub.textContent = `100k AUD · $${pipValUsd.toFixed(2)}/pip (Tasa ${activeRate.toFixed(2)})`;
   }
 
   const formulaExpEl = document.getElementById('realFormulaExplanation');
@@ -7638,6 +7705,14 @@ function evaluateDynamicNewsShield() {
     }
   }
 
+  if (typeof updateAllNewsShieldBanners === 'function') {
+    try {
+      updateAllNewsShieldBanners(lastNewsShieldStatus);
+    } catch (e) {
+      console.error('Error actualizando banners de noticias:', e);
+    }
+  }
+
   return lastNewsShieldStatus;
 }
 
@@ -9993,4 +10068,603 @@ function renderDualSignals(data) {
   }
 
   initIcons();
+}
+
+// ==============================================================
+// 6 MEJORAS INTEGRALES AUD/JPY (v3.4)
+// ==============================================================
+
+// -------------------------------------------------------------
+// 1. Helper Universal de Copiado Rápido al Portapapeles con Toast
+// -------------------------------------------------------------
+function copyToClipboard(text, label = 'Dato') {
+  if (!text) return;
+  const clean = String(text).trim();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(clean).then(() => {
+      showToast(`📋 ¡${label} copiado: ${clean}!`, 'success', 3500);
+    }).catch(() => {
+      fallbackCopyText(clean, label);
+    });
+  } else {
+    fallbackCopyText(clean, label);
+  }
+}
+
+function fallbackCopyText(text, label) {
+  try {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    showToast(`📋 ¡${label} copiado: ${text}!`, 'success', 3500);
+  } catch (err) {
+    showToast(`${label}: ${text}`, 'info', 4000);
+  }
+}
+
+// -------------------------------------------------------------
+// 2. Calibrador Dinámico de Tasa USD/JPY en Vivo ($/pip)
+// -------------------------------------------------------------
+function getActiveUsdJpyRate() {
+  const saved = parseFloat(localStorage.getItem('calibrator_usdjpy_rate'));
+  if (!isNaN(saved) && saved >= 50 && saved <= 300) {
+    return saved;
+  }
+  return 153.80; // Tasa de referencia oficial AUD/JPY
+}
+
+function setActiveUsdJpyRate(rate) {
+  const r = parseFloat(rate);
+  if (!isNaN(r) && r >= 50 && r <= 300) {
+    localStorage.setItem('calibrator_usdjpy_rate', r.toFixed(2));
+    syncUsdJpyRateUI();
+    if (typeof recalculateRealQuickLot === 'function') recalculateRealQuickLot();
+    if (typeof updateFondeoCalculation === 'function') updateFondeoCalculation();
+  }
+}
+
+function getAudJpyPipValueUsd() {
+  const rate = getActiveUsdJpyRate();
+  return 1000.0 / rate; // 100,000 AUD * 0.01 JPY = 1,000 JPY / USDJPY
+}
+
+function syncUsdJpyRateUI() {
+  const rate = getActiveUsdJpyRate();
+  const pipVal = getAudJpyPipValueUsd();
+
+  const rateInp = document.getElementById('realUsdJpyRateInput');
+  if (rateInp && document.activeElement !== rateInp) {
+    rateInp.value = rate.toFixed(2);
+  }
+
+  const badge = document.getElementById('realPipValUsdBadge');
+  if (badge) {
+    badge.textContent = `$${pipVal.toFixed(2)}/pip`;
+  }
+
+  const chips = document.querySelectorAll('.btnUsdJpyChip');
+  chips.forEach(btn => {
+    const chipRate = parseFloat(btn.dataset.rate);
+    if (Math.abs(chipRate - rate) < 0.25) {
+      btn.className = "btnUsdJpyChip px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/50 transition font-bold cursor-pointer";
+    } else {
+      btn.className = "btnUsdJpyChip px-1.5 py-0.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer";
+    }
+  });
+}
+
+function setupUsdJpyCalibrator() {
+  const rateInp = document.getElementById('realUsdJpyRateInput');
+  if (rateInp) {
+    rateInp.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val >= 50 && val <= 300) {
+        localStorage.setItem('calibrator_usdjpy_rate', val.toFixed(2));
+        syncUsdJpyRateUI();
+        if (typeof recalculateRealQuickLot === 'function') recalculateRealQuickLot();
+        if (typeof updateFondeoCalculation === 'function') updateFondeoCalculation();
+      }
+    });
+  }
+
+  document.querySelectorAll('.btnUsdJpyChip').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const rate = parseFloat(btn.dataset.rate);
+      if (!isNaN(rate)) {
+        setActiveUsdJpyRate(rate);
+      }
+    });
+  });
+
+  syncUsdJpyRateUI();
+}
+
+// -------------------------------------------------------------
+// 3. Semáforo Dinámico Anti-Violación de Noticias (Prop Firm ±2 min)
+// -------------------------------------------------------------
+function updateAllNewsShieldBanners(status) {
+  const fondeoBanner = document.getElementById('fondeoNewsShieldBanner');
+  const realBanner = document.getElementById('realNewsShieldBanner');
+  const navBadge = document.getElementById('navNewsShieldBadge');
+
+  if (!fondeoBanner && !realBanner && !navBadge) return;
+
+  if (status && status.isBlocked) {
+    const ev = status.event || {};
+    const absMin = Math.abs(status.diffMinutes || 0);
+    const curr = ev.currency || 'MACRO';
+    const isCriticalWindow = absMin <= 2;
+
+    const bannerHtml = `
+      <div class="flex items-center gap-3.5 w-full">
+        <div class="w-11 h-11 rounded-xl bg-red-600/30 border border-red-500/80 flex items-center justify-center text-red-400 shrink-0 ${isCriticalWindow ? 'animate-ping' : 'animate-pulse'}">
+          <i data-lucide="shield-alert" class="w-6 h-6"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-black ${isCriticalWindow ? 'bg-red-600 animate-pulse text-white' : 'bg-red-950 text-red-300 border border-red-700'} uppercase">
+              ⛔ RESTRICCIÓN DE OPERATIVA ACTIVA (PROP FIRM ±2 MIN)
+            </span>
+            <span class="text-xs text-red-300 font-mono font-bold">${curr} · ${ev.time || ''}</span>
+          </div>
+          <p class="text-xs text-white font-bold mt-1 leading-snug">
+            <strong>${ev.title || 'Noticia Crítica'}:</strong> En plena ventana oficial de restricción. ¡PROHIBIDO abrir, modificar o cerrar posiciones para evitar violar la cuenta!
+          </p>
+        </div>
+      </div>
+    `;
+
+    [fondeoBanner, realBanner].forEach(b => {
+      if (b) {
+        b.className = "transition-all duration-300 rounded-2xl p-3.5 sm:p-4 border-2 border-red-500 bg-gradient-to-r from-red-950/95 via-red-900/70 to-red-950/95 shadow-2xl shadow-red-950/60 flex items-center justify-between flex-wrap gap-3";
+        b.innerHTML = bannerHtml;
+        b.classList.remove('hidden');
+      }
+    });
+
+    if (navBadge) {
+      navBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-black bg-red-600 text-white border border-red-400 animate-pulse cursor-default";
+      navBadge.innerHTML = `<i data-lucide="shield-alert" class="w-3.5 h-3.5"></i><span>⛔ BLOQUEO ${curr}</span>`;
+      navBadge.classList.remove('hidden');
+    }
+  } else if (status && status.isWarning) {
+    const ev = status.event || {};
+    const mins = Math.max(1, Math.round(status.diffMinutes || 0));
+    const curr = ev.currency || 'MACRO';
+
+    const bannerHtml = `
+      <div class="flex items-center gap-3.5 w-full">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/60 flex items-center justify-center text-amber-400 shrink-0">
+          <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500 text-black uppercase">
+              ⚠️ PRECAUCIÓN: NOTICIA EN ${mins} MINUTOS
+            </span>
+            <span class="text-xs text-amber-300 font-mono font-bold">${curr} · ${ev.time || ''}</span>
+          </div>
+          <p class="text-xs text-gray-200 mt-0.5 leading-snug">
+            <strong>${ev.title || 'Evento Macro'}:</strong> Alto impacto en AUD/JPY. Finaliza o protege operaciones antes de entrar en la ventana de restricción de ±2 minutos.
+          </p>
+        </div>
+      </div>
+    `;
+
+    [fondeoBanner, realBanner].forEach(b => {
+      if (b) {
+        b.className = "transition-all duration-300 rounded-2xl p-3.5 sm:p-4 border border-amber-500/60 bg-gradient-to-r from-amber-950/70 via-gray-900 to-amber-950/70 shadow-xl flex items-center justify-between flex-wrap gap-3";
+        b.innerHTML = bannerHtml;
+        b.classList.remove('hidden');
+      }
+    });
+
+    if (navBadge) {
+      navBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50 cursor-default";
+      navBadge.innerHTML = `<i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-400"></i><span>${mins}m [${curr}]</span>`;
+      navBadge.classList.remove('hidden');
+    }
+  } else {
+    const bannerHtml = `
+      <div class="flex items-center gap-3 w-full">
+        <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase">
+              🛡️ MERCADO OPERABLE (SIN RESTRICCIONES)
+            </span>
+            <span class="text-[11px] text-gray-400 font-mono">Regla Prop Firm: Cero órdenes ±2 min en noticias críticas (AUD, JPY, USD)</span>
+          </div>
+          <p class="text-[11px] text-gray-400 mt-0.5 truncate">
+            No hay noticias de alto impacto en ventana inmediata. Tu operativa cumple plenamente el reglamento de Orion Nova y brokers.
+          </p>
+        </div>
+      </div>
+    `;
+
+    [fondeoBanner, realBanner].forEach(b => {
+      if (b) {
+        b.className = "transition-all duration-300 rounded-2xl p-3 sm:p-3.5 border border-emerald-500/30 bg-gradient-to-r from-emerald-950/30 via-gray-950 to-gray-900 shadow-lg flex items-center justify-between flex-wrap gap-3";
+        b.innerHTML = bannerHtml;
+        b.classList.remove('hidden');
+      }
+    });
+
+    if (navBadge) {
+      navBadge.className = "flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-mono font-semibold bg-emerald-950/60 text-emerald-400 border border-emerald-800/60 cursor-default";
+      navBadge.innerHTML = `<i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i><span>SEGURO</span>`;
+      navBadge.classList.remove('hidden');
+    }
+  }
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+// -------------------------------------------------------------
+// 4. Filtros de Auditoría Temporal en Tablas (Hoy, Semana, Mes)
+// -------------------------------------------------------------
+const activePeriodFilters = {
+  fondeo: 'all',
+  real: 'all',
+  backtest: 'all'
+};
+
+function isTradeInPeriod(dateInput, period) {
+  if (!dateInput || period === 'all') return true;
+
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return true;
+
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const tradeYmd = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const nowYmd = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+  if (period === 'today') {
+    return tradeYmd === nowYmd;
+  }
+
+  if (period === 'month') {
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  }
+
+  if (period === 'week') {
+    const currentDay = now.getDay();
+    const diffToMonday = (currentDay === 0 ? -6 : 1) - currentDay;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diffToMonday);
+    monday.setHours(0, 0, 0, 0);
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+
+    return d >= monday && d <= sunday;
+  }
+
+  return true;
+}
+
+function filterTradesByPeriod(trades, target) {
+  if (!Array.isArray(trades)) return [];
+  const period = activePeriodFilters[target] || 'all';
+  if (period === 'all') return trades;
+  return trades.filter(t => isTradeInPeriod(t.date || t.created_at, period));
+}
+
+function setupPeriodFilterButtons() {
+  document.querySelectorAll('.btn-period-chip').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = btn.dataset.target;
+      const period = btn.dataset.period;
+      if (!target || !period) return;
+
+      activePeriodFilters[target] = period;
+
+      const containerId = target === 'fondeo' ? 'fondeoPeriodChips' : (target === 'real' ? 'realPeriodChips' : 'btPeriodChips');
+      const container = document.getElementById(containerId);
+      if (container) {
+        container.querySelectorAll('.btn-period-chip').forEach(b => {
+          if (b.dataset.period === period) {
+            const activeBg = target === 'fondeo' ? 'bg-amber-500 text-black' : (target === 'real' ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white');
+            b.className = `btn-period-chip px-2.5 py-1 rounded-lg font-semibold transition ${activeBg} cursor-pointer`;
+          } else {
+            b.className = "btn-period-chip px-2.5 py-1 rounded-lg font-semibold transition text-gray-400 hover:text-white cursor-pointer";
+          }
+        });
+      }
+
+      if (target === 'fondeo') renderFondeoTradesTable();
+      else if (target === 'real') renderRealTradesTable();
+      else if (target === 'backtest') renderBacktestSimpleTradesTable();
+    });
+  });
+}
+
+// -------------------------------------------------------------
+// 5. Simulador de Rachas Monte Carlo (1,000 Iteraciones)
+// -------------------------------------------------------------
+function setupMonteCarloModal() {
+  const modal = document.getElementById('modalMonteCarlo');
+  const btnOpen = document.getElementById('btnOpenMonteCarlo');
+  const btnClose = document.getElementById('btnCloseMonteCarlo');
+  const btnLoad = document.getElementById('btnMcLoadCurrentStats');
+  const btnRun = document.getElementById('btnMcRunSim');
+
+  if (btnOpen && modal) {
+    btnOpen.addEventListener('click', (e) => {
+      e.preventDefault();
+      modal.classList.remove('hidden');
+      loadCurrentStatsIntoMonteCarlo();
+      runMonteCarloSimulation();
+      initIcons();
+    });
+  }
+
+  if (btnClose && modal) {
+    btnClose.addEventListener('click', (e) => {
+      e.preventDefault();
+      modal.classList.add('hidden');
+    });
+  }
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.add('hidden');
+    });
+  }
+
+  if (btnLoad) {
+    btnLoad.addEventListener('click', (e) => {
+      e.preventDefault();
+      loadCurrentStatsIntoMonteCarlo();
+      showToast('Estadísticas actuales de tu backtesting cargadas con éxito', 'info', 2500);
+      runMonteCarloSimulation();
+    });
+  }
+
+  if (btnRun) {
+    btnRun.addEventListener('click', (e) => {
+      e.preventDefault();
+      runMonteCarloSimulation();
+    });
+  }
+}
+
+function loadCurrentStatsIntoMonteCarlo() {
+  const trades = appState.backtest?.trades || [];
+  let winRate = 56.5;
+  let avgRR = 2.0;
+  let tradesCount = trades.length > 0 ? trades.length : 62;
+  const cfg = appState.backtest?.config || appState.config || {};
+  const riskPct = Number(cfg.risk_pct) || 1.0;
+
+  if (trades.length >= 5) {
+    const wins = trades.filter(t => t.status === 'win');
+    winRate = roundNum((wins.length / trades.length) * 100.0, 1);
+    const sumRR = trades.reduce((acc, t) => acc + (Number(t.rr) || 2.0), 0);
+    avgRR = roundNum(sumRR / trades.length, 1);
+  }
+
+  const inpWr = document.getElementById('mcInputWinRate');
+  const inpRr = document.getElementById('mcInputRR');
+  const inpTrades = document.getElementById('mcInputTrades');
+  const inpRisk = document.getElementById('mcInputRiskPct');
+
+  if (inpWr) inpWr.value = winRate.toFixed(1);
+  if (inpRr) inpRr.value = avgRR.toFixed(1);
+  if (inpTrades) inpTrades.value = tradesCount;
+  if (inpRisk) inpRisk.value = riskPct.toFixed(1);
+}
+
+function runMonteCarloSimulation() {
+  const winRate = parseFloat(document.getElementById('mcInputWinRate')?.value) || 56.5;
+  const rr = parseFloat(document.getElementById('mcInputRR')?.value) || 2.0;
+  const tradesCount = parseInt(document.getElementById('mcInputTrades')?.value, 10) || 60;
+  const riskPct = parseFloat(document.getElementById('mcInputRiskPct')?.value) || 1.0;
+
+  const ITERATIONS = 1000;
+  const winProb = winRate / 100.0;
+  const riskFrac = riskPct / 100.0;
+
+  const maxLossStreaks = [];
+  const maxDrawdowns = [];
+  const streakOccurrences = { 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 };
+
+  for (let i = 0; i < ITERATIONS; i++) {
+    let curBal = 1000.0;
+    let peakBal = 1000.0;
+    let maxDd = 0.0;
+    let currentLossStreak = 0;
+    let maxLossStreak = 0;
+
+    for (let t = 0; t < tradesCount; t++) {
+      const isWin = Math.random() < winProb;
+      if (isWin) {
+        currentLossStreak = 0;
+        curBal *= (1.0 + (riskFrac * rr));
+        if (curBal > peakBal) peakBal = curBal;
+      } else {
+        currentLossStreak++;
+        if (currentLossStreak > maxLossStreak) maxLossStreak = currentLossStreak;
+        curBal *= (1.0 - riskFrac);
+        const dd = ((peakBal - curBal) / peakBal) * 100.0;
+        if (dd > maxDd) maxDd = dd;
+      }
+    }
+
+    maxLossStreaks.push(maxLossStreak);
+    maxDrawdowns.push(maxDd);
+
+    for (let s = 2; s <= 7; s++) {
+      if (maxLossStreak >= s) streakOccurrences[s]++;
+    }
+  }
+
+  maxLossStreaks.sort((a, b) => a - b);
+  maxDrawdowns.sort((a, b) => a - b);
+
+  const p50LossStreak = maxLossStreaks[Math.floor(ITERATIONS * 0.50)];
+  const p99LossStreak = maxLossStreaks[Math.floor(ITERATIONS * 0.99)];
+  const p50DD = maxDrawdowns[Math.floor(ITERATIONS * 0.50)];
+  const p95DD = maxDrawdowns[Math.floor(ITERATIONS * 0.95)];
+
+  const kpiMedStreak = document.getElementById('mcKpiMedianLossStreak');
+  const kpiWorstStreak = document.getElementById('mcKpiWorstLossStreak');
+  const kpiMedDD = document.getElementById('mcKpiMedianDD');
+  const kpiWorstDD = document.getElementById('mcKpiWorstDD');
+
+  if (kpiMedStreak) kpiMedStreak.textContent = `${p50LossStreak} L`;
+  if (kpiWorstStreak) kpiWorstStreak.textContent = `${p99LossStreak} L`;
+  if (kpiMedDD) kpiMedDD.textContent = `-${p50DD.toFixed(1)}%`;
+  if (kpiWorstDD) kpiWorstDD.textContent = `-${p95DD.toFixed(1)}%`;
+
+  const barsContainer = document.getElementById('mcStreakProbBars');
+  if (barsContainer) {
+    let barsHtml = '';
+    for (let s = 2; s <= 7; s++) {
+      const probPct = ((streakOccurrences[s] / ITERATIONS) * 100.0).toFixed(1);
+      const isHigh = streakOccurrences[s] / ITERATIONS >= 0.5;
+      const barColor = isHigh ? 'bg-gradient-to-r from-amber-500 to-rose-500' : 'bg-gradient-to-r from-purple-500 to-indigo-500';
+      const labelDesc = s === 7 ? '7 o más pérdidas consecutivas' : `${s} pérdidas consecutivas`;
+      
+      barsHtml += `
+        <div class="space-y-1">
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="text-gray-300 font-semibold flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full ${isHigh ? 'bg-rose-400' : 'bg-purple-400'}"></span>
+              <span>≥ ${labelDesc}</span>
+            </span>
+            <span class="font-bold ${isHigh ? 'text-rose-400' : 'text-purple-300'}">${probPct}%</span>
+          </div>
+          <div class="w-full bg-gray-900 rounded-full h-2 overflow-hidden border border-gray-800">
+            <div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${probPct}%"></div>
+          </div>
+        </div>
+      `;
+    }
+    barsContainer.innerHTML = barsHtml;
+  }
+
+  const p4LossProb = ((streakOccurrences[4] / ITERATIONS) * 100.0).toFixed(0);
+  const p5LossProb = ((streakOccurrences[5] / ITERATIONS) * 100.0).toFixed(0);
+  const adviceEl = document.getElementById('mcPsychAdviceText');
+  if (adviceEl) {
+    adviceEl.innerHTML = `
+      Con tu tasa de acierto del <strong>${winRate.toFixed(1)}%</strong>, la probabilidad matemática de experimentar una racha de 4 pérdidas consecutivas en una muestra de ${tradesCount} operaciones es del <strong>${p4LossProb}%</strong>, y de 5 pérdidas consecutivas es del <strong>${p5LossProb}%</strong>. 
+      <br><br>
+      💡 <strong>Lección de Blindaje Psicológico:</strong> Cuando enfrentes 3 o 4 pérdidas consecutivas, <em>NO significa que tu sistema haya dejado de funcionar</em>. Es pura distribución probabilística normal de las probabilidades. Tu única tarea es <strong>mantener el riesgo fijo al ${riskPct.toFixed(1)}%</strong> y jamás aumentar el lotaje por frustración ("venganza" o Tilt).
+    `;
+  }
+}
+
+// -------------------------------------------------------------
+// 6. Backup / Restaurar en 1 Clic (JSON)
+// -------------------------------------------------------------
+function setupBackupAndRestoreEvents() {
+  const btnDownload = document.getElementById('btnDownloadBackupJson');
+  if (btnDownload) {
+    btnDownload.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        btnDownload.innerHTML = '<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i><span>Descargando...</span>';
+        initIcons();
+        const res = await fetch('/api/backup');
+        if (!res.ok) throw new Error('Error al generar backup en servidor');
+        const data = await res.json();
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const fname = `dashboard_backup_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}.json`;
+        a.href = url;
+        a.download = fname;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showToast('💾 Copia de seguridad descargada exitosamente', 'success', 4000);
+      } catch (err) {
+        console.error('Error descargando backup:', err);
+        showToast('Error al descargar copia de seguridad', 'error');
+      } finally {
+        btnDownload.innerHTML = '<i data-lucide="download" class="w-3.5 h-3.5"></i><span>Descargar Copia (.json)</span>';
+        initIcons();
+      }
+    });
+  }
+
+  const btnTrigger = document.getElementById('btnTriggerRestoreBackup');
+  const fileInput = document.getElementById('fileInputRestoreBackup');
+
+  if (btnTrigger && fileInput) {
+    btnTrigger.addEventListener('click', (e) => {
+      e.preventDefault();
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      if (!confirm(`¿Deseas restaurar la copia de seguridad desde "${file.name}"?\nEsta acción actualizará los saldos, configuraciones y bitácoras de tus cuentas.`)) {
+        fileInput.value = '';
+        return;
+      }
+
+      try {
+        btnTrigger.innerHTML = '<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i><span>Restaurando...</span>';
+        initIcons();
+
+        const text = await file.text();
+        const payload = JSON.parse(text);
+
+        const res = await fetch('/api/backup/restore', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || 'Error del servidor al restaurar');
+        }
+
+        const resData = await res.json();
+
+        // Recargar datos y sincronizar UI
+        await loadConfig();
+        await loadFondeoTrades();
+        await loadTrades('real');
+        await loadBacktestSimpleData();
+
+        if (typeof syncAllAccountsUI === 'function') syncAllAccountsUI();
+
+        showToast('✅ ¡Copia de seguridad restaurada con éxito! Todos los balances y bitácoras están actualizados.', 'success', 5000);
+
+        const modalSettings = document.getElementById('modalSettings');
+        if (modalSettings) modalSettings.classList.add('hidden');
+      } catch (err) {
+        console.error('Error restaurando backup:', err);
+        showToast(`Error al restaurar: ${err.message}`, 'error', 5000);
+      } finally {
+        btnTrigger.innerHTML = '<i data-lucide="upload" class="w-3.5 h-3.5 text-purple-400"></i><span>Restaurar Copia (.json)</span>';
+        fileInput.value = '';
+        initIcons();
+      }
+    });
+  }
 }

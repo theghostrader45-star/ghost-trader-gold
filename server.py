@@ -1808,6 +1808,34 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             self.send_json(trades)
             return
 
+        elif path == "/api/backup" or path == "/api/backup/download":
+            now_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            backup_data = {
+                "version": "3.4",
+                "system": "Orion Nova & TradingView Dashboard",
+                "asset": "AUD/JPY",
+                "exported_at": datetime.now(timezone.utc).isoformat(),
+                "configs": {
+                    "fondeo": get_config("fondeo"),
+                    "real": get_config("real"),
+                    "backtest": get_config("backtest")
+                },
+                "trades": {
+                    "fondeo": get_trades("fondeo"),
+                    "real": get_trades("real"),
+                    "backtest": get_trades("backtest")
+                }
+            }
+            content = json.dumps(backup_data, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Disposition", f'attachment; filename="dashboard_backup_{now_str}.json"')
+            self.send_header("Content-Length", str(len(content)))
+            self.send_header("Cache-Control", "no-cache")
+            self.end_headers()
+            self.wfile.write(content)
+            return
+
         # Serve static files
         if path == "/" or path == "":
             file_path = os.path.join(PUBLIC_DIR, "index.html")
@@ -2418,6 +2446,34 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 save_json(TRADES_FILE, trades_to_import)
                 config = get_config()
                 self.send_json(calculate_analytics(trades_to_import, config))
+            except Exception as e:
+                self.send_json({"error": str(e)}, 400)
+            return
+
+        elif path == "/api/backup/restore":
+            try:
+                configs = payload.get("configs", payload.get("config", {}))
+                trades_data = payload.get("trades", {})
+                
+                # Restore configs
+                for m in ["fondeo", "real", "backtest"]:
+                    if m in configs and isinstance(configs[m], dict):
+                        save_config(configs[m], m)
+                        
+                # Restore trades
+                restored_counts = {}
+                for m in ["fondeo", "real", "backtest"]:
+                    if m in trades_data and isinstance(trades_data[m], list):
+                        cfg = get_config(m)
+                        recalc = recalculate_trade_history(trades_data[m], cfg, mode=m)
+                        save_trades(recalc, m)
+                        restored_counts[m] = len(recalc)
+                        
+                self.send_json({
+                    "success": True,
+                    "message": "Copia de seguridad restaurada correctamente en todas las cuentas",
+                    "restored_counts": restored_counts
+                })
             except Exception as e:
                 self.send_json({"error": str(e)}, 400)
             return
