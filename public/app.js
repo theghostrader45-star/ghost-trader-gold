@@ -2686,7 +2686,27 @@ async function loadBacktestSimpleData() {
       const data = await resTrades.json();
       appState.backtest.summary = data.summary || {};
       appState.backtest.equityCurve = data.equity_curve || [];
-      appState.backtest.trades = data.trades || [];
+      const serverBtTrades = data.trades || [];
+      if (serverBtTrades.length > 0) {
+        appState.backtest.trades = serverBtTrades;
+        try { localStorage.setItem('cached_backtest_trades_v2', JSON.stringify(serverBtTrades)); } catch (e) {}
+      } else {
+        const cached = localStorage.getItem('cached_backtest_trades_v2');
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              appState.backtest.trades = parsed;
+            } else {
+              appState.backtest.trades = [];
+            }
+          } catch (e) {
+            appState.backtest.trades = [];
+          }
+        } else {
+          appState.backtest.trades = [];
+        }
+      }
     }
 
     syncBacktestUI();
@@ -2849,6 +2869,7 @@ function setupBacktestSimpleView() {
           appState.backtest.summary = data.summary || {};
           appState.backtest.equityCurve = data.equity_curve || [];
           appState.backtest.trades = data.trades || [];
+          try { localStorage.removeItem('cached_backtest_trades_v2'); } catch (e) {}
           renderBacktestSimpleDashboard();
         }
       } catch (err) {
@@ -2894,6 +2915,7 @@ function setupBacktestSimpleView() {
         appState.backtest.summary = data.analytics.summary || {};
         appState.backtest.equityCurve = data.analytics.equity_curve || [];
         appState.backtest.trades = data.analytics.trades || [];
+        try { localStorage.setItem('cached_backtest_trades_v2', JSON.stringify(appState.backtest.trades)); } catch (e) {}
         renderBacktestSimpleDashboard();
       }
     } catch (e) {
@@ -2950,6 +2972,7 @@ function setupBacktestSimpleView() {
           appState.backtest.summary = data.analytics.summary || {};
           appState.backtest.equityCurve = data.analytics.equity_curve || [];
           appState.backtest.trades = data.analytics.trades || [];
+          try { localStorage.setItem('cached_backtest_trades_v2', JSON.stringify(appState.backtest.trades)); } catch (e) {}
           if (document.getElementById('btSimpleManualNotes')) document.getElementById('btSimpleManualNotes').value = '';
           renderBacktestSimpleDashboard();
         }
@@ -3007,6 +3030,7 @@ function setupBacktestSimpleView() {
           appState.backtest.summary = data.summary || {};
           appState.backtest.equityCurve = data.equity_curve || [];
           appState.backtest.trades = data.trades || [];
+          try { localStorage.removeItem('cached_backtest_trades_v2'); } catch (e) {}
           renderBacktestSimpleDashboard();
         }
       } catch (e) {
@@ -3110,6 +3134,7 @@ function setupBacktestSimpleView() {
           appState.backtest.summary = data.summary || {};
           appState.backtest.equityCurve = data.equity_curve || [];
           appState.backtest.trades = data.trades || [];
+          try { localStorage.setItem('cached_backtest_trades_v2', JSON.stringify(appState.backtest.trades)); } catch (e) {}
           if (modalSim) modalSim.classList.add('hidden');
           renderBacktestSimpleDashboard();
         }
