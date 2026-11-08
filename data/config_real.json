@@ -1,8 +1,8 @@
 {
   "account_type": "Cuenta Real Personal (TradingView AUD/JPY)",
   "broker": "TradingView",
-  "initial_balance": 92.08,
-  "risk_pct": 1.0,
+  "initial_balance": 107.83,
+  "risk_pct": 10.0,
   "leverage": 300.0,
   "rr_ratio": 2.0,
   "currency": "USD",

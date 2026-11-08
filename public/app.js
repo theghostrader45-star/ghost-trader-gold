@@ -1879,15 +1879,15 @@ function syncFondeoUI() {
 
 function syncRealUI() {
   const rCfg = appState.real?.config || {};
-  const rInitBal = Number(rCfg.initial_balance || 92.08);
+  const rInitBal = Number(rCfg.initial_balance || 107.83);
   const rRiskPct = Number(rCfg.risk_pct || 1.0);
   const rLev = Number(rCfg.leverage || 300.0);
   const summary = appState.real?.summary || {};
   const trades = appState.real?.trades || [];
 
-  const curBal = (summary.current_balance !== undefined && summary.current_balance !== null)
+  const curBal = (summary.current_balance !== undefined && summary.current_balance !== null && trades.length > 0)
     ? Number(summary.current_balance)
-    : (trades.length === 0 ? rInitBal : (rCfg.initial_balance || 92.08));
+    : rInitBal;
 
   // Header & Calculator Leverage Badges
   const headerLev = document.getElementById('badgeRealHeaderLeverage');
@@ -1985,6 +1985,31 @@ function syncAllAccountsUI() {
 }
 
 async function loadConfig() {
+  // 1. Carga inmediata del espejo localStorage para no parpadear con saldos viejos
+  try {
+    const cachedConfig = localStorage.getItem('cached_app_config_all');
+    if (cachedConfig) {
+      const parsed = JSON.parse(cachedConfig);
+      if (parsed.fondeo) appState.fondeo.config = Object.assign({}, appState.fondeo.config, parsed.fondeo);
+      if (parsed.real) appState.real.config = Object.assign({}, appState.real.config, parsed.real);
+      if (parsed.backtest) {
+        appState.config = Object.assign({}, appState.config, parsed.backtest);
+        appState.backtest.config = Object.assign({}, appState.backtest.config, parsed.backtest);
+      }
+    }
+    const realBalOverride = parseFloat(localStorage.getItem('cached_real_balance_override'));
+    if (!isNaN(realBalOverride) && realBalOverride > 0) {
+      if (!appState.real.config) appState.real.config = {};
+      appState.real.config.initial_balance = realBalOverride;
+    }
+    const btBalOverride = parseFloat(localStorage.getItem('cached_backtest_balance_override'));
+    if (!isNaN(btBalOverride) && btBalOverride > 0) {
+      if (!appState.backtest.config) appState.backtest.config = {};
+      appState.backtest.config.initial_balance = btBalOverride;
+      appState.config.initial_balance = btBalOverride;
+    }
+  } catch (e) {}
+
   try {
     const res = await fetch('/api/config?mode=all');
     if (res.ok) {
@@ -1995,11 +2020,18 @@ async function loadConfig() {
         appState.config = Object.assign({}, appState.config, data.backtest);
         appState.backtest.config = Object.assign({}, appState.backtest.config, data.backtest);
       }
+      // Si el navegador guardó recientemente un saldo personalizado en localStorage, preservarlo
+      const realBalOverride = parseFloat(localStorage.getItem('cached_real_balance_override'));
+      if (!isNaN(realBalOverride) && realBalOverride > 0 && (!data.real || !data.real.initial_balance || data.real.initial_balance === 92.08)) {
+        appState.real.config.initial_balance = realBalOverride;
+      }
       populateSettingsModal();
       syncAllAccountsUI();
     }
   } catch (err) {
-    console.warn('Config local:', err);
+    console.warn('Config local fallback:', err);
+    populateSettingsModal();
+    syncAllAccountsUI();
   }
 }
 
@@ -2841,6 +2873,27 @@ function setupBacktestSimpleView() {
       el.addEventListener('change', updateBacktestSimplePreviews);
     }
   });
+
+  const btBalInputEl = document.getElementById('btSimpleInitialBalance');
+  if (btBalInputEl) {
+    const handleBtBalChange = (e) => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val > 0) {
+        if (!appState.backtest.config) appState.backtest.config = {};
+        appState.backtest.config.initial_balance = val;
+        appState.config.initial_balance = val;
+        const settingInp = document.getElementById('settingBacktestInitialBalance');
+        if (settingInp && document.activeElement !== settingInp) {
+          settingInp.value = val.toFixed(2);
+        }
+        try {
+          localStorage.setItem('cached_backtest_balance_override', val.toFixed(2));
+        } catch (err) {}
+      }
+    };
+    btBalInputEl.addEventListener('input', handleBtBalChange);
+    btBalInputEl.addEventListener('change', handleBtBalChange);
+  }
 
   // Botón: Recalcular Todo con Interés Compuesto
   const btnRecalc = document.getElementById('btnBtSimpleRecalculate');
@@ -4413,6 +4466,40 @@ function setupRealJournalView() {
     }
   });
 
+  // Sincronización en vivo del balance escrito en Real hacia la configuración y memoria
+  const realBalInputEl = document.getElementById('realCalcBalance');
+  if (realBalInputEl) {
+    const handleRealBalChange = (e) => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val > 0) {
+        if (!appState.real.config) appState.real.config = {};
+        appState.real.config.initial_balance = val;
+        if (!appState.real.trades || appState.real.trades.length === 0) {
+          if (!appState.real.summary) appState.real.summary = {};
+          appState.real.summary.initial_balance = val;
+          appState.real.summary.current_balance = val;
+        }
+        const settingInp = document.getElementById('settingRealInitialBalance');
+        if (settingInp && document.activeElement !== settingInp) {
+          settingInp.value = val.toFixed(2);
+        }
+        const liveBalHeader = document.getElementById('realLiveBalHeader');
+        if (liveBalHeader) liveBalHeader.textContent = `$${val.toFixed(2)}`;
+        const topBal = document.getElementById('badgeTopRealBalance');
+        if (topBal) topBal.textContent = `$${val.toFixed(2)}`;
+        const statBal = document.getElementById('realStatBalance');
+        if (statBal) statBal.textContent = `$${val.toFixed(2)}`;
+        const statInit = document.getElementById('realStatInitBal');
+        if (statInit) statInit.textContent = val.toFixed(2);
+        try {
+          localStorage.setItem('cached_real_balance_override', val.toFixed(2));
+        } catch (err) {}
+      }
+    };
+    realBalInputEl.addEventListener('input', handleRealBalChange);
+    realBalInputEl.addEventListener('change', handleRealBalChange);
+  }
+
   // Botón Copiar Lote al Portapapeles
   const btnCopyLot = document.getElementById('btnCopyRealLot');
   if (btnCopyLot) {
@@ -5391,6 +5478,50 @@ function setupEventListeners() {
   const btnSaveSettings = document.getElementById('btnSaveSettings');
   if (btnSaveSettings) {
     btnSaveSettings.addEventListener('click', handleSaveSettings);
+  }
+
+  // Sincronización en vivo de inputs del modal de ajustes con la memoria y las pestañas
+  const settingRealBalInput = document.getElementById('settingRealInitialBalance');
+  if (settingRealBalInput) {
+    settingRealBalInput.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val > 0) {
+        if (!appState.real.config) appState.real.config = {};
+        appState.real.config.initial_balance = val;
+        const calcInp = document.getElementById('realCalcBalance');
+        if (calcInp && document.activeElement !== calcInp) calcInp.value = val.toFixed(2);
+        try { localStorage.setItem('cached_real_balance_override', val.toFixed(2)); } catch (err) {}
+        if (typeof recalculateRealQuickLot === 'function') recalculateRealQuickLot();
+      }
+    });
+  }
+
+  const settingBtBalInput = document.getElementById('settingBacktestInitialBalance');
+  if (settingBtBalInput) {
+    settingBtBalInput.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val > 0) {
+        if (!appState.backtest.config) appState.backtest.config = {};
+        appState.backtest.config.initial_balance = val;
+        appState.config.initial_balance = val;
+        const btInp = document.getElementById('btSimpleInitialBalance');
+        if (btInp && document.activeElement !== btInp) btInp.value = val.toFixed(2);
+        try { localStorage.setItem('cached_backtest_balance_override', val.toFixed(2)); } catch (err) {}
+      }
+    });
+  }
+
+  const settingFondeoBalInput = document.getElementById('settingFondeoInitialBalance');
+  if (settingFondeoBalInput) {
+    settingFondeoBalInput.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val > 0) {
+        if (!appState.fondeo.config) appState.fondeo.config = {};
+        appState.fondeo.config.initial_balance = val;
+        try { localStorage.setItem('cached_fondeo_balance_override', val.toFixed(2)); } catch (err) {}
+        if (typeof updateFondeoCalculation === 'function') updateFondeoCalculation();
+      }
+    });
   }
 
   // Edit Trade Modal
@@ -10693,6 +10824,111 @@ function setupBackupAndRestoreEvents() {
 // -------------------------------------------------------------
 // 7. Botón de Guardado General (Todas las Pestañas) & Cmd+S
 // -------------------------------------------------------------
+function collectAllLiveDashboardData() {
+  // 1. REAL: balance, risk, leverage, rr
+  const realBalInp = document.getElementById('realCalcBalance');
+  const realSettingBalInp = document.getElementById('settingRealInitialBalance');
+  let realBal = null;
+  if (realBalInp && !isNaN(parseFloat(realBalInp.value)) && parseFloat(realBalInp.value) > 0) {
+    realBal = parseFloat(realBalInp.value);
+  } else if (realSettingBalInp && !isNaN(parseFloat(realSettingBalInp.value)) && parseFloat(realSettingBalInp.value) > 0) {
+    realBal = parseFloat(realSettingBalInp.value);
+  } else if (appState.real?.config?.initial_balance) {
+    realBal = Number(appState.real.config.initial_balance);
+  } else {
+    realBal = 107.83;
+  }
+
+  const realRiskInp = document.getElementById('realCalcRiskPct');
+  const realSettingRiskInp = document.getElementById('settingRealRiskPct');
+  const realRisk = parseFloat(realRiskInp?.value) || parseFloat(realSettingRiskInp?.value) || Number(appState.real?.config?.risk_pct) || 1.0;
+
+  const realLev = parseFloat(document.getElementById('settingRealLeverage')?.value) || Number(appState.real?.config?.leverage) || 300.0;
+  const realRr = parseFloat(document.getElementById('realCalcRR')?.value) || Number(appState.real?.config?.rr_ratio) || 2.0;
+
+  if (!appState.real) appState.real = {};
+  if (!appState.real.config) appState.real.config = {};
+  appState.real.config.initial_balance = realBal;
+  appState.real.config.risk_pct = realRisk;
+  appState.real.config.leverage = realLev;
+  appState.real.config.rr_ratio = realRr;
+  if (!appState.real.summary) appState.real.summary = {};
+  if (!appState.real.trades || appState.real.trades.length === 0) {
+    appState.real.summary.initial_balance = realBal;
+    appState.real.summary.current_balance = realBal;
+  }
+
+  // 2. FONDEO: balance, risk, leverage, rr
+  const fondeoBalInp = document.getElementById('settingFondeoInitialBalance');
+  const fondeoBal = parseFloat(fondeoBalInp?.value) || Number(appState.fondeo?.config?.initial_balance) || 50000.0;
+
+  const fondeoRiskSel = document.getElementById('fondeoFormRiskPct');
+  const fondeoSettingRisk = document.getElementById('settingFondeoRiskPct');
+  let fondeoRisk = 0.50;
+  if (fondeoRiskSel && fondeoRiskSel.value !== 'manual' && !isNaN(parseFloat(fondeoRiskSel.value))) {
+    fondeoRisk = parseFloat(fondeoRiskSel.value);
+  } else if (fondeoSettingRisk && !isNaN(parseFloat(fondeoSettingRisk.value))) {
+    fondeoRisk = parseFloat(fondeoSettingRisk.value);
+  } else if (appState.fondeo?.config?.risk_pct) {
+    fondeoRisk = Number(appState.fondeo.config.risk_pct);
+  }
+
+  const fondeoLev = parseFloat(document.getElementById('settingFondeoLeverage')?.value) || Number(appState.fondeo?.config?.leverage) || 30.0;
+  const fondeoRr = parseFloat(document.getElementById('fondeoFormRr')?.value) || Number(appState.fondeo?.config?.rr_ratio) || 2.0;
+
+  if (!appState.fondeo) appState.fondeo = {};
+  if (!appState.fondeo.config) appState.fondeo.config = {};
+  appState.fondeo.config.initial_balance = fondeoBal;
+  appState.fondeo.config.risk_pct = fondeoRisk;
+  appState.fondeo.config.leverage = fondeoLev;
+  appState.fondeo.config.rr_ratio = fondeoRr;
+  if (!appState.fondeo.trades || appState.fondeo.trades.length === 0) {
+    if (!appState.fondeo.summary) appState.fondeo.summary = {};
+    appState.fondeo.summary.initial_balance = fondeoBal;
+    appState.fondeo.summary.current_balance = fondeoBal;
+  }
+
+  // 3. BACKTEST: balance, risk, leverage, rr
+  const btBalInp = document.getElementById('btSimpleInitialBalance');
+  const btSettingBalInp = document.getElementById('settingBacktestInitialBalance');
+  let btBal = 1000.0;
+  if (btBalInp && !isNaN(parseFloat(btBalInp.value)) && parseFloat(btBalInp.value) > 0) {
+    btBal = parseFloat(btBalInp.value);
+  } else if (btSettingBalInp && !isNaN(parseFloat(btSettingBalInp.value)) && parseFloat(btSettingBalInp.value) > 0) {
+    btBal = parseFloat(btSettingBalInp.value);
+  } else if (appState.backtest?.config?.initial_balance) {
+    btBal = Number(appState.backtest.config.initial_balance);
+  }
+
+  const btRiskInp = document.getElementById('btSimpleRiskPct');
+  const btSettingRiskInp = document.getElementById('settingBacktestRiskPct');
+  const btRisk = parseFloat(btRiskInp?.value) || parseFloat(btSettingRiskInp?.value) || Number(appState.backtest?.config?.risk_pct) || 1.0;
+
+  const btLev = parseFloat(document.getElementById('settingBacktestLeverage')?.value) || Number(appState.backtest?.config?.leverage) || 30.0;
+  const btRr = parseFloat(document.getElementById('btSimpleRR')?.value) || Number(appState.backtest?.config?.rr_ratio) || 3.0;
+
+  if (!appState.backtest) appState.backtest = {};
+  if (!appState.backtest.config) appState.backtest.config = {};
+  appState.backtest.config.initial_balance = btBal;
+  appState.backtest.config.risk_pct = btRisk;
+  appState.backtest.config.leverage = btLev;
+  appState.backtest.config.rr_ratio = btRr;
+  appState.config = Object.assign({}, appState.config, appState.backtest.config);
+
+  return {
+    configs: {
+      fondeo: appState.fondeo.config,
+      real: appState.real.config,
+      backtest: appState.backtest.config
+    },
+    trades: {
+      fondeo: appState.fondeo.trades || [],
+      real: appState.real.trades || [],
+      backtest: appState.backtest.trades || []
+    }
+  };
+}
+
 async function saveAllDashboardData(triggerSource = 'button') {
   const btn = document.getElementById('btnSaveAllData');
   let originalHtml = '';
@@ -10703,19 +10939,8 @@ async function saveAllDashboardData(triggerSource = 'button') {
     if (window.lucide) window.lucide.createIcons();
   }
 
-  // 1. Recopilar todos los datos en memoria de las 3 bitácoras
-  const payload = {
-    configs: {
-      fondeo: appState.fondeo?.config || {},
-      real: appState.real?.config || {},
-      backtest: appState.backtest?.config || {}
-    },
-    trades: {
-      fondeo: appState.fondeo?.trades || [],
-      real: appState.real?.trades || [],
-      backtest: appState.backtest?.trades || []
-    }
-  };
+  // 1. Recopilar todos los datos en vivo de los inputs de las 3 pestañas
+  const payload = collectAllLiveDashboardData();
 
   // 2. Espejo preventivo en localStorage
   try {
@@ -10723,6 +10948,9 @@ async function saveAllDashboardData(triggerSource = 'button') {
     if (payload.trades.real) localStorage.setItem('cached_real_trades_v2', JSON.stringify(payload.trades.real));
     if (payload.trades.backtest) localStorage.setItem('cached_backtest_trades_v2', JSON.stringify(payload.trades.backtest));
     localStorage.setItem('cached_app_config_all', JSON.stringify(payload.configs));
+    localStorage.setItem('cached_real_balance_override', Number(payload.configs.real.initial_balance).toFixed(2));
+    localStorage.setItem('cached_backtest_balance_override', Number(payload.configs.backtest.initial_balance).toFixed(2));
+    localStorage.setItem('cached_fondeo_balance_override', Number(payload.configs.fondeo.initial_balance).toFixed(2));
     localStorage.setItem('last_saved_timestamp', new Date().toISOString());
   } catch (e) {
     console.warn('Advertencia al guardar espejo local:', e);
@@ -10741,7 +10969,18 @@ async function saveAllDashboardData(triggerSource = 'button') {
       const realCount = payload.trades.real.length;
       const btCount = payload.trades.backtest.length;
 
-      showToast(`💾 ¡Todo Guardado! Aseguradas: Fondeo (${fondeoCount}), Real (${realCount}) y Backtest (${btCount})`, 'success', 3500);
+      if (data.configs) {
+        if (data.configs.fondeo) appState.fondeo.config = data.configs.fondeo;
+        if (data.configs.real) appState.real.config = data.configs.real;
+        if (data.configs.backtest) {
+          appState.backtest.config = data.configs.backtest;
+          appState.config = Object.assign({}, appState.config, data.configs.backtest);
+        }
+      }
+
+      syncAllAccountsUI();
+
+      showToast(`💾 ¡Todo Guardado! Aseguradas: Fondeo ($${formatMoney(payload.configs.fondeo.initial_balance)}), Real ($${formatMoney(payload.configs.real.initial_balance)}) y Backtest ($${formatMoney(payload.configs.backtest.initial_balance)})`, 'success', 3500);
 
       if (btn) {
         btn.className = 'px-3.5 py-1.5 bg-emerald-600 text-white text-xs font-black rounded-lg shadow-lg shadow-emerald-500/40 transition flex items-center gap-1.5 cursor-pointer border border-emerald-300';

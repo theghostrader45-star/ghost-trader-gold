@@ -2489,23 +2489,42 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 trades_data = payload.get("trades", {})
 
                 # Update & save configs if sent
+                updated_configs = {}
                 for m in ["fondeo", "real", "backtest"]:
+                    current_cfg = get_config(m)
                     if m in configs and isinstance(configs[m], dict):
                         sub = configs[m]
-                        current_cfg = get_config(m)
-                        current_cfg.update({k: v for k, v in sub.items() if v is not None})
+                        for k, v in sub.items():
+                            if v is not None:
+                                try:
+                                    if k in ["initial_balance", "risk_pct", "leverage", "rr_ratio"]:
+                                        current_cfg[k] = float(v)
+                                    else:
+                                        current_cfg[k] = v
+                                except Exception:
+                                    current_cfg[k] = v
+                        if m == "fondeo" and "initial_balance" in current_cfg:
+                            init_b = float(current_cfg["initial_balance"])
+                            p_target_pct = float(current_cfg.get("profit_target_pct", 4.0))
+                            p_daily_pct = float(current_cfg.get("daily_loss_pct", 4.0))
+                            p_max_pct = float(current_cfg.get("max_loss_pct", 8.0))
+                            current_cfg["profit_target_usd"] = round(init_b * (p_target_pct / 100.0), 2)
+                            current_cfg["daily_loss_usd"] = round(init_b * (p_daily_pct / 100.0), 2)
+                            current_cfg["max_loss_usd"] = round(init_b * (p_max_pct / 100.0), 2)
                         save_config(current_cfg, m)
+                    updated_configs[m] = current_cfg
 
-                # Update & recalculate & save trades if sent
+                # Update & recalculate & save trades
                 saved_counts = {}
                 for m in ["fondeo", "real", "backtest"]:
+                    cfg = updated_configs[m]
                     if m in trades_data and isinstance(trades_data[m], list):
-                        cfg = get_config(m)
-                        recalc = recalculate_trade_history(trades_data[m], cfg, mode=m)
-                        save_trades(recalc, m)
-                        saved_counts[m] = len(recalc)
+                        trades_to_process = trades_data[m]
                     else:
-                        saved_counts[m] = len(get_trades(m))
+                        trades_to_process = get_trades(m)
+                    recalc = recalculate_trade_history(trades_to_process, cfg, mode=m)
+                    save_trades(recalc, m)
+                    saved_counts[m] = len(recalc)
 
                 # Create safety snapshot in data/all_backup_latest.json
                 now_iso = datetime.now(timezone.utc).isoformat()
@@ -2514,11 +2533,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                     "system": "Orion Nova & TradingView Dashboard",
                     "asset": "AUD/JPY",
                     "saved_at": now_iso,
-                    "configs": {
-                        "fondeo": get_config("fondeo"),
-                        "real": get_config("real"),
-                        "backtest": get_config("backtest")
-                    },
+                    "configs": updated_configs,
                     "trades": {
                         "fondeo": get_trades("fondeo"),
                         "real": get_trades("real"),
@@ -2531,7 +2546,8 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                     "success": True,
                     "message": "¡Todo guardado! Todas las bitácoras y configuraciones aseguradas en el servidor",
                     "saved_at": now_iso,
-                    "counts": saved_counts
+                    "counts": saved_counts,
+                    "configs": updated_configs
                 })
             except Exception as e:
                 self.send_json({"error": str(e)}, 500)
