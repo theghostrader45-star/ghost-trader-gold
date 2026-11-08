@@ -1614,12 +1614,27 @@ function setupFondeoActionButtons() {
       if (!confirm(`¿Deseas reiniciar y limpiar los datos de la pestaña activa (${tabName})?`)) return;
 
       try {
-        const res = await fetch(`/api/trades/clear?mode=${currentTab}`, { method: 'POST' });
+        const res = await fetch(`/api/trades/clear?mode=${currentTab}`, { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: currentTab })
+        });
         if (res.ok) {
-          if (currentTab === 'fondeo') await loadFondeoTrades();
-          else if (currentTab === 'real') {
+          if (currentTab === 'fondeo') {
+            await loadFondeoTrades();
+          } else if (currentTab === 'real') {
+            try {
+              localStorage.removeItem('cached_real_trades_v2');
+              localStorage.removeItem('cached_real_trades');
+            } catch (e) {}
+            appState.real.trades = [];
             await loadTrades('real');
             renderRealJournalDashboard();
+            recalculateRealQuickLot();
+          } else {
+            appState.backtest.trades = [];
+            await loadTrades('backtest');
+            renderBacktestSimpleDashboard();
           }
         }
       } catch (err) {
@@ -1709,29 +1724,11 @@ async function loadTrades(mode = 'backtest') {
             localStorage.setItem('cached_real_trades_v2', JSON.stringify(serverTrades));
           } catch (e) {}
         } else {
-          // Si el servidor retornara array vacío por fallo temporal, verificar si localmente hay trades y auto-sincronizar
+          appState.real.trades = [];
           try {
-            const cached = localStorage.getItem('cached_real_trades_v2') || localStorage.getItem('cached_real_trades');
-            if (cached) {
-              const parsed = JSON.parse(cached);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                appState.real.trades = parsed;
-                for (const t of parsed) {
-                  fetch('/api/trades?mode=real', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(t)
-                  }).catch(() => {});
-                }
-              } else {
-                appState.real.trades = [];
-              }
-            } else {
-              appState.real.trades = [];
-            }
-          } catch (e) {
-            appState.real.trades = [];
-          }
+            localStorage.removeItem('cached_real_trades_v2');
+            localStorage.removeItem('cached_real_trades');
+          } catch (e) {}
         }
         renderRealJournalDashboard();
       } else {
@@ -4198,22 +4195,33 @@ function setupRealJournalView() {
   const btnClear = document.getElementById('btnClearRealData');
   if (btnClear) {
     btnClear.addEventListener('click', async () => {
-      if (confirm('¿Estás seguro de que deseas limpiar el historial de operaciones de tu Bitácora Real?')) {
-        try {
-          const res = await fetch('/api/trades/clear?mode=real', { method: 'POST' });
-          if (res.ok) {
+      if (!confirm('¿Estás seguro de que deseas limpiar todo el historial de operaciones de tu Bitácora Real?')) {
+        return;
+      }
+      try {
+        const res = await fetch('/api/trades/clear?mode=real', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'real' })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          try {
             localStorage.removeItem('cached_real_trades_v2');
             localStorage.removeItem('cached_real_trades');
-            appState.real.trades = [];
-            appState.real.summary = {};
-            await loadTrades('real');
-            renderRealJournalDashboard();
-            recalculateRealQuickLot();
-            showToast('Historial real reiniciado', 'info');
-          }
-        } catch (e) {
-          console.error(e);
+          } catch (e) {}
+          appState.real.trades = [];
+          appState.real.summary = data.summary || {};
+          appState.real.equityCurve = data.equity_curve || [];
+          renderRealJournalDashboard();
+          recalculateRealQuickLot();
+          showToast('Historial real reiniciado correctamente', 'success');
+        } else {
+          showToast('Error al reiniciar el historial real', 'error');
         }
+      } catch (e) {
+        console.error('Error al limpiar bitácora real:', e);
+        showToast('Error al conectar con el servidor', 'error');
       }
     });
   }

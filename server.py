@@ -1828,6 +1828,8 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         parsed = urlparse(self.path)
         path = parsed.path
+        query = parse_qs(parsed.query)
+        query_mode = query.get("mode", [None])[0]
         length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(length).decode("utf-8") if length > 0 else "{}"
         
@@ -1965,7 +1967,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             return
 
         elif path == "/api/recalculate" or path == "/api/trades/recalculate":
-            mode = payload.get("mode", "fondeo")
+            mode = payload.get("mode") or query_mode or "fondeo"
             config = get_config(mode)
             if "risk_pct" in payload:
                 config["risk_pct"] = float(payload["risk_pct"])
@@ -1986,7 +1988,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             return
 
         elif path == "/api/trades":
-            mode = payload.get("mode", "fondeo")
+            mode = payload.get("mode") or query_mode or "fondeo"
             config = get_config(mode)
             trades = get_trades(mode)
 
@@ -2222,7 +2224,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             return
 
         elif path == "/api/trades/clear":
-            mode = payload.get("mode", "fondeo")
+            mode = payload.get("mode") or query_mode or "fondeo"
             save_trades([], mode)
             config = get_config(mode)
             ana = calculate_analytics([], config, mode=mode)
@@ -2231,7 +2233,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             return
 
         elif path == "/api/trades/sample":
-            mode = payload.get("mode", "backtest")
+            mode = payload.get("mode") or query_mode or "backtest"
             config = get_config(mode)
             sample = generate_sample_trades(config)
             save_trades(sample, mode)
@@ -2243,7 +2245,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             return
 
         elif path == "/api/trades/generate-series":
-            mode = payload.get("mode", "backtest")
+            mode = payload.get("mode") or query_mode or "backtest"
             num_trades = int(payload.get("num_trades", 30))
             if num_trades < 5: num_trades = 5
             if num_trades > 300: num_trades = 300
