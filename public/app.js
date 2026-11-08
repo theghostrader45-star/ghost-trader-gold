@@ -1711,10 +1711,14 @@ function updateConfigUI() {
   const risk = Number(cfg.risk_pct || 5.0);
   const rr = Number(cfg.rr_ratio || 1.0);
 
-  document.getElementById('badgeInitialBalance').textContent = initial.toFixed(2);
-  document.getElementById('badgeRiskPct').textContent = formatRiskPctText(risk);
-  document.getElementById('badgeCurrentRR').textContent = formatRRText(rr);
-  document.getElementById('statInitialLabel').textContent = initial.toFixed(2);
+  const bInit = document.getElementById('badgeInitialBalance');
+  if (bInit) bInit.textContent = initial.toFixed(2);
+  const bRisk = document.getElementById('badgeRiskPct');
+  if (bRisk) bRisk.textContent = formatRiskPctText(risk);
+  const bRR = document.getElementById('badgeCurrentRR');
+  if (bRR) bRR.textContent = formatRRText(rr);
+  const sInit = document.getElementById('statInitialLabel');
+  if (sInit) sInit.textContent = initial.toFixed(2);
 
   // Recalculation Console inputs
   const initialInput = document.getElementById('globalInitialInput');
@@ -1736,11 +1740,19 @@ function updateConfigUI() {
   if (specRR && !specRR.value) specRR.value = formatRRText(rr);
 
   // Settings modal
-  document.getElementById('settingInitialBalance').value = initial;
-  document.getElementById('settingRiskPct').value = formatRiskPctText(risk);
-  document.getElementById('settingRR').value = formatRRText(rr);
-  document.getElementById('settingRR').value = rr;
-  document.getElementById('settingLeverage').value = cfg.leverage || 300;
+  const setInitInp = document.getElementById('settingInitialBalance');
+  if (setInitInp) setInitInp.value = initial;
+  const setRealInitInp = document.getElementById('settingRealInitialBalance');
+  if (setRealInitInp) {
+    const rInit = appState.real?.summary?.initial_balance || 92.08;
+    setRealInitInp.value = Number(rInit).toFixed(2);
+  }
+  const setRiskInp = document.getElementById('settingRiskPct');
+  if (setRiskInp) setRiskInp.value = formatRiskPctText(risk);
+  const setRRInp = document.getElementById('settingRR');
+  if (setRRInp) setRRInp.value = formatRRText(rr);
+  const setLevInp = document.getElementById('settingLeverage');
+  if (setLevInp) setLevInp.value = cfg.leverage || 300;
 }
 
 // ----------------------------------------------------
@@ -1766,10 +1778,14 @@ async function triggerRecalculate(newRisk, newRR, newInitial) {
   const lblRR = document.getElementById('labelActiveRR');
   if (lblRR) lblRR.textContent = `1:${formatRRText(newRR)}`;
 
-  document.getElementById('badgeInitialBalance').textContent = initial.toFixed(2);
-  document.getElementById('badgeRiskPct').textContent = formatRiskPctText(newRisk);
-  document.getElementById('badgeCurrentRR').textContent = formatRRText(newRR);
-  document.getElementById('statInitialLabel').textContent = initial.toFixed(2);
+  const bInit2 = document.getElementById('badgeInitialBalance');
+  if (bInit2) bInit2.textContent = initial.toFixed(2);
+  const bRisk2 = document.getElementById('badgeRiskPct');
+  if (bRisk2) bRisk2.textContent = formatRiskPctText(newRisk);
+  const bRR2 = document.getElementById('badgeCurrentRR');
+  if (bRR2) bRR2.textContent = formatRRText(newRR);
+  const sInit2 = document.getElementById('statInitialLabel');
+  if (sInit2) sInit2.textContent = initial.toFixed(2);
 
   // Immediate Client-Side Pure Percentage Compounding Recalculation
   let currBal = initial;
@@ -3184,12 +3200,15 @@ function renderRealJournalDashboard() {
   if (tabBadgeReal) {
     tabBadgeReal.textContent = `${total} ops guardadas`;
   }
-  document.getElementById('realStatTotalOps').textContent = total;
+  const totalOpsEl = document.getElementById('realStatTotalOps');
+  if (totalOpsEl) totalOpsEl.textContent = total;
   const realStatTotalOpsBadge = document.getElementById('realStatTotalOpsBadge');
   if (realStatTotalOpsBadge) realStatTotalOpsBadge.textContent = total;
-  document.getElementById('realStatBalance').textContent = `$${curBal.toFixed(2)}`;
-  const initBalVal = s.initial_balance !== undefined ? s.initial_balance : (cfg.initial_balance || 110.0);
-  document.getElementById('realStatInitBal').textContent = Number(initBalVal).toFixed(2);
+  const realStatBal = document.getElementById('realStatBalance');
+  if (realStatBal) realStatBal.textContent = `$${curBal.toFixed(2)}`;
+  const initBalVal = s.initial_balance !== undefined ? s.initial_balance : (cfg.initial_balance || 92.08);
+  const realStatInitBal = document.getElementById('realStatInitBal');
+  if (realStatInitBal) realStatInitBal.textContent = Number(initBalVal).toFixed(2);
   
   const badgeRealMt5 = document.getElementById('badgeRealMt5');
   if (badgeRealMt5) {
@@ -3201,30 +3220,43 @@ function renderRealJournalDashboard() {
     }
   }
   
-  const pnlSign = netPnl >= 0 ? '+' : '';
   const netPnlEl = document.getElementById('realStatNetPnL');
-  netPnlEl.textContent = `${pnlSign}$${netPnl.toFixed(2)} (${pnlSign}${netRet.toFixed(1)}%)`;
-  netPnlEl.className = netPnl >= 0 ? 'font-bold text-emerald-400' : 'font-bold text-rose-400';
+  if (netPnlEl) {
+    const pnlSign = netPnl >= 0 ? '+' : '';
+    netPnlEl.textContent = `${pnlSign}$${netPnl.toFixed(2)} (${pnlSign}${netRet.toFixed(1)}%)`;
+    netPnlEl.className = netPnl >= 0 ? 'font-bold text-emerald-400' : 'font-bold text-rose-400';
+  }
 
-  document.getElementById('realStatWinRate').textContent = `${winRate.toFixed(1)}%`;
-  document.getElementById('realStatWins').textContent = wins;
-  document.getElementById('realStatLosses').textContent = losses;
-  document.getElementById('realStatWinRateBar').style.width = `${Math.min(100, winRate)}%`;
+  const winRateEl = document.getElementById('realStatWinRate');
+  if (winRateEl) winRateEl.textContent = `${winRate.toFixed(1)}%`;
+  const winsEl = document.getElementById('realStatWins');
+  if (winsEl) winsEl.textContent = wins;
+  const lossesEl = document.getElementById('realStatLosses');
+  if (lossesEl) lossesEl.textContent = losses;
+  const winRateBarEl = document.getElementById('realStatWinRateBar');
+  if (winRateBarEl) winRateBarEl.style.width = `${Math.min(100, winRate)}%`;
 
-  document.getElementById('realStatPF').textContent = pf === '∞' ? '∞' : Number(pf).toFixed(2);
-  document.getElementById('realStatGain').textContent = Number(s.total_gain || 0).toFixed(2);
-  document.getElementById('realStatLoss').textContent = Number(s.total_loss || 0).toFixed(2);
+  const pfEl = document.getElementById('realStatPF');
+  if (pfEl) pfEl.textContent = pf === '∞' ? '∞' : Number(pf).toFixed(2);
+  const gainEl = document.getElementById('realStatGain');
+  if (gainEl) gainEl.textContent = Number(s.total_gain || 0).toFixed(2);
+  const lossEl = document.getElementById('realStatLoss');
+  if (lossEl) lossEl.textContent = Number(s.total_loss || 0).toFixed(2);
 
   const discPctEl = document.getElementById('realStatDisciplinePct');
   if (discPctEl) discPctEl.textContent = `${disciplinePct}%`;
   const discCountEl = document.getElementById('realStatDisciplineCount');
   if (discCountEl) discCountEl.textContent = `${disciplinedTrades.length}/${total}`;
 
-  document.getElementById('realStatAvgSl').textContent = total > 0 ? avgSlPts : '0';
-  document.getElementById('realStatAvgSlPrice').textContent = total > 0 ? avgSlPrice.toFixed(2) : '0.00';
+  const avgSlEl = document.getElementById('realStatAvgSl');
+  if (avgSlEl) avgSlEl.textContent = total > 0 ? avgSlPts : '0';
+  const avgSlPriceEl = document.getElementById('realStatAvgSlPrice');
+  if (avgSlPriceEl) avgSlPriceEl.textContent = total > 0 ? avgSlPrice.toFixed(2) : '0.00';
 
-  document.getElementById('realStatDD').textContent = `${maxDd.toFixed(1)}%`;
-  document.getElementById('realStatDDUsd').textContent = `-$${maxDdUsd.toFixed(2)}`;
+  const ddEl = document.getElementById('realStatDD');
+  if (ddEl) ddEl.textContent = `${maxDd.toFixed(1)}%`;
+  const ddUsdEl = document.getElementById('realStatDDUsd');
+  if (ddUsdEl) ddUsdEl.textContent = `-$${maxDdUsd.toFixed(2)}`;
 
   // Cálculos de Mediciones Cuantitativas Avanzadas
   let ev = 0.0;
@@ -3399,7 +3431,9 @@ function recalculateRealQuickLot() {
   let bal = parseFloat(balInp?.value);
   if (isNaN(bal) || bal <= 0) {
     bal = currentBal > 0 ? currentBal : 97.72;
-    if (balInp) balInp.value = bal.toFixed(2);
+    if (balInp && document.activeElement !== balInp && !balInp.value) {
+      balInp.value = bal.toFixed(2);
+    }
   }
 
   const riskPct = parseFloat(riskInp?.value) || 1.0;
@@ -3713,13 +3747,74 @@ function setupRealJournalView() {
       btnSync.disabled = true;
       btnSync.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Sincronizando...</span>';
       initIcons();
-      await loadTrades('real');
-      renderRealJournalDashboard();
-      recalculateRealQuickLot();
-      btnSync.disabled = false;
-      btnSync.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Sincronizar</span>';
-      initIcons();
-      showToast('Datos de Bitácora Real sincronizados correctamente', 'success');
+
+      try {
+        const balInp = document.getElementById('realCalcBalance');
+        const customBal = balInp ? parseFloat(balInp.value) : null;
+        
+        // Si el usuario modificó el saldo en el input, sincronizarlo como saldo inicial / recalculado
+        if (customBal && !isNaN(customBal) && customBal > 0) {
+          const curBal = Number(appState.real?.summary?.current_balance || 0);
+          if (Math.abs(customBal - curBal) > 0.01) {
+            await fetch('/api/recalculate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ mode: 'real', initial_balance: customBal })
+            }).catch(() => {});
+          }
+        }
+
+        await loadTrades('real');
+        renderRealJournalDashboard();
+        recalculateRealQuickLot();
+        showToast('Datos de Bitácora Real sincronizados correctamente', 'success');
+      } catch (err) {
+        console.error('Error durante sincronización real:', err);
+        showToast('Sincronización completada', 'info');
+      } finally {
+        btnSync.disabled = false;
+        btnSync.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Sincronizar</span>';
+        initIcons();
+      }
+    });
+  }
+
+  // Botón Editar Saldo Original / Inicial de la Cuenta Real
+  const btnEditRealInit = document.getElementById('btnEditRealInitBal');
+  if (btnEditRealInit) {
+    btnEditRealInit.addEventListener('click', async () => {
+      const currentInit = appState.real?.summary?.initial_balance || 92.08;
+      const input = prompt('Introduce tu Saldo Original / Capital Inicial en USD para la Bitácora Real (Tickmill):', currentInit);
+      if (input !== null) {
+        const val = parseFloat(input.replace(',', '.').trim());
+        if (!isNaN(val) && val > 0) {
+          try {
+            const res = await fetch('/api/recalculate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ mode: 'real', initial_balance: val })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              appState.real.summary = data.summary || {};
+              appState.real.equityCurve = data.equity_curve || [];
+              appState.real.trades = data.trades || [];
+              
+              const calcInp = document.getElementById('realCalcBalance');
+              if (calcInp && data.summary && data.summary.current_balance !== undefined) {
+                calcInp.value = Number(data.summary.current_balance).toFixed(2);
+              }
+              
+              renderRealJournalDashboard();
+              recalculateRealQuickLot();
+              showToast(`Saldo original actualizado a $${val.toFixed(2)} USD`, 'success');
+            }
+          } catch (e) {
+            console.error('Error actualizando saldo original:', e);
+            showToast('Error al actualizar saldo original', 'error');
+          }
+        }
+      }
     });
   }
 
@@ -4098,7 +4193,8 @@ function updateCharts() {
 
   if (distributionChart) {
     distributionChart.data.datasets[0].data = [wins, losses, be];
-    document.getElementById('donutTotalCount').textContent = `${wins + losses + be} trades`;
+    const donutEl = document.getElementById('donutTotalCount');
+    if (donutEl) donutEl.textContent = `${wins + losses + be} trades`;
     distributionChart.update();
   }
 
@@ -5196,10 +5292,11 @@ async function handleClearData() {
 // Settings & Export
 // ----------------------------------------------------
 async function handleSaveSettings() {
-  const initial_balance = parseFloat(document.getElementById('settingInitialBalance').value);
-  const risk_pct = parseFloat(document.getElementById('settingRiskPct').value);
-  const rr_ratio = parseFloat(document.getElementById('settingRR').value);
-  const leverage = parseFloat(document.getElementById('settingLeverage').value);
+  const initial_balance = parseFloat(document.getElementById('settingInitialBalance')?.value);
+  const real_initial = parseFloat(document.getElementById('settingRealInitialBalance')?.value);
+  const risk_pct = parseFloat(document.getElementById('settingRiskPct')?.value);
+  const rr_ratio = parseFloat(document.getElementById('settingRR')?.value);
+  const leverage = parseFloat(document.getElementById('settingLeverage')?.value);
 
   const payload = { initial_balance, risk_pct, rr_ratio, leverage };
 
@@ -5218,13 +5315,44 @@ async function handleSaveSettings() {
         appState.backtest.equityCurve = data.analytics.equity_curve;
         appState.backtest.trades = data.analytics.trades;
       }
-      
-      updateConfigUI();
-      document.getElementById('modalSettings').classList.add('hidden');
-      renderBacktestDashboard();
-      recalculateTradingViewValues();
-      runMyfxbookCalculator();
     }
+
+    if (!isNaN(real_initial) && real_initial > 0) {
+      try {
+        const resReal = await fetch('/api/recalculate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'real', initial_balance: real_initial })
+        });
+        if (resReal.ok) {
+          const dataReal = await resReal.json();
+          appState.real.summary = dataReal.summary || {};
+          appState.real.equityCurve = dataReal.equity_curve || [];
+          appState.real.trades = dataReal.trades || [];
+          
+          const calcInp = document.getElementById('realCalcBalance');
+          if (calcInp && dataReal.summary && dataReal.summary.current_balance !== undefined) {
+            calcInp.value = Number(dataReal.summary.current_balance).toFixed(2);
+          }
+          
+          renderRealJournalDashboard();
+          recalculateRealQuickLot();
+        }
+      } catch (e) {
+        console.warn('Error guardando saldo real:', e);
+      }
+    }
+
+    try {
+      updateConfigUI();
+    } catch (e) {}
+
+    const modalSettings = document.getElementById('modalSettings');
+    if (modalSettings) modalSettings.classList.add('hidden');
+    renderBacktestDashboard();
+    recalculateTradingViewValues();
+    runMyfxbookCalculator();
+    showToast('Configuración guardada correctamente', 'success');
   } catch (err) {
     console.error('Error guardando configuración:', err);
   }

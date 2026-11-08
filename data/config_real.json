@@ -8,5 +8,6 @@
   "asset": "AUD/JPY",
   "asset_name": "AUD/JPY (Forex Cross)",
   "contract_size": 100000,
-  "sl_default": 25.0
+  "sl_default": 25.0,
+  "sl_pips": 25.0
 }
