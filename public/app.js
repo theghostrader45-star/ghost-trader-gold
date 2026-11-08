@@ -108,6 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupUsdJpyCalibrator();
   setupPeriodFilterButtons();
   setupMonteCarloModal();
+  setupWithdrawRealModal();
   setupBackupAndRestoreEvents();
   setupSaveAllButton();
 });
@@ -3969,6 +3970,12 @@ function renderRealJournalDashboard() {
   if (realStatTotalOpsBadge) realStatTotalOpsBadge.textContent = total;
   const realStatBal = document.getElementById('realStatBalance');
   if (realStatBal) realStatBal.textContent = `$${curBal.toFixed(2)}`;
+  const realLiveBalHeader = document.getElementById('realLiveBalHeader');
+  if (realLiveBalHeader) realLiveBalHeader.textContent = `$${curBal.toFixed(2)}`;
+  const realStatTotalWithdrawn = document.getElementById('realStatTotalWithdrawn');
+  if (realStatTotalWithdrawn) realStatTotalWithdrawn.textContent = `$${Number(s.total_withdrawn || 0).toFixed(2)}`;
+  const realStatWithdrawCount = document.getElementById('realStatWithdrawCount');
+  if (realStatWithdrawCount) realStatWithdrawCount.textContent = s.withdrawals_count || 0;
   const initBalVal = s.initial_balance !== undefined ? s.initial_balance : (cfg.initial_balance || 92.08);
   const realStatInitBal = document.getElementById('realStatInitBal');
   if (realStatInitBal) realStatInitBal.textContent = Number(initBalVal).toFixed(2);
@@ -4133,6 +4140,44 @@ function renderRealTradesTable() {
   }
 
   const rowsHtml = trades.slice().reverse().map((t, idx) => {
+    const isWithdrawal = t.is_withdrawal === true || t.status === 'withdrawal' || t.type === 'withdrawal';
+    if (isWithdrawal) {
+      const wAmt = Number(t.amount || Math.abs(t.pnl) || 0);
+      const wPct = Number(t.pct || 0);
+      return `
+        <tr class="transition bg-purple-950/20 hover:bg-purple-950/40 border-l-4 border-l-purple-500">
+          <td class="py-2.5 px-3 text-purple-400 font-bold">${trades.length - idx}</td>
+          <td class="py-2.5 px-3 text-gray-200 font-sans text-xs font-semibold">${t.date || '-'}</td>
+          <td class="py-2.5 px-3 text-purple-300 font-sans text-xs">💸 Retiro de Capital</td>
+          <td class="py-2.5 px-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-purple-900/60 text-purple-200 border border-purple-700/80 inline-flex items-center gap-1">
+              <i data-lucide="arrow-down-circle" class="w-3 h-3 text-purple-400"></i> RETIRO
+            </span>
+          </td>
+          <td class="py-2.5 px-3 text-gray-500 text-center">-</td>
+          <td class="py-2.5 px-3 text-gray-500 text-center">-</td>
+          <td class="py-2.5 px-3 text-purple-300 font-mono text-center">-${wPct.toFixed(1)}%</td>
+          <td class="py-2.5 px-3 text-gray-500 text-center">-</td>
+          <td class="py-2.5 px-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-950 text-purple-300 border border-purple-700 font-mono">
+              💸 RETIRO (-${wPct.toFixed(1)}%)
+            </span>
+          </td>
+          <td class="py-2.5 px-3 text-gray-500 font-mono">$0.00</td>
+          <td class="py-2.5 px-3 text-purple-400 font-bold font-mono">-$${wAmt.toFixed(2)}</td>
+          <td class="py-2.5 px-3 text-white font-bold font-mono">$${Number(t.balance_after || 0).toFixed(2)}</td>
+          <td class="py-2.5 px-3 text-gray-400 text-[10px] truncate max-w-[120px]" title="${t.notes || ''}">
+            ${t.notes || 'Retiro de fondos'}
+          </td>
+          <td class="py-2.5 px-3 text-right">
+            <button onclick="handleDeleteTrade('${t.id}', 'real')" class="p-1 rounded hover:bg-gray-800 text-gray-400 hover:text-rose-400 transition cursor-pointer" title="Eliminar retiro (restituye el balance)">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+
     const isWin = t.status === 'win';
     const isLoss = t.status === 'loss';
     const pnlSign = t.pnl > 0 ? '+' : '';
@@ -10936,6 +10981,211 @@ function runMonteCarloSimulation() {
       <br><br>
       💡 <strong>Lección de Blindaje Psicológico:</strong> Cuando enfrentes 3 o 4 pérdidas consecutivas, <em>NO significa que tu sistema haya dejado de funcionar</em>. Es pura distribución probabilística normal de las probabilidades. Tu única tarea es <strong>mantener el riesgo fijo al ${riskPct.toFixed(1)}%</strong> y jamás aumentar el lotaje por frustración ("venganza" o Tilt).
     `;
+  }
+}
+
+// -------------------------------------------------------------
+// 5.5. Sistema de Retiro de Dinero (Bitácora Real)
+// Medición Dual (Porcentaje vs Monto), Recálculo de Balance
+// Registro Auditado en Historial de Operaciones
+// -------------------------------------------------------------
+function setupWithdrawRealModal() {
+  const modal = document.getElementById('modalWithdrawReal');
+  const btnOpen = document.getElementById('btnOpenRealWithdrawModal');
+  const btnClose = document.getElementById('btnCloseWithdrawModal');
+  const btnCancel = document.getElementById('btnCancelWithdraw');
+  const form = document.getElementById('formWithdrawReal');
+  const dateInput = document.getElementById('withdrawDate');
+  const pctInput = document.getElementById('withdrawPctInput');
+  const amtInput = document.getElementById('withdrawAmountInput');
+  const notesInput = document.getElementById('withdrawNotesInput');
+  const curBalDisplay = document.getElementById('withdrawCurrentBalDisplay');
+  const prevBefore = document.getElementById('withdrawPreviewBefore');
+  const prevAmount = document.getElementById('withdrawPreviewAmount');
+  const prevAfter = document.getElementById('withdrawPreviewAfter');
+
+  function getAvailableBalance() {
+    const s = appState.real.summary || {};
+    const cur = (s.current_balance !== undefined && s.current_balance !== null)
+      ? Number(s.current_balance)
+      : (Number(appState.real.config?.initial_balance) || 107.83);
+    return Math.max(0, cur);
+  }
+
+  function updateWithdrawPreview(amount, pct) {
+    const curBal = getAvailableBalance();
+    const safeAmt = Math.min(curBal, Math.max(0, Number(amount) || 0));
+    const safePct = curBal > 0 ? (safeAmt / curBal) * 100.0 : 0;
+    const afterBal = Math.max(0, curBal - safeAmt);
+
+    if (curBalDisplay) curBalDisplay.textContent = `$${curBal.toFixed(2)}`;
+    if (prevBefore) prevBefore.textContent = `$${curBal.toFixed(2)}`;
+    if (prevAmount) prevAmount.textContent = `-$${safeAmt.toFixed(2)} (-${safePct.toFixed(1)}%)`;
+    if (prevAfter) prevAfter.textContent = `$${afterBal.toFixed(2)}`;
+  }
+
+  function openModal() {
+    const curBal = getAvailableBalance();
+    if (dateInput) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+    }
+    if (pctInput) pctInput.value = '20';
+    const initAmt = roundNum(curBal * 0.20, 2);
+    if (amtInput) amtInput.value = initAmt > 0 ? initAmt.toFixed(2) : '';
+    if (notesInput) notesInput.value = '';
+    updateWithdrawPreview(initAmt, 20);
+
+    if (modal) {
+      modal.classList.remove('hidden');
+      initIcons();
+    }
+  }
+
+  function closeModal() {
+    if (modal) modal.classList.add('hidden');
+  }
+
+  if (btnOpen) {
+    btnOpen.addEventListener('click', (e) => {
+      e.preventDefault();
+      openModal();
+    });
+  }
+
+  [btnClose, btnCancel].forEach(b => {
+    if (b) {
+      b.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeModal();
+      });
+    }
+  });
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+      closeModal();
+    }
+  });
+
+  // Dual reactive inputs: % -> $
+  if (pctInput) {
+    pctInput.addEventListener('input', () => {
+      const curBal = getAvailableBalance();
+      const pctVal = parseFloat(pctInput.value) || 0;
+      const calcAmt = roundNum(curBal * (pctVal / 100.0), 2);
+      if (amtInput && document.activeElement === pctInput) {
+        amtInput.value = calcAmt > 0 ? calcAmt.toFixed(2) : '';
+      }
+      updateWithdrawPreview(calcAmt, pctVal);
+    });
+  }
+
+  // Dual reactive inputs: $ -> %
+  if (amtInput) {
+    amtInput.addEventListener('input', () => {
+      const curBal = getAvailableBalance();
+      const amtVal = parseFloat(amtInput.value) || 0;
+      const calcPct = curBal > 0 ? roundNum((amtVal / curBal) * 100.0, 2) : 0;
+      if (pctInput && document.activeElement === amtInput) {
+        pctInput.value = calcPct > 0 ? calcPct.toFixed(1) : '';
+      }
+      updateWithdrawPreview(amtVal, calcPct);
+    });
+  }
+
+  // Quick percent buttons (10%, 25%, 50%, 75%, 100%)
+  document.querySelectorAll('.btn-quick-withdraw-pct').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const pct = parseFloat(btn.dataset.pct) || 0;
+      const curBal = getAvailableBalance();
+      const calcAmt = roundNum(curBal * (pct / 100.0), 2);
+      if (pctInput) pctInput.value = pct;
+      if (amtInput) amtInput.value = calcAmt.toFixed(2);
+      updateWithdrawPreview(calcAmt, pct);
+    });
+  });
+
+  // Submit withdrawal
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const curBal = getAvailableBalance();
+      const amt = parseFloat(amtInput?.value);
+      if (isNaN(amt) || amt <= 0) {
+        alert('Por favor introduce un monto de retiro válido mayor a cero.');
+        return;
+      }
+      if (amt > curBal) {
+        alert(`No puedes retirar más de tu balance disponible ($${curBal.toFixed(2)} USD).`);
+        return;
+      }
+
+      const pct = curBal > 0 ? roundNum((amt / curBal) * 100.0, 2) : 0;
+      const customDate = dateInput?.value || new Date().toISOString().split('T')[0];
+      const notes = (notesInput?.value || '').trim() || `Retiro de capital (-${pct.toFixed(1)}%)`;
+
+      const payload = {
+        mode: 'real',
+        is_withdrawal: true,
+        status: 'withdrawal',
+        type: 'withdrawal',
+        amount: amt,
+        pct: pct,
+        pnl: -amt,
+        date: customDate,
+        notes: notes,
+        asset: 'RETIRO',
+        direction: 'WITHDRAW',
+        session: 'Retiro de Capital',
+        strategy: 'Retiro de Fondos',
+        emotion: 'Retiro Planificado'
+      };
+
+      try {
+        const res = await fetch('/api/trades?mode=real', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          appState.real.summary = data.analytics.summary;
+          appState.real.trades = data.analytics.trades;
+          appState.real.equityCurve = data.analytics.equity_curve;
+
+          try {
+            localStorage.setItem('cached_real_trades_v2', JSON.stringify(appState.real.trades));
+          } catch (e) {}
+
+          // Sincronizar balances en vivo
+          const newBal = Number(appState.real.summary.current_balance || (curBal - amt));
+          const liveBalHeader = document.getElementById('realLiveBalHeader');
+          if (liveBalHeader) liveBalHeader.textContent = `$${newBal.toFixed(2)}`;
+          const realCalcBalance = document.getElementById('realCalcBalance');
+          if (realCalcBalance) realCalcBalance.value = newBal.toFixed(2);
+
+          renderRealJournalDashboard();
+          closeModal();
+
+          if (typeof showToast === 'function') {
+            showToast(`💸 <strong>Retiro Exitoso:</strong> -$${amt.toFixed(2)} (-${pct.toFixed(1)}%) retirados. Nuevo balance: $${newBal.toFixed(2)} USD.`, 'success', 5000);
+          }
+        } else {
+          alert('Error del servidor al registrar el retiro.');
+        }
+      } catch (err) {
+        console.error('Error registrando retiro:', err);
+        alert('Error de conexión al registrar el retiro');
+      }
+    });
   }
 }
 

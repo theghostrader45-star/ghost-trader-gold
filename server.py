@@ -802,6 +802,30 @@ def recalculate_trade_history(trades, config, mode="backtest"):
     updated_trades = []
     
     for t in trades:
+        status = str(t.get("status", "win")).lower()
+        is_withdrawal = bool(t.get("is_withdrawal") or status == "withdrawal" or str(t.get("type", "")).lower() == "withdrawal")
+        if is_withdrawal:
+            raw_w_amt = t.get("amount") or abs(float(t.get("pnl", 0.0)))
+            w_amt = round(abs(float(raw_w_amt)), 2)
+            balance_before = round(curr_bal, 2)
+            curr_bal = round(max(0.0, curr_bal - w_amt), 2)
+            pct = round(float(t.get("pct") or (w_amt / balance_before * 100.0 if balance_before > 0 else 0.0)), 2)
+            t_new = dict(t)
+            t_new["is_withdrawal"] = True
+            t_new["status"] = "withdrawal"
+            t_new["type"] = "withdrawal"
+            t_new["amount"] = w_amt
+            t_new["pct"] = pct
+            t_new["pnl"] = -w_amt
+            t_new["balance_before"] = balance_before
+            t_new["balance_after"] = curr_bal
+            t_new["asset"] = "RETIRO"
+            t_new["direction"] = "WITHDRAW"
+            t_new["session"] = t.get("session") or "Retiro de Fondos"
+            t_new["notes"] = t.get("notes") or f"Retiro de capital ({pct}%)"
+            updated_trades.append(t_new)
+            continue
+
         # Extract invariant points
         if t.get("tv_points") is not None and float(t.get("tv_points")) >= 20.0:
             tv_points = round(float(t["tv_points"]))
@@ -1053,6 +1077,8 @@ def calculate_analytics(trades, config, mode="backtest"):
     breakevens = 0
     total_gain = 0.0
     total_loss = 0.0
+    total_withdrawn = 0.0
+    withdrawals_count = 0
     
     streak_win = 0
     streak_loss = 0
@@ -1077,6 +1103,41 @@ def calculate_analytics(trades, config, mode="backtest"):
 
     for idx, t in enumerate(trades, start=1):
         status = str(t.get("status", "win")).lower()
+        is_withdrawal = bool(t.get("is_withdrawal") or status == "withdrawal" or str(t.get("type", "")).lower() == "withdrawal")
+        if is_withdrawal:
+            raw_w_amt = t.get("amount") or abs(float(t.get("pnl", 0.0)))
+            w_amt = round(abs(float(raw_w_amt)), 2)
+            balance_before = current_balance
+            current_balance = round(max(0.0, current_balance - w_amt), 2)
+            pct = round(float(t.get("pct") or (w_amt / balance_before * 100.0 if balance_before > 0 else 0.0)), 2)
+            total_withdrawn += w_amt
+            withdrawals_count += 1
+
+            equity_curve.append({
+                "trade_num": idx,
+                "date": t.get("date", f"W#{idx}"),
+                "balance": round(current_balance, 2),
+                "drawdown_pct": 0.0,
+                "pnl": -w_amt,
+                "is_withdrawal": True
+            })
+
+            t_copy = dict(t)
+            t_copy["is_withdrawal"] = True
+            t_copy["status"] = "withdrawal"
+            t_copy["type"] = "withdrawal"
+            t_copy["amount"] = w_amt
+            t_copy["pct"] = pct
+            t_copy["pnl"] = -w_amt
+            t_copy["balance_before"] = round(balance_before, 2)
+            t_copy["balance_after"] = round(current_balance, 2)
+            t_copy["asset"] = "RETIRO"
+            t_copy["direction"] = "WITHDRAW"
+            t_copy["session"] = t.get("session") or "Retiro de Fondos"
+            t_copy["notes"] = t.get("notes") or f"Retiro de capital ({pct}%)"
+            processed_trades.append(t_copy)
+            continue
+
         if mode == "backtest":
             is_manual_risk = bool(t.get("is_manual_risk"))
             trade_risk = round(float(str(t.get("risk_pct_custom") or t.get("risk_pct")).replace(",", ".")), 2) if is_manual_risk else global_risk
@@ -1240,7 +1301,9 @@ def calculate_analytics(trades, config, mode="backtest"):
         "max_streak_loss": max_streak_loss,
         "expectancy_usd": round(expectancy_usd, 2),
         "be_winrate": be_winrate,
-        "leverage": leverage
+        "leverage": leverage,
+        "total_withdrawn": round(total_withdrawn, 2),
+        "withdrawals_count": withdrawals_count
     }
 
     # Orion Nova Metrics calculation
@@ -2036,6 +2099,41 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
 
             analytics = calculate_analytics(trades, config, mode=mode)
             cur_bal = analytics["summary"]["current_balance"]
+
+            is_withdrawal = bool(payload.get("is_withdrawal") or str(payload.get("status", "")).lower() == "withdrawal" or str(payload.get("type", "")).lower() == "withdrawal")
+            if is_withdrawal:
+                raw_amt = payload.get("amount") or abs(float(payload.get("pnl", 0.0)))
+                w_amt = round(abs(float(raw_amt)), 2)
+                pct = round(float(payload.get("pct") or (w_amt / cur_bal * 100.0 if cur_bal > 0 else 0.0)), 2)
+                w_date = payload.get("date") or datetime.now().strftime("%Y-%m-%d %H:%M")
+                notes = payload.get("notes") or f"Retiro de fondos ({pct}%)"
+                
+                trade = {
+                    "id": str(uuid.uuid4()),
+                    "date": w_date,
+                    "is_withdrawal": True,
+                    "status": "withdrawal",
+                    "type": "withdrawal",
+                    "amount": w_amt,
+                    "pct": pct,
+                    "pnl": -w_amt,
+                    "balance_before": round(cur_bal, 2),
+                    "balance_after": round(max(0.0, cur_bal - w_amt), 2),
+                    "asset": "RETIRO",
+                    "direction": "WITHDRAW",
+                    "session": payload.get("session") or "Retiro de Fondos",
+                    "strategy": "Retiro de Capital",
+                    "emotion": "Retiro Ganancias",
+                    "notes": notes,
+                    "mode": mode
+                }
+                trades.append(trade)
+                recalculated = recalculate_trade_history(trades, config, mode=mode)
+                save_trades(recalculated, mode)
+                updated_analytics = calculate_analytics(recalculated, config, mode=mode)
+                updated_analytics["mode"] = mode
+                self.send_json({"trade": recalculated[-1] if recalculated else trade, "analytics": updated_analytics})
+                return
 
             direction = payload.get("direction", "BUY").upper()
             asset = payload.get("asset", config.get("asset", "AUD/JPY"))
