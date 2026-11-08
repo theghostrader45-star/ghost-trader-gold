@@ -2247,12 +2247,12 @@ function updateBacktestSimplePreviews() {
 
   const winSubtext = document.getElementById('btSimpleWinRewardSubtext');
   if (winSubtext) {
-    winSubtext.textContent = `+${nextWinPct}% (+${rrVal.toFixed(1)}R) · Ganancia: +$${nextWinUsd.toFixed(2)}`;
+    winSubtext.textContent = `+${nextWinPct}% (+${rrVal.toFixed(1)}R) · +$${formatMoney(nextWinUsd)}`;
   }
 
   const lossSubtext = document.getElementById('btSimpleLossRiskSubtext');
   if (lossSubtext) {
-    lossSubtext.textContent = `-${riskPctVal.toFixed(2)}% (-1R) · Pérdida: -$${nextRiskUsd.toFixed(2)}`;
+    lossSubtext.textContent = `-${riskPctVal.toFixed(2)}% (-1R) · -$${formatMoney(nextRiskUsd)}`;
   }
 }
 
@@ -2640,14 +2640,16 @@ function renderBacktestSimpleDashboard() {
   const elWrBadge = document.getElementById('btSimpleStatWinRateBadge');
   if (elWrBadge) {
     if (total === 0) {
-      elWrBadge.className = 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-gray-800 text-gray-400';
+      elWrBadge.className = 'text-[9px] px-1.5 py-0.5 rounded font-bold bg-gray-800 text-gray-400 shrink-0';
       elWrBadge.textContent = '0 ops';
     } else if (winRate >= beWinrate) {
-      elWrBadge.className = 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-950 text-emerald-400 border border-emerald-800';
-      elWrBadge.textContent = `Rentable (>${beWinrate}%)`;
+      elWrBadge.className = 'text-[9px] px-1.5 py-0.5 rounded font-bold bg-emerald-950 text-emerald-400 border border-emerald-800 shrink-0';
+      elWrBadge.textContent = `>BE (${beWinrate}%)`;
+      elWrBadge.title = `Rentable: Supera el Breakeven necesario de ${beWinrate}%`;
     } else {
-      elWrBadge.className = 'text-[10px] px-1.5 py-0.5 rounded font-bold bg-rose-950 text-rose-400 border border-rose-800';
-      elWrBadge.textContent = `Bajo BE (${beWinrate}%)`;
+      elWrBadge.className = 'text-[9px] px-1.5 py-0.5 rounded font-bold bg-rose-950 text-rose-400 border border-rose-800 shrink-0';
+      elWrBadge.textContent = `<BE (${beWinrate}%)`;
+      elWrBadge.title = `Por debajo del Breakeven necesario de ${beWinrate}%`;
     }
   }
   const elWrBar = document.getElementById('btSimpleStatWinRateBar');
@@ -2659,7 +2661,10 @@ function renderBacktestSimpleDashboard() {
   const elPf = document.getElementById('btSimpleStatProfitFactor');
   if (elPf) elPf.textContent = pf === '∞' ? '∞' : (Number(pf) >= 999 ? '∞' : Number(pf).toFixed(2));
   const elGainsVsLosses = document.getElementById('btSimpleStatGainsVsLosses');
-  if (elGainsVsLosses) elGainsVsLosses.textContent = `Ganado: $${formatMoney(totalGain)} | Perdido: $${formatMoney(totalLoss)}`;
+  if (elGainsVsLosses) {
+    elGainsVsLosses.innerHTML = `<span class="text-emerald-400 truncate font-semibold" title="Total Ganado: $${formatMoney(totalGain)}">+$${formatMoney(totalGain)}</span><span class="text-gray-600 shrink-0">/</span><span class="text-rose-400 truncate font-semibold" title="Total Perdido: $${formatMoney(totalLoss)}">-$${formatMoney(totalLoss)}</span>`;
+    elGainsVsLosses.title = `Total Ganado: $${formatMoney(totalGain)} | Total Perdido: $${formatMoney(totalLoss)}`;
+  }
 
   // 5. Expectancy Card
   const elExp = document.getElementById('btSimpleStatExpectancy');

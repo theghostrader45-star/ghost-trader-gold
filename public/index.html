@@ -43,57 +43,57 @@
 
   <!-- Header / Top Bar -->
   <header class="border-b border-gray-800 bg-gray-900/90 backdrop-blur sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
       
       <!-- Brand & Mode Badge -->
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-yellow-600 to-amber-700 flex items-center justify-center text-black font-black shadow-lg shadow-amber-500/20">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 via-yellow-600 to-amber-700 flex items-center justify-center text-black font-black shadow-lg shadow-amber-500/20 shrink-0">
           <i data-lucide="award" class="w-5 h-5 stroke-[2.5]"></i>
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-lg sm:text-xl font-black tracking-wider text-white uppercase flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-black tracking-wider text-white uppercase flex items-center gap-2">
               <span class="bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent">XAU/USD Pro Terminal</span>
-              <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 font-mono tracking-wide">
-                <i data-lucide="shield-check" class="w-3 h-3 text-amber-400"></i> Orion Nova 50K (Oro Spot)
+              <span class="hidden sm:inline-flex text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold items-center gap-1 font-mono tracking-wide">
+                <i data-lucide="shield-check" class="w-3 h-3 text-amber-400"></i> Orion Nova 50K
               </span>
             </h1>
           </div>
-          <p class="text-xs text-gray-400">Centro de Mando Exclusivo XAU/USD (Oro) • Reglas Orion Funded • Operativa 100% Manual</p>
+          <p class="text-[11px] text-gray-400 hidden sm:block">Centro de Mando Exclusivo XAU/USD (Oro) • Reglas Orion Funded • Operativa 100% Manual</p>
         </div>
       </div>
 
       <!-- Quick Badges Orion Nova -->
-      <div class="hidden md:flex items-center gap-2 text-xs">
-        <div class="bg-amber-950/50 border border-amber-800/50 px-3 py-1.5 rounded-lg flex items-center gap-2">
-          <span class="text-amber-300">Balance Nova:</span>
+      <div class="hidden lg:flex items-center gap-1.5 text-[11px]">
+        <div class="bg-amber-950/50 border border-amber-800/50 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+          <span class="text-amber-300">Nova:</span>
           <span class="font-bold text-amber-400">$<span id="badgeFondeoBalance">50,000.00</span></span>
         </div>
-        <div class="bg-blue-950/50 border border-blue-800/50 px-3 py-1.5 rounded-lg flex items-center gap-2">
+        <div class="bg-blue-950/50 border border-blue-800/50 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
           <span class="text-blue-300">Meta:</span>
           <span class="font-bold text-blue-400">$52,000 (+4%)</span>
         </div>
-        <div class="bg-rose-950/50 border border-rose-800/50 px-3 py-1.5 rounded-lg flex items-center gap-2">
+        <div class="bg-rose-950/50 border border-rose-800/50 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
           <span class="text-rose-300">Pérdida Diaria:</span>
           <span class="font-bold text-rose-400">-$2,000 (4%)</span>
         </div>
-        <div class="bg-red-950/50 border border-red-800/50 px-3 py-1.5 rounded-lg flex items-center gap-2">
-          <span class="text-red-300">Piso DD Trailing:</span>
+        <div class="bg-red-950/50 border border-red-800/50 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+          <span class="text-red-300">Piso DD:</span>
           <span class="font-bold text-red-400" id="badgeFondeoFloor">$46,000</span>
         </div>
-        <div class="bg-amber-950/80 border border-amber-800/80 px-3 py-1.5 rounded-lg flex items-center gap-2">
-          <span class="text-amber-300">Apal. Oro:</span>
-          <span class="font-bold text-amber-400 font-mono">1:30 (Metales)</span>
+        <div class="bg-amber-950/80 border border-amber-800/80 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+          <span class="text-amber-300">Apal:</span>
+          <span class="font-bold text-amber-400 font-mono">1:30</span>
         </div>
       </div>
 
       <!-- Actions: Limpiar Todo & Config -->
       <div class="flex items-center gap-2">
-        <button id="btnClearData" class="px-3 py-1.5 bg-red-950/50 hover:bg-red-900/80 text-xs font-semibold rounded-lg border border-red-800/60 transition flex items-center gap-1.5 text-red-200" title="Reiniciar datos de la bitácora Orion Nova">
+        <button id="btnClearData" class="px-2.5 py-1.5 bg-red-950/50 hover:bg-red-900/80 text-xs font-semibold rounded-lg border border-red-800/60 transition flex items-center gap-1.5 text-red-200 cursor-pointer" title="Reiniciar datos de la bitácora Orion Nova">
           <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
           <span>Limpiar</span>
         </button>
-        <button id="btnOpenSettings" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs font-medium rounded-lg border border-gray-700 text-gray-300 transition flex items-center gap-1.5" title="Configuración de Cuenta">
+        <button id="btnOpenSettings" class="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs font-medium rounded-lg border border-gray-700 text-gray-300 transition flex items-center gap-1.5 cursor-pointer" title="Configuración de Cuenta">
           <i data-lucide="settings" class="w-3.5 h-3.5"></i>
           <span>Ajustes</span>
         </button>
@@ -105,48 +105,48 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- NAVIGATION TABS: 1. Operativa & Bitácora 50K / 2. Pre-Mercado XAU/USD / 3. Noticias de Alto Impacto / 4. Reglamento Oficial Orion / 5. Manual de Uso -->
-    <nav class="flex flex-wrap items-center gap-2 sm:gap-3 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-6xl mx-auto">
-      <!-- Tab 1: Operativa & Bitácora Orion 50K -->
-      <button id="tabBtnFondeo" class="tab-button flex-1 min-w-[150px] px-3.5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition bg-amber-500 text-black shadow-lg shadow-amber-500/30">
-        <i data-lucide="award" class="w-4 h-4 text-black"></i>
-        <span>1. Operativa & Bitácora 50K</span>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/20 text-black font-bold">XAU/USD 1:30</span>
+    <!-- NAVIGATION TABS: 1. Fondeo 50K / 2. Pre-Mercado / 3. Noticias / 4. Reglas / 5. Manual / 6. Backtest -->
+    <nav class="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-6xl mx-auto">
+      <!-- Tab 1: Fondeo Orion 50K -->
+      <button id="tabBtnFondeo" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition bg-amber-500 text-black shadow-lg shadow-amber-500/30 whitespace-nowrap cursor-pointer">
+        <i data-lucide="award" class="w-4 h-4 text-black shrink-0"></i>
+        <span class="truncate">1. Fondeo 50K</span>
+        <span class="hidden xl:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-black/20 text-black font-bold rounded-full">1:30</span>
       </button>
 
       <!-- Tab 2: Pre-Mercado XAU/USD -->
-      <button id="tabBtnPremarket" class="tab-button flex-1 min-w-[150px] px-3.5 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
-        <i data-lucide="compass" class="w-4 h-4 text-sky-400"></i>
-        <span>2. Pre-Mercado XAU/USD</span>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-sky-950 text-sky-300 border border-sky-800 font-bold">Analista M5/M15</span>
+      <button id="tabBtnPremarket" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
+        <i data-lucide="compass" class="w-4 h-4 text-sky-400 shrink-0"></i>
+        <span class="truncate">2. Pre-Mercado</span>
+        <span class="hidden xl:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-sky-950 text-sky-300 border border-sky-800 font-bold rounded-full">NY</span>
       </button>
 
-      <!-- Tab 3: Noticias de Alto Impacto & Regla ±2 Min -->
-      <button id="tabBtnNews" class="tab-button flex-1 min-w-[150px] px-3.5 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
-        <i data-lucide="flame" class="w-4 h-4 text-rose-400"></i>
-        <span>3. Noticias de Alto Impacto</span>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-rose-950 text-rose-300 border border-rose-800 font-bold">Regla ±2 min</span>
+      <!-- Tab 3: Noticias de Alto Impacto -->
+      <button id="tabBtnNews" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
+        <i data-lucide="flame" class="w-4 h-4 text-rose-400 shrink-0"></i>
+        <span class="truncate">3. Noticias</span>
+        <span class="hidden xl:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-rose-950 text-rose-300 border border-rose-800 font-bold rounded-full">±2m</span>
       </button>
 
       <!-- Tab 4: Reglamento Oficial Orion Funded -->
-      <button id="tabBtnRules" class="tab-button flex-1 min-w-[150px] px-3.5 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
-        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-        <span>4. Reglamento Oficial & Fases</span>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">Reglas 100%</span>
+      <button id="tabBtnRules" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
+        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+        <span class="truncate">4. Reglas</span>
+        <span class="hidden xl:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold rounded-full">Orion</span>
       </button>
 
-      <!-- Tab 5: Manual de Uso & Guía Operativa -->
-      <button id="tabBtnManual" class="tab-button flex-1 min-w-[150px] px-3.5 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60">
-        <i data-lucide="book-open" class="w-4 h-4 text-purple-400"></i>
-        <span>5. Manual de Uso</span>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-purple-950 text-purple-300 border border-purple-800 font-bold">Guía Paso a Paso</span>
+      <!-- Tab 5: Manual de Uso -->
+      <button id="tabBtnManual" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
+        <i data-lucide="book-open" class="w-4 h-4 text-purple-400 shrink-0"></i>
+        <span class="truncate">5. Manual</span>
+        <span class="hidden xl:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-purple-950 text-purple-300 border border-purple-800 font-bold rounded-full">Guía</span>
       </button>
 
       <!-- Tab 6: Backtesting Simple (Interés Compuesto) -->
-      <button id="tabBtnBacktestSimple" class="tab-button flex-1 min-w-[150px] px-3.5 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition text-gray-400 hover:text-white hover:bg-gray-800/60 cursor-pointer">
-        <i data-lucide="calculator" class="w-4 h-4 text-emerald-400"></i>
-        <span>6. Backtesting Simple</span>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">Interés Compuesto</span>
+      <button id="tabBtnBacktestSimple" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
+        <i data-lucide="calculator" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+        <span class="truncate">6. Backtest</span>
+        <span class="hidden xl:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold rounded-full">Compuesto</span>
       </button>
     </nav>
 
@@ -2493,157 +2493,140 @@
     <!-- VIEW 6: BACKTESTING SIMPLE (INTERÉS COMPUESTO PURO)            -->
     <!-- CUALQUIER BALANCE, CUALQUIER R:R Y CUALQUIER % DE RIESGO       -->
     <!-- ============================================================== -->
-    <div id="viewBacktestSimple" class="hidden space-y-6">
+    <div id="viewBacktestSimple" class="hidden space-y-5">
 
-      <!-- BANNER SUPERIOR DE BIENVENIDA & ACCIONES RÁPIDAS -->
-      <section class="bg-gradient-to-r from-emerald-950/40 via-gray-900 to-indigo-950/40 border-2 border-emerald-500/40 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-3.5">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-black font-black shadow-lg shadow-emerald-500/20 shrink-0">
-            <i data-lucide="calculator" class="w-7 h-7 stroke-[2.5]"></i>
-          </div>
-          <div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wide">Backtesting Simple — Interés Compuesto Puro</h2>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                CAPITAL DINÁMICO & MÉTRICAS COMPLETAS
-              </span>
+      <!-- CARD 1: PANEL UNIFICADO DE CONTROL & PARÁMETROS GLOBALES (INTERÉS COMPUESTO) -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+        <!-- Toolbar Superior Integrado (Sustituye banner redundante) -->
+        <div class="flex items-center justify-between flex-wrap gap-2.5 border-b border-gray-800 pb-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-black font-black shadow-md shadow-emerald-500/20 shrink-0">
+              <i data-lucide="calculator" class="w-5 h-5 stroke-[2.5]"></i>
             </div>
-            <p class="text-xs text-gray-400 mt-1">
-              Configura libremente <strong class="text-emerald-300">cualquier capital inicial</strong>, <strong class="text-blue-300">cualquier ratio R:R</strong> y <strong class="text-amber-300">% de riesgo</strong>. Cada ganancia o pérdida reinvierte o reduce el riesgo en el trade siguiente de forma matemática exacta.
-            </p>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h2 class="text-sm sm:text-base font-black text-white uppercase tracking-wider truncate">Backtesting Simple — Interés Compuesto</h2>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0">
+                  DINÁMICO PURO
+                </span>
+              </div>
+              <p class="text-[11px] text-gray-400 truncate">Configura cualquier capital, ratio y riesgo. Cada trade reinvierte beneficios automáticamente.</p>
+            </div>
+          </div>
+
+          <!-- Botones de Acción Rápidos -->
+          <div class="flex items-center gap-2 shrink-0">
+            <button id="btnBtSimpleSimulateModalOpen" class="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-lg shadow-md shadow-emerald-600/30 transition flex items-center gap-1.5 cursor-pointer">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              <span>Simular Serie</span>
+            </button>
+            <button id="btnBtSimpleLoadSample" class="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold text-xs rounded-lg border border-gray-700 transition flex items-center gap-1.5 cursor-pointer" title="Cargar operaciones de prueba realistas">
+              <i data-lucide="download" class="w-3.5 h-3.5 text-blue-400"></i>
+              <span>Muestra</span>
+            </button>
+            <button id="btnBtSimpleClear" class="px-2.5 py-1.5 bg-red-950/40 hover:bg-red-900/60 text-red-300 font-semibold text-xs rounded-lg border border-red-800/50 transition flex items-center gap-1.5 cursor-pointer" title="Reiniciar y borrar historial del backtest">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-400"></i>
+              <span>Limpiar</span>
+            </button>
           </div>
         </div>
 
-        <div class="flex items-center gap-2 flex-wrap">
-          <button id="btnBtSimpleSimulateModalOpen" class="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center gap-1.5 cursor-pointer">
-            <i data-lucide="sparkles" class="w-4 h-4"></i>
-            <span>Simular Serie de Trades</span>
-          </button>
-          <button id="btnBtSimpleLoadSample" class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold text-xs rounded-xl border border-gray-700 transition flex items-center gap-1.5 cursor-pointer" title="Cargar operaciones de prueba realistas">
-            <i data-lucide="download" class="w-3.5 h-3.5 text-blue-400"></i>
-            <span>Cargar Muestra</span>
-          </button>
-          <button id="btnBtSimpleClear" class="px-3 py-2 bg-red-950/40 hover:bg-red-900/60 text-red-300 font-semibold text-xs rounded-xl border border-red-800/50 transition flex items-center gap-1.5 cursor-pointer" title="Reiniciar y borrar historial del backtest">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-400"></i>
-            <span>Limpiar</span>
-          </button>
-        </div>
-      </section>
-
-      <!-- CARD 1: PANEL DE PARÁMETROS GLOBALES (BALANCE, R:R Y RIESGO %) -->
-      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-5">
-        <div class="flex items-center justify-between flex-wrap gap-2 border-b border-gray-800 pb-3">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-              <i data-lucide="sliders" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <h3 class="text-sm font-bold text-white uppercase tracking-wider">Parámetros del Backtest</h3>
-              <p class="text-[11px] text-gray-400">Ajusta los valores y haz clic en Recalcular para transformar todo el historial inmediatamente.</p>
-            </div>
-          </div>
-          <span class="px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800/40 text-[11px] font-mono font-bold text-emerald-300 flex items-center gap-1.5">
-            <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>Reinversión Automática Activa</span>
-          </span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- 3 Columnas de Parámetros -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
           <!-- Col 1: Capital Inicial -->
-          <div class="space-y-2 bg-gray-950/60 border border-gray-800/80 p-3.5 rounded-xl">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-bold text-gray-300 flex items-center gap-1.5">
-                <i data-lucide="wallet" class="w-3.5 h-3.5 text-emerald-400"></i>
-                <span>1. Capital Inicial ($ USD)</span>
+          <div class="space-y-2 bg-gray-950/60 border border-gray-800/80 p-3 rounded-xl min-w-0">
+            <div class="flex items-center justify-between gap-1">
+              <label class="text-xs font-bold text-gray-300 flex items-center gap-1.5 truncate">
+                <i data-lucide="wallet" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+                <span class="truncate">1. Capital Inicial ($ USD)</span>
               </label>
-              <span class="text-[10px] text-gray-400 font-mono">Cualquier monto</span>
+              <span class="text-[10px] text-gray-400 font-mono shrink-0">Libre</span>
             </div>
             <div class="relative">
-              <span class="absolute left-3 top-2.5 text-gray-500 font-mono text-sm font-bold">$</span>
-              <input type="number" id="btSimpleInitialBalance" step="any" min="1" value="1000.00" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-7 pr-3 py-2 text-white font-mono font-bold text-sm focus:border-emerald-500 focus:outline-none transition">
+              <span class="absolute left-3 top-2 text-gray-500 font-mono text-sm font-bold">$</span>
+              <input type="number" id="btSimpleInitialBalance" step="any" min="1" value="1000.00" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-7 pr-3 py-1.5 text-white font-mono font-bold text-sm focus:border-emerald-500 focus:outline-none transition">
             </div>
-            <!-- Quick Chips Balance -->
-            <div class="flex flex-wrap gap-1.5 pt-1">
-              <button type="button" class="btn-bt-chip-balance px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="500">$500</button>
-              <button type="button" class="btn-bt-chip-balance px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="1000">$1,000</button>
-              <button type="button" class="btn-bt-chip-balance px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="5000">$5,000</button>
-              <button type="button" class="btn-bt-chip-balance px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="10000">$10,000</button>
-              <button type="button" class="btn-bt-chip-balance px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="50000">$50,000</button>
-              <button type="button" class="btn-bt-chip-balance px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="100000">$100k</button>
+            <!-- Quick Chips Balance en cuadrícula de 6 columnas -->
+            <div class="grid grid-cols-6 gap-1 pt-0.5">
+              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="500">$500</button>
+              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="1000">$1k</button>
+              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="5000">$5k</button>
+              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="10000">$10k</button>
+              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="50000">$50k</button>
+              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="100000">$100k</button>
             </div>
           </div>
 
           <!-- Col 2: Ratio R:R -->
-          <div class="space-y-2 bg-gray-950/60 border border-gray-800/80 p-3.5 rounded-xl">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-bold text-gray-300 flex items-center gap-1.5">
-                <i data-lucide="scale" class="w-3.5 h-3.5 text-blue-400"></i>
-                <span>2. Ratio R:R (Riesgo : Beneficio)</span>
+          <div class="space-y-2 bg-gray-950/60 border border-gray-800/80 p-3 rounded-xl min-w-0">
+            <div class="flex items-center justify-between gap-1">
+              <label class="text-xs font-bold text-gray-300 flex items-center gap-1.5 truncate">
+                <i data-lucide="scale" class="w-3.5 h-3.5 text-blue-400 shrink-0"></i>
+                <span class="truncate">2. Ratio R:R</span>
               </label>
-              <span id="btSimpleBreakevenBadge" class="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-blue-950 text-blue-300 border border-blue-800">
+              <span id="btSimpleBreakevenBadge" class="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-blue-950 text-blue-300 border border-blue-800 shrink-0">
                 BE: 25.0%
               </span>
             </div>
             <div class="relative">
-              <span class="absolute left-3 top-2.5 text-blue-400 font-mono text-sm font-bold">1:</span>
-              <input type="number" id="btSimpleRR" step="0.1" min="0.1" value="3.0" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-8 pr-3 py-2 text-blue-300 font-mono font-bold text-sm focus:border-blue-500 focus:outline-none transition">
+              <span class="absolute left-3 top-2 text-blue-400 font-mono text-sm font-bold">1:</span>
+              <input type="number" id="btSimpleRR" step="0.1" min="0.1" value="3.0" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-8 pr-3 py-1.5 text-blue-300 font-mono font-bold text-sm focus:border-blue-500 focus:outline-none transition">
             </div>
-            <!-- Quick Chips R:R -->
-            <div class="flex flex-wrap gap-1.5 pt-1">
-              <button type="button" class="btn-bt-chip-rr px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="1.0">1:1</button>
-              <button type="button" class="btn-bt-chip-rr px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="1.5">1:1.5</button>
-              <button type="button" class="btn-bt-chip-rr px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="2.0">1:2</button>
-              <button type="button" class="btn-bt-chip-rr px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="2.5">1:2.5</button>
-              <button type="button" class="btn-bt-chip-rr px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="3.0">1:3</button>
-              <button type="button" class="btn-bt-chip-rr px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="4.0">1:4</button>
-              <button type="button" class="btn-bt-chip-rr px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="5.0">1:5</button>
+            <!-- Quick Chips R:R en cuadrícula de 7 columnas -->
+            <div class="grid grid-cols-7 gap-1 pt-0.5">
+              <button type="button" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="1.0">1:1</button>
+              <button type="button" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="1.5">1:1.5</button>
+              <button type="button" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="2.0">1:2</button>
+              <button type="button" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="2.5">1:2.5</button>
+              <button type="button" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="3.0">1:3</button>
+              <button type="button" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="4.0">1:4</button>
+              <button type="button" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="5.0">1:5</button>
             </div>
           </div>
 
           <!-- Col 3: Porcentaje de Riesgo -->
-          <div class="space-y-2 bg-gray-950/60 border border-gray-800/80 p-3.5 rounded-xl">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-bold text-gray-300 flex items-center gap-1.5">
-                <i data-lucide="percent" class="w-3.5 h-3.5 text-amber-400"></i>
-                <span>3. % de Riesgo por Trade</span>
+          <div class="space-y-2 bg-gray-950/60 border border-gray-800/80 p-3 rounded-xl min-w-0">
+            <div class="flex items-center justify-between gap-1">
+              <label class="text-xs font-bold text-gray-300 flex items-center gap-1.5 truncate">
+                <i data-lucide="percent" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+                <span class="truncate">3. % Riesgo / Trade</span>
               </label>
-              <span id="btSimpleRiskUsdPreview" class="text-[10px] text-amber-300 font-mono font-bold">$10.00 / op</span>
+              <span id="btSimpleRiskUsdPreview" class="text-[10px] text-amber-300 font-mono font-bold shrink-0">$10.00 / op</span>
             </div>
             <div class="relative">
-              <input type="number" id="btSimpleRiskPct" step="0.1" min="0.01" max="100" value="1.0" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-3 pr-8 py-2 text-amber-300 font-mono font-bold text-sm focus:border-amber-500 focus:outline-none transition">
-              <span class="absolute right-3 top-2.5 text-gray-500 font-mono text-sm font-bold">%</span>
+              <input type="number" id="btSimpleRiskPct" step="0.1" min="0.01" max="100" value="1.0" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-3 pr-8 py-1.5 text-amber-300 font-mono font-bold text-sm focus:border-amber-500 focus:outline-none transition">
+              <span class="absolute right-3 top-2 text-gray-500 font-mono text-sm font-bold">%</span>
             </div>
-            <!-- Quick Chips Riesgo -->
-            <div class="flex flex-wrap gap-1.5 pt-1">
-              <button type="button" class="btn-bt-chip-risk px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="0.25">0.25%</button>
-              <button type="button" class="btn-bt-chip-risk px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="0.5">0.5%</button>
-              <button type="button" class="btn-bt-chip-risk px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="1.0">1.0%</button>
-              <button type="button" class="btn-bt-chip-risk px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="1.5">1.5%</button>
-              <button type="button" class="btn-bt-chip-risk px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="2.0">2.0%</button>
-              <button type="button" class="btn-bt-chip-risk px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="3.0">3.0%</button>
-              <button type="button" class="btn-bt-chip-risk px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition" data-val="5.0">5.0%</button>
+            <!-- Quick Chips Riesgo en cuadrícula de 7 columnas -->
+            <div class="grid grid-cols-7 gap-1 pt-0.5">
+              <button type="button" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="0.25">.25%</button>
+              <button type="button" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="0.5">.5%</button>
+              <button type="button" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="1.0">1.0%</button>
+              <button type="button" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="1.5">1.5%</button>
+              <button type="button" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="2.0">2.0%</button>
+              <button type="button" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="3.0">3.0%</button>
+              <button type="button" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="5.0">5.0%</button>
             </div>
           </div>
         </div>
 
         <!-- Botón Recalcular y Explicación Compuesto -->
-        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-800/80">
-          <div class="text-xs text-gray-400 flex items-center gap-2">
-            <i data-lucide="info" class="w-4 h-4 text-emerald-400 shrink-0"></i>
-            <span>
-              <strong>Fórmula de Interés Compuesto:</strong> En cada trade, el riesgo en USD es <code>Balance_Actual × Riesgo%</code>.
-              Un WIN suma <code>+Riesgo × R:R</code> y un LOSS resta <code>-Riesgo</code>.
+        <div class="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-gray-800/80">
+          <div class="text-[11px] text-gray-400 flex items-center gap-1.5 min-w-0">
+            <i data-lucide="info" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+            <span class="truncate">
+              <strong>Fórmula Compuesta:</strong> Riesgo USD = <code class="text-gray-300">Balance × Riesgo%</code>. WIN suma <code class="text-emerald-400">+Riesgo × R:R</code>, LOSS resta <code class="text-rose-400">-Riesgo</code>.
             </span>
           </div>
-          <button id="btnBtSimpleRecalculate" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center gap-2 cursor-pointer ml-auto">
-            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-            <span>⚡ Recalcular Todo con Interés Compuesto</span>
+          <button id="btnBtSimpleRecalculate" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/30 transition flex items-center gap-1.5 cursor-pointer ml-auto shrink-0">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>⚡ Recalcular Todo</span>
           </button>
         </div>
       </section>
 
       <!-- CARD 2: GATILLO RÁPIDO 1-CLICK & ENTRADA MANUAL -->
-      <section class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl space-y-3.5">
         <div class="flex items-center justify-between flex-wrap gap-2">
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -2655,48 +2638,48 @@
           </div>
         </div>
 
-        <!-- 3 Botones Grandes de 1-Click -->
+        <!-- 3 Botones Grandes de 1-Click (Con protecciones anti-desborde) -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <!-- 1-Click WIN -->
-          <button id="btnBtSimpleQuickWin" class="group p-3.5 rounded-xl bg-gradient-to-r from-emerald-950/70 to-emerald-900/40 hover:from-emerald-900/80 hover:to-emerald-800/60 border border-emerald-600/50 hover:border-emerald-500 text-left transition shadow-lg cursor-pointer flex items-center justify-between">
-            <div>
+          <button id="btnBtSimpleQuickWin" class="group p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-emerald-950/70 to-emerald-900/40 hover:from-emerald-900/80 hover:to-emerald-800/60 border border-emerald-600/50 hover:border-emerald-500 text-left transition shadow-lg cursor-pointer flex items-center justify-between min-w-0">
+            <div class="min-w-0 pr-2">
               <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-xs">✓</div>
-                <span class="font-black text-white text-sm group-hover:text-emerald-300 transition">🟢 OPERACIÓN GANADA (WIN)</span>
+                <div class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-xs shrink-0">✓</div>
+                <span class="font-black text-white text-xs sm:text-sm group-hover:text-emerald-300 transition truncate">OPERACIÓN GANADA (WIN)</span>
               </div>
-              <p id="btSimpleWinRewardSubtext" class="text-[11px] text-emerald-400/90 font-mono font-semibold mt-1">
-                +3.00% (+3R) · Ganancia: +$30.00
+              <p id="btSimpleWinRewardSubtext" class="text-[11px] text-emerald-400/90 font-mono font-semibold mt-1 truncate">
+                +3.00% (+3.0R) · +$30.00
               </p>
             </div>
-            <i data-lucide="arrow-up-right" class="w-5 h-5 text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition"></i>
+            <i data-lucide="arrow-up-right" class="w-5 h-5 text-emerald-400 shrink-0 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition"></i>
           </button>
 
           <!-- 1-Click LOSS -->
-          <button id="btnBtSimpleQuickLoss" class="group p-3.5 rounded-xl bg-gradient-to-r from-rose-950/70 to-rose-900/40 hover:from-rose-900/80 hover:to-rose-800/60 border border-rose-600/50 hover:border-rose-500 text-left transition shadow-lg cursor-pointer flex items-center justify-between">
-            <div>
+          <button id="btnBtSimpleQuickLoss" class="group p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-rose-950/70 to-rose-900/40 hover:from-rose-900/80 hover:to-rose-800/60 border border-rose-600/50 hover:border-rose-500 text-left transition shadow-lg cursor-pointer flex items-center justify-between min-w-0">
+            <div class="min-w-0 pr-2">
               <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center font-black text-xs">✕</div>
-                <span class="font-black text-white text-sm group-hover:text-rose-300 transition">🔴 OPERACIÓN PERDIDA (LOSS)</span>
+                <div class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center font-black text-xs shrink-0">✕</div>
+                <span class="font-black text-white text-xs sm:text-sm group-hover:text-rose-300 transition truncate">OPERACIÓN PERDIDA (LOSS)</span>
               </div>
-              <p id="btSimpleLossRiskSubtext" class="text-[11px] text-rose-400/90 font-mono font-semibold mt-1">
-                -1.00% (-1R) · Pérdida: -$10.00
+              <p id="btSimpleLossRiskSubtext" class="text-[11px] text-rose-400/90 font-mono font-semibold mt-1 truncate">
+                -1.00% (-1R) · -$10.00
               </p>
             </div>
-            <i data-lucide="arrow-down-right" class="w-5 h-5 text-rose-400 group-hover:translate-x-0.5 group-hover:translate-y-0.5 transition"></i>
+            <i data-lucide="arrow-down-right" class="w-5 h-5 text-rose-400 shrink-0 group-hover:translate-x-0.5 group-hover:translate-y-0.5 transition"></i>
           </button>
 
           <!-- 1-Click BREAKEVEN -->
-          <button id="btnBtSimpleQuickBe" class="group p-3.5 rounded-xl bg-gradient-to-r from-gray-900 to-gray-800/60 hover:from-gray-800 hover:to-gray-700/60 border border-gray-700 hover:border-gray-500 text-left transition shadow-lg cursor-pointer flex items-center justify-between">
-            <div>
+          <button id="btnBtSimpleQuickBe" class="group p-3 sm:p-3.5 rounded-xl bg-gradient-to-r from-gray-900 to-gray-800/60 hover:from-gray-800 hover:to-gray-700/60 border border-gray-700 hover:border-gray-500 text-left transition shadow-lg cursor-pointer flex items-center justify-between min-w-0">
+            <div class="min-w-0 pr-2">
               <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-gray-700 text-gray-300 flex items-center justify-center font-black text-xs">0</div>
-                <span class="font-black text-white text-sm group-hover:text-gray-200 transition">⚪ BREAKEVEN ($0.00)</span>
+                <div class="w-5 h-5 rounded-full bg-gray-700 text-gray-300 flex items-center justify-center font-black text-xs shrink-0">0</div>
+                <span class="font-black text-white text-xs sm:text-sm group-hover:text-gray-200 transition truncate">BREAKEVEN ($0.00)</span>
               </div>
-              <p class="text-[11px] text-gray-400 font-mono font-semibold mt-1">
+              <p class="text-[11px] text-gray-400 font-mono font-semibold mt-1 truncate">
                 0.00% · Sin ganancia ni pérdida
               </p>
             </div>
-            <i data-lucide="minus" class="w-5 h-5 text-gray-400 group-hover:scale-110 transition"></i>
+            <i data-lucide="minus" class="w-5 h-5 text-gray-400 shrink-0 group-hover:scale-110 transition"></i>
           </button>
         </div>
 
@@ -2753,101 +2736,105 @@
         </div>
       </section>
 
-      <!-- CARD 3: 8 MÉTRICAS COMPLETAS (KPIs) -->
+      <!-- CARD 3: 8 MÉTRICAS COMPLETAS (KPIs) CON PROTECCIÓN DE ANCHO Y DESBORDE -->
       <section class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <!-- 1. Balance Actual & PnL Neto -->
-        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col justify-between min-w-0 overflow-hidden">
           <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
-            <span class="font-bold uppercase tracking-wider">Balance Final</span>
-            <i data-lucide="wallet" class="w-4 h-4 text-emerald-400"></i>
+            <span class="font-bold uppercase tracking-wider truncate">Balance Final</span>
+            <i data-lucide="wallet" class="w-4 h-4 text-emerald-400 shrink-0"></i>
           </div>
-          <div class="text-xl sm:text-2xl font-black text-white font-mono" id="btSimpleStatBalance">$1,000.00</div>
-          <div class="text-[11px] font-mono mt-1 font-bold" id="btSimpleStatNetPnl">
-            <span class="text-emerald-400">+$0.00 (+0.0%)</span>
+          <div class="text-lg sm:text-2xl font-black text-white font-mono truncate" id="btSimpleStatBalance">$1,000.00</div>
+          <div class="text-[11px] font-mono mt-1 font-bold truncate" id="btSimpleStatNetPnl">
+            <span class="text-emerald-400 truncate">+$0.00 (+0.0%)</span>
           </div>
         </div>
 
         <!-- 2. Máximo Drawdown -->
-        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col justify-between min-w-0 overflow-hidden">
           <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
-            <span class="font-bold uppercase tracking-wider">Max Drawdown</span>
-            <i data-lucide="trending-down" class="w-4 h-4 text-rose-400"></i>
+            <span class="font-bold uppercase tracking-wider truncate">Max Drawdown</span>
+            <i data-lucide="trending-down" class="w-4 h-4 text-rose-400 shrink-0"></i>
           </div>
-          <div class="text-xl sm:text-2xl font-black text-rose-400 font-mono" id="btSimpleStatMaxDd">0.0%</div>
-          <div class="text-[11px] text-gray-400 font-mono mt-1 font-bold" id="btSimpleStatMaxDdUsd">-$0.00 USD</div>
+          <div class="text-lg sm:text-2xl font-black text-rose-400 font-mono truncate" id="btSimpleStatMaxDd">0.0%</div>
+          <div class="text-[11px] text-gray-400 font-mono mt-1 font-bold truncate" id="btSimpleStatMaxDdUsd">-$0.00 USD</div>
         </div>
 
         <!-- 3. Win Rate & Breakeven -->
-        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col justify-between min-w-0 overflow-hidden">
           <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
-            <span class="font-bold uppercase tracking-wider">Win Rate</span>
-            <i data-lucide="target" class="w-4 h-4 text-sky-400"></i>
+            <span class="font-bold uppercase tracking-wider truncate">Win Rate</span>
+            <i data-lucide="target" class="w-4 h-4 text-sky-400 shrink-0"></i>
           </div>
-          <div class="flex items-baseline gap-2">
-            <div class="text-xl sm:text-2xl font-black text-white font-mono" id="btSimpleStatWinRate">0.0%</div>
-            <span id="btSimpleStatWinRateBadge" class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-gray-800 text-gray-400">0 ops</span>
+          <div class="flex items-baseline justify-between gap-1 min-w-0">
+            <div class="text-lg sm:text-2xl font-black text-white font-mono truncate" id="btSimpleStatWinRate">0.0%</div>
+            <span id="btSimpleStatWinRateBadge" class="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 bg-gray-800 text-gray-400">0 ops</span>
           </div>
           <!-- Win rate progress bar -->
           <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden mt-1.5">
             <div id="btSimpleStatWinRateBar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
           </div>
-          <div class="text-[10px] text-gray-400 font-mono mt-1" id="btSimpleStatBeComparison">BE necesario: 25.0%</div>
+          <div class="text-[10px] text-gray-400 font-mono mt-1 truncate" id="btSimpleStatBeComparison">BE necesario: 25.0%</div>
         </div>
 
-        <!-- 4. Profit Factor -->
-        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+        <!-- 4. Profit Factor (Ganado vs Perdido estilizado para no desbordar) -->
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col justify-between min-w-0 overflow-hidden">
           <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
-            <span class="font-bold uppercase tracking-wider">Profit Factor</span>
-            <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
+            <span class="font-bold uppercase tracking-wider truncate">Profit Factor</span>
+            <i data-lucide="zap" class="w-4 h-4 text-amber-400 shrink-0"></i>
           </div>
-          <div class="text-xl sm:text-2xl font-black text-amber-400 font-mono" id="btSimpleStatProfitFactor">0.00</div>
-          <div class="text-[10px] text-gray-400 font-mono mt-1" id="btSimpleStatGainsVsLosses">Ganado: $0 | Perdido: $0</div>
+          <div class="text-lg sm:text-2xl font-black text-amber-400 font-mono truncate" id="btSimpleStatProfitFactor">0.00</div>
+          <div class="flex items-center justify-between text-[10px] font-mono mt-1 w-full gap-1 overflow-hidden" id="btSimpleStatGainsVsLosses">
+            <span class="text-emerald-400 truncate font-semibold">+$0.00</span>
+            <span class="text-gray-600 shrink-0">/</span>
+            <span class="text-rose-400 truncate font-semibold">-$0.00</span>
+          </div>
         </div>
 
         <!-- 5. Esperanza Matemática (Expectancy) -->
-        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col justify-between min-w-0 overflow-hidden">
           <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
-            <span class="font-bold uppercase tracking-wider">Esperanza ($/trade)</span>
-            <i data-lucide="sparkles" class="w-4 h-4 text-purple-400"></i>
+            <span class="font-bold uppercase tracking-wider truncate">Esperanza ($/trade)</span>
+            <i data-lucide="sparkles" class="w-4 h-4 text-purple-400 shrink-0"></i>
           </div>
-          <div class="text-xl sm:text-2xl font-black text-purple-400 font-mono" id="btSimpleStatExpectancy">+$0.00</div>
-          <div class="text-[10px] text-gray-400 mt-1">Retorno promedio esperado por trade</div>
+          <div class="text-lg sm:text-2xl font-black text-purple-400 font-mono truncate" id="btSimpleStatExpectancy">+$0.00</div>
+          <div class="text-[10px] text-gray-400 mt-1 truncate">Retorno esperado / trade</div>
         </div>
 
         <!-- 6. Rachas Máximas -->
-        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col justify-between min-w-0 overflow-hidden">
           <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
-            <span class="font-bold uppercase tracking-wider">Rachas Máximas</span>
-            <i data-lucide="flame" class="w-4 h-4 text-orange-400"></i>
+            <span class="font-bold uppercase tracking-wider truncate">Rachas Máximas</span>
+            <i data-lucide="flame" class="w-4 h-4 text-orange-400 shrink-0"></i>
           </div>
-          <div class="flex items-center gap-3 font-mono">
-            <span class="text-lg sm:text-xl font-black text-emerald-400" id="btSimpleStatMaxStreakWin">0 W</span>
-            <span class="text-gray-600">/</span>
-            <span class="text-lg sm:text-xl font-black text-rose-400" id="btSimpleStatMaxStreakLoss">0 L</span>
+          <div class="flex items-center gap-2 font-mono truncate">
+            <span class="text-base sm:text-xl font-black text-emerald-400 truncate" id="btSimpleStatMaxStreakWin">0 W</span>
+            <span class="text-gray-600 shrink-0">/</span>
+            <span class="text-base sm:text-xl font-black text-rose-400 truncate" id="btSimpleStatMaxStreakLoss">0 L</span>
           </div>
-          <div class="text-[10px] text-gray-400 mt-1">Mayor secuencia consecutiva</div>
+          <div class="text-[10px] text-gray-400 mt-1 truncate">Mayor racha consecutiva</div>
         </div>
 
         <!-- 7. Total Operaciones -->
-        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col justify-between min-w-0 overflow-hidden">
           <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
-            <span class="font-bold uppercase tracking-wider">Total Trades</span>
-            <i data-lucide="layers" class="w-4 h-4 text-blue-400"></i>
+            <span class="font-bold uppercase tracking-wider truncate">Total Trades</span>
+            <i data-lucide="layers" class="w-4 h-4 text-blue-400 shrink-0"></i>
           </div>
-          <div class="text-xl sm:text-2xl font-black text-white font-mono" id="btSimpleStatTotalTrades">0</div>
-          <div class="text-[10px] font-mono mt-1 text-gray-400" id="btSimpleStatBreakdown">
+          <div class="text-lg sm:text-2xl font-black text-white font-mono truncate" id="btSimpleStatTotalTrades">0</div>
+          <div class="text-[10px] font-mono mt-1 text-gray-400 truncate" id="btSimpleStatBreakdown">
             <span class="text-emerald-400">0 W</span> · <span class="text-rose-400">0 L</span> · <span class="text-gray-400">0 BE</span>
           </div>
         </div>
 
         <!-- 8. Promedio Ganancia vs Promedio Pérdida -->
-        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex flex-col justify-between">
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col justify-between min-w-0 overflow-hidden">
           <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
-            <span class="font-bold uppercase tracking-wider">Avg Win / Avg Loss</span>
-            <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-400"></i>
+            <span class="font-bold uppercase tracking-wider truncate">Avg Win / Avg Loss</span>
+            <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-400 shrink-0"></i>
           </div>
-          <div class="text-sm sm:text-base font-black font-mono text-white" id="btSimpleStatAvgWinLoss">+$0 / -$0</div>
-          <div class="text-[10px] text-gray-400 font-mono mt-1" id="btSimpleStatRatioReal">Ratio Real: 0.00R</div>
+          <div class="text-xs sm:text-sm font-black font-mono text-white truncate" id="btSimpleStatAvgWinLoss">+$0 / -$0</div>
+          <div class="text-[10px] text-gray-400 font-mono mt-1 truncate" id="btSimpleStatRatioReal">Ratio Real: 0.00R</div>
         </div>
       </section>
 
@@ -3893,6 +3880,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261107_v25_backtest_simple_compound"></script>
+<script src="app.js?v=20261107_v26_layout_overflow_fix"></script>
 </body>
 </html>
