@@ -2650,25 +2650,34 @@ function setupBacktestSimpleView() {
     });
   }
 
-  // Cargar Muestra
-  const btnSample = document.getElementById('btnBtSimpleLoadSample');
-  if (btnSample) {
-    btnSample.addEventListener('click', async () => {
-      try {
-        const res = await fetch('/api/trades/sample', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode: 'backtest' })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          appState.backtest.summary = data.summary || {};
-          appState.backtest.equityCurve = data.equity_curve || [];
-          appState.backtest.trades = data.trades || [];
-          renderBacktestSimpleDashboard();
-        }
-      } catch (e) {
-        console.error('Error cargando muestra:', e);
+  // Botón Generar Informe en PDF del Backtesting (Reemplaza legacy Muestra)
+  const btnReport = document.getElementById('btnBtSimpleReport');
+  if (btnReport) {
+    btnReport.addEventListener('click', () => {
+      openBacktestReportModal();
+    });
+  }
+
+  // Descargar / Guardar PDF desde el modal del informe
+  const btnDownloadPdf = document.getElementById('btnDownloadBacktestPdf');
+  if (btnDownloadPdf) {
+    btnDownloadPdf.addEventListener('click', () => {
+      triggerBacktestPdfDownload();
+    });
+  }
+
+  // Cerrar Modal del Informe
+  const btnCloseReport = document.getElementById('btnCloseBacktestReportModal');
+  const modalReport = document.getElementById('modalBacktestReport');
+  if (btnCloseReport && modalReport) {
+    btnCloseReport.addEventListener('click', () => {
+      modalReport.classList.add('hidden');
+    });
+  }
+  if (modalReport) {
+    modalReport.addEventListener('click', (e) => {
+      if (e.target === modalReport) {
+        modalReport.classList.add('hidden');
       }
     });
   }
@@ -3195,6 +3204,326 @@ function renderBacktestSimpleTradesTable() {
 // Retrocompatibilidad
 function renderBacktestTradesTable() {
   renderBacktestSimpleTradesTable();
+}
+
+// ----------------------------------------------------
+// INFORME PROFESIONAL EN PDF DEL BACKTESTING SIMPLE
+// ----------------------------------------------------
+function openBacktestReportModal() {
+  const trades = appState.backtest.trades || [];
+  if (!trades || trades.length === 0) {
+    alert('Aún no hay operaciones registradas en el Backtesting para generar el informe. Registra algunas operaciones o usa "Simular Serie" primero.');
+    return;
+  }
+
+  // Actualizar gráficas en pantalla para garantizar datos al día
+  updateBacktestSimpleCharts();
+
+  const s = appState.backtest.summary || {};
+  const initBal = s.initial_balance !== undefined ? s.initial_balance : (parseFloat(document.getElementById('btSimpleInitialBalance')?.value) || 1000.0);
+  const curBal = s.current_balance !== undefined ? s.current_balance : initBal;
+  const netPnl = s.net_pnl !== undefined ? s.net_pnl : (curBal - initBal);
+  const netRet = s.net_return_pct !== undefined ? s.net_return_pct : (initBal > 0 ? (netPnl / initBal * 100) : 0);
+  const total = s.total_trades !== undefined ? s.total_trades : trades.length;
+  const wins = s.wins !== undefined ? s.wins : trades.filter(t => t.status === 'win').length;
+  const losses = s.losses !== undefined ? s.losses : trades.filter(t => t.status === 'loss').length;
+  const be = s.breakevens !== undefined ? s.breakevens : trades.filter(t => t.status === 'be').length;
+  const winRate = s.win_rate !== undefined ? s.win_rate : (total > 0 ? (wins / total * 100) : 0);
+  const pf = s.profit_factor !== undefined ? s.profit_factor : 0;
+  const maxDd = s.max_drawdown_pct !== undefined ? s.max_drawdown_pct : 0;
+  const maxDdUsd = s.max_drawdown_amount !== undefined ? s.max_drawdown_amount : 0;
+  const maxWinStreak = s.max_streak_win || 0;
+  const maxLossStreak = s.max_streak_loss || 0;
+  const expectancy = s.expectancy_usd !== undefined ? s.expectancy_usd : 0;
+  const beWinrate = s.be_winrate !== undefined ? s.be_winrate : 25.0;
+  const totalGain = s.total_gain || 0;
+  const totalLoss = s.total_loss || 0;
+  const avgWin = s.avg_win || (wins > 0 ? totalGain / wins : 0);
+  const avgLoss = s.avg_loss || (losses > 0 ? totalLoss / losses : 0);
+  const riskPct = parseFloat(document.getElementById('btSimpleRiskPct')?.value) || 1.0;
+  const targetRr = parseFloat(document.getElementById('btSimpleRR')?.value) || 3.0;
+  const leverage = (appState.config?.backtest_leverage) || 300;
+  const calmar = maxDd > 0 ? (netRet / maxDd).toFixed(2) : (netRet > 0 ? '∞' : '0.00');
+  const payoffRatio = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '0.00';
+
+  // 1. Metadatos
+  const now = new Date();
+  const dateFormatted = now.toLocaleDateString('es-ES', { 
+    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+  });
+  const elMetaDate = document.getElementById('repMetaDate');
+  if (elMetaDate) elMetaDate.textContent = dateFormatted;
+
+  const elMetaRisk = document.getElementById('repMetaRisk');
+  if (elMetaRisk) elMetaRisk.textContent = `${riskPct.toFixed(1)}% por Trade`;
+
+  const elMetaLev = document.getElementById('repMetaLeverage');
+  if (elMetaLev) elMetaLev.textContent = `1:${leverage}`;
+
+  const elMetaTrades = document.getElementById('repMetaTradesTotal');
+  if (elMetaTrades) elMetaTrades.textContent = `${total} Operaciones Auditadas`;
+
+  // 2. KPIs Cuantitativos
+  const elInitBal = document.getElementById('repInitBalance');
+  if (elInitBal) elInitBal.textContent = `$${formatMoney(initBal)}`;
+
+  const elFinBal = document.getElementById('repFinalBalance');
+  if (elFinBal) elFinBal.textContent = `$${formatMoney(curBal)}`;
+
+  const elNetPnl = document.getElementById('repNetPnl');
+  if (elNetPnl) {
+    const pnlSign = netPnl >= 0 ? '+' : '';
+    elNetPnl.textContent = `${pnlSign}$${formatMoney(netPnl)}`;
+    elNetPnl.className = netPnl >= 0 ? 'text-lg font-black text-emerald-400 font-mono mt-1' : 'text-lg font-black text-rose-400 font-mono mt-1';
+  }
+
+  const elNetRet = document.getElementById('repNetReturn');
+  if (elNetRet) {
+    const retSign = netRet >= 0 ? '+' : '';
+    elNetRet.textContent = `${retSign}${netRet.toFixed(2)}%`;
+    elNetRet.className = netRet >= 0 ? 'text-[10px] font-bold text-emerald-400 font-mono' : 'text-[10px] font-bold text-rose-400 font-mono';
+  }
+
+  const elWr = document.getElementById('repWinRate');
+  if (elWr) elWr.textContent = `${winRate.toFixed(1)}%`;
+
+  const elBeWr = document.getElementById('repBeWinRate');
+  if (elBeWr) {
+    elBeWr.textContent = `BE Req: ${beWinrate.toFixed(1)}% (${winRate >= beWinrate ? 'Superado' : 'Por debajo'})`;
+    elBeWr.className = winRate >= beWinrate ? 'text-[10px] text-emerald-400 font-semibold' : 'text-[10px] text-rose-400 font-semibold';
+  }
+
+  const elPf = document.getElementById('repProfitFactor');
+  if (elPf) {
+    const pfStr = pf === '∞' ? '∞' : (Number(pf) >= 999 ? '∞' : Number(pf).toFixed(2));
+    elPf.textContent = pfStr;
+    elPf.className = Number(pf) >= 1.5 || pf === '∞' ? 'text-lg font-black text-indigo-400 font-mono mt-1' : (Number(pf) >= 1.0 ? 'text-lg font-black text-amber-400 font-mono mt-1' : 'text-lg font-black text-rose-400 font-mono mt-1');
+  }
+
+  const elGainsLosses = document.getElementById('repGainsLosses');
+  if (elGainsLosses) elGainsLosses.textContent = `+$${formatMoney(totalGain)} / -$${formatMoney(totalLoss)}`;
+
+  const elMaxDd = document.getElementById('repMaxDd');
+  if (elMaxDd) elMaxDd.textContent = `-${maxDd.toFixed(1)}%`;
+
+  const elMaxDdUsd = document.getElementById('repMaxDdUsd');
+  if (elMaxDdUsd) elMaxDdUsd.textContent = `-$${formatMoney(maxDdUsd)} USD`;
+
+  const elExp = document.getElementById('repExpectancy');
+  if (elExp) {
+    const expSign = expectancy >= 0 ? '+' : '';
+    elExp.textContent = `${expSign}$${formatMoney(expectancy)}`;
+    elExp.className = expectancy >= 0 ? 'text-lg font-black text-emerald-400 font-mono mt-1' : 'text-lg font-black text-rose-400 font-mono mt-1';
+  }
+
+  const elPayoff = document.getElementById('repPayoffRatio');
+  if (elPayoff) elPayoff.textContent = `${payoffRatio} R`;
+
+  const elAvgWinLoss = document.getElementById('repAvgWinLoss');
+  if (elAvgWinLoss) elAvgWinLoss.textContent = `+$${formatMoney(avgWin)} / -$${formatMoney(avgLoss)}`;
+
+  const elStrWin = document.getElementById('repStreakWin');
+  if (elStrWin) elStrWin.textContent = `${maxWinStreak} W`;
+
+  const elStrLoss = document.getElementById('repStreakLoss');
+  if (elStrLoss) elStrLoss.textContent = `${maxLossStreak} L`;
+
+  const elBreakdown = document.getElementById('repBreakdown');
+  if (elBreakdown) elBreakdown.innerHTML = `<span class="text-emerald-400 font-bold">${wins} W</span> · <span class="text-rose-400 font-bold">${losses} L</span> · <span class="text-gray-400 font-bold">${be} BE</span>`;
+
+  const elTotTrades = document.getElementById('repTotalTradesCount');
+  if (elTotTrades) elTotTrades.textContent = `${total} Operaciones Totales`;
+
+  const elCalmar = document.getElementById('repCalmarRatio');
+  if (elCalmar) elCalmar.textContent = `${calmar}`;
+
+  const elTargetRr = document.getElementById('repTargetRr');
+  if (elTargetRr) elTargetRr.textContent = `1:${targetRr.toFixed(1)}`;
+
+  // 3. Captura de Gráficas en Alta Resolución (Chart.js to Base64 PNG)
+  try {
+    if (btSimpleEquityChartInstance) {
+      btSimpleEquityChartInstance.update('none');
+      const repEqImg = document.getElementById('repEquityChartImg');
+      if (repEqImg) {
+        repEqImg.src = btSimpleEquityChartInstance.toBase64Image('image/png', 1.0);
+      }
+    }
+    if (btSimpleDrawdownChartInstance) {
+      btSimpleDrawdownChartInstance.update('none');
+      const repDdImg = document.getElementById('repDrawdownChartImg');
+      if (repDdImg) {
+        repDdImg.src = btSimpleDrawdownChartInstance.toBase64Image('image/png', 1.0);
+      }
+    }
+    const elChartDdLabel = document.getElementById('repChartDdLabel');
+    if (elChartDdLabel) elChartDdLabel.textContent = `-${maxDd.toFixed(1)}% Max DD Registrado`;
+  } catch (chartErr) {
+    console.warn('Error capturando imagen de gráficas:', chartErr);
+  }
+
+  // 4. Diagnóstico Cuantitativo Automatizado
+  const badgeDiag = document.getElementById('repDiagnosticBadge');
+  const edgeTitle = document.getElementById('repDiagEdgeTitle');
+  const edgeDesc = document.getElementById('repDiagEdgeDesc');
+  const ddTitle = document.getElementById('repDiagDdTitle');
+  const ddDesc = document.getElementById('repDiagDdDesc');
+  const pfTitle = document.getElementById('repDiagPfTitle');
+  const pfDesc = document.getElementById('repDiagPfDesc');
+  const verdictText = document.getElementById('repVerdictText');
+
+  const edgeDiff = winRate - beWinrate;
+  if (edgeDiff >= 15) {
+    if (edgeTitle) {
+      edgeTitle.textContent = `Ventaja Fuerte (+${edgeDiff.toFixed(1)}%)`;
+      edgeTitle.className = 'font-bold text-sm text-emerald-400';
+    }
+    if (edgeDesc) edgeDesc.textContent = `El Win Rate de ${winRate.toFixed(1)}% supera holgadamente el breakeven matemático (${beWinrate.toFixed(1)}%).`;
+  } else if (edgeDiff >= 0) {
+    if (edgeTitle) {
+      edgeTitle.textContent = `Ventaja Positiva (+${edgeDiff.toFixed(1)}%)`;
+      edgeTitle.className = 'font-bold text-sm text-emerald-400';
+    }
+    if (edgeDesc) edgeDesc.textContent = `El sistema mantiene esperanza matemática positiva sobre el punto de equilibrio (${beWinrate.toFixed(1)}%).`;
+  } else {
+    if (edgeTitle) {
+      edgeTitle.textContent = `Sin Ventaja (${edgeDiff.toFixed(1)}%)`;
+      edgeTitle.className = 'font-bold text-sm text-rose-400';
+    }
+    if (edgeDesc) edgeDesc.textContent = `El Win Rate de ${winRate.toFixed(1)}% es inferior al breakeven requerido (${beWinrate.toFixed(1)}%). Requiere mayor efectividad o mejor R:R.`;
+  }
+
+  if (maxDd <= 10.0) {
+    if (ddTitle) {
+      ddTitle.textContent = `Riesgo Institucional (${maxDd.toFixed(1)}%)`;
+      ddTitle.className = 'font-bold text-sm text-emerald-400';
+    }
+    if (ddDesc) ddDesc.textContent = 'Drawdown óptimo y controlado, apto para normas estrictas de cuentas de fondeo.';
+  } else if (maxDd <= 20.0) {
+    if (ddTitle) {
+      ddTitle.textContent = `Riesgo Moderado (${maxDd.toFixed(1)}%)`;
+      ddTitle.className = 'font-bold text-sm text-amber-400';
+    }
+    if (ddDesc) ddDesc.textContent = 'Drawdown admisible para cuentas reales, pero debe monitorizarse para evitar caídas superiores al 10% diario.';
+  } else {
+    if (ddTitle) {
+      ddTitle.textContent = `Alerta de Drawdown (${maxDd.toFixed(1)}%)`;
+      ddTitle.className = 'font-bold text-sm text-rose-400';
+    }
+    if (ddDesc) ddDesc.textContent = 'Drawdown elevado que pondría en riesgo una cuenta de fondeo convencional. Se recomienda reducir riesgo por trade.';
+  }
+
+  const pfNum = Number(pf) || 0;
+  if (pf === '∞' || pfNum >= 2.0) {
+    if (pfTitle) {
+      pfTitle.textContent = `Excelente (PF ${pf === '∞' ? '∞' : pfNum.toFixed(2)})`;
+      pfTitle.className = 'font-bold text-sm text-emerald-400';
+    }
+    if (pfDesc) pfDesc.textContent = 'Magnífica asimetría: por cada dólar arriesgado o perdido, el sistema genera más de $2.00.';
+  } else if (pfNum >= 1.5) {
+    if (pfTitle) {
+      pfTitle.textContent = `Sólido (PF ${pfNum.toFixed(2)})`;
+      pfTitle.className = 'font-bold text-sm text-indigo-400';
+    }
+    if (pfDesc) pfDesc.textContent = 'Relación ganancias/pérdidas saludable y consistente con trading institucional rentable.';
+  } else if (pfNum >= 1.0) {
+    if (pfTitle) {
+      pfTitle.textContent = `Marginal (PF ${pfNum.toFixed(2)})`;
+      pfTitle.className = 'font-bold text-sm text-amber-400';
+    }
+    if (pfDesc) pfDesc.textContent = 'Genera beneficios pero con margen estrecho frente a comisiones y slippage.';
+  } else {
+    if (pfTitle) {
+      pfTitle.textContent = `Deficitario (PF ${pfNum.toFixed(2)})`;
+      pfTitle.className = 'font-bold text-sm text-rose-400';
+    }
+    if (pfDesc) pfDesc.textContent = 'Las pérdidas superan a las ganancias netas acumuladas.';
+  }
+
+  if (badgeDiag) {
+    if (netPnl > 0 && winRate >= beWinrate && maxDd <= 15.0) {
+      badgeDiag.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+      badgeDiag.textContent = 'ESTRATEGIA ROBUSTA (APTO FONDEO / REAL)';
+    } else if (netPnl > 0) {
+      badgeDiag.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30';
+      badgeDiag.textContent = 'RENTABLE CON OBSERVACIONES';
+    } else {
+      badgeDiag.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30';
+      badgeDiag.textContent = 'ESTRATEGIA NO RENTABLE';
+    }
+  }
+
+  if (verdictText) {
+    if (netPnl > 0 && winRate >= beWinrate) {
+      verdictText.innerHTML = `La auditoría sobre la serie de <strong>${total} operaciones</strong> en AUD/JPY valida una ventaja estadística sólida y consistente. Con un Win Rate del <strong>${winRate.toFixed(1)}%</strong> frente a un breakeven de <strong>${beWinrate.toFixed(1)}%</strong>, la esperanza matemática por operación se establece en <strong>+$${formatMoney(expectancy)} USD</strong>. El control del riesgo arrojó un Drawdown máximo de <strong>${maxDd.toFixed(1)}%</strong> (-$${formatMoney(maxDdUsd)}), demostrando disciplina en el tamaño de posición y viabilidad técnica para evaluación de fondeo o gestión de capital real con apalancamiento 1:${leverage}.`;
+    } else {
+      verdictText.innerHTML = `La muestra analizada de <strong>${total} operaciones</strong> en AUD/JPY registra un PnL de <strong>$${formatMoney(netPnl)} USD</strong> y una efectividad del <strong>${winRate.toFixed(1)}%</strong>. Se aconseja revisar los criterios de confirmación o ajustar el ratio beneficio/riesgo antes de desplegar esta serie en pruebas de fondeo o capital real.`;
+    }
+  }
+
+  // 5. Tabla de Operaciones (Cronológico Trade 1 -> N)
+  const tbody = document.getElementById('repTradesTableBody');
+  const tableCountLabel = document.getElementById('repTableCountLabel');
+  if (tableCountLabel) tableCountLabel.textContent = `${trades.length} operaciones registradas`;
+
+  if (tbody) {
+    const rowsHtml = trades.map((t, idx) => {
+      const isWin = t.status === 'win';
+      const isLoss = t.status === 'loss';
+      const pnlNum = Number(t.pnl || 0);
+      const pnlSign = pnlNum > 0 ? '+' : '';
+      const pnlColor = isWin ? 'text-emerald-400 font-bold' : (isLoss ? 'text-rose-400 font-bold' : 'text-gray-400');
+      const tradeRr = Number(t.rr || targetRr);
+      const statusBadge = isWin
+        ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">WIN</span>'
+        : (isLoss ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-950 text-rose-400 border border-rose-800">LOSS</span>' : '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-gray-800 text-gray-400">BE</span>');
+      const dirText = t.direction === 'BUY'
+        ? '<span class="text-emerald-400 font-bold">BUY</span>'
+        : '<span class="text-rose-400 font-bold">SELL</span>';
+      const riskBudget = t.dollar_risk !== undefined ? `$${Number(t.dollar_risk).toFixed(2)}` : (t.balance_before ? `$${(t.balance_before * ((t.risk_pct || 1) / 100)).toFixed(2)}` : '-');
+      const riskPctVal = `${Number(t.risk_pct || riskPct).toFixed(1)}%`;
+      const balAfter = t.balance_after !== undefined ? `$${formatMoney(t.balance_after)}` : '-';
+
+      return `
+        <tr class="hover:bg-gray-800/30">
+          <td class="py-2 px-2.5 text-gray-500">${idx + 1}</td>
+          <td class="py-2 px-2.5 text-gray-400 text-[10px] whitespace-nowrap">${t.date || '-'}</td>
+          <td class="py-2 px-2.5 font-bold text-orange-400">AUD/JPY</td>
+          <td class="py-2 px-2.5">${dirText}</td>
+          <td class="py-2 px-2.5 text-blue-300 font-bold">1:${tradeRr.toFixed(1)}</td>
+          <td class="py-2 px-2.5 text-amber-300">${riskBudget} <span class="text-gray-400 text-[10px]">(${riskPctVal})</span></td>
+          <td class="py-2 px-2.5">${statusBadge}</td>
+          <td class="py-2 px-2.5 ${pnlColor}">${pnlSign}$${formatMoney(pnlNum)}</td>
+          <td class="py-2 px-2.5 text-white font-bold">${balAfter}</td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.innerHTML = rowsHtml;
+  }
+
+  // 6. Mostrar el Modal
+  const modal = document.getElementById('modalBacktestReport');
+  if (modal) {
+    modal.classList.remove('hidden');
+    initIcons();
+  }
+}
+
+function triggerBacktestPdfDownload() {
+  document.body.classList.add('printing-backtest-report');
+  
+  // Asegurar que las imágenes estén listas antes de invocar la impresión nativa
+  setTimeout(() => {
+    window.print();
+  }, 150);
+
+  const cleanUp = () => {
+    document.body.classList.remove('printing-backtest-report');
+    window.removeEventListener('afterprint', cleanUp);
+  };
+  window.addEventListener('afterprint', cleanUp);
+  setTimeout(cleanUp, 3500);
 }
 
 // ----------------------------------------------------

@@ -215,4 +215,136 @@ table tbody tr:hover {
     page-break-before: always;
     break-before: page;
   }
+
+  /* ============================================================== */
+  /* SOPORTE DE IMPRESIÓN / PDF: INFORME DE BACKTESTING AUD/JPY      */
+  /* ============================================================== */
+  body.printing-backtest-report {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+  }
+  
+  body.printing-backtest-report header,
+  body.printing-backtest-report nav,
+  body.printing-backtest-report main,
+  body.printing-backtest-report #modalEditTrade,
+  body.printing-backtest-report #modalSettings,
+  body.printing-backtest-report #modalMacroGuide,
+  body.printing-backtest-report #modalTradingViewWebhook,
+  body.printing-backtest-report #modalBtSimpleSimulate,
+  body.printing-backtest-report .no-print {
+    display: none !important;
+  }
+
+  body.printing-backtest-report #modalBacktestReport {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  body.printing-backtest-report #modalBacktestReport > div {
+    max-width: 100% !important;
+    max-height: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  body.printing-backtest-report #backtestReportPrintArea {
+    overflow: visible !important;
+    padding: 0 !important;
+    color: #0f172a !important;
+    background: transparent !important;
+  }
+
+  body.printing-backtest-report .report-print-card {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 1.25rem !important;
+    border-radius: 10px !important;
+    padding: 1.25rem !important;
+    box-shadow: none !important;
+  }
+
+  body.printing-backtest-report .report-kpi-box {
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #0f172a !important;
+  }
+
+  body.printing-backtest-report table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  body.printing-backtest-report th {
+    background-color: #f1f5f9 !important;
+    color: #1e293b !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 8px !important;
+    font-size: 9.5px !important;
+  }
+
+  body.printing-backtest-report td {
+    border: 1px solid #e2e8f0 !important;
+    color: #334155 !important;
+    padding: 5px 8px !important;
+    font-size: 9.5px !important;
+  }
+
+  body.printing-backtest-report tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.printing-backtest-report h1,
+  body.printing-backtest-report h2,
+  body.printing-backtest-report h3,
+  body.printing-backtest-report h4,
+  body.printing-backtest-report strong {
+    color: #0f172a !important;
+  }
+
+  body.printing-backtest-report p,
+  body.printing-backtest-report li,
+  body.printing-backtest-report span {
+    color: #334155 !important;
+  }
+
+  body.printing-backtest-report .text-emerald-400,
+  body.printing-backtest-report .text-emerald-500 {
+    color: #059669 !important;
+  }
+
+  body.printing-backtest-report .text-rose-400,
+  body.printing-backtest-report .text-rose-500 {
+    color: #e11d48 !important;
+  }
+
+  body.printing-backtest-report .text-blue-400,
+  body.printing-backtest-report .text-blue-500 {
+    color: #2563eb !important;
+  }
+
+  body.printing-backtest-report .text-amber-400,
+  body.printing-backtest-report .text-amber-500 {
+    color: #d97706 !important;
+  }
+
+  body.printing-backtest-report img {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+  }
 }

@@ -1997,9 +1997,9 @@
               <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
               <span>Simular Serie</span>
             </button>
-            <button id="btnBtSimpleLoadSample" class="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold text-xs rounded-lg border border-gray-700 transition flex items-center gap-1.5 cursor-pointer" title="Cargar operaciones de prueba realistas">
-              <i data-lucide="download" class="w-3.5 h-3.5 text-blue-400"></i>
-              <span>Muestra</span>
+            <button id="btnBtSimpleReport" class="px-3 py-1.5 bg-blue-950/70 hover:bg-blue-900/90 text-blue-300 font-bold text-xs rounded-lg border border-blue-700/80 shadow-md transition flex items-center gap-1.5 cursor-pointer" title="Generar informe profesional en PDF del backtesting">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 text-blue-400"></i>
+              <span>Informe</span>
             </button>
             <button id="btnBtSimpleClear" class="px-2.5 py-1.5 bg-red-950/40 hover:bg-red-900/60 text-red-300 font-semibold text-xs rounded-lg border border-red-800/50 transition flex items-center gap-1.5 cursor-pointer" title="Reiniciar y borrar historial del backtest">
               <i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-400"></i>
@@ -3493,6 +3493,305 @@
     </div>
   </div>
 
-<script src="app.js?v=20261107_v28_remove_manual"></script>
+  <!-- Modal: Informe Detallado de Backtesting en PDF -->
+  <div id="modalBacktestReport" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 hidden overflow-y-auto">
+    <div class="bg-[#0b0f17] border border-gray-800 rounded-2xl max-w-5xl w-full max-h-[94vh] flex flex-col shadow-2xl overflow-hidden">
+      
+      <!-- Barra Superior de Control (No imprimible) -->
+      <div class="no-print flex items-center justify-between p-4 border-b border-gray-800/80 bg-gray-950/80 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/30">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm sm:text-base font-bold text-white">Informe Técnico de Backtesting</h3>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">AUD/JPY</span>
+            </div>
+            <p class="text-[11px] text-gray-400">Auditoría cuantitativa de rendimiento, curvas de capital y desglose de operaciones</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="btnDownloadBacktestPdf" class="px-4 py-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 hover:brightness-110 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center gap-2 cursor-pointer">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>Descargar / Guardar PDF</span>
+          </button>
+          <button id="btnCloseBacktestReportModal" class="p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition cursor-pointer" title="Cerrar ventana">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Área Imprimible del Informe -->
+      <div id="backtestReportPrintArea" class="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 text-gray-200">
+        
+        <!-- ENCABEZADO INSTITUCIONAL -->
+        <div class="report-print-card bg-gradient-to-r from-gray-950 via-gray-900 to-gray-950 border border-gray-800 rounded-2xl p-5 sm:p-6 shadow-md">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800/80 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 via-blue-500/20 to-indigo-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-inner">
+                <i data-lucide="shield-check" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <div class="text-[10px] font-bold tracking-widest text-emerald-400 uppercase">Ghost Trader Pro Terminal</div>
+                <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">AUDITORÍA CUANTITATIVA DE BACKTESTING</h1>
+                <p class="text-xs text-gray-400">Informe institucional de rendimiento y robustez estadística</p>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:items-end text-xs space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">AUDIT PRO VERIFIED</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/30">AUD/JPY</span>
+              </div>
+              <div class="text-[11px] text-gray-400">Fecha de Emisión: <strong class="text-gray-200" id="repMetaDate">-</strong></div>
+              <div class="text-[11px] text-gray-400">Terminal ID: <strong class="text-gray-300 font-mono">GTP-AUDJPY-2026</strong></div>
+            </div>
+          </div>
+
+          <!-- Metadatos de la Configuración Cuantitativa -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 text-xs">
+            <div class="report-kpi-box bg-gray-950/60 p-2.5 rounded-xl border border-gray-800/80">
+              <span class="text-[10px] text-gray-400 font-semibold block uppercase">Activo Auditado</span>
+              <span class="font-bold text-white text-sm">AUD/JPY (Yen Cross)</span>
+            </div>
+            <div class="report-kpi-box bg-gray-950/60 p-2.5 rounded-xl border border-gray-800/80">
+              <span class="text-[10px] text-gray-400 font-semibold block uppercase">Modelo de Capital</span>
+              <span class="font-bold text-emerald-400 text-sm">Interés Compuesto</span>
+            </div>
+            <div class="report-kpi-box bg-gray-950/60 p-2.5 rounded-xl border border-gray-800/80">
+              <span class="text-[10px] text-gray-400 font-semibold block uppercase">Riesgo Configurado</span>
+              <span class="font-bold text-amber-400 text-sm" id="repMetaRisk">1.0% por Trade</span>
+            </div>
+            <div class="report-kpi-box bg-gray-950/60 p-2.5 rounded-xl border border-gray-800/80">
+              <span class="text-[10px] text-gray-400 font-semibold block uppercase">Apalancamiento</span>
+              <span class="font-bold text-blue-400 text-sm" id="repMetaLeverage">1:300</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1. RESUMEN EJECUTIVO (KPIs CUANTITATIVOS) -->
+        <div class="report-print-card bg-cardBg border border-cardBorder rounded-2xl p-5 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-gray-800/80 pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i>
+              <h2 class="text-sm font-bold text-white uppercase tracking-wider">1. Métricas Cuantitativas Principales (KPIs)</h2>
+            </div>
+            <span class="text-xs text-gray-400 font-mono" id="repMetaTradesTotal">0 Operaciones Evaluadas</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <!-- Balance Inicial -->
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 flex flex-col justify-between">
+              <span class="text-gray-400 font-semibold text-[11px] block">Balance Inicial</span>
+              <span class="text-lg font-black text-white font-mono mt-1" id="repInitBalance">$1,000.00</span>
+              <span class="text-[10px] text-gray-500">Capital base</span>
+            </div>
+
+            <!-- Balance Final -->
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 flex flex-col justify-between">
+              <span class="text-gray-400 font-semibold text-[11px] block">Balance Final</span>
+              <span class="text-lg font-black text-white font-mono mt-1" id="repFinalBalance">$1,000.00</span>
+              <span class="text-[10px] text-gray-500">Equity actual</span>
+            </div>
+
+            <!-- PnL Neto -->
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 flex flex-col justify-between">
+              <span class="text-gray-400 font-semibold text-[11px] block">PnL Neto Total</span>
+              <span class="text-lg font-black text-emerald-400 font-mono mt-1" id="repNetPnl">+$0.00</span>
+              <span class="text-[10px] font-bold text-emerald-400 font-mono" id="repNetReturn">+0.00%</span>
+            </div>
+
+            <!-- Win Rate vs BE -->
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 flex flex-col justify-between">
+              <span class="text-gray-400 font-semibold text-[11px] block">Win Rate</span>
+              <span class="text-lg font-black text-white font-mono mt-1" id="repWinRate">0.0%</span>
+              <span class="text-[10px] text-blue-400 font-semibold" id="repBeWinRate">BE Req: 25.0%</span>
+            </div>
+
+            <!-- Profit Factor -->
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 flex flex-col justify-between">
+              <span class="text-gray-400 font-semibold text-[11px] block">Profit Factor</span>
+              <span class="text-lg font-black text-indigo-400 font-mono mt-1" id="repProfitFactor">0.00</span>
+              <span class="text-[10px] text-gray-400" id="repGainsLosses">+$0 / -$0</span>
+            </div>
+
+            <!-- Max Drawdown -->
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 flex flex-col justify-between">
+              <span class="text-gray-400 font-semibold text-[11px] block">Max Drawdown</span>
+              <span class="text-lg font-black text-rose-400 font-mono mt-1" id="repMaxDd">0.0%</span>
+              <span class="text-[10px] text-rose-400 font-mono" id="repMaxDdUsd">-$0.00 USD</span>
+            </div>
+
+            <!-- Esperanza Matemática -->
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 flex flex-col justify-between">
+              <span class="text-gray-400 font-semibold text-[11px] block">Esperanza Matemática</span>
+              <span class="text-lg font-black text-emerald-400 font-mono mt-1" id="repExpectancy">+$0.00</span>
+              <span class="text-[10px] text-gray-400">Por trade ejecutado</span>
+            </div>
+
+            <!-- Ratio Real / Payoff -->
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 flex flex-col justify-between">
+              <span class="text-gray-400 font-semibold text-[11px] block">Ratio Real (Avg W / Avg L)</span>
+              <span class="text-lg font-black text-cyan-400 font-mono mt-1" id="repPayoffRatio">0.00 R</span>
+              <span class="text-[10px] text-gray-400" id="repAvgWinLoss">+$0 / -$0</span>
+            </div>
+
+            <!-- Rachas Máximas -->
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 flex flex-col justify-between">
+              <span class="text-gray-400 font-semibold text-[11px] block">Rachas Consecutivas</span>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="font-bold text-emerald-400 font-mono text-sm" id="repStreakWin">0 W</span>
+                <span class="text-gray-600">/</span>
+                <span class="font-bold text-rose-400 font-mono text-sm" id="repStreakLoss">0 L</span>
+              </div>
+              <span class="text-[10px] text-gray-500">Max consecutivas</span>
+            </div>
+
+            <!-- Desglose de Operaciones -->
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 flex flex-col justify-between">
+              <span class="text-gray-400 font-semibold text-[11px] block">Desglose de Resultados</span>
+              <div class="text-xs font-mono font-bold mt-1" id="repBreakdown">
+                <span class="text-emerald-400">0 W</span> · <span class="text-rose-400">0 L</span> · <span class="text-gray-400">0 BE</span>
+              </div>
+              <span class="text-[10px] text-gray-500" id="repTotalTradesCount">0 Total</span>
+            </div>
+
+            <!-- RoMaD / Calmar -->
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 flex flex-col justify-between">
+              <span class="text-gray-400 font-semibold text-[11px] block">Retorno / Max DD</span>
+              <span class="text-lg font-black text-amber-400 font-mono mt-1" id="repCalmarRatio">0.00</span>
+              <span class="text-[10px] text-gray-500">Eficiencia ante el riesgo</span>
+            </div>
+
+            <!-- Ratio R:R Teórico -->
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 flex flex-col justify-between">
+              <span class="text-gray-400 font-semibold text-[11px] block">Ratio R:R Objetivo</span>
+              <span class="text-lg font-black text-blue-400 font-mono mt-1" id="repTargetRr">1:3.0</span>
+              <span class="text-[10px] text-gray-500">Parámetro base AUD/JPY</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. GRÁFICAS DE RENDIMIENTO VISUAL -->
+        <div class="report-print-card bg-cardBg border border-cardBorder rounded-2xl p-5 shadow-xl space-y-5">
+          <div class="flex items-center justify-between border-b border-gray-800/80 pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="line-chart" class="w-4 h-4 text-emerald-400"></i>
+              <h2 class="text-sm font-bold text-white uppercase tracking-wider">2. Gráficas de Rendimiento Cuantitativo</h2>
+            </div>
+            <span class="text-xs text-gray-400 font-mono">Alta Resolución</span>
+          </div>
+
+          <!-- Gráfica Curva de Capital -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-gray-300 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Curva de Crecimiento de Capital (Compuesto)
+              </span>
+              <span class="text-gray-400 font-mono text-[11px]">Evolución Balance USD</span>
+            </div>
+            <div class="bg-[#0B0F17] p-2 rounded-xl border border-gray-800 flex items-center justify-center min-h-[220px]">
+              <img id="repEquityChartImg" alt="Curva de Capital" class="w-full max-h-[280px] object-contain rounded-lg">
+            </div>
+          </div>
+
+          <!-- Gráfica Drawdown Submarino -->
+          <div class="space-y-2 pt-2 border-t border-gray-800/80">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-gray-300 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span> Perfil de Drawdown Submarino (%)
+              </span>
+              <span class="text-rose-400 font-mono text-[11px]" id="repChartDdLabel">0.0% Max DD</span>
+            </div>
+            <div class="bg-[#0B0F17] p-2 rounded-xl border border-gray-800 flex items-center justify-center min-h-[140px]">
+              <img id="repDrawdownChartImg" alt="Perfil de Drawdown" class="w-full max-h-[160px] object-contain rounded-lg">
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. DIAGNÓSTICO CUANTITATIVO AUTOMATIZADO -->
+        <div class="report-print-card bg-cardBg border border-cardBorder rounded-2xl p-5 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-gray-800/80 pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+              <h2 class="text-sm font-bold text-white uppercase tracking-wider">3. Diagnóstico Cuantitativo Automatizado</h2>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold" id="repDiagnosticBadge">EVALUANDO</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 space-y-1">
+              <span class="text-gray-400 font-bold uppercase text-[10px] block">Ventaja Estadística (Edge)</span>
+              <div class="font-bold text-sm" id="repDiagEdgeTitle">-</div>
+              <p class="text-gray-400 text-[11px]" id="repDiagEdgeDesc">-</p>
+            </div>
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 space-y-1">
+              <span class="text-gray-400 font-bold uppercase text-[10px] block">Control de Riesgo & Drawdown</span>
+              <div class="font-bold text-sm" id="repDiagDdTitle">-</div>
+              <p class="text-gray-400 text-[11px]" id="repDiagDdDesc">-</p>
+            </div>
+            <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 space-y-1">
+              <span class="text-gray-400 font-bold uppercase text-[10px] block">Calidad de Beneficios (PF)</span>
+              <div class="font-bold text-sm" id="repDiagPfTitle">-</div>
+              <p class="text-gray-400 text-[11px]" id="repDiagPfDesc">-</p>
+            </div>
+          </div>
+
+          <div class="bg-gray-950/60 p-3.5 rounded-xl border border-gray-800 text-xs space-y-1.5" id="repVerdictBox">
+            <span class="text-emerald-400 font-bold text-[11px] block uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Veredicto Cuantitativo Institucional
+            </span>
+            <p class="text-gray-300 leading-relaxed text-[11px]" id="repVerdictText">
+              -
+            </p>
+          </div>
+        </div>
+
+        <!-- 4. REGISTRO COMPLETO DE OPERACIONES (TABLA DETALLADA) -->
+        <div class="report-print-card bg-cardBg border border-cardBorder rounded-2xl p-5 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-gray-800/80 pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="table" class="w-4 h-4 text-blue-400"></i>
+              <h2 class="text-sm font-bold text-white uppercase tracking-wider">4. Registro Histórico de Operaciones del Backtesting</h2>
+            </div>
+            <span class="text-xs text-gray-400 font-mono" id="repTableCountLabel">0 operaciones</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs font-mono">
+              <thead>
+                <tr class="border-b border-gray-800 text-gray-400 uppercase text-[10px] tracking-wider">
+                  <th class="py-2 px-2.5">#</th>
+                  <th class="py-2 px-2.5">Fecha</th>
+                  <th class="py-2 px-2.5">Símbolo</th>
+                  <th class="py-2 px-2.5">Dirección</th>
+                  <th class="py-2 px-2.5">R:R</th>
+                  <th class="py-2 px-2.5">Riesgo ($ / %)</th>
+                  <th class="py-2 px-2.5">Resultado</th>
+                  <th class="py-2 px-2.5">PnL USD</th>
+                  <th class="py-2 px-2.5">Balance Final</th>
+                </tr>
+              </thead>
+              <tbody id="repTradesTableBody" class="divide-y divide-gray-800/50">
+                <!-- Se poblará dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- PIE DE PÁGINA DEL INFORME -->
+        <div class="pt-4 border-t border-gray-800/80 text-center text-[10px] text-gray-500 space-y-1">
+          <p>Ghost Trader Pro Terminal · Sistema Cuantitativo y de Gestión de Riesgo para AUD/JPY</p>
+          <p class="text-gray-600">Este informe ha sido generado automáticamente por el motor de cálculo compuesto. Rendimientos pasados no garantizan rendimientos futuros.</p>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+<script src="app.js?v=20261108_v30_backtest_report_pdf"></script>
 </body>
 </html>
