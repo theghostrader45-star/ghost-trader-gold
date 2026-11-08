@@ -92,6 +92,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Backtesting Simple (Interés Compuesto)
   await loadBacktestSimpleData();
   setupBacktestSimpleView();
+
+  // Bitácora Real Tickmill (XAU/USD)
+  await loadTrades('real');
+  setupRealJournalView();
 });
 
 function initIcons() {
@@ -173,10 +177,11 @@ function formatMoney(val) {
 }
 
 // ----------------------------------------------------
-// TAB NAVIGATION: 1. Operativa & Bitácora 50K | 2. Pre-Mercado XAU/USD | 3. Noticias de Alto Impacto | 4. Reglamento Oficial Orion | 5. Manual de Uso | 6. Backtesting Simple
+// TAB NAVIGATION: 1. Fondeo Orion 50K | 2. Bitácora Real (Tickmill) | 3. Pre-Mercado NY | 4. Noticias | 5. Reglas | 6. Manual | 7. Backtest Simple
 // ----------------------------------------------------
 function setupTabNavigation() {
   const btnFondeo = document.getElementById('tabBtnFondeo');
+  const btnReal = document.getElementById('tabBtnReal');
   const btnPremarket = document.getElementById('tabBtnPremarket');
   const btnNews = document.getElementById('tabBtnNews');
   const btnRules = document.getElementById('tabBtnRules');
@@ -184,6 +189,7 @@ function setupTabNavigation() {
   const btnBacktestSimple = document.getElementById('tabBtnBacktestSimple');
 
   const viewFondeo = document.getElementById('viewFondeo');
+  const viewRealJournal = document.getElementById('viewRealJournal');
   const viewPremarket = document.getElementById('viewPremarket');
   const viewNews = document.getElementById('viewNews');
   const viewRules = document.getElementById('viewRules');
@@ -199,7 +205,7 @@ function setupTabNavigation() {
     const activeClasses = ['bg-amber-500', 'bg-sky-600', 'bg-rose-600', 'bg-emerald-600', 'bg-purple-600', 'text-black', 'text-white', 'shadow-lg', 'shadow-amber-500/30', 'shadow-sky-600/30', 'shadow-rose-600/30', 'shadow-emerald-600/30', 'shadow-purple-600/30', 'font-black', 'font-bold'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnFondeo, btnPremarket, btnNews, btnRules, btnManual, btnBacktestSimple].forEach(btn => {
+    [btnFondeo, btnReal, btnPremarket, btnNews, btnRules, btnManual, btnBacktestSimple].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
@@ -207,11 +213,55 @@ function setupTabNavigation() {
     });
 
     if (viewFondeo) viewFondeo.classList.add('hidden');
+    if (viewRealJournal) viewRealJournal.classList.add('hidden');
     if (viewPremarket) viewPremarket.classList.add('hidden');
     if (viewNews) viewNews.classList.add('hidden');
     if (viewRules) viewRules.classList.add('hidden');
     if (viewManual) viewManual.classList.add('hidden');
     if (viewBacktestSimple) viewBacktestSimple.classList.add('hidden');
+
+    // Adaptive Top Bar Badges according to current Active Tab / Account
+    const headerModeBadge = document.getElementById('topHeaderModeBadge');
+    const headerSubtitle = document.getElementById('topHeaderSubtitle');
+    const fondeoBadges = document.getElementById('topHeaderFondeoBadges');
+    const realBadges = document.getElementById('topHeaderRealBadges');
+
+    if (tab === 'real') {
+      if (headerModeBadge) {
+        headerModeBadge.innerHTML = '<i data-lucide="wallet" class="w-3 h-3 text-emerald-400"></i> Tickmill Real MT5 (1:500)';
+        headerModeBadge.className = 'hidden sm:inline-flex text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold items-center gap-1 font-mono tracking-wide';
+      }
+      if (headerSubtitle) {
+        headerSubtitle.textContent = 'Operativa Personal Real • Broker Tickmill (1:500) • Contrato 100 oz • Cálculo Dinámico';
+      }
+      if (fondeoBadges) {
+        fondeoBadges.classList.remove('lg:flex');
+        fondeoBadges.classList.add('hidden');
+      }
+      if (realBadges) {
+        realBadges.classList.remove('hidden');
+        realBadges.classList.add('lg:flex');
+        const s = appState.real.summary || {};
+        const bEl = document.getElementById('badgeTopRealBalance');
+        if (bEl) bEl.textContent = `$${(s.current_balance !== undefined ? s.current_balance : 97.72).toFixed(2)}`;
+      }
+    } else {
+      if (headerModeBadge) {
+        headerModeBadge.innerHTML = '<i data-lucide="shield-check" class="w-3 h-3 text-amber-400"></i> Orion Nova 50K';
+        headerModeBadge.className = 'hidden sm:inline-flex text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold items-center gap-1 font-mono tracking-wide';
+      }
+      if (headerSubtitle) {
+        headerSubtitle.textContent = 'Centro de Mando Exclusivo XAU/USD (Oro) • Reglas Orion Funded • Operativa 100% Manual';
+      }
+      if (realBadges) {
+        realBadges.classList.remove('lg:flex');
+        realBadges.classList.add('hidden');
+      }
+      if (fondeoBadges) {
+        fondeoBadges.classList.remove('hidden');
+        fondeoBadges.classList.add('lg:flex');
+      }
+    }
 
     if (tab === 'fondeo') {
       if (btnFondeo) {
@@ -223,6 +273,16 @@ function setupTabNavigation() {
       setTimeout(() => {
         if (fondeoEquityChart) fondeoEquityChart.resize();
       }, 50);
+    } else if (tab === 'real') {
+      if (btnReal) {
+        btnReal.classList.remove(...inactiveClasses);
+        btnReal.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-bold');
+      }
+      if (viewRealJournal) viewRealJournal.classList.remove('hidden');
+      loadTrades('real').then(() => {
+        renderRealJournalDashboard();
+        if (typeof recalculateRealQuickLot === 'function') recalculateRealQuickLot();
+      });
     } else if (tab === 'premarket') {
       if (btnPremarket) {
         btnPremarket.classList.remove(...inactiveClasses);
@@ -268,6 +328,7 @@ function setupTabNavigation() {
   window.switchTabTo = switchTab;
 
   if (btnFondeo) btnFondeo.addEventListener('click', () => switchTab('fondeo'));
+  if (btnReal) btnReal.addEventListener('click', () => switchTab('real'));
   if (btnPremarket) btnPremarket.addEventListener('click', () => switchTab('premarket'));
   if (btnNews) btnNews.addEventListener('click', () => switchTab('news'));
   if (btnRules) btnRules.addEventListener('click', () => switchTab('rules'));
@@ -275,7 +336,7 @@ function setupTabNavigation() {
   if (btnBacktestSimple) btnBacktestSimple.addEventListener('click', () => switchTab('backtest'));
 
   let savedTab = localStorage.getItem('activeTab_orion_v3');
-  if (!savedTab || !['fondeo', 'premarket', 'news', 'rules', 'manual', 'backtest'].includes(savedTab)) {
+  if (!savedTab || !['fondeo', 'real', 'premarket', 'news', 'rules', 'manual', 'backtest'].includes(savedTab)) {
     savedTab = 'fondeo';
   }
   switchTab(savedTab);
@@ -1016,14 +1077,24 @@ function setupFondeoTradeForm() {
     const dir = dirEl?.value || 'BUY';
     const asset = assetEl?.value || 'XAU/USD';
 
-    // Auto-completar SL (300 pts / $3.00) y TP (900 pts / $9.00 - R:R 1:3) si el usuario ingresó Entrada
+    // Auto-completar SL y TP de acuerdo a los puntos de SL seleccionados
+    const slPointsEl = document.getElementById('fondeoFormSlPoints');
+    const slPtsCustom = parseFloat(slPointsEl?.value) || 300;
+    const slDollarDist = slPtsCustom / 100.0;
+    const rrVal = parseFloat(rrEl?.value) || 3.0;
+    const tpDollarDist = slDollarDist * rrVal;
+
+    const formulaPrevEl = document.getElementById('fondeoLotFormulaPreview');
+    const slDollarDistEl = document.getElementById('fondeoSlDollarDist');
+    if (slDollarDistEl) slDollarDistEl.textContent = `=$${slDollarDist.toFixed(2)} en Oro`;
+
     if (!isNaN(entry) && entry > 0) {
       if (slEl && (!slEl.dataset.userEdited || !slEl.value)) {
-        const autoSl = dir === 'BUY' ? roundNum(entry - 3.00, 2) : roundNum(entry + 3.00, 2);
+        const autoSl = dir === 'BUY' ? roundNum(entry - slDollarDist, 2) : roundNum(entry + slDollarDist, 2);
         slEl.value = autoSl.toFixed(2);
       }
       if (tpEl && (!tpEl.dataset.userEdited || !tpEl.value)) {
-        const autoTp = dir === 'BUY' ? roundNum(entry + 9.00, 2) : roundNum(entry - 9.00, 2);
+        const autoTp = dir === 'BUY' ? roundNum(entry + tpDollarDist, 2) : roundNum(entry - tpDollarDist, 2);
         tpEl.value = autoTp.toFixed(2);
       }
     }
@@ -1032,15 +1103,20 @@ function setupFondeoTradeForm() {
     const tp = parseFloat(tpEl?.value);
     const exit = parseFloat(exitEl?.value);
 
-    // Cálculo de lotaje automático basado estrictamente en SL 300 puntos ($3.00 en Oro)
-    let slPts = null;
-    if (!isNaN(entry) && !isNaN(sl)) {
-      slPts = Math.round(Math.abs(entry - sl) * 100);
+    // Cálculo dinámico de lotaje basado en los puntos de SL seleccionados
+    let slPts = slPtsCustom;
+    if (!isNaN(entry) && !isNaN(sl) && slEl?.dataset.userEdited) {
+      const detected = Math.round(Math.abs(entry - sl) * 100);
+      if (detected > 0) {
+        slPts = detected;
+        if (slPointsEl) slPointsEl.value = detected;
+      }
     }
     const pointsForLot = (slPts !== null && slPts > 0) ? slPts : 300;
     const autoLot = Math.max(0.01, roundNum(dollarRisk / pointsForLot, 2));
 
-    if (autoLotHint) autoLotHint.textContent = `Auto (300 SL): ${autoLot.toFixed(2)} lotes`;
+    if (autoLotHint) autoLotHint.textContent = `Auto (${pointsForLot} SL): ${autoLot.toFixed(2)} lotes`;
+    if (formulaPrevEl) formulaPrevEl.textContent = `$${dollarRisk.toFixed(0)} / ${pointsForLot} = ${autoLot.toFixed(2)} lotes`;
     if (lotEl && !lotEl.dataset.userModified) {
       lotEl.value = autoLot.toFixed(2);
     }
@@ -1247,6 +1323,13 @@ function setupFondeoTradeForm() {
         badgeRrMode.textContent = '1:3 FIJO';
         badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold';
       }
+      const slPointsInp = document.getElementById('fondeoFormSlPoints');
+      if (slPointsInp) slPointsInp.value = '300';
+      document.querySelectorAll('.btnFondeoSlPtsChip').forEach(c => {
+        c.className = 'btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer';
+      });
+      const chip300 = document.querySelector('.btnFondeoSlPtsChip[data-pts="300"]');
+      if (chip300) chip300.className = 'btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50 hover:bg-amber-500/30 transition cursor-pointer';
       
       const entryVal = parseFloat(entryEl?.value);
       const dirVal = dirEl?.value || 'BUY';
@@ -1260,6 +1343,32 @@ function setupFondeoTradeForm() {
       if (typeof showToast === 'function') {
         showToast('⚡ Stop Loss (300 pts) y Take Profit (900 pts - 1:3) fijados con éxito.', 'success', 2500);
       }
+    });
+  }
+
+  // Chips para Stop Loss en Puntos (150, 200, 250, 300, 350, 400)
+  document.querySelectorAll('.btnFondeoSlPtsChip').forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      e.preventDefault();
+      const pts = parseFloat(chip.dataset.pts) || 300;
+      const slPointsInp = document.getElementById('fondeoFormSlPoints');
+      if (slPointsInp) slPointsInp.value = pts;
+      if (slEl) delete slEl.dataset.userEdited;
+      if (tpEl) delete tpEl.dataset.userEdited;
+      document.querySelectorAll('.btnFondeoSlPtsChip').forEach(c => {
+        c.className = 'btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer';
+      });
+      chip.className = 'btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50 hover:bg-amber-500/30 transition cursor-pointer';
+      updateFondeoCalculation();
+    });
+  });
+
+  const slPtsInput = document.getElementById('fondeoFormSlPoints');
+  if (slPtsInput) {
+    slPtsInput.addEventListener('input', () => {
+      if (slEl) delete slEl.dataset.userEdited;
+      if (tpEl) delete tpEl.dataset.userEdited;
+      updateFondeoCalculation();
     });
   }
 
@@ -1297,6 +1406,16 @@ function setupFondeoTradeForm() {
   if (slEl) {
     slEl.addEventListener('input', () => {
       slEl.dataset.userEdited = 'true';
+      const entryVal = parseFloat(entryEl?.value);
+      const slVal = parseFloat(slEl.value);
+      if (!isNaN(entryVal) && !isNaN(slVal) && entryVal > 0) {
+        const detected = Math.round(Math.abs(entryVal - slVal) * 100);
+        const slPointsInp = document.getElementById('fondeoFormSlPoints');
+        if (detected > 0 && slPointsInp) {
+          slPointsInp.value = detected;
+        }
+      }
+      updateFondeoCalculation();
     });
   }
 
@@ -1310,12 +1429,16 @@ function setupFondeoTradeForm() {
     dirEl.addEventListener('change', () => {
       const entryVal = parseFloat(entryEl?.value);
       const dirVal = dirEl.value || 'BUY';
+      const slPointsInp = document.getElementById('fondeoFormSlPoints');
+      const ptsVal = parseFloat(slPointsInp?.value) || 300;
+      const dist = ptsVal / 100.0;
+      const rrVal = parseFloat(rrEl?.value) || 3.0;
       if (!isNaN(entryVal) && entryVal > 0) {
         if (slEl && (!slEl.dataset.userEdited || !slEl.value)) {
-          slEl.value = (dirVal === 'BUY' ? roundNum(entryVal - 3.00, 2) : roundNum(entryVal + 3.00, 2)).toFixed(2);
+          slEl.value = (dirVal === 'BUY' ? roundNum(entryVal - dist, 2) : roundNum(entryVal + dist, 2)).toFixed(2);
         }
         if (tpEl && (!tpEl.dataset.userEdited || !tpEl.value)) {
-          tpEl.value = (dirVal === 'BUY' ? roundNum(entryVal + 9.00, 2) : roundNum(entryVal - 9.00, 2)).toFixed(2);
+          tpEl.value = (dirVal === 'BUY' ? roundNum(entryVal + dist * rrVal, 2) : roundNum(entryVal - dist * rrVal, 2)).toFixed(2);
         }
       }
       updateFondeoCalculation();
@@ -1382,6 +1505,7 @@ function setupFondeoTradeForm() {
     const tp = parseFloat(tpEl?.value);
     const exit = parseFloat(exitEl?.value);
 
+    const slPtsVal = parseFloat(document.getElementById('fondeoFormSlPoints')?.value) || 300;
     const payload = {
       mode: 'fondeo',
       asset: asset,
@@ -1389,6 +1513,8 @@ function setupFondeoTradeForm() {
       manual_lot: lot,
       lot_size: lot,
       sl_pips: slPips,
+      sl_points: slPtsVal,
+      tv_points: slPtsVal,
       status: status,
       rr: rr,
       manual_rr: rr,
@@ -3192,6 +3318,305 @@ function renderRealTradesTable() {
   }).join('');
 
   tbody.innerHTML = rowsHtml;
+}
+
+// ====================================================
+// BITÁCORA REAL TICKMILL (XAU/USD) — CALCULADORA INSTANTÁNEA & 1-CLICK
+// ====================================================
+
+function recalculateRealQuickLot() {
+  const balInp = document.getElementById('realCalcBalance');
+  const riskInp = document.getElementById('realCalcRiskPct');
+  const slInp = document.getElementById('realCalcSlPoints');
+  const rrInp = document.getElementById('realCalcRR');
+
+  const s = appState.real.summary || {};
+  const currentBal = (s.current_balance !== undefined && s.current_balance !== null) 
+    ? Number(s.current_balance) 
+    : 97.72;
+
+  let bal = parseFloat(balInp?.value);
+  if (isNaN(bal) || bal <= 0) {
+    bal = currentBal > 0 ? currentBal : 97.72;
+    if (balInp) balInp.value = bal.toFixed(2);
+  }
+
+  const riskPct = parseFloat(riskInp?.value) || 1.0;
+  const slPts = parseFloat(slInp?.value) || 250;
+  const rr = parseFloat(rrInp?.value) || 2.0;
+
+  // Tickmill XAU/USD:
+  // 1 lote estándar = 100 onzas troy
+  // 1 punto = $0.01 variación del precio del oro
+  // 100 puntos = $1.00 de movimiento = $100 por 1.00 lote estándar ($1.00 por punto por lote)
+  // Riesgo ($ USD) = Balance * (Riesgo % / 100)
+  // Lotaje = Riesgo $ / (Puntos SL * 1.00)
+  // Lote Mínimo en Tickmill = 0.01 lotes
+  const dollarRisk = bal * (riskPct / 100.0);
+  const rawLot = slPts > 0 ? (dollarRisk / slPts) : 0.01;
+  const recommendedLot = Math.max(0.01, roundNum(rawLot, 2));
+
+  const actualRiskUsd = roundNum(recommendedLot * slPts, 2);
+  const actualRiskPct = bal > 0 ? (actualRiskUsd / bal) * 100.0 : 0.0;
+
+  const tpPts = Math.round(slPts * rr);
+  const actualRewardUsd = roundNum(recommendedLot * tpPts, 2);
+  const actualRewardPct = bal > 0 ? (actualRewardUsd / bal) * 100.0 : 0.0;
+
+  const slPriceDist = (slPts / 100.0).toFixed(2);
+  const tpPriceDist = (tpPts / 100.0).toFixed(2);
+
+  // Margen en Tickmill (Apalancamiento 1:500 para Oro Spot)
+  const goldPrice = 2720.0;
+  const marginRequired = roundNum((goldPrice * 100.0 * recommendedLot) / 500.0, 2);
+  const pointValue = roundNum(recommendedLot * 1.00, 2);
+
+  // Elementos del Hero
+  const heroLotEl = document.getElementById('realTickmillHeroLot');
+  if (heroLotEl) heroLotEl.textContent = recommendedLot.toFixed(2);
+
+  const heroRiskEl = document.getElementById('realHeroRiskUsd');
+  if (heroRiskEl) heroRiskEl.textContent = `-$${formatMoney(actualRiskUsd)} (-${actualRiskPct.toFixed(2)}%)`;
+
+  const heroSlSub = document.getElementById('realHeroSlSub');
+  if (heroSlSub) heroSlSub.textContent = `${slPts} pts ($${slPriceDist})`;
+
+  const heroRewardEl = document.getElementById('realHeroRewardUsd');
+  if (heroRewardEl) heroRewardEl.textContent = `+$${formatMoney(actualRewardUsd)} (+${actualRewardPct.toFixed(2)}%)`;
+
+  const heroTpSub = document.getElementById('realHeroTpSub');
+  if (heroTpSub) heroTpSub.textContent = `${tpPts} pts (1:${formatRRText(rr)})`;
+
+  const heroMarginEl = document.getElementById('realHeroMargin');
+  if (heroMarginEl) heroMarginEl.textContent = `~$${formatMoney(marginRequired)} USD`;
+
+  const heroPtValEl = document.getElementById('realHeroPointValue');
+  if (heroPtValEl) heroPtValEl.textContent = `$${pointValue.toFixed(2)} / pt`;
+
+  const riskBadge = document.getElementById('realCalcRiskUsdBadge');
+  if (riskBadge) riskBadge.textContent = `$${formatMoney(dollarRisk)} USD`;
+
+  const slBadge = document.getElementById('realCalcSlDistBadge');
+  if (slBadge) slBadge.textContent = `$${slPriceDist} Oro`;
+
+  const tpBadge = document.getElementById('realCalcTpPtsBadge');
+  if (tpBadge) tpBadge.textContent = `TP: ${tpPts} pts`;
+
+  const winSub = document.getElementById('realWinRewardSubtext');
+  if (winSub) winSub.textContent = `+${actualRewardPct.toFixed(1)}% (+${formatRRText(rr)}R) · +$${formatMoney(actualRewardUsd)}`;
+
+  const lossSub = document.getElementById('realLossRiskSubtext');
+  if (lossSub) lossSub.textContent = `-${actualRiskPct.toFixed(1)}% (-1R) · -$${formatMoney(actualRiskUsd)}`;
+
+  const liveHeader = document.getElementById('realLiveBalHeader');
+  if (liveHeader) liveHeader.textContent = `$${currentBal.toFixed(2)}`;
+
+  const topRealBal = document.getElementById('badgeTopRealBalance');
+  if (topRealBal) topRealBal.textContent = `$${currentBal.toFixed(2)}`;
+
+  return {
+    bal,
+    riskPct,
+    slPts,
+    rr,
+    recommendedLot,
+    actualRiskUsd,
+    actualRewardUsd,
+    tpPts
+  };
+}
+
+function setupRealJournalView() {
+  // Preset Chips: Balance
+  document.querySelectorAll('.btn-real-chip-bal').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const val = parseFloat(btn.dataset.val);
+      const inp = document.getElementById('realCalcBalance');
+      if (inp) {
+        inp.value = val;
+        recalculateRealQuickLot();
+      }
+    });
+  });
+
+  // Preset Chips: % Riesgo
+  document.querySelectorAll('.btn-real-chip-risk').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const val = parseFloat(btn.dataset.val);
+      const inp = document.getElementById('realCalcRiskPct');
+      if (inp) {
+        inp.value = val;
+        document.querySelectorAll('.btn-real-chip-risk').forEach(c => {
+          c.className = 'btn-real-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
+        });
+        btn.className = 'btn-real-chip-risk py-1 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 transition text-center cursor-pointer';
+        recalculateRealQuickLot();
+      }
+    });
+  });
+
+  // Preset Chips: Stop Loss en Puntos
+  document.querySelectorAll('.btn-real-chip-sl').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const val = parseFloat(btn.dataset.val);
+      const inp = document.getElementById('realCalcSlPoints');
+      if (inp) {
+        inp.value = val;
+        document.querySelectorAll('.btn-real-chip-sl').forEach(c => {
+          c.className = 'btn-real-chip-sl py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
+        });
+        btn.className = 'btn-real-chip-sl py-1 rounded text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 transition text-center cursor-pointer';
+        recalculateRealQuickLot();
+      }
+    });
+  });
+
+  // Preset Chips: R:R
+  document.querySelectorAll('.btn-real-chip-rr').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const val = parseFloat(btn.dataset.val);
+      const inp = document.getElementById('realCalcRR');
+      if (inp) {
+        inp.value = val;
+        document.querySelectorAll('.btn-real-chip-rr').forEach(c => {
+          c.className = 'btn-real-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
+        });
+        btn.className = 'btn-real-chip-rr py-1 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 transition text-center cursor-pointer';
+        recalculateRealQuickLot();
+      }
+    });
+  });
+
+  // Live input events para inputs directos
+  ['realCalcBalance', 'realCalcRiskPct', 'realCalcSlPoints', 'realCalcRR'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', recalculateRealQuickLot);
+      el.addEventListener('change', recalculateRealQuickLot);
+    }
+  });
+
+  // Botón Copiar Lote al Portapapeles
+  const btnCopyLot = document.getElementById('btnCopyRealLot');
+  if (btnCopyLot) {
+    btnCopyLot.addEventListener('click', () => {
+      const heroLotEl = document.getElementById('realTickmillHeroLot');
+      const lot = heroLotEl ? heroLotEl.textContent.trim() : '0.01';
+      navigator.clipboard.writeText(lot).then(() => {
+        showToast(`📋 ¡Lotaje copiado: ${lot}! Pégalo en tu orden de Tickmill MT4/MT5.`, 'success', 4000);
+      }).catch(() => {
+        showToast(`Lotaje Tickmill: ${lot}`, 'info');
+      });
+    });
+  }
+
+  // Helper para Registrar Trade Rápido 1-Click en Bitácora Real
+  async function submitQuickRealTrade(status) {
+    const calc = recalculateRealQuickLot();
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const dateStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+    // Tickmill comisión estándar: -$0.06 por 0.01 lote (-$6.00 por lote estándar)
+    const comm = -roundNum(0.06 * Math.round(calc.recommendedLot / 0.01), 2);
+
+    const payload = {
+      mode: 'real',
+      status: status,
+      direction: status === 'loss' ? 'SELL' : 'BUY',
+      rr: calc.rr,
+      risk_pct: calc.riskPct,
+      sl_points: calc.slPts,
+      tv_points: calc.slPts,
+      lot_size: calc.recommendedLot,
+      manual_lot: calc.recommendedLot,
+      commission: comm,
+      date: dateStr,
+      session: 'New York',
+      strategy: 'Price Action Tickmill',
+      emotion: 'Plan Seguido',
+      notes: `Tickmill XAU/USD (${status.toUpperCase()} ${status === 'win' ? '+' + calc.rr + 'R' : (status === 'loss' ? '-1R' : 'BE')})`
+    };
+
+    try {
+      const res = await fetch('/api/trades?mode=real', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.analytics) {
+          appState.real.summary = data.analytics.summary || {};
+          appState.real.equityCurve = data.analytics.equity_curve || [];
+          appState.real.trades = data.analytics.trades || [];
+        } else {
+          await loadTrades('real');
+        }
+        renderRealJournalDashboard();
+        recalculateRealQuickLot();
+        showToast(`Operación Real registrada: ${status.toUpperCase()} (${calc.recommendedLot} lotes)`, 'success', 3500);
+      }
+    } catch (err) {
+      console.error('Error registrando trade real:', err);
+      showToast('Error al registrar operación real', 'error');
+    }
+  }
+
+  const btnWin = document.getElementById('btnRealQuickWin');
+  if (btnWin) btnWin.addEventListener('click', () => submitQuickRealTrade('win'));
+  const btnLoss = document.getElementById('btnRealQuickLoss');
+  if (btnLoss) btnLoss.addEventListener('click', () => submitQuickRealTrade('loss'));
+  const btnBe = document.getElementById('btnRealQuickBe');
+  if (btnBe) btnBe.addEventListener('click', () => submitQuickRealTrade('be'));
+
+  // Sincronizar Balance y Métricas Reales
+  const btnSync = document.getElementById('btnSyncRealBalance');
+  if (btnSync) {
+    btnSync.addEventListener('click', async () => {
+      btnSync.disabled = true;
+      btnSync.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Sincronizando...</span>';
+      initIcons();
+      await loadTrades('real');
+      renderRealJournalDashboard();
+      recalculateRealQuickLot();
+      btnSync.disabled = false;
+      btnSync.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Sincronizar</span>';
+      initIcons();
+      showToast('Datos de Bitácora Real sincronizados correctamente', 'success');
+    });
+  }
+
+  // Limpiar Operaciones de la Cuenta Real
+  const btnClear = document.getElementById('btnClearRealData');
+  if (btnClear) {
+    btnClear.addEventListener('click', async () => {
+      if (confirm('¿Estás seguro de que deseas limpiar el historial de operaciones de tu Bitácora Real?')) {
+        try {
+          const res = await fetch('/api/trades/clear?mode=real', { method: 'POST' });
+          if (res.ok) {
+            localStorage.removeItem('cached_real_trades_v2');
+            localStorage.removeItem('cached_real_trades');
+            appState.real.trades = [];
+            appState.real.summary = {};
+            await loadTrades('real');
+            renderRealJournalDashboard();
+            recalculateRealQuickLot();
+            showToast('Historial real reiniciado', 'info');
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
+  }
+
+  // Recalcular inmediatamente al iniciar
+  recalculateRealQuickLot();
 }
 
 // ----------------------------------------------------
