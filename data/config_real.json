@@ -5,9 +5,8 @@
   "leverage": 300.0,
   "rr_ratio": 2.0,
   "currency": "USD",
-  "asset": "XAU/USD",
-  "asset_name": "Oro (XAU/USD)",
-  "gold_price": 2720.0,
-  "contract_size": 100,
-  "sl_default": 30
+  "asset": "AUD/JPY",
+  "asset_name": "AUD/JPY (Forex Cross)",
+  "contract_size": 100000,
+  "sl_default": 25.0
 }

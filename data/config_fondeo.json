@@ -14,13 +14,13 @@
   "currency": "USD",
   "risk_pct": 0.5,
   "rr_ratio": 3.0,
-  "asset": "XAU/USD",
-  "asset_name": "Oro (XAU/USD)",
-  "gold_price": 2720.0,
-  "contract_size": 100,
-  "sl_default": 30,
-  "sl_points": 300,
-  "tp_points": 900,
-  "sl_distance_usd": 3.0,
-  "tp_distance_usd": 9.0
+  "asset": "AUD/JPY",
+  "asset_name": "AUD/JPY (Forex Cross)",
+  "contract_size": 100000,
+  "sl_default": 25.0,
+  "sl_pips": 25.0,
+  "sl_points": 250,
+  "tp_points": 750,
+  "sl_distance_usd": 0.25,
+  "tp_distance_usd": 0.75
 }

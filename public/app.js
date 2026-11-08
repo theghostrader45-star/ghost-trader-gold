@@ -13,11 +13,11 @@ let appState = {
     config: {
       initial_balance: 50000.0,
       risk_pct: 0.5,
-      rr_ratio: 2.0,
+      rr_ratio: 3.0,
       leverage: 30.0,
-      asset: 'XAU/USD',
-      gold_price: 2720.0,
-      contract_size: 100,
+      asset: 'AUD/JPY',
+      contract_size: 100000,
+      sl_pips: 25.0,
       profit_target_usd: 2000.0,
       daily_loss_usd: 2000.0,
       max_loss_usd: 4000.0
@@ -28,9 +28,9 @@ let appState = {
     risk_pct: 1.0,
     rr_ratio: 2.0,
     leverage: 300,
-    asset: 'XAU/USD',
-    gold_price: 2720.0,
-    contract_size: 100,
+    asset: 'AUD/JPY',
+    contract_size: 100000,
+    sl_pips: 25.0,
     min_lot: 0.01,
     lot_step: 0.01
   },
@@ -466,17 +466,7 @@ function renderFondeoDashboard() {
 }
 
 function getAssetBadge(asset) {
-  const a = (asset || 'XAU/USD').toUpperCase();
-  if (a.includes('JPY') || a.includes('AUD/JPY') || a.includes('AUDJPY')) {
-    return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-orange-500/20 text-orange-300 border border-orange-500/40 whitespace-nowrap">🟠 AUD/JPY</span>';
-  }
-  if (a.includes('AUD')) {
-    return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/40 whitespace-nowrap">🔵 AUD/USD</span>';
-  }
-  if (a.includes('CAD') || a.includes('EUR/CAD') || a.includes('EURCAD')) {
-    return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/40 whitespace-nowrap">🟣 EUR/CAD</span>';
-  }
-  return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 whitespace-nowrap">🟡 XAU/USD</span>';
+  return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-orange-500/20 text-orange-300 border border-orange-500/40 whitespace-nowrap">🟠 AUD/JPY</span>';
 }
 
 function anyStringIncludes(str, arr) {
@@ -524,8 +514,8 @@ function renderFondeoTradesTable() {
     const pnlSign = pnl > 0 ? '+' : '';
 
     const assetBadge = getAssetBadge(t.asset);
-    const isGold = anyStringIncludes(t.asset || 'XAU/USD', ['XAU', 'GOLD', 'ORO']);
-    const dec = isGold ? 2 : 4;
+    const isGold = anyStringIncludes(t.asset, ['XAU', 'GOLD', 'ORO']);
+    const dec = isGold ? 2 : 3;
 
     // Prices: Entry ➔ Exit
     let priceFlow = '<span class="text-gray-600">-</span>';
@@ -542,7 +532,7 @@ function renderFondeoTradesTable() {
       const tpTxt = t.tp_price != null ? `<span class="text-emerald-400 font-mono">${Number(t.tp_price).toFixed(dec)}</span>` : '-';
       slTpDisplay = `${slTxt} <span class="text-gray-600">/</span> ${tpTxt}`;
     } else if (t.sl_pips) {
-      slTpDisplay = `<span class="font-mono text-gray-400">${t.sl_pips} ${isGold ? 'pts' : 'pips'}</span>`;
+      slTpDisplay = `<span class="font-mono text-gray-400">${t.sl_pips} pips</span>`;
     }
 
     // Points / Pips
@@ -741,10 +731,9 @@ function setupFondeoCalculator() {
     // Interés Simple: cálculo basado en capital inicial fijo ($50,000 USD)
     const baseCapital = Number(appState.fondeo?.config?.initial_balance) || 50000.0;
     const curBalance = summary.current_balance !== undefined ? summary.current_balance : 50000.0;
-    const asset = assetSelect ? assetSelect.value : 'XAU/USD';
-    const isGold = asset.includes('XAU') || asset.includes('GOLD') || asset.includes('ORO') || true;
+    const asset = assetSelect ? assetSelect.value : 'AUD/JPY';
 
-    const slInputVal = parseFloat(slInput ? slInput.value : 30.0) || 30.0;
+    const slInputVal = parseFloat(slInput ? slInput.value : 25.0) || 25.0;
     const riskType = riskSelect ? riskSelect.value : '0.5';
 
     let dollarRisk = 250.0;
@@ -760,27 +749,17 @@ function setupFondeoCalculator() {
       dollarRisk = baseCapital * (riskPct / 100.0);
     }
 
-    // Normalización de SL para Oro (XAU/USD):
-    // <= 15.0: dólares de precio ($3.00)
-    // 15 - 150: pips (30 pips = $3.00)
-    // > 150: puntos (300 pts = $3.00)
-    let slPriceDist = 3.0;
-    if (slInputVal <= 15.0) {
-      slPriceDist = slInputVal;
-    } else if (slInputVal <= 150.0) {
-      slPriceDist = slInputVal / 10.0;
-    } else {
-      slPriceDist = slInputVal / 100.0;
-    }
-
-    const lossPerLot = slPriceDist * 100.0; // 1 lote estándar = 100 oz de oro
+    // Cálculo exclusivo para AUD/JPY (Forex Cross):
+    // 1 pip = 0.01 JPY = ~$6.50 USD por lote estándar (100,000 AUD)
+    const slPriceDist = slInputVal * 0.01;
+    const lossPerLot = slInputVal * 6.50;
     let lot = lossPerLot > 0 ? dollarRisk / lossPerLot : 0.01;
     lot = Math.max(0.01, Math.round(lot * 100) / 100);
 
-    // Apalancamiento 1:30 para Oro en Orion Funded
-    const goldPrice = 2720.0;
-    const margin = (goldPrice * 100.0 * lot) / 30.0;
-    const pipVal = 10.0 * lot; // $10 por pip (0.10) por lote
+    // Apalancamiento 1:30 para AUD/JPY en Orion Nova 50K
+    // Contrato 100,000 AUD * 0.6550 USD / 30 = ~$2,183.33 USD por lote
+    const margin = (100000.0 * 0.6550 * lot) / 30.0;
+    const pipVal = 6.50 * lot; // ~$6.50 por pip en 1.00 lote
 
     const reward = dollarRisk * selectedFondeoRr;
     const marginPct = curBalance > 0 ? (margin / curBalance) * 100 : 0;
@@ -806,14 +785,14 @@ function setupFondeoCalculator() {
     if (banner && bannerText) {
       if (dollarRisk > dailyHeadroom) {
         banner.className = 'p-3 rounded-xl border flex items-start gap-2 bg-red-950/40 border-red-800/80 text-red-300';
-        bannerText.innerHTML = `⚠️ <b>¡ALERTA DE RIESGO EN ORO!</b> Esta operación arriesga <b>$${formatMoney(dollarRisk)}</b>, superando tu colchón diario disponible de <b>$${formatMoney(dailyHeadroom)}</b>. Podrías violar la regla de pérdida diaria del 4% ($2,000)!`;
+        bannerText.innerHTML = `⚠️ <b>¡ALERTA DE RIESGO EN AUD/JPY!</b> Esta operación arriesga <b>$${formatMoney(dollarRisk)}</b>, superando tu colchón diario disponible de <b>$${formatMoney(dailyHeadroom)}</b>. Podrías violar la regla de pérdida diaria del 4% ($2,000)!`;
       } else if (margin > curBalance * 0.40) {
         banner.className = 'p-3 rounded-xl border flex items-start gap-2 bg-amber-950/40 border-amber-800/80 text-amber-300';
-        bannerText.innerHTML = `⚠️ <b>PRECAUCIÓN DE MARGEN (1:30):</b> Este lote en Oro retiene <b>$${formatMoney(margin)} (${marginPct.toFixed(1)}%)</b>. Mantén suficiente margen libre para soportar fluctuaciones.`;
+        bannerText.innerHTML = `⚠️ <b>PRECAUCIÓN DE MARGEN (1:30):</b> Este lote en AUD/JPY retiene <b>$${formatMoney(margin)} (${marginPct.toFixed(1)}%)</b>. Mantén suficiente margen libre para soportar fluctuaciones.`;
       } else {
         const lossesUntilBreach = Math.floor(dailyHeadroom / dollarRisk);
         banner.className = 'p-3 rounded-xl border flex items-start gap-2 bg-emerald-950/40 border-emerald-800/80 text-emerald-300';
-        bannerText.innerHTML = `🛡️ <b>Operación Segura en Oro:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b> con SL de <b>$${slPriceDist.toFixed(2)}</b>. Soportas <b>${lossesUntilBreach} pérdidas seguidas</b> hoy sin violar el 4% diario ($2,000). Margen retenido: <b>$${formatMoney(margin)} (${marginPct.toFixed(1)}%)</b>.`;
+        bannerText.innerHTML = `🛡️ <b>Operación Segura en AUD/JPY:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b> con SL de <b>${slInputVal} pips</b> ($${slPriceDist.toFixed(2)} JPY). Soportas <b>${lossesUntilBreach} pérdidas seguidas</b> hoy sin violar el 4% diario ($2,000). Margen retenido: <b>$${formatMoney(margin)} (${marginPct.toFixed(1)}%)</b>.`;
       }
     }
   }
@@ -823,11 +802,11 @@ function setupFondeoCalculator() {
   if (riskSelect) riskSelect.addEventListener('change', calculateFondeoMetrics);
   if (manualRiskInput) manualRiskInput.addEventListener('input', calculateFondeoMetrics);
 
-  // Quick preset buttons for Gold SL ($2, $3, $5, $8)
+  // Quick preset buttons for AUD/JPY SL pips (15, 20, 25, 30, 35, 40)
   document.querySelectorAll('.btn-sl-gold-preset').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      const pips = btn.dataset.pips || '30';
+      const pips = btn.dataset.pips || '25';
       if (slInput) {
         slInput.value = pips;
         calculateFondeoMetrics();
@@ -843,16 +822,16 @@ function setupFondeoCalculator() {
       });
       btn.classList.remove('bg-gray-800', 'text-gray-300');
       btn.classList.add('bg-amber-500', 'text-black', 'font-black');
-      selectedFondeoRr = parseFloat(btn.dataset.rr || 2.0);
+      selectedFondeoRr = parseFloat(btn.dataset.rr || 3.0);
       calculateFondeoMetrics();
     });
   });
 
   if (btnApply) {
     btnApply.addEventListener('click', () => {
-      const asset = assetSelect ? assetSelect.value : 'XAU/USD';
-      const lot = document.getElementById('fondeoCalcLot') ? document.getElementById('fondeoCalcLot').textContent : '0.83';
-      const sl = slInput ? slInput.value : '30';
+      const asset = assetSelect ? assetSelect.value : 'AUD/JPY';
+      const lot = document.getElementById('fondeoCalcLot') ? document.getElementById('fondeoCalcLot').textContent : '1.54';
+      const sl = slInput ? slInput.value : '25';
 
       const formAsset = document.getElementById('fondeoFormAsset');
       const formLot = document.getElementById('fondeoFormLot');
@@ -873,9 +852,9 @@ function setupFondeoCalculator() {
 }
 
 function calculateTradePrices({
-  asset = 'XAU/USD',
+  asset = 'AUD/JPY',
   direction = 'BUY',
-  lot = 0.83,
+  lot = 1.54,
   entry = null,
   sl = null,
   tp = null,
@@ -884,29 +863,19 @@ function calculateTradePrices({
   balance = 50000.0
 }) {
   const isGold = anyStringIncludes(asset, ['XAU', 'GOLD', 'ORO']);
-  const isAudJpy = anyStringIncludes(asset, ['JPY', 'AUDJPY']);
-  const isAudUsd = !isAudJpy && anyStringIncludes(asset, ['AUD']);
-  const isEurCad = anyStringIncludes(asset, ['CAD', 'EURCAD']);
   const dir = (direction || 'BUY').toUpperCase();
-  let mult = 100.0;
-  let pointMult = 100.0;
-  let pipMult = 10.0;
+  let mult = 650.0;
+  let pointMult = 1000.0;
+  let pipMult = 100.0;
   if (isGold) {
     mult = 100.0;
     pointMult = 100.0;
     pipMult = 10.0;
-  } else if (isAudJpy) {
-    mult = 650.0; // 0.01 * 650 = $6.50 / pip
-    pointMult = 1000.0; // 3 decimales para pipettes
-    pipMult = 100.0; // 2 decimales para pips
-  } else if (isAudUsd) {
-    mult = 100000.0; // 0.0001 * 100000 = $10.00 / pip
-    pointMult = 100000.0;
-    pipMult = 10000.0;
   } else {
-    mult = 100000.0 / 1.39; // 0.0001 * 100000 / 1.39 ~= $7.20 / pip
-    pointMult = 100000.0;
-    pipMult = 10000.0;
+    // AUD/JPY (Default): 1 pip = 0.01 JPY = ~$6.50 / pip por lote
+    mult = 650.0;
+    pointMult = 1000.0;
+    pipMult = 100.0;
   }
 
   let slDist = null;
@@ -1066,66 +1035,35 @@ function setupFondeoTradeForm() {
 
     const entry = parseFloat(entryEl?.value);
     const dir = dirEl?.value || 'BUY';
-    const asset = assetEl?.value || 'XAU/USD';
+    const asset = assetEl?.value || 'AUD/JPY';
     const isGold = anyStringIncludes(asset, ['XAU', 'GOLD', 'ORO']);
-    const isAudJpy = asset.includes('JPY') || asset.includes('AUDJPY');
-    const isAudUsd = !isAudJpy && asset.includes('AUD');
-    const isEurCad = asset.includes('CAD');
 
-    // Adaptar etiquetas y badges según símbolo
+    // Adaptar etiquetas y badges para AUD/JPY
     const levBadge = document.getElementById('fondeoAssetLevBadge');
     const slLabel = document.getElementById('fondeoSlPointsLabel');
     const slSuffix = document.getElementById('fondeoSlPointsSuffix');
     const dynamicFormula = document.getElementById('fondeoDynamicFormulaText');
 
-    if (levBadge) levBadge.textContent = '1:30 ' + (isGold ? 'Oro' : 'Forex');
-    if (slLabel) slLabel.textContent = isGold ? 'Stop Loss en Puntos (Oro XAU/USD)' : `Stop Loss en Pips (${isAudJpy ? 'AUD/JPY' : (isAudUsd ? 'AUD/USD' : 'EUR/CAD')})`;
-    if (slSuffix) slSuffix.textContent = isGold ? 'PTS' : 'PIPS';
+    if (levBadge) levBadge.textContent = '1:30 AUD/JPY';
+    if (slLabel) slLabel.textContent = 'Stop Loss en Pips (AUD/JPY)';
+    if (slSuffix) slSuffix.textContent = 'PIPS';
 
-    // Auto-completar SL y TP de acuerdo al símbolo y SL seleccionado
+    // Auto-completar SL y TP de acuerdo a AUD/JPY (1 pip = 0.01 JPY = ~$6.50 USD/lote)
     const slPointsEl = document.getElementById('fondeoFormSlPoints');
-    const slValCustom = parseFloat(slPointsEl?.value) || (isGold ? 300 : 25);
+    const slValCustom = parseFloat(slPointsEl?.value) || 25;
     const rrVal = parseFloat(rrEl?.value) || 3.0;
 
-    let slDollarDist = 3.0;
-    let tpDollarDist = 9.0;
-    let lossPerLot = 300.0;
-    let formulaHtml = '';
-
-    if (isGold) {
-      slDollarDist = slValCustom / 100.0;
-      tpDollarDist = slDollarDist * rrVal;
-      lossPerLot = slValCustom * 1.0;
-      const slDistEl = document.getElementById('fondeoSlDollarDist');
-      if (slDistEl) slDistEl.textContent = `=$${slDollarDist.toFixed(2)} en Oro`;
-      formulaHtml = `Cálculo dinámico: <code>Lote = Riesgo $ / (Puntos × $1)</code>`;
-    } else if (isAudJpy) {
-      slDollarDist = slValCustom * 0.01;
-      tpDollarDist = slDollarDist * rrVal;
-      lossPerLot = slValCustom * 6.50;
-      const slDistEl = document.getElementById('fondeoSlDollarDist');
-      if (slDistEl) slDistEl.textContent = `≈$6.50/pip por lote`;
-      formulaHtml = `Cálculo dinámico: <code>Lote = Riesgo $ / (Pips × $6.50)</code>`;
-    } else if (isAudUsd) {
-      slDollarDist = slValCustom * 0.0001;
-      tpDollarDist = slDollarDist * rrVal;
-      lossPerLot = slValCustom * 10.0;
-      const slDistEl = document.getElementById('fondeoSlDollarDist');
-      if (slDistEl) slDistEl.textContent = `=$10.00/pip por lote`;
-      formulaHtml = `Cálculo dinámico: <code>Lote = Riesgo $ / (Pips × $10)</code>`;
-    } else {
-      slDollarDist = slValCustom * 0.0001;
-      tpDollarDist = slDollarDist * rrVal;
-      lossPerLot = slValCustom * 7.20;
-      const slDistEl = document.getElementById('fondeoSlDollarDist');
-      if (slDistEl) slDistEl.textContent = `≈$7.20/pip por lote`;
-      formulaHtml = `Cálculo dinámico: <code>Lote = Riesgo $ / (Pips × $7.20)</code>`;
-    }
+    const slDollarDist = slValCustom * 0.01; // en JPY (ej. 25 pips = 0.25)
+    const tpDollarDist = slDollarDist * rrVal;
+    const lossPerLot = slValCustom * 6.50;
+    const slDistEl = document.getElementById('fondeoSlDollarDist');
+    if (slDistEl) slDistEl.textContent = `≈$6.50/pip por lote`;
+    const formulaHtml = `Cálculo dinámico: <code>Lote = Riesgo $ / (Pips × $6.50)</code>`;
 
     if (dynamicFormula) dynamicFormula.innerHTML = formulaHtml;
 
     if (!isNaN(entry) && entry > 0) {
-      const dec = isGold ? 2 : (isAudJpy ? 3 : 4);
+      const dec = 3; // AUD/JPY usa 3 decimales
       if (slEl && (!slEl.dataset.userEdited || !slEl.value)) {
         const autoSl = dir === 'BUY' ? roundNum(entry - slDollarDist, dec) : roundNum(entry + slDollarDist, dec);
         slEl.value = autoSl.toFixed(dec);
@@ -1140,37 +1078,22 @@ function setupFondeoTradeForm() {
     const tp = parseFloat(tpEl?.value);
     const exit = parseFloat(exitEl?.value);
 
-    // Cálculo dinámico de lotaje basado en la unidad del símbolo
+    // Cálculo dinámico de lotaje basado en pips de AUD/JPY
     const autoLot = Math.max(0.01, roundNum(dollarRisk / lossPerLot, 2));
     const formulaPrevEl = document.getElementById('fondeoLotFormulaPreview');
     if (formulaPrevEl) {
-      if (isGold) {
-        formulaPrevEl.textContent = `$${dollarRisk.toFixed(0)} / ${slValCustom} pts = ${autoLot.toFixed(2)} lotes`;
-      } else if (isAudJpy) {
-        formulaPrevEl.textContent = `$${dollarRisk.toFixed(0)} / (${slValCustom} pips × $6.50) = ${autoLot.toFixed(2)} lotes`;
-      } else if (isAudUsd) {
-        formulaPrevEl.textContent = `$${dollarRisk.toFixed(0)} / (${slValCustom} pips × $10) = ${autoLot.toFixed(2)} lotes`;
-      } else {
-        formulaPrevEl.textContent = `$${dollarRisk.toFixed(0)} / (${slValCustom} pips × $7.20) = ${autoLot.toFixed(2)} lotes`;
-      }
+      formulaPrevEl.textContent = `$${dollarRisk.toFixed(0)} / (${slValCustom} pips × $6.50) = ${autoLot.toFixed(2)} lotes`;
     }
 
-    if (autoLotHint) autoLotHint.textContent = `Auto (${slValCustom} ${isGold ? 'pts' : 'pips'}): ${autoLot.toFixed(2)} lotes`;
+    if (autoLotHint) autoLotHint.textContent = `Auto (${slValCustom} pips): ${autoLot.toFixed(2)} lotes`;
     if (lotEl && !lotEl.dataset.userModified) {
       lotEl.value = autoLot.toFixed(2);
     }
 
     const lot = parseFloat(lotEl?.value) || autoLot;
 
-    // Margin calculation
-    let marginToUse = 7525.0;
-    if (isGold) {
-      marginToUse = roundNum((2720.0 * 100.0 * lot) / 30.0, 2);
-    } else if (isAudJpy || isAudUsd) {
-      marginToUse = roundNum((100000.0 * 0.6550 * lot) / 30.0, 2);
-    } else {
-      marginToUse = roundNum((100000.0 * 1.0850 * lot) / 30.0, 2);
-    }
+    // Margin calculation (1:30 apalancamiento, contrato 100,000 AUD, AUD/USD ~0.6550)
+    const marginToUse = roundNum((100000.0 * 0.6550 * lot) / 30.0, 2);
     const marginPct = (marginToUse / curBal) * 100.0;
 
     if (marginDisp) marginDisp.textContent = `$${formatMoney(marginToUse)} (${marginPct.toFixed(1)}%)`;
@@ -1186,7 +1109,7 @@ function setupFondeoTradeForm() {
         safetyText.innerHTML = `⚠️ <b>Riesgo Elevado:</b> Arriesgas <b>$${formatMoney(dollarRisk)}</b>, consumiendo más del 50% de tu colchón diario ($${formatMoney(dailyHeadroom)}). Soportas solo <strong>${lossesAllowed} pérdidas</strong> hoy.`;
         if (safetyBanner) safetyBanner.className = 'text-[11px] p-2 rounded-lg bg-rose-950/40 border border-rose-800/60 text-rose-300 flex items-center gap-1.5';
       } else {
-        const symbolBadgeText = isGold ? 'Oro (SL 300 / TP 900)' : `${isAudJpy ? 'AUD/JPY' : (isAudUsd ? 'AUD/USD' : 'EUR/CAD')} (${slValCustom} pips)`;
+        const symbolBadgeText = `AUD/JPY (${slValCustom} pips)`;
         safetyText.innerHTML = `🛡️ <b>Riesgo Óptimo en ${symbolBadgeText}:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b>. Soportas <strong>${lossesAllowed} pérdidas seguidas</strong> hoy sin violar el 4% diario ($2,000).`;
         if (safetyBanner) safetyBanner.className = 'text-[11px] p-2 rounded-lg bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 flex items-center gap-1.5';
       }
@@ -1205,20 +1128,20 @@ function setupFondeoTradeForm() {
     });
 
     if (calc.slPoints !== null) {
-      if (slBadge) slBadge.textContent = isGold ? `${calc.slPoints} pts ($${calc.slDist.toFixed(2)})` : `${calc.slPips} pips`;
-      if (slPipsEl) slPipsEl.value = isGold ? calc.slPoints : calc.slPips;
+      if (slBadge) slBadge.textContent = `${calc.slPips} pips`;
+      if (slPipsEl) slPipsEl.value = calc.slPips;
     } else {
-      if (slBadge) slBadge.textContent = isGold ? '300 pts ($3.00)' : `${slValCustom} pips`;
+      if (slBadge) slBadge.textContent = `${slValCustom} pips`;
     }
 
     if (calc.tpPoints !== null) {
       const projRr = calc.projectedRr ? `1:${calc.projectedRr}` : '1:3.0';
-      if (tpBadge) tpBadge.textContent = isGold ? `${calc.tpPoints} pts (${projRr})` : `${calc.tpPips} pips (${projRr})`;
+      if (tpBadge) tpBadge.textContent = `${calc.tpPips} pips (${projRr})`;
       if (calc.projectedRr !== null && rrEl && !rrEl.dataset.userManual && isNaN(parseFloat(exitEl?.value))) {
         rrEl.value = calc.projectedRr.toFixed(2);
       }
     } else {
-      if (tpBadge) tpBadge.textContent = isGold ? '900 pts (1:3.0)' : `${Math.round(slValCustom * rrVal)} pips (1:3.0)`;
+      if (tpBadge) tpBadge.textContent = `${Math.round(slValCustom * rrVal)} pips (1:3.0)`;
     }
 
     const isManualRr = rrEl?.dataset.userManual === 'true';
@@ -1347,28 +1270,28 @@ function setupFondeoTradeForm() {
     updateFondeoCalculation();
   }
 
-  // Renderizador dinámico de chips de Stop Loss según el activo
+  // Renderizador dinámico de chips de Stop Loss para AUD/JPY
   function renderFondeoSlChips() {
     const chipsContainer = document.getElementById('fondeoSlChipsContainer');
     if (!chipsContainer) return;
-    const curAsset = assetEl?.value || 'XAU/USD';
-    const curIsGold = anyStringIncludes(curAsset, ['XAU', 'GOLD', 'ORO']);
     const curSlInp = document.getElementById('fondeoFormSlPoints');
-    const curVal = parseFloat(curSlInp?.value) || (curIsGold ? 300 : 25);
-    const presets = curIsGold ? [150, 200, 250, 300, 350, 400] : [15, 20, 25, 30, 40, 50];
+    const curVal = parseFloat(curSlInp?.value) || 25;
+    const presets = [15, 20, 25, 30, 35, 40];
 
     chipsContainer.innerHTML = presets.map(p => {
       const isSel = (p === curVal);
+      const isDefault = (p === 25);
+      const label = isDefault ? `⭐ ${p}` : `${p}`;
       const cls = isSel 
-        ? 'btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50 hover:bg-amber-500/30 transition cursor-pointer'
-        : 'btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer';
-      return `<button type="button" class="${cls}" data-pts="${p}">${p}</button>`;
+        ? 'btnFondeoSlPtsChip px-2.5 py-1 rounded text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50 hover:bg-amber-500/30 transition cursor-pointer'
+        : 'btnFondeoSlPtsChip px-2 py-1 rounded text-[11px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer';
+      return `<button type="button" class="${cls}" data-pts="${p}">${label}</button>`;
     }).join('');
 
     chipsContainer.querySelectorAll('.btnFondeoSlPtsChip').forEach(chip => {
       chip.addEventListener('click', (e) => {
         e.preventDefault();
-        const p = parseFloat(chip.dataset.pts) || (curIsGold ? 300 : 25);
+        const p = parseFloat(chip.dataset.pts) || 25;
         if (curSlInp) curSlInp.value = p;
         if (slEl) delete slEl.dataset.userEdited;
         if (tpEl) delete tpEl.dataset.userEdited;
@@ -1381,17 +1304,8 @@ function setupFondeoTradeForm() {
   // Cambio de activo en formulario de fondeo
   if (assetEl) {
     assetEl.addEventListener('change', () => {
-      const curAsset = assetEl.value;
-      const curIsGold = anyStringIncludes(curAsset, ['XAU', 'GOLD', 'ORO']);
       const curSlInp = document.getElementById('fondeoFormSlPoints');
-      if (curSlInp) {
-        const prevVal = parseFloat(curSlInp.value) || 300;
-        if (curIsGold && prevVal < 100) {
-          curSlInp.value = 300;
-        } else if (!curIsGold && prevVal >= 100) {
-          curSlInp.value = 25;
-        }
-      }
+      if (curSlInp) curSlInp.value = 25;
       if (slEl) {
         delete slEl.dataset.userEdited;
         slEl.value = '';
@@ -1401,26 +1315,18 @@ function setupFondeoTradeForm() {
         tpEl.value = '';
       }
       if (entryEl) {
-        if (curIsGold) {
-          entryEl.placeholder = 'ej. 2724.50';
-        } else if (curAsset.includes('AUD')) {
-          entryEl.placeholder = 'ej. 0.6550';
-        } else {
-          entryEl.placeholder = 'ej. 1.4850';
-        }
+        entryEl.placeholder = 'ej. 100.500';
       }
       renderFondeoSlChips();
       updateFondeoCalculation();
     });
   }
 
-  // Botón para fijar estrictamente 1:3 en Fondeo
+  // Botón para fijar estrictamente 1:3 en Fondeo (25 SL / 75 TP en AUD/JPY)
   const btnLockSlTp = document.getElementById('btnLock300Sl900Tp');
   if (btnLockSlTp) {
     btnLockSlTp.addEventListener('click', (e) => {
       e.preventDefault();
-      const curAsset = assetEl?.value || 'XAU/USD';
-      const curIsGold = anyStringIncludes(curAsset, ['XAU', 'GOLD', 'ORO']);
       if (slEl) delete slEl.dataset.userEdited;
       if (tpEl) delete tpEl.dataset.userEdited;
       if (lotEl) delete lotEl.dataset.userModified;
@@ -1434,15 +1340,15 @@ function setupFondeoTradeForm() {
         badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold';
       }
       const slPointsInp = document.getElementById('fondeoFormSlPoints');
-      const targetSl = curIsGold ? 300 : 25;
+      const targetSl = 25;
       if (slPointsInp) slPointsInp.value = targetSl;
       renderFondeoSlChips();
       
       const entryVal = parseFloat(entryEl?.value);
       const dirVal = dirEl?.value || 'BUY';
-      const dec = curIsGold ? 2 : 4;
-      const slDelta = curIsGold ? 3.00 : 0.0025;
-      const tpDelta = curIsGold ? 9.00 : 0.0075;
+      const dec = 3;
+      const slDelta = 0.25; // 25 pips = 0.25 JPY
+      const tpDelta = 0.75; // 75 pips = 0.75 JPY
       if (!isNaN(entryVal) && entryVal > 0) {
         const fixedSl = dirVal === 'BUY' ? roundNum(entryVal - slDelta, dec) : roundNum(entryVal + slDelta, dec);
         const fixedTp = dirVal === 'BUY' ? roundNum(entryVal + tpDelta, dec) : roundNum(entryVal - tpDelta, dec);
@@ -1451,8 +1357,7 @@ function setupFondeoTradeForm() {
       }
       updateFondeoCalculation();
       if (typeof showToast === 'function') {
-        const unitTxt = curIsGold ? '300 pts / 900 pts' : '25 pips / 75 pips';
-        showToast(`⚡ Stop Loss y Take Profit (${unitTxt} - 1:3) fijados con éxito.`, 'success', 2500);
+        showToast('⚡ Stop Loss y Take Profit (25 pips / 75 pips - 1:3 AUD/JPY) fijados con éxito.', 'success', 2500);
       }
     });
   }
@@ -1583,10 +1488,10 @@ function setupFondeoTradeForm() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const asset = document.getElementById('fondeoFormAsset')?.value || 'XAU/USD';
+    const asset = document.getElementById('fondeoFormAsset')?.value || 'AUD/JPY';
     const direction = document.getElementById('fondeoFormDirection')?.value || 'BUY';
-    const lot = parseFloat(lotEl?.value) || 0.83;
-    const slPips = parseFloat(slPipsEl?.value) || 30.0;
+    const lot = parseFloat(lotEl?.value) || 1.54;
+    const slPips = parseFloat(slPipsEl?.value) || 25.0;
     const status = statusEl?.value || 'win';
     const pnlInput = pnlEl?.value;
     const rr = parseFloat(rrEl?.value) || 3.0;
@@ -1601,7 +1506,7 @@ function setupFondeoTradeForm() {
     const tp = parseFloat(tpEl?.value);
     const exit = parseFloat(exitEl?.value);
 
-    const slPtsVal = parseFloat(document.getElementById('fondeoFormSlPoints')?.value) || 300;
+    const slPtsVal = parseFloat(document.getElementById('fondeoFormSlPoints')?.value) || 25;
     const payload = {
       mode: 'fondeo',
       asset: asset,
@@ -2479,27 +2384,14 @@ function updateBacktestSimplePreviews() {
 }
 
 function setupBacktestSimpleView() {
-  let selectedBtSimpleAsset = 'XAU/USD';
+  let selectedBtSimpleAsset = 'AUD/JPY';
 
   function updateBtSimpleAssetUI() {
-    const isGold = anyStringIncludes(selectedBtSimpleAsset, ['XAU', 'GOLD', 'ORO']);
-    const isAudJpy = selectedBtSimpleAsset.includes('JPY') || selectedBtSimpleAsset.includes('AUDJPY');
-    const isAudUsd = !isAudJpy && selectedBtSimpleAsset.includes('AUD');
-    const isEurCad = selectedBtSimpleAsset.includes('CAD');
-
     document.querySelectorAll('.btn-bt-asset').forEach(btn => {
-      const a = btn.dataset.asset;
+      const a = btn.dataset.asset || 'AUD/JPY';
       const isSel = (a === selectedBtSimpleAsset);
       if (isSel) {
-        if (a && a.includes('JPY')) {
-          btn.className = 'btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-orange-500/20 text-orange-300 border border-orange-500/50 shadow-sm shadow-orange-500/20';
-        } else if (a && a.includes('AUD')) {
-          btn.className = 'btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-blue-500/20 text-blue-300 border border-blue-500/50 shadow-sm shadow-blue-500/20';
-        } else if (a && a.includes('CAD')) {
-          btn.className = 'btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-purple-500/20 text-purple-300 border border-purple-500/50 shadow-sm shadow-purple-500/20';
-        } else {
-          btn.className = 'btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm shadow-amber-500/20';
-        }
+        btn.className = 'btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-orange-500/20 text-orange-300 border border-orange-500/50 shadow-sm shadow-orange-500/20';
       } else {
         btn.className = 'btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 border border-gray-700';
       }
@@ -2509,13 +2401,11 @@ function setupBacktestSimpleView() {
     if (manualAssetSel) manualAssetSel.value = selectedBtSimpleAsset;
 
     const slLabel = document.getElementById('btSimpleManualSlLabel');
-    if (slLabel) slLabel.textContent = isGold ? 'Stop Loss en Puntos' : `Stop Loss en Pips (${isAudJpy ? 'AUD/JPY' : (isAudUsd ? 'AUD/USD' : 'EUR/CAD')})`;
+    if (slLabel) slLabel.textContent = 'Stop Loss en Pips (AUD/JPY)';
 
     const slInput = document.getElementById('btSimpleManualSlPoints');
     if (slInput) {
-      const curVal = parseFloat(slInput.value) || 300;
-      if (isGold && curVal < 100) slInput.value = 300;
-      else if (!isGold && curVal >= 100) slInput.value = 25;
+      slInput.value = 25;
     }
 
     updateBacktestSimplePreviews();
@@ -2524,7 +2414,7 @@ function setupBacktestSimpleView() {
   document.querySelectorAll('.btn-bt-asset').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      selectedBtSimpleAsset = btn.dataset.asset || 'XAU/USD';
+      selectedBtSimpleAsset = btn.dataset.asset || 'AUD/JPY';
       updateBtSimpleAssetUI();
     });
   });
@@ -2617,15 +2507,14 @@ function setupBacktestSimpleView() {
     });
   }
 
-  // Helper para registrar trade rápido
+  // Helper para registrar trade rápido en Backtesting (AUD/JPY)
   async function submitQuickBtTrade(status) {
     const rr = parseFloat(document.getElementById('btSimpleRR')?.value) || 3.0;
     const risk = parseFloat(document.getElementById('btSimpleRiskPct')?.value) || 1.0;
     const now = new Date();
     const pad = (n) => String(n).padStart(2, '0');
     const dateStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-    const isGold = anyStringIncludes(selectedBtSimpleAsset, ['XAU', 'GOLD', 'ORO']);
-    const slUnits = isGold ? 300 : 25;
+    const slUnits = 25; // 25 pips por defecto para AUD/JPY
 
     try {
       const res = await fetch('/api/trades?mode=backtest', {
@@ -2633,7 +2522,7 @@ function setupBacktestSimpleView() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           mode: 'backtest',
-          asset: selectedBtSimpleAsset,
+          asset: 'AUD/JPY',
           status: status,
           direction: status === 'loss' ? 'SELL' : 'BUY',
           rr: rr,
@@ -2641,9 +2530,9 @@ function setupBacktestSimpleView() {
           sl_pips: slUnits,
           tv_points: slUnits,
           date: dateStr,
-          strategy: `Estrategia Rápida 1-Click (${selectedBtSimpleAsset})`,
+          strategy: `Estrategia Rápida 1-Click (AUD/JPY)`,
           emotion: 'Plan 100% Seguido',
-          notes: `Trade Rápido ${selectedBtSimpleAsset} (${status.toUpperCase()} ${status === 'win' ? `+${rr}R` : (status === 'loss' ? '-1R' : 'BE')})`
+          notes: `Trade Rápido AUD/JPY (${status.toUpperCase()} ${status === 'win' ? `+${rr}R` : (status === 'loss' ? '-1R' : 'BE')})`
         })
       });
       if (res.ok) {
@@ -2669,12 +2558,12 @@ function setupBacktestSimpleView() {
   const btnAddManual = document.getElementById('btnBtSimpleAddManualTrade');
   if (btnAddManual) {
     btnAddManual.addEventListener('click', async () => {
-      const asset = document.getElementById('btSimpleManualAsset')?.value || selectedBtSimpleAsset || 'XAU/USD';
+      const asset = document.getElementById('btSimpleManualAsset')?.value || 'AUD/JPY';
       const dir = document.getElementById('btSimpleManualDirection')?.value || 'BUY';
       const status = document.getElementById('btSimpleManualStatus')?.value || 'win';
       const manualRrInput = document.getElementById('btSimpleManualRR')?.value;
       const globalRr = parseFloat(document.getElementById('btSimpleRR')?.value) || 3.0;
-      const slPoints = parseFloat(document.getElementById('btSimpleManualSlPoints')?.value) || (asset.includes('XAU') ? 300 : 25);
+      const slPoints = parseFloat(document.getElementById('btSimpleManualSlPoints')?.value) || 25;
       const dateVal = document.getElementById('btSimpleManualDate')?.value;
       const notes = document.getElementById('btSimpleManualNotes')?.value || '';
       const risk = parseFloat(document.getElementById('btSimpleRiskPct')?.value) || 1.0;
@@ -3491,10 +3380,10 @@ function renderRealTradesTable() {
 }
 
 // ====================================================
-// BITÁCORA REAL TICKMILL — CALCULADORA MULTI-ACTIVO & 1-CLICK
+// BITÁCORA REAL TICKMILL — CALCULADORA AUD/JPY & 1-CLICK
 // ====================================================
 
-let selectedRealAsset = 'XAU/USD';
+let selectedRealAsset = 'AUD/JPY';
 
 function recalculateRealQuickLot() {
   const balInp = document.getElementById('realCalcBalance');
@@ -3513,49 +3402,18 @@ function recalculateRealQuickLot() {
     if (balInp) balInp.value = bal.toFixed(2);
   }
 
-  const isGold = anyStringIncludes(selectedRealAsset, ['XAU', 'GOLD', 'ORO']);
-  const isAudJpy = selectedRealAsset.includes('JPY') || selectedRealAsset.includes('AUDJPY');
-  const isAudUsd = !isAudJpy && selectedRealAsset.includes('AUD');
-  const isEurCad = selectedRealAsset.includes('CAD');
-
   const riskPct = parseFloat(riskInp?.value) || 1.0;
-  const slPts = parseFloat(slInp?.value) || (isGold ? 250 : 25);
+  const slPts = parseFloat(slInp?.value) || 25;
   const rr = parseFloat(rrInp?.value) || 2.0;
 
   const dollarRisk = bal * (riskPct / 100.0);
 
-  // Pérdida por lote según activo:
-  // - Oro: 1 punto = $1.00 USD por 1.00 lote
-  // - AUD/USD: 1 pip = $10.00 USD por 1.00 lote estándar
-  // - AUD/JPY: 1 pip = 1,000 JPY ≈ $6.50 USD por 1.00 lote estándar (USDJPY 153.80)
-  // - EUR/CAD: 1 pip = 10 CAD ≈ $7.20 USD por 1.00 lote estándar (USDCAD 1.39)
-  let lossPerLot = slPts * 1.00;
-  let pointValue = 1.00;
-  let pointUnit = 'pt';
-  let marginRequired = 0.0;
-  let formulaText = '';
-
-  if (isGold) {
-    lossPerLot = slPts * 1.00;
-    pointValue = 1.00;
-    pointUnit = 'pt';
-    formulaText = `Lote = $${dollarRisk.toFixed(2)} / (${slPts} pts × $1.00)`;
-  } else if (isAudJpy) {
-    lossPerLot = slPts * 6.50;
-    pointValue = 6.50;
-    pointUnit = 'pip';
-    formulaText = `Lote = $${dollarRisk.toFixed(2)} / (${slPts} pips × $6.50)`;
-  } else if (isAudUsd) {
-    lossPerLot = slPts * 10.00;
-    pointValue = 10.00;
-    pointUnit = 'pip';
-    formulaText = `Lote = $${dollarRisk.toFixed(2)} / (${slPts} pips × $10.00)`;
-  } else {
-    lossPerLot = slPts * 7.20;
-    pointValue = 7.20;
-    pointUnit = 'pip';
-    formulaText = `Lote = $${dollarRisk.toFixed(2)} / (${slPts} pips × $7.20)`;
-  }
+  // Pérdida por lote para AUD/JPY (Forex Cross):
+  // 1 pip = 0.01 JPY = 1,000 JPY ≈ $6.50 USD por 1.00 lote estándar (100,000 AUD)
+  const lossPerLot = slPts * 6.50;
+  const pointValue = 6.50;
+  const pointUnit = 'pip';
+  const formulaText = `Lote = $${dollarRisk.toFixed(2)} / (${slPts} pips × $6.50)`;
 
   const rawLot = (slPts > 0 && lossPerLot > 0) ? (dollarRisk / lossPerLot) : 0.01;
   const recommendedLot = Math.max(0.01, roundNum(rawLot, 2));
@@ -3567,15 +3425,8 @@ function recalculateRealQuickLot() {
   const actualRewardPct = bal > 0 ? (actualRewardUsd / bal) * 100.0 : 0.0;
   const tpPts = Math.round(slPts * rr);
 
-  // Margen en Tickmill (Apalancamiento 1:300 para Oro y Forex)
-  if (isGold) {
-    marginRequired = roundNum((2720.0 * 100.0 * recommendedLot) / 300.0, 2);
-  } else if (isAudJpy || isAudUsd) {
-    marginRequired = roundNum((100000.0 * 0.6550 * recommendedLot) / 300.0, 2);
-  } else {
-    marginRequired = roundNum((100000.0 * 1.0850 * recommendedLot) / 300.0, 2);
-  }
-
+  // Margen en Tickmill (Apalancamiento 1:300 para AUD/JPY: 100,000 AUD * 0.6550 USD / 300 = ~$218.33 USD por lote)
+  const marginRequired = roundNum((100000.0 * 0.6550 * recommendedLot) / 300.0, 2);
   const currentPtVal = roundNum(recommendedLot * pointValue, 2);
 
   // Elementos del Hero
@@ -3587,7 +3438,7 @@ function recalculateRealQuickLot() {
 
   const heroSlSub = document.getElementById('realHeroSlSub');
   if (heroSlSub) {
-    heroSlSub.textContent = isGold ? `${slPts} pts ($${(slPts / 100).toFixed(2)})` : `${slPts} pips`;
+    heroSlSub.textContent = `${slPts} pips`;
   }
 
   const heroRewardEl = document.getElementById('realHeroRewardUsd');
@@ -3595,7 +3446,7 @@ function recalculateRealQuickLot() {
 
   const heroTpSub = document.getElementById('realHeroTpSub');
   if (heroTpSub) {
-    heroTpSub.textContent = isGold ? `${tpPts} pts (1:${formatRRText(rr)})` : `${tpPts} pips (1:${formatRRText(rr)})`;
+    heroTpSub.textContent = `${tpPts} pips (1:${formatRRText(rr)})`;
   }
 
   const heroMarginEl = document.getElementById('realHeroMargin');
@@ -3605,29 +3456,26 @@ function recalculateRealQuickLot() {
   if (heroPtValEl) heroPtValEl.textContent = `$${currentPtVal.toFixed(2)} / ${pointUnit}`;
 
   const heroPtValTitle = document.getElementById('realHeroPtValTitle');
-  if (heroPtValTitle) heroPtValTitle.textContent = isGold ? 'VALOR POR PUNTO' : 'VALOR POR PIP';
+  if (heroPtValTitle) heroPtValTitle.textContent = 'VALOR POR PIP AUD/JPY';
 
   const heroPtValSub = document.getElementById('realHeroPtValSub');
   if (heroPtValSub) {
-    if (isGold) heroPtValSub.textContent = '100 oz · $1.00/pt por lote';
-    else if (isAudJpy) heroPtValSub.textContent = '100k AUD · ~$6.50/pip por lote';
-    else if (isAudUsd) heroPtValSub.textContent = '100k AUD · $10.00/pip por lote';
-    else heroPtValSub.textContent = '100k EUR · ~$7.20/pip por lote';
+    heroPtValSub.textContent = '100k AUD · ~$6.50/pip por lote';
   }
 
   const formulaExpEl = document.getElementById('realFormulaExplanation');
   if (formulaExpEl) {
-    formulaExpEl.innerHTML = `Fórmula Tickmill ${selectedRealAsset}: <code>${formulaText} = <b>${recommendedLot.toFixed(2)} lotes</b></code>`;
+    formulaExpEl.innerHTML = `Fórmula Tickmill AUD/JPY: <code>${formulaText} = <b>${recommendedLot.toFixed(2)} lotes</b></code>`;
   }
 
   const riskBadge = document.getElementById('realCalcRiskUsdBadge');
   if (riskBadge) riskBadge.textContent = `$${formatMoney(dollarRisk)} USD`;
 
   const slBadge = document.getElementById('realCalcSlDistBadge');
-  if (slBadge) slBadge.textContent = isGold ? `$${(slPts / 100).toFixed(2)} Oro` : `${slPts} pips`;
+  if (slBadge) slBadge.textContent = `${slPts} pips`;
 
   const tpBadge = document.getElementById('realCalcTpPtsBadge');
-  if (tpBadge) tpBadge.textContent = isGold ? `TP: ${tpPts} pts` : `TP: ${tpPts} pips`;
+  if (tpBadge) tpBadge.textContent = `TP: ${tpPts} pips`;
 
   const winSub = document.getElementById('realWinRewardSubtext');
   if (winSub) winSub.textContent = `+${actualRewardPct.toFixed(1)}% (+${formatRRText(rr)}R) · +$${formatMoney(actualRewardUsd)}`;
@@ -3654,50 +3502,31 @@ function recalculateRealQuickLot() {
 }
 
 function setupRealJournalView() {
-  // Actualizador dinámico del selector de Activos en Bitácora Real
   function updateRealAssetUI() {
-    const isGold = anyStringIncludes(selectedRealAsset, ['XAU', 'GOLD', 'ORO']);
-    const isAudJpy = selectedRealAsset.includes('JPY') || selectedRealAsset.includes('AUDJPY');
-    const isAudUsd = !isAudJpy && selectedRealAsset.includes('AUD');
-    const isEurCad = selectedRealAsset.includes('CAD');
-
-    // Botones de Activo
     document.querySelectorAll('.btn-real-asset').forEach(btn => {
-      const a = btn.dataset.asset;
-      const isSel = (a === selectedRealAsset);
-      if (isSel) {
-        if (a && a.includes('JPY')) {
-          btn.className = 'btn-real-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-orange-500/20 text-orange-300 border border-orange-500/50 shadow-sm shadow-orange-500/20';
-        } else if (a && a.includes('AUD')) {
-          btn.className = 'btn-real-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-blue-500/20 text-blue-300 border border-blue-500/50 shadow-sm shadow-blue-500/20';
-        } else if (a && a.includes('CAD')) {
-          btn.className = 'btn-real-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-purple-500/20 text-purple-300 border border-purple-500/50 shadow-sm shadow-purple-500/20';
-        } else {
-          btn.className = 'btn-real-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm shadow-amber-500/20';
-        }
-      } else {
-        btn.className = 'btn-real-asset px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 border border-gray-700';
-      }
+      btn.className = 'btn-real-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-orange-500/20 text-orange-300 border border-orange-500/50 shadow-sm shadow-orange-500/20';
     });
 
     // Etiquetas y sufijos de Stop Loss
     const slLabel = document.getElementById('realCalcSlLabel');
     const slSuffix = document.getElementById('realCalcSlSuffix');
-    if (slLabel) slLabel.textContent = isGold ? '3. Stop Loss en Puntos (Oro)' : `3. Stop Loss en Pips (${isAudJpy ? 'AUD/JPY' : (isAudUsd ? 'AUD/USD' : 'EUR/CAD')})`;
-    if (slSuffix) slSuffix.textContent = isGold ? 'pts' : 'pips';
+    if (slLabel) slLabel.textContent = '3. Stop Loss en Pips (AUD/JPY)';
+    if (slSuffix) slSuffix.textContent = 'pips';
 
     // Chips dinámicos para SL
     const chipsContainer = document.getElementById('realCalcSlChips');
     const slInp = document.getElementById('realCalcSlPoints');
     if (chipsContainer && slInp) {
-      const currentSl = parseFloat(slInp.value) || (isGold ? 250 : 25);
-      const presets = isGold ? [150, 200, 250, 300, 400] : [15, 20, 25, 30, 40];
+      const currentSl = parseFloat(slInp.value) || 25;
+      const presets = [15, 20, 25, 30, 40];
       chipsContainer.innerHTML = presets.map(v => {
         const isSel = (v === currentSl);
+        const isDef = (v === 25);
+        const label = isDef ? `⭐ ${v}` : `${v}`;
         const cls = isSel 
           ? 'btn-real-chip-sl py-1 rounded text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 transition text-center cursor-pointer'
           : 'btn-real-chip-sl py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
-        return `<button type="button" class="${cls}" data-val="${v}">${v}</button>`;
+        return `<button type="button" class="${cls}" data-val="${v}">${label}</button>`;
       }).join('');
 
       chipsContainer.querySelectorAll('.btn-real-chip-sl').forEach(c => {
@@ -3713,7 +3542,7 @@ function setupRealJournalView() {
 
     // Sincronizar select en formulario manual
     const tradeAssetSelect = document.getElementById('realTradeAsset');
-    if (tradeAssetSelect) tradeAssetSelect.value = selectedRealAsset;
+    if (tradeAssetSelect) tradeAssetSelect.value = 'AUD/JPY';
 
     recalculateRealQuickLot();
   }
@@ -3722,13 +3551,10 @@ function setupRealJournalView() {
   document.querySelectorAll('.btn-real-asset').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      selectedRealAsset = btn.dataset.asset || 'XAU/USD';
-      const isGold = anyStringIncludes(selectedRealAsset, ['XAU', 'GOLD', 'ORO']);
+      selectedRealAsset = 'AUD/JPY';
       const slInp = document.getElementById('realCalcSlPoints');
       if (slInp) {
-        const curVal = parseFloat(slInp.value) || 250;
-        if (isGold && curVal < 100) slInp.value = 250;
-        else if (!isGold && curVal >= 100) slInp.value = 25;
+        slInp.value = 25;
       }
       updateRealAssetUI();
     });
@@ -3818,7 +3644,7 @@ function setupRealJournalView() {
     });
   }
 
-  // Helper para Registrar Trade Rápido 1-Click en Bitácora Real
+  // Helper para Registrar Trade Rápido 1-Click en Bitácora Real (AUD/JPY)
   async function submitQuickRealTrade(status) {
     const calc = recalculateRealQuickLot();
     const now = new Date();
@@ -3830,7 +3656,7 @@ function setupRealJournalView() {
 
     const payload = {
       mode: 'real',
-      asset: selectedRealAsset,
+      asset: 'AUD/JPY',
       status: status,
       direction: status === 'loss' ? 'SELL' : 'BUY',
       rr: calc.rr,
@@ -3843,9 +3669,9 @@ function setupRealJournalView() {
       commission: comm,
       date: dateStr,
       session: 'New York',
-      strategy: `Price Action Tickmill (${selectedRealAsset})`,
+      strategy: `Price Action Tickmill (AUD/JPY)`,
       emotion: 'Plan Seguido',
-      notes: `Tickmill ${selectedRealAsset} (${status.toUpperCase()} ${status === 'win' ? '+' + calc.rr + 'R' : (status === 'loss' ? '-1R' : 'BE')})`
+      notes: `Tickmill AUD/JPY (${status.toUpperCase()} ${status === 'win' ? '+' + calc.rr + 'R' : (status === 'loss' ? '-1R' : 'BE')})`
     };
 
     try {
@@ -4782,19 +4608,16 @@ async function handleAddRealTrade(e) {
   const date = inputDate || defaultDate;
   const session = 'New York';
   const direction = document.getElementById('realTradeDirection')?.value || 'BUY';
-  const asset = document.getElementById('realTradeAsset')?.value || selectedRealAsset || 'XAU/USD';
+  const asset = document.getElementById('realTradeAsset')?.value || 'AUD/JPY';
   const isGold = anyStringIncludes(asset, ['XAU', 'GOLD', 'ORO']);
-  const isAudJpy = asset.includes('JPY') || asset.includes('AUDJPY');
-  const isAudUsd = !isAudJpy && asset.includes('AUD');
-  const isEurCad = asset.includes('CAD');
 
-  const rawInput = document.getElementById('realTradeTvPoints')?.value || '250';
+  const rawInput = document.getElementById('realTradeTvPoints')?.value || '25';
   const { points, price } = parseTradingViewInput(rawInput);
 
-  const riskPctRaw = document.getElementById('realTradeRiskPct')?.value || '5.0';
-  const riskPct = roundNum(parseFloat(String(riskPctRaw).replace(',', '.').trim()) || 5.0, 2);
-  const rrRaw = document.getElementById('realTradeRR')?.value || '1.0';
-  const rr = roundNum(parseFloat(String(rrRaw).replace(',', '.').trim()) || 1.0, 2);
+  const riskPctRaw = document.getElementById('realTradeRiskPct')?.value || '1.0';
+  const riskPct = roundNum(parseFloat(String(riskPctRaw).replace(',', '.').trim()) || 1.0, 2);
+  const rrRaw = document.getElementById('realTradeRR')?.value || '2.0';
+  const rr = roundNum(parseFloat(String(rrRaw).replace(',', '.').trim()) || 2.0, 2);
   const strategy = `Price Action (${asset})`;
   const emotion = '';
   const tvChartUrl = document.getElementById('realTradeChartUrl')?.value || '';
@@ -4802,15 +4625,12 @@ async function handleAddRealTrade(e) {
   const statusRadio = document.querySelector('input[name="realTradeResult"]:checked');
   const status = statusRadio ? statusRadio.value : 'win';
 
-  let lossPerLot = points * 1.0;
+  let lossPerLot = points * 6.50;
   if (isGold) {
     lossPerLot = points * 1.0;
-  } else if (isAudJpy) {
-    lossPerLot = points * 6.50;
-  } else if (isAudUsd) {
-    lossPerLot = points * 10.0;
   } else {
-    lossPerLot = points * 7.20;
+    // AUD/JPY: 1 pip = 0.01 JPY = ~$6.50 USD / standard lot
+    lossPerLot = points * 6.50;
   }
 
   const dollarRiskBudget = roundNum(curBal * (riskPct / 100.0), 2);
@@ -4865,10 +4685,9 @@ async function handleAddRealTrade(e) {
   let margin_used = 0.0;
   if (isGold) {
     margin_used = roundNum((2720.0 * 100 * lot_size / leverage), 2);
-  } else if (isAudJpy || isAudUsd) {
-    margin_used = roundNum((100000.0 * 0.6550 * lot_size / leverage), 2);
   } else {
-    margin_used = roundNum((100000.0 * 1.0850 * lot_size / leverage), 2);
+    // AUD/JPY en Tickmill (1:300, 100,000 AUD * 0.6550 USD / 300 = ~$218.33 USD por lote)
+    margin_used = roundNum((100000.0 * 0.6550 * lot_size / leverage), 2);
   }
 
   const entry = parseFloat(document.getElementById('realTradeEntry')?.value);
@@ -5043,11 +4862,11 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
   const trade = tradeList.find(t => t.id === id);
   if (!trade) return;
 
-  const pts = trade.tv_points || trade.sl_points || (trade.sl_distance ? Math.round(trade.sl_distance * 100) : 250);
+  const pts = trade.tv_points || trade.sl_points || trade.sl_pips || 25;
   document.getElementById('editTradeId').value = trade.id;
   document.getElementById('editTradeMode').value = mode;
   const assetSelect = document.getElementById('editTradeAsset');
-  if (assetSelect) assetSelect.value = trade.asset || 'XAU/USD';
+  if (assetSelect) assetSelect.value = trade.asset || 'AUD/JPY';
 
   const dateEl = document.getElementById('editTradeDate');
   if (dateEl) dateEl.value = trade.date || '';
@@ -5062,7 +4881,7 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
   const lotEl = document.getElementById('editTradeLot');
   if (lotEl) lotEl.value = Number(trade.lot_size || trade.suggested_lot || 0.01).toFixed(2);
   const riskEl = document.getElementById('editTradeRiskPct');
-  if (riskEl) riskEl.value = (trade.risk_pct !== undefined || trade.risk_pct_custom !== undefined) ? formatRiskPctText(trade.risk_pct || trade.risk_pct_custom) : '5.00';
+  if (riskEl) riskEl.value = (trade.risk_pct !== undefined || trade.risk_pct_custom !== undefined) ? formatRiskPctText(trade.risk_pct || trade.risk_pct_custom) : '1.00';
   const pnlEl = document.getElementById('editTradePnl');
   if (pnlEl) pnlEl.value = trade.pnl !== undefined ? (trade.pnl >= 0 ? `+${Number(trade.pnl).toFixed(2)}` : `${Number(trade.pnl).toFixed(2)}`) : '';
   const commEl = document.getElementById('editTradeCommission');
@@ -5085,18 +4904,15 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
 
   // Setup live dynamic preview calculation on modal inputs
   const recalculateModalPnlPreview = () => {
-    const curAsset = document.getElementById('editTradeAsset')?.value || trade.asset || 'XAU/USD';
+    const curAsset = document.getElementById('editTradeAsset')?.value || trade.asset || 'AUD/JPY';
     const isGold = anyStringIncludes(curAsset, ['XAU', 'GOLD', 'ORO']);
-    const isAudJpy = curAsset.includes('JPY') || curAsset.includes('AUDJPY');
-    const isAudUsd = !isAudJpy && curAsset.includes('AUD');
-    const isEurCad = curAsset.includes('CAD');
-    let mult = 100.0;
-    let lossPerLot = 100.0;
+    let mult = 650.0;
+    let lossPerLot = 25 * 6.50;
 
     const curStatus = document.getElementById('editTradeStatus').value;
     const curRR = parseFloat(String(document.getElementById('editTradeRR').value).replace(',', '.')) || 1.0;
-    const curRisk = parseFloat(String(document.getElementById('editTradeRiskPct').value).replace(',', '.')) || 5.0;
-    let curPts = parseFloat(String(document.getElementById('editTradeTvPoints').value).replace(',', '.')) || (isGold ? 250 : 25);
+    const curRisk = parseFloat(String(document.getElementById('editTradeRiskPct').value).replace(',', '.')) || 1.0;
+    let curPts = parseFloat(String(document.getElementById('editTradeTvPoints').value).replace(',', '.')) || 25;
     const curComm = Math.abs(parseFloat(String(document.getElementById('editTradeCommission').value).replace(',', '.')) || 0.0);
     const balBefore = trade.balance_before !== undefined ? Number(trade.balance_before) : (Number(appState.config.initial_balance) || 110.0);
     const curDir = document.getElementById('editTradeDirection').value;
@@ -5105,15 +4921,9 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
     if (isGold) {
       mult = 100.0;
       lossPerLot = curPts * 1.0;
-    } else if (isAudJpy) {
+    } else {
       mult = 650.0;
       lossPerLot = curPts * 6.50;
-    } else if (isAudUsd) {
-      mult = 100000.0;
-      lossPerLot = curPts * 10.0;
-    } else {
-      mult = 100000.0 / 1.39;
-      lossPerLot = curPts * 7.20;
     }
 
     const curEntry = parseFloat(String(document.getElementById('editTradeEntry')?.value || '').replace(',', '.'));
@@ -5122,7 +4932,7 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
 
     if (!isNaN(curEntry) && !isNaN(curExit)) {
       const exitDiff = curDir === 'BUY' ? (curExit - curEntry) : (curEntry - curExit);
-      const pointsDiff = Math.round(exitDiff * (isGold ? 100 : (isAudJpy ? 100 : 10000)));
+      const pointsDiff = Math.round(exitDiff * (isGold ? 100 : 100));
       curPts = Math.abs(pointsDiff);
       if (document.getElementById('editTradeTvPoints')) {
         document.getElementById('editTradeTvPoints').value = curPts;
@@ -5211,7 +5021,7 @@ async function handleSaveEditedTrade() {
   const mode = document.getElementById('editTradeMode').value || 'backtest';
   if (!id) return;
 
-  const asset = document.getElementById('editTradeAsset')?.value || 'XAU/USD';
+  const asset = document.getElementById('editTradeAsset')?.value || 'AUD/JPY';
   const rawInput = document.getElementById('editTradeTvPoints').value;
   const { points, price } = parseTradingViewInput(rawInput);
   const tradeRR = roundNum(parseFloat(String(document.getElementById('editTradeRR').value).replace(',', '.')), 2) || 1.0;

@@ -85,7 +85,7 @@
         <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-black/20 text-black font-bold rounded-full">Simple</span>
       </button>
 
-      <!-- Tab 2: Bitácora Real (Tickmill XAU/USD) -->
+      <!-- Tab 2: Bitácora Real (Tickmill AUD/JPY) -->
       <button id="tabBtnReal" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
         <i data-lucide="wallet" class="w-4 h-4 text-emerald-400 shrink-0"></i>
         <span class="truncate">2. Real (Tickmill)</span>
@@ -159,7 +159,7 @@
           </div>
           <div class="bg-amber-950/60 border border-amber-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <span class="text-amber-300">Apalancamiento:</span>
-            <span class="font-bold text-amber-400">1:30 XAU/USD (Oro)</span>
+            <span class="font-bold text-orange-400">1:30 AUD/JPY</span>
           </div>
           <a href="#sectionFondeoRules" id="btnJumpToFondeoRules" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-black font-black px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs shadow-lg shadow-emerald-500/20 cursor-pointer transform hover:scale-[1.02] active:scale-[0.98] transition">
             <i data-lucide="shield-check" class="w-3.5 h-3.5 text-black"></i>
@@ -239,25 +239,25 @@
           <p class="text-[11px] text-gray-400">El piso sube con el pico de balance y se <strong>bloquea fijo en $50,000</strong> al pasar a profit.</p>
         </div>
 
-        <!-- Card 4: Margen y Apalancamiento 1:30 (Metales / Oro) -->
+        <!-- Card 4: Margen y Apalancamiento 1:30 (AUD/JPY) -->
         <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <div class="p-2 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/20">
+              <div class="p-2 bg-orange-500/10 text-orange-400 rounded-lg border border-orange-500/20">
                 <i data-lucide="layers" class="w-4 h-4"></i>
               </div>
               <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Margen Usado & Libre</span>
             </div>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-950 text-blue-400 border border-blue-800 font-bold">Apal. 1:30 XAU/USD</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-orange-950 text-orange-400 border border-orange-800 font-bold">Apal. 1:30 AUD/JPY</span>
           </div>
           <div class="my-3">
             <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="fondeoFreeMargin">$50,000.00</div>
             <div class="text-xs text-gray-400 mt-1 flex items-center justify-between">
               <span>Margen Libre disponible</span>
-              <span>Último margen usado: <strong class="text-blue-400 font-mono" id="fondeoLastMargin">$0.00</strong></span>
+              <span>Último margen usado: <strong class="text-orange-400 font-mono" id="fondeoLastMargin">$0.00</strong></span>
             </div>
           </div>
-          <p class="text-[11px] text-gray-400">1 lote de Oro requiere <strong>~$9,066</strong> de margen (1:30). 0.83 lotes retienen <strong>~$7,525</strong> (15.1%).</p>
+          <p class="text-[11px] text-gray-400">1 lote AUD/JPY requiere <strong>~$2,183 USD</strong> de margen (1:30). 1.54 lotes retienen <strong>~$3,362 USD</strong> (6.7%).</p>
         </div>
 
         <!-- Card 5: Regla del 20% Mejor Día (Consistencia) -->
@@ -346,25 +346,22 @@
                   <span>1. Precios de Entrada, Stop Loss y Cierre</span>
                 </span>
                 <div class="flex items-center gap-2 flex-wrap">
-                  <span class="text-[10px] font-mono text-amber-400 font-semibold">Oro XAU/USD: $1.00 = 100 pts TV = 10 pips = $100/lote</span>
-                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                    ⭐ Regla Fija Orion Nova: 300 SL ($3.00) · 900 TP ($9.00) · R:R 1:3 Fijo
+                  <span class="text-[10px] font-mono text-orange-400 font-semibold">AUD/JPY: 1 pip = 0.01 JPY = ~$6.50 USD/lote</span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-orange-500/20 text-orange-300 border border-orange-500/40">
+                    ⭐ Regla Orion Nova: 25 SL · 75 TP · R:R 1:3 Fijo
                   </span>
                 </div>
               </div>
 
-              <!-- Row: Activo Exclusivo XAU/USD, Dirección, Sesión -->
+              <!-- Row: Activo Exclusivo AUD/JPY, Dirección, Sesión -->
               <div class="grid grid-cols-3 gap-2.5">
                 <div>
                   <label class="block text-gray-400 mb-1 font-medium flex items-center justify-between">
                     <span>Símbolo a Operar</span>
-                    <span id="fondeoAssetLevBadge" class="text-[9px] font-mono text-amber-400 font-bold">1:30 Oro</span>
+                    <span id="fondeoAssetLevBadge" class="text-[9px] font-mono text-orange-400 font-bold">1:30 AUD/JPY</span>
                   </label>
-                  <select id="fondeoFormAsset" class="w-full bg-gray-900 border border-amber-500/50 rounded-xl px-2.5 py-2 text-amber-400 font-bold focus:border-amber-500 focus:outline-none">
-                    <option value="XAU/USD" selected>🟡 XAU/USD (Oro Spot)</option>
-                    <option value="AUD/USD">🔵 AUD/USD (Forex Major)</option>
-                    <option value="AUD/JPY">🟠 AUD/JPY (Forex Cross)</option>
-                    <option value="EUR/CAD">🟣 EUR/CAD (Forex Cross)</option>
+                  <select id="fondeoFormAsset" class="w-full bg-gray-900 border border-orange-500/50 rounded-xl px-2.5 py-2 text-orange-400 font-bold focus:border-orange-500 focus:outline-none">
+                    <option value="AUD/JPY" selected>🟠 AUD/JPY (Forex Cross)</option>
                   </select>
                 </div>
                 <div>
@@ -383,45 +380,45 @@
                 </div>
               </div>
 
-              <!-- Encabezado de Precios con Botón de Fijación 300 SL / 900 TP -->
+              <!-- Encabezado de Precios con Botón de Fijación 25 SL / 75 TP -->
               <div class="flex items-center justify-between pt-1">
                 <span class="text-xs font-bold text-gray-300 flex items-center gap-1.5">
-                  <i data-lucide="crosshair" class="w-3.5 h-3.5 text-amber-400"></i>
-                  <span>Niveles de Operativa en Oro (Regla Fija 1:3)</span>
+                  <i data-lucide="crosshair" class="w-3.5 h-3.5 text-orange-400"></i>
+                  <span>Niveles de Operativa en AUD/JPY (Regla Fija 1:3)</span>
                 </span>
-                <button type="button" id="btnLock300Sl900Tp" class="text-[10px] px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition font-bold cursor-pointer flex items-center gap-1" title="Autocalcular y fijar Stop Loss a 300 pts ($3.00) y Take Profit a 900 pts ($9.00)">
-                  <i data-lucide="zap" class="w-3 h-3 text-amber-400"></i>
-                  <span>⚡ Fijar 300 SL / 900 TP (1:3)</span>
+                <button type="button" id="btnLock300Sl900Tp" class="text-[10px] px-2.5 py-1 rounded-lg bg-orange-500/20 text-orange-300 border border-orange-500/40 hover:bg-orange-500/30 transition font-bold cursor-pointer flex items-center gap-1" title="Autocalcular y fijar Stop Loss a 25 pips (0.25) y Take Profit a 75 pips (0.75)">
+                  <i data-lucide="zap" class="w-3 h-3 text-orange-400"></i>
+                  <span>⚡ Fijar 25 SL / 75 TP (1:3)</span>
                 </button>
               </div>
 
               <!-- Control Directo de Puntos de SL para Autocalcular Lotaje -->
-              <div class="p-3 bg-gray-900/90 rounded-xl border border-amber-500/40 space-y-2">
+              <div class="p-3 bg-gray-900/90 rounded-xl border border-orange-500/40 space-y-2">
                 <div class="flex items-center justify-between">
-                  <label class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                    <i data-lucide="target" class="w-3.5 h-3.5 text-amber-400"></i>
-                    <span id="fondeoSlPointsLabel">Stop Loss en Puntos (Oro XAU/USD)</span>
+                  <label class="text-xs font-bold text-orange-300 flex items-center gap-1.5">
+                    <i data-lucide="target" class="w-3.5 h-3.5 text-orange-400"></i>
+                    <span id="fondeoSlPointsLabel">Stop Loss en Pips (AUD/JPY)</span>
                   </label>
-                  <span class="text-[10px] text-amber-400 font-mono font-bold" id="fondeoSlDollarDist">=$3.00 en Oro</span>
+                  <span class="text-[10px] text-orange-400 font-mono font-bold" id="fondeoSlDollarDist">≈$6.50/pip por lote</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <div class="relative flex-1">
-                    <input type="number" id="fondeoFormSlPoints" value="300" min="1" step="any" placeholder="300" class="w-full bg-gray-950 border-2 border-amber-500/60 rounded-xl pl-3 pr-14 py-1.5 text-amber-300 font-mono font-black text-sm focus:border-amber-400 focus:outline-none shadow-inner">
-                    <span id="fondeoSlPointsSuffix" class="absolute right-3 top-2 text-xs text-gray-500 font-mono font-bold">PTS</span>
+                    <input type="number" id="fondeoFormSlPoints" value="25" min="1" step="any" placeholder="25" class="w-full bg-gray-950 border-2 border-orange-500/60 rounded-xl pl-3 pr-14 py-1.5 text-orange-300 font-mono font-black text-sm focus:border-orange-400 focus:outline-none shadow-inner">
+                    <span id="fondeoSlPointsSuffix" class="absolute right-3 top-2 text-xs text-gray-500 font-mono font-bold">PIPS</span>
                   </div>
                   <!-- Chips de SL Fondeo Dinámicos -->
                   <div id="fondeoSlChipsContainer" class="flex items-center gap-1 shrink-0 flex-wrap">
-                    <button type="button" class="btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-pts="150">150</button>
-                    <button type="button" class="btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-pts="200">200</button>
-                    <button type="button" class="btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-pts="250">250</button>
-                    <button type="button" class="btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50 hover:bg-amber-500/30 transition cursor-pointer" data-pts="300">⭐ 300</button>
-                    <button type="button" class="btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-pts="350">350</button>
-                    <button type="button" class="btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-pts="400">400</button>
+                    <button type="button" class="btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-pts="15">15</button>
+                    <button type="button" class="btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-pts="20">20</button>
+                    <button type="button" class="btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-bold bg-orange-500/20 text-orange-300 border border-orange-500/50 hover:bg-orange-500/30 transition cursor-pointer" data-pts="25">⭐ 25</button>
+                    <button type="button" class="btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-pts="30">30</button>
+                    <button type="button" class="btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-pts="35">35</button>
+                    <button type="button" class="btnFondeoSlPtsChip px-2 py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-pts="40">40</button>
                   </div>
                 </div>
                 <div class="flex items-center justify-between text-[10px] text-gray-400">
-                  <span id="fondeoDynamicFormulaText">Cálculo dinámico: <code>Lote = Riesgo $ / (Puntos × $1)</code></span>
-                  <span class="font-mono text-amber-300 font-bold" id="fondeoLotFormulaPreview">$250 / 300 = 0.83 lotes</span>
+                  <span id="fondeoDynamicFormulaText">Cálculo dinámico: <code>Lote = Riesgo $ / (Pips × $6.50)</code></span>
+                  <span class="font-mono text-orange-300 font-bold" id="fondeoLotFormulaPreview">$250 / (25 × $6.50) = 1.54 lotes</span>
                 </div>
               </div>
 
@@ -433,25 +430,25 @@
                     <span>Precio Entrada</span>
                     <span class="text-[10px] text-gray-500 font-mono">Entry</span>
                   </label>
-                  <input type="number" id="fondeoFormEntry" step="any" placeholder="ej. 2720.50" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-amber-500 focus:outline-none shadow-inner">
+                  <input type="number" id="fondeoFormEntry" step="any" placeholder="ej. 100.500" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-amber-500 focus:outline-none shadow-inner">
                 </div>
 
                 <!-- Stop Loss -->
                 <div>
                   <label class="block text-gray-300 mb-1 font-semibold flex items-center justify-between">
                     <span>Stop Loss (SL)</span>
-                    <span class="text-[10px] text-rose-400 font-mono font-bold" id="fondeoFormSlPtsBadge">300 pts ($3.00)</span>
+                    <span class="text-[10px] text-rose-400 font-mono font-bold" id="fondeoFormSlPtsBadge">25 pips (0.25)</span>
                   </label>
-                  <input type="number" id="fondeoFormSl" step="any" placeholder="ej. 2717.50 (SL 300 pts)" class="w-full bg-gray-900 border border-rose-800/60 rounded-xl px-3 py-2 text-rose-300 font-mono font-bold focus:border-rose-500 focus:outline-none shadow-inner">
+                  <input type="number" id="fondeoFormSl" step="any" placeholder="ej. 100.250 (SL 25 pips)" class="w-full bg-gray-900 border border-rose-800/60 rounded-xl px-3 py-2 text-rose-300 font-mono font-bold focus:border-rose-500 focus:outline-none shadow-inner">
                 </div>
 
                 <!-- Take Profit -->
                 <div>
                   <label class="block text-gray-300 mb-1 font-semibold flex items-center justify-between">
                     <span>Take Profit (TP)</span>
-                    <span class="text-[10px] text-emerald-400 font-mono font-bold" id="fondeoFormTpPtsBadge">900 pts (1:3.0)</span>
+                    <span class="text-[10px] text-emerald-400 font-mono font-bold" id="fondeoFormTpPtsBadge">75 pips (1:3.0)</span>
                   </label>
-                  <input type="number" id="fondeoFormTp" step="any" placeholder="ej. 2729.50 (TP 900 pts)" class="w-full bg-gray-900 border border-emerald-800/60 rounded-xl px-3 py-2 text-emerald-300 font-mono font-bold focus:border-emerald-500 focus:outline-none shadow-inner">
+                  <input type="number" id="fondeoFormTp" step="any" placeholder="ej. 101.250 (TP 75 pips)" class="w-full bg-gray-900 border border-emerald-800/60 rounded-xl px-3 py-2 text-emerald-300 font-mono font-bold focus:border-emerald-500 focus:outline-none shadow-inner">
                 </div>
 
                 <!-- Precio Salida -->
@@ -461,8 +458,8 @@
                       <span>Precio Salida</span>
                     </label>
                     <div class="flex items-center gap-1">
-                      <button type="button" id="btnFondeoExitTp" class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900 transition font-bold cursor-pointer" title="Copiar Take Profit (+900 pts / 1:3)">TP (1:3)</button>
-                      <button type="button" id="btnFondeoExitSl" class="text-[9px] px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900 transition font-bold cursor-pointer" title="Copiar Stop Loss (-300 pts)">SL</button>
+                      <button type="button" id="btnFondeoExitTp" class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900 transition font-bold cursor-pointer" title="Copiar Take Profit (+75 pips / 1:3)">TP (1:3)</button>
+                      <button type="button" id="btnFondeoExitSl" class="text-[9px] px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900 transition font-bold cursor-pointer" title="Copiar Stop Loss (-25 pips)">SL</button>
                       <button type="button" id="btnFondeoExitBe" class="text-[9px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700 transition font-bold cursor-pointer" title="Breakeven (Precio Entrada)">BE</button>
                     </div>
                   </div>
@@ -568,7 +565,7 @@
                   </div>
                   <div id="fondeoFormSafetyBanner" class="text-[11px] p-2 rounded-lg bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 flex items-center gap-1.5">
                     <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
-                    <span id="fondeoFormSafetyText">Riesgo óptimo en Oro: soportas <strong>8 pérdidas seguidas</strong> hoy sin violar el 4% diario ($2,000).</span>
+                    <span id="fondeoFormSafetyText">Riesgo óptimo en AUD/JPY: soportas <strong>8 pérdidas seguidas</strong> hoy sin violar el 4% diario ($2,000).</span>
                   </div>
                 </div>
 
@@ -911,15 +908,15 @@
 
         <!-- Regla 6 -->
         <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl space-y-2.5">
-          <div class="flex items-center gap-2 text-amber-400 font-bold text-sm">
+          <div class="flex items-center gap-2 text-orange-400 font-bold text-sm">
             <i data-lucide="layers" class="w-4 h-4"></i>
-            <span>6. Apalancamiento Exclusivo en Oro (1:30)</span>
+            <span>6. Apalancamiento Exclusivo en AUD/JPY (1:30)</span>
           </div>
           <p class="text-gray-300 leading-relaxed">
-            Para operar XAU/USD (Oro al Contado), Orion Funded aplica un <strong>apalancamiento estricto de 1:30</strong> (regulación de commodities y metales). Con el Oro cotizando en ~$2,720 USD, abrir 1 lote estándar (100 oz) retiene <strong>$9,066.67 USD de margen</strong>. Operando a nuestro riesgo óptimo del 0.50% ($250 USD con SL de $3.00), el lote sugerido es de <strong>0.83 lotes</strong>, lo que retiene $7,525 USD (15.1% del capital), dejando intactos más de $42,400 USD de margen libre para flotaciones saludables.
+            Para operar AUD/JPY (Forex Cross), Orion Funded aplica un <strong>apalancamiento de 1:30</strong>. Con el contrato estándar de 100,000 AUD (~$65,500 USD), abrir 1 lote estándar retiene <strong>$2,183.33 USD de margen</strong>. Operando a nuestro riesgo del 0.50% ($250 USD con SL de 25 pips), el lote sugerido es de <strong>1.54 lotes</strong> ($250 / (25 × $6.50)), lo que retiene $3,362 USD (6.7% del capital), dejando intactos más de $46,600 USD de margen libre para una operativa óptima.
           </p>
-          <div class="p-2 bg-amber-950/40 border border-amber-800/40 rounded-lg text-amber-300 font-mono text-[11px]">
-            Apalancamiento: 1:30 XAU/USD • Contrato: 100 oz • Margen/Lote: ~$9,066 USD
+          <div class="p-2 bg-orange-950/40 border border-orange-800/40 rounded-lg text-orange-300 font-mono text-[11px]">
+            Apalancamiento: 1:30 AUD/JPY • Contrato: 100,000 AUD • Margen/Lote: ~$2,183 USD • 1 pip (0.01) ≈ $6.50 USD
           </div>
         </div>
 
@@ -996,11 +993,11 @@
         </div>
       </section>
 
-      <!-- PLAN MATEMÁTICO DE RIESGO PARA XAU/USD (ORO) -->
+      <!-- PLAN MATEMÁTICO DE RIESGO PARA AUD/JPY -->
       <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
         <h4 class="text-xs font-bold text-white uppercase tracking-wide flex items-center gap-2">
           <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-          <span>Plan Matemático Recomendado para Aprobar Orion Nova 50K con Oro (XAU/USD)</span>
+          <span>Plan Matemático Recomendado para Aprobar Orion Nova 50K con AUD/JPY</span>
         </h4>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs font-mono">
@@ -1008,11 +1005,11 @@
               <tr>
                 <th class="p-2.5">Riesgo / Trade</th>
                 <th class="p-2.5">Riesgo $</th>
-                <th class="p-2.5">SL en Oro (300 pts)</th>
-                <th class="p-2.5">Lote en Oro (1:30)</th>
+                <th class="p-2.5">SL AUD/JPY (25 pips)</th>
+                <th class="p-2.5">Lote AUD/JPY (1:30)</th>
                 <th class="p-2.5">Margen Usado</th>
                 <th class="p-2.5">Pérdidas para violar día ($2,000)</th>
-                <th class="p-2.5">Ganancia 1:3 R:R (900 pts)</th>
+                <th class="p-2.5">Ganancia 1:3 R:R (75 pips)</th>
                 <th class="p-2.5">Trades para Pasar ($2,000)</th>
               </tr>
             </thead>
@@ -1020,9 +1017,9 @@
               <tr>
                 <td class="p-2.5 font-bold text-sky-400">0.25% (Conservador)</td>
                 <td class="p-2.5 font-bold text-white">$125.00</td>
-                <td class="p-2.5 text-gray-300">$3.00 (300 pts)</td>
-                <td class="p-2.5 font-bold text-amber-300">0.42 lotes</td>
-                <td class="p-2.5 text-blue-300">$3,808 USD (7.6%)</td>
+                <td class="p-2.5 text-gray-300">25 pips (0.25)</td>
+                <td class="p-2.5 font-bold text-orange-300">0.77 lotes</td>
+                <td class="p-2.5 text-blue-300">$1,681 USD (3.4%)</td>
                 <td class="p-2.5 text-emerald-400">16 pérdidas seguidas</td>
                 <td class="p-2.5 text-emerald-300">+$375.00</td>
                 <td class="p-2.5 font-bold text-sky-400">5.3 trades ganadores</td>
@@ -1030,9 +1027,9 @@
               <tr class="bg-emerald-950/20">
                 <td class="p-2.5 font-bold text-emerald-400">0.50% (Recomendado)</td>
                 <td class="p-2.5 font-bold text-white">$250.00</td>
-                <td class="p-2.5 text-gray-300">$3.00 (300 pts)</td>
-                <td class="p-2.5 font-bold text-amber-300">0.83 lotes</td>
-                <td class="p-2.5 text-blue-300">$7,525 USD (15.1%)</td>
+                <td class="p-2.5 text-gray-300">25 pips (0.25)</td>
+                <td class="p-2.5 font-bold text-orange-300">1.54 lotes</td>
+                <td class="p-2.5 text-blue-300">$3,362 USD (6.7%)</td>
                 <td class="p-2.5 text-emerald-400">8 pérdidas seguidas</td>
                 <td class="p-2.5 text-emerald-300 font-bold text-emerald-400">+$750.00</td>
                 <td class="p-2.5 font-bold text-emerald-400">2.7 trades ganadores (~3 trades netos!)</td>
@@ -1040,9 +1037,9 @@
               <tr>
                 <td class="p-2.5 font-bold text-blue-400">0.75% (Intermedio)</td>
                 <td class="p-2.5 font-bold text-white">$375.00</td>
-                <td class="p-2.5 text-gray-300">$3.00 (300 pts)</td>
-                <td class="p-2.5 font-bold text-amber-300">1.25 lotes</td>
-                <td class="p-2.5 text-blue-300">$11,333 USD (22.6%)</td>
+                <td class="p-2.5 text-gray-300">25 pips (0.25)</td>
+                <td class="p-2.5 font-bold text-orange-300">2.31 lotes</td>
+                <td class="p-2.5 text-blue-300">$5,043 USD (10.1%)</td>
                 <td class="p-2.5 text-blue-300">5.3 pérdidas seguidas</td>
                 <td class="p-2.5 text-emerald-300">+$1,125.00</td>
                 <td class="p-2.5 font-bold text-blue-400">1.8 trades ganadores</td>
@@ -1050,9 +1047,9 @@
               <tr>
                 <td class="p-2.5 font-bold text-amber-400">1.00% (Límite Máx)</td>
                 <td class="p-2.5 font-bold text-white">$500.00</td>
-                <td class="p-2.5 text-gray-300">$3.00 (300 pts)</td>
-                <td class="p-2.5 font-bold text-amber-300">1.67 lotes</td>
-                <td class="p-2.5 text-blue-300">$15,140 USD (30.3%)</td>
+                <td class="p-2.5 text-gray-300">25 pips (0.25)</td>
+                <td class="p-2.5 font-bold text-orange-300">3.08 lotes</td>
+                <td class="p-2.5 text-blue-300">$6,725 USD (13.4%)</td>
                 <td class="p-2.5 text-amber-400">4 pérdidas seguidas</td>
                 <td class="p-2.5 text-emerald-300 font-bold text-amber-400">+$1,500.00</td>
                 <td class="p-2.5 font-bold text-amber-400">1.3 trades (~2 trades netos!)</td>
@@ -1066,7 +1063,7 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- VIEW 2: BITÁCORA REAL (TICKMILL XAU/USD) & CALCULADORA RÁPIDA  -->
+    <!-- VIEW 2: BITÁCORA REAL (TICKMILL AUD/JPY) & CALCULADORA RÁPIDA  -->
     <!-- CONTROL DE CUENTA REAL, LOTAJE EXACTO TICKMILL Y GESTIÓN R:R   -->
     <!-- ============================================================== -->
     <div id="viewRealJournal" class="hidden space-y-6">
@@ -1079,7 +1076,7 @@
           </div>
           <div>
             <div class="flex items-center gap-2 flex-wrap">
-              <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wider">Bitácora Real — Tickmill XAU/USD</h2>
+              <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wider">Bitácora Real — Tickmill AUD/JPY</h2>
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                 CUENTA REAL MT5
               </span>
@@ -1087,7 +1084,7 @@
                 Apalancamiento 1:300
               </span>
             </div>
-            <p class="text-xs text-gray-400 mt-0.5">Operativa personal en broker Tickmill • Contrato estándar 100 oz • Comisión -$0.06/0.01L • Cálculo instantáneo de lotaje</p>
+            <p class="text-xs text-gray-400 mt-0.5">Operativa personal en broker Tickmill • Par exclusivo AUD/JPY • Contrato 100,000 AUD • Comisión -$0.06/0.01L • Cálculo instantáneo de lotaje</p>
           </div>
         </div>
 
@@ -1116,10 +1113,10 @@
             </div>
             <div>
               <h3 class="text-sm sm:text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
-                <span>Calculadora Instantánea de Lotaje — Tickmill (Oro Spot)</span>
-                <span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono">1 LOTE = 100 OZ</span>
+                <span>Calculadora Instantánea de Lotaje — Tickmill (AUD/JPY)</span>
+                <span class="text-[9px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/40 font-mono">1 LOTE = 100,000 AUD</span>
               </h3>
-              <p class="text-[11px] text-gray-400">Introduce tu balance, % de riesgo y puntos de Stop Loss. El sistema calcula inmediatamente el lotaje exacto para MT4/MT5.</p>
+              <p class="text-[11px] text-gray-400">Introduce tu balance, % de riesgo y pips de Stop Loss. El sistema calcula inmediatamente el lotaje exacto para MT4/MT5.</p>
             </div>
           </div>
           <span class="px-2.5 py-1 rounded-lg bg-emerald-950 border border-emerald-800 text-[11px] font-mono font-bold text-emerald-300 flex items-center gap-1.5">
@@ -1134,20 +1131,8 @@
             <i data-lucide="layers" class="w-3.5 h-3.5 text-emerald-400"></i> Símbolo a Operar:
           </span>
           <div class="flex items-center gap-2 flex-wrap" id="realCalcAssetButtons">
-            <button type="button" class="btn-real-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-md cursor-pointer" data-asset="XAU/USD">
-              <span>🟡 XAU/USD</span>
-              <span class="text-[9px] font-mono text-amber-400 opacity-90">(Puntos)</span>
-            </button>
-            <button type="button" class="btn-real-asset px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 border border-gray-700 cursor-pointer" data-asset="AUD/USD">
-              <span>🔵 AUD/USD</span>
-              <span class="text-[9px] font-mono opacity-90">(Pips)</span>
-            </button>
-            <button type="button" class="btn-real-asset px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 border border-gray-700 cursor-pointer" data-asset="AUD/JPY">
+            <button type="button" class="btn-real-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-orange-500/20 text-orange-300 border border-orange-500/50 shadow-md cursor-default" data-asset="AUD/JPY">
               <span>🟠 AUD/JPY</span>
-              <span class="text-[9px] font-mono opacity-90">(Pips)</span>
-            </button>
-            <button type="button" class="btn-real-asset px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 border border-gray-700 cursor-pointer" data-asset="EUR/CAD">
-              <span>🟣 EUR/CAD</span>
               <span class="text-[9px] font-mono opacity-90">(Pips)</span>
             </button>
           </div>
@@ -1208,21 +1193,21 @@
             <div class="flex items-center justify-between gap-1">
               <label class="text-xs font-bold text-gray-300 flex items-center gap-1.5 truncate">
                 <i data-lucide="target" class="w-3.5 h-3.5 text-rose-400 shrink-0"></i>
-                <span id="realCalcSlLabel" class="truncate">3. Stop Loss (Puntos)</span>
+                <span id="realCalcSlLabel" class="truncate">3. Stop Loss en Pips (AUD/JPY)</span>
               </label>
-              <span id="realCalcSlDistBadge" class="text-[10px] text-rose-300 font-mono font-bold shrink-0">$2.50 Oro</span>
+              <span id="realCalcSlDistBadge" class="text-[10px] text-rose-300 font-mono font-bold shrink-0">25 pips</span>
             </div>
             <div class="relative">
-              <input type="number" id="realCalcSlPoints" step="any" min="1" value="250" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-3 pr-12 py-1.5 text-rose-300 font-mono font-bold text-sm focus:border-rose-500 focus:outline-none transition">
-              <span id="realCalcSlSuffix" class="absolute right-3 top-2 text-gray-500 font-mono text-xs font-bold">PTS</span>
+              <input type="number" id="realCalcSlPoints" step="any" min="1" value="25" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-3 pr-12 py-1.5 text-rose-300 font-mono font-bold text-sm focus:border-rose-500 focus:outline-none transition">
+              <span id="realCalcSlSuffix" class="absolute right-3 top-2 text-gray-500 font-mono text-xs font-bold">PIPS</span>
             </div>
-            <!-- Chips Rápidos SL Puntos / Pips -->
+            <!-- Chips Rápidos SL Pips -->
             <div id="realCalcSlChips" class="grid grid-cols-5 gap-1 pt-0.5">
-              <button type="button" class="btn-real-chip-sl py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="150">150</button>
-              <button type="button" class="btn-real-chip-sl py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="200">200</button>
-              <button type="button" class="btn-real-chip-sl py-1 rounded text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 transition text-center" data-val="250">250</button>
-              <button type="button" class="btn-real-chip-sl py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="300">300</button>
-              <button type="button" class="btn-real-chip-sl py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="400">400</button>
+              <button type="button" class="btn-real-chip-sl py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="15">15</button>
+              <button type="button" class="btn-real-chip-sl py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="20">20</button>
+              <button type="button" class="btn-real-chip-sl py-1 rounded text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 transition text-center" data-val="25">25</button>
+              <button type="button" class="btn-real-chip-sl py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="30">30</button>
+              <button type="button" class="btn-real-chip-sl py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="40">40</button>
             </div>
           </div>
 
@@ -1233,7 +1218,7 @@
                 <i data-lucide="scale" class="w-3.5 h-3.5 text-blue-400 shrink-0"></i>
                 <span class="truncate">4. Ratio R:R (Modificable)</span>
               </label>
-              <span id="realCalcTpPtsBadge" class="text-[10px] text-blue-300 font-mono font-bold shrink-0">TP: 500 pts</span>
+              <span id="realCalcTpPtsBadge" class="text-[10px] text-blue-300 font-mono font-bold shrink-0">TP: 50 pips</span>
             </div>
             <div class="relative">
               <span class="absolute left-3 top-2 text-blue-400 font-mono text-sm font-bold">1:</span>
@@ -1297,11 +1282,11 @@
               <span class="text-[9px] text-gray-500 block">Tickmill 1:300</span>
             </div>
 
-            <!-- 4. Valor por Punto / Pip -->
+            <!-- 4. Valor por Pip -->
             <div class="bg-gray-950/80 border border-gray-800 p-2.5 rounded-xl">
-              <span id="realHeroPtValTitle" class="text-[10px] text-gray-400 uppercase block font-sans font-semibold">Valor / Punto Oro</span>
-              <span id="realHeroPointValue" class="text-sm font-black text-blue-300 block mt-0.5">$0.01 / pto</span>
-              <span id="realHeroPtValSub" class="text-[9px] text-gray-500 block">$1.00/pto en 1.00L</span>
+              <span id="realHeroPtValTitle" class="text-[10px] text-gray-400 uppercase block font-sans font-semibold">Valor / Pip AUD/JPY</span>
+              <span id="realHeroPointValue" class="text-sm font-black text-blue-300 block mt-0.5">$0.07 / pip</span>
+              <span id="realHeroPtValSub" class="text-[9px] text-gray-500 block">100k AUD · ~$6.50/pip en 1.00L</span>
             </div>
           </div>
         </div>
@@ -1311,7 +1296,7 @@
           <div class="flex items-center gap-1.5">
             <i data-lucide="info" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
             <span id="realFormulaExplanation">
-              <strong>Fórmula Tickmill XAU/USD:</strong> <code>Lote = Riesgo_USD / (Puntos_SL × $1.00)</code>. 1 lote estándar = 100 onzas. 100 puntos = $1.00 move = $100.
+              <strong>Fórmula Tickmill AUD/JPY:</strong> <code>Lote = Riesgo_USD / (Pips_SL × $6.50)</code>. 1 lote estándar = 100,000 AUD. 1 pip (0.01) ≈ $6.50 USD.
             </span>
           </div>
           <span class="font-mono text-gray-400">Comisión típica Tickmill Pro: <strong>-$0.06 / 0.01 lote</strong></span>
@@ -1389,10 +1374,7 @@
               <div>
                 <label class="block text-gray-400 mb-1 font-semibold">Símbolo</label>
                 <select id="realTradeAsset" class="w-full bg-gray-900 border border-emerald-500/50 rounded-lg p-2 text-emerald-300 font-bold">
-                  <option value="XAU/USD" selected>🟡 XAU/USD (Oro)</option>
-                  <option value="AUD/USD">🔵 AUD/USD (Forex)</option>
-                  <option value="AUD/JPY">🟠 AUD/JPY (Forex)</option>
-                  <option value="EUR/CAD">🟣 EUR/CAD (Forex)</option>
+                  <option value="AUD/JPY" selected>🟠 AUD/JPY (Forex)</option>
                 </select>
               </div>
 
@@ -1444,33 +1426,33 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div>
                 <label class="block text-gray-400 mb-1 font-semibold">Precio Entrada</label>
-                <input type="number" id="realTradeEntry" step="any" placeholder="ej. 2720.50" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white font-mono">
+                <input type="number" id="realTradeEntry" step="any" placeholder="ej. 100.500" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white font-mono">
               </div>
               <div>
                 <label class="block text-gray-400 mb-1 font-semibold flex items-center justify-between">
                   <span>Stop Loss</span>
-                  <span class="text-[10px] text-rose-400 font-mono" id="realTradeSlPtsBadge">250 pts</span>
+                  <span class="text-[10px] text-rose-400 font-mono" id="realTradeSlPtsBadge">25 pips</span>
                 </label>
-                <input type="number" id="realTradeSl" step="any" placeholder="ej. 2718.00" class="w-full bg-gray-900 border border-rose-800/60 rounded-lg p-2 text-rose-300 font-mono">
+                <input type="number" id="realTradeSl" step="any" placeholder="ej. 100.250" class="w-full bg-gray-900 border border-rose-800/60 rounded-lg p-2 text-rose-300 font-mono">
               </div>
               <div>
                 <label class="block text-gray-400 mb-1 font-semibold flex items-center justify-between">
                   <span>Take Profit</span>
-                  <span class="text-[10px] text-emerald-400 font-mono" id="realTradeTpPtsBadge">500 pts</span>
+                  <span class="text-[10px] text-emerald-400 font-mono" id="realTradeTpPtsBadge">50 pips</span>
                 </label>
-                <input type="number" id="realTradeTp" step="any" placeholder="ej. 2725.50" class="w-full bg-gray-900 border border-emerald-800/60 rounded-lg p-2 text-emerald-300 font-mono">
+                <input type="number" id="realTradeTp" step="any" placeholder="ej. 101.000" class="w-full bg-gray-900 border border-emerald-800/60 rounded-lg p-2 text-emerald-300 font-mono">
               </div>
               <div>
                 <label class="block text-gray-400 mb-1 font-semibold">Precio Salida (Exit)</label>
-                <input type="number" id="realTradeExit" step="any" placeholder="ej. 2725.50" class="w-full bg-gray-900 border border-blue-700/60 rounded-lg p-2 text-blue-300 font-mono">
+                <input type="number" id="realTradeExit" step="any" placeholder="ej. 101.000" class="w-full bg-gray-900 border border-blue-700/60 rounded-lg p-2 text-blue-300 font-mono">
               </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-              <!-- Stop Loss Puntos Directos -->
+              <!-- Stop Loss Pips Directos -->
               <div>
-                <label class="block text-gray-400 mb-1 font-semibold">SL Puntos Directo</label>
-                <input type="number" id="realTradeTvPoints" value="250" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white font-mono font-bold">
+                <label class="block text-gray-400 mb-1 font-semibold">SL Pips Directo</label>
+                <input type="number" id="realTradeTvPoints" value="25" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white font-mono font-bold">
               </div>
               <!-- Comisión Broker USD -->
               <div>
@@ -2004,20 +1986,8 @@
             <i data-lucide="layers" class="w-3.5 h-3.5 text-emerald-400"></i> Símbolo a Operar:
           </span>
           <div class="flex items-center gap-2 flex-wrap" id="btSimpleAssetButtons">
-            <button type="button" class="btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-md cursor-pointer" data-asset="XAU/USD">
-              <span>🟡 XAU/USD</span>
-              <span class="text-[9px] font-mono text-amber-400 opacity-90">(Puntos)</span>
-            </button>
-            <button type="button" class="btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 border border-gray-700 cursor-pointer" data-asset="AUD/USD">
-              <span>🔵 AUD/USD</span>
-              <span class="text-[9px] font-mono opacity-90">(Pips)</span>
-            </button>
-            <button type="button" class="btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 border border-gray-700 cursor-pointer" data-asset="AUD/JPY">
+            <button type="button" class="btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-orange-500/20 text-orange-300 border border-orange-500/50 shadow-md cursor-default" data-asset="AUD/JPY">
               <span>🟠 AUD/JPY</span>
-              <span class="text-[9px] font-mono opacity-90">(Pips)</span>
-            </button>
-            <button type="button" class="btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 border border-gray-700 cursor-pointer" data-asset="EUR/CAD">
-              <span>🟣 EUR/CAD</span>
               <span class="text-[9px] font-mono opacity-90">(Pips)</span>
             </button>
           </div>
@@ -2187,10 +2157,7 @@
               <div>
                 <label class="block text-gray-400 mb-1 font-semibold">Símbolo</label>
                 <select id="btSimpleManualAsset" class="w-full bg-gray-900 border border-emerald-500/50 rounded-lg p-2 text-emerald-300 font-bold">
-                  <option value="XAU/USD" selected>🟡 XAU/USD (Oro)</option>
-                  <option value="AUD/USD">🔵 AUD/USD (Forex)</option>
-                  <option value="AUD/JPY">🟠 AUD/JPY (Forex)</option>
-                  <option value="EUR/CAD">🟣 EUR/CAD (Forex)</option>
+                  <option value="AUD/JPY" selected>🟠 AUD/JPY (Forex)</option>
                 </select>
               </div>
               <div>
@@ -2213,8 +2180,8 @@
                 <input type="number" id="btSimpleManualRR" step="0.1" placeholder="Ej. 3.0" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-blue-300 font-mono font-bold">
               </div>
               <div>
-                <label id="btSimpleManualSlLabel" class="block text-gray-400 mb-1 font-semibold">SL en Puntos (Oro)</label>
-                <input type="number" id="btSimpleManualSlPoints" value="300" step="any" placeholder="Ej. 300" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-amber-300 font-mono font-bold">
+                <label id="btSimpleManualSlLabel" class="block text-gray-400 mb-1 font-semibold">SL en Pips (AUD/JPY)</label>
+                <input type="number" id="btSimpleManualSlPoints" value="25" step="any" placeholder="Ej. 25" class="w-full bg-gray-900 border border-orange-500/50 rounded-lg p-2 text-orange-300 font-mono font-bold">
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
@@ -2481,8 +2448,8 @@
           </div>
         </div>
         <div>
-          <label class="block text-gray-400 mb-1">Stop Loss (Puntos en Oro / Pips en Forex)</label>
-          <input type="number" id="editTradeTvPoints" min="1" step="any" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-white font-mono font-bold text-base" placeholder="ej. 250">
+          <label class="block text-gray-400 mb-1">Stop Loss en Pips (AUD/JPY)</label>
+          <input type="number" id="editTradeTvPoints" min="1" step="any" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-white font-mono font-bold text-base" placeholder="ej. 25">
         </div>
         <div>
           <label class="block text-gray-400 mb-1">Ratio R:R</label>
@@ -2491,11 +2458,8 @@
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-gray-400 mb-1">Símbolo / Activo</label>
-            <select id="editTradeAsset" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-amber-300 font-bold">
-              <option value="XAU/USD">🟡 XAU/USD (Oro)</option>
-              <option value="AUD/USD">🔵 AUD/USD (Forex)</option>
-              <option value="AUD/JPY">🟠 AUD/JPY (Forex)</option>
-              <option value="EUR/CAD">🟣 EUR/CAD (Forex)</option>
+            <select id="editTradeAsset" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-orange-300 font-bold">
+              <option value="AUD/JPY" selected>🟠 AUD/JPY (Forex)</option>
             </select>
           </div>
           <div>
@@ -2570,16 +2534,16 @@
           <input type="number" id="settingInitialBalance" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-white font-mono" value="50000.00">
         </div>
         <div>
-          <label class="block text-gray-400 mb-1">Riesgo por Operación en Oro (%)</label>
+          <label class="block text-gray-400 mb-1">Riesgo por Operación en AUD/JPY (%)</label>
           <input type="number" id="settingRiskPct" step="any" min="0.01" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-emerald-400 font-mono font-bold" value="0.50">
         </div>
         <div>
-          <label class="block text-gray-400 mb-1">Ratio R:R Objetivo en Oro</label>
-          <input type="number" id="settingRR" step="any" min="0.01" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-blue-400 font-mono font-bold" value="2.0">
+          <label class="block text-gray-400 mb-1">Ratio R:R Objetivo en AUD/JPY</label>
+          <input type="number" id="settingRR" step="any" min="0.01" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-blue-400 font-mono font-bold" value="3.0">
         </div>
         <div>
-          <label class="block text-gray-400 mb-1">Apalancamiento XAU/USD (Oro)</label>
-          <input type="number" id="settingLeverage" class="w-full bg-gray-950 border border-amber-800/60 rounded-lg p-2 text-amber-300 font-mono font-bold" value="30" readonly>
+          <label class="block text-gray-400 mb-1">Apalancamiento AUD/JPY (Fondeo 1:30 / Real 1:300)</label>
+          <input type="number" id="settingLeverage" class="w-full bg-gray-950 border border-orange-800/60 rounded-lg p-2 text-orange-300 font-mono font-bold" value="30" readonly>
         </div>
       </div>
 
