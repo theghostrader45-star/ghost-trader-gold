@@ -129,7 +129,7 @@
               <span id="badgeOrionEvalStatus" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                 EN EVALUACIÓN ACTIVA
               </span>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40" id="badgeFondeoSubtitle">
                 INTERÉS SIMPLE ($50,000 BASE)
               </span>
             </div>
@@ -143,23 +143,23 @@
         <div class="flex items-center gap-2 flex-wrap text-xs font-mono">
           <div class="bg-gray-950/80 border border-gray-800 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <span class="text-gray-400">Capital:</span>
-            <span class="font-bold text-white">$50,000</span>
+            <span class="font-bold text-white" id="badgeFondeoCapital">$50,000</span>
           </div>
           <div class="bg-emerald-950/60 border border-emerald-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <span class="text-emerald-300">Meta 4%:</span>
-            <span class="font-bold text-emerald-400">+$2,000 ($52,000)</span>
+            <span class="font-bold text-emerald-400" id="badgeFondeoTarget">+$2,000 ($52,000)</span>
           </div>
           <div class="bg-amber-950/60 border border-amber-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <span class="text-amber-300">Pérdida Diaria 4%:</span>
-            <span class="font-bold text-amber-400">-$2,000</span>
+            <span class="font-bold text-amber-400" id="badgeFondeoDailyLimit">-$2,000</span>
           </div>
           <div class="bg-red-950/60 border border-red-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <span class="text-red-300">DD Máx 8%:</span>
-            <span class="font-bold text-red-400">-$4,000 (Trailing-Lock)</span>
+            <span class="font-bold text-red-400" id="badgeFondeoMaxLoss">-$4,000 (Trailing-Lock)</span>
           </div>
           <div class="bg-amber-950/60 border border-amber-800/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <span class="text-amber-300">Apalancamiento:</span>
-            <span class="font-bold text-orange-400">1:30 AUD/JPY</span>
+            <span class="font-bold text-orange-400" id="badgeFondeoLeverage">1:30 AUD/JPY</span>
           </div>
           <a href="#sectionFondeoRules" id="btnJumpToFondeoRules" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-black font-black px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 text-xs shadow-lg shadow-emerald-500/20 cursor-pointer transform hover:scale-[1.02] active:scale-[0.98] transition">
             <i data-lucide="shield-check" class="w-3.5 h-3.5 text-black"></i>
@@ -184,7 +184,7 @@
           <div class="my-3">
             <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="fondeoCurrentBalance">$50,000.00</div>
             <div class="text-xs text-gray-400 mt-1 flex items-center justify-between">
-              <span>Meta: <strong class="text-emerald-400 font-mono">$52,000.00</strong></span>
+              <span>Meta: <strong class="text-emerald-400 font-mono" id="fondeoTargetAmountDisplay">$52,000.00</strong></span>
               <span>Falta: <strong class="text-amber-400 font-mono" id="fondeoRemainingTarget">$2,000.00</strong></span>
             </div>
           </div>
@@ -201,7 +201,7 @@
               <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20">
                 <i data-lucide="shield-alert" class="w-4 h-4"></i>
               </div>
-              <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Pérdida Diaria (Máx $2,000)</span>
+              <span class="text-xs font-bold text-gray-300 uppercase tracking-wider" id="fondeoDailyLossTitle">Pérdida Diaria (Máx $2,000)</span>
             </div>
             <span id="fondeoDailyLossStatusBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold">100% SEGURO</span>
           </div>
@@ -236,7 +236,7 @@
               <span>Colchón al piso: <strong class="text-white font-mono" id="fondeoMaxDdHeadroom">$4,000.00</strong></span>
             </div>
           </div>
-          <p class="text-[11px] text-gray-400">El piso sube con el pico de balance y se <strong>bloquea fijo en $50,000</strong> al pasar a profit.</p>
+          <p class="text-[11px] text-gray-400" id="fondeoFloorExplanation">El piso sube con el pico de balance y se <strong>bloquea fijo en $50,000</strong> al pasar a profit.</p>
         </div>
 
         <!-- Card 4: Margen y Apalancamiento 1:30 (AUD/JPY) -->
@@ -248,7 +248,7 @@
               </div>
               <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Margen Usado & Libre</span>
             </div>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-orange-950 text-orange-400 border border-orange-800 font-bold">Apal. 1:30 AUD/JPY</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-orange-950 text-orange-400 border border-orange-800 font-bold" id="badgeFondeoCardLev">Apal. 1:30 AUD/JPY</span>
           </div>
           <div class="my-3">
             <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="fondeoFreeMargin">$50,000.00</div>
@@ -257,7 +257,7 @@
               <span>Último margen usado: <strong class="text-orange-400 font-mono" id="fondeoLastMargin">$0.00</strong></span>
             </div>
           </div>
-          <p class="text-[11px] text-gray-400">1 lote AUD/JPY requiere <strong>~$2,183 USD</strong> de margen (1:30). 1.54 lotes retienen <strong>~$3,362 USD</strong> (6.7%).</p>
+          <p class="text-[11px] text-gray-400" id="fondeoCardMarginExplanation">1 lote AUD/JPY requiere <strong>~$2,183 USD</strong> de margen (1:30). 1.54 lotes retienen <strong>~$3,362 USD</strong> (6.7%).</p>
         </div>
 
         <!-- Card 5: Regla del 20% Mejor Día (Consistencia) -->
@@ -515,10 +515,10 @@
                     <span>2. Control de Riesgo & Dimensionamiento</span>
                   </span>
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-mono text-sky-300 bg-sky-950 px-2 py-0.5 rounded border border-sky-800 font-bold">
+                    <span class="text-[10px] font-mono text-sky-300 bg-sky-950 px-2 py-0.5 rounded border border-sky-800 font-bold" id="fondeoFormBaseBalBadge">
                       ⚡ Interés Simple ($50k)
                     </span>
-                    <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
+                    <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800" id="fondeoFormLevBadge">
                       1:30
                     </span>
                   </div>
@@ -1080,7 +1080,7 @@
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
                 CUENTA REAL TRADINGVIEW
               </span>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-800">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-800" id="badgeRealHeaderLeverage">
                 Apalancamiento 1:300
               </span>
             </div>
@@ -1123,7 +1123,7 @@
               <p class="text-[11px] text-gray-400">Introduce tu balance, % de riesgo y pips de Stop Loss. El sistema calcula al instante los lotes y unidades exactas para tu orden en TradingView.</p>
             </div>
           </div>
-          <span class="px-2.5 py-1 rounded-lg bg-emerald-950 border border-emerald-800 text-[11px] font-mono font-bold text-emerald-300 flex items-center gap-1.5">
+          <span id="badgeRealCalcLeverage" class="px-2.5 py-1 rounded-lg bg-emerald-950 border border-emerald-800 text-[11px] font-mono font-bold text-emerald-300 flex items-center gap-1.5">
             <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
             <span>TradingView · Broker 1:300</span>
           </span>
@@ -1985,6 +1985,9 @@
                 <h2 class="text-sm sm:text-base font-black text-white uppercase tracking-wider truncate">Backtesting Simple — Interés Compuesto</h2>
                 <span class="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0">
                   DINÁMICO PURO
+                </span>
+                <span id="badgeBacktestLeverage" class="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-800 shrink-0">
+                  Apalancamiento 1:30
                 </span>
               </div>
               <p class="text-[11px] text-gray-400 truncate">Configura cualquier capital, ratio y riesgo. Cada trade reinvierte beneficios automáticamente.</p>
@@ -3792,6 +3795,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261108_v31_fix_real_clear"></script>
+<script src="app.js?v=20261108_v32_sync_all_accounts"></script>
 </body>
 </html>

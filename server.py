@@ -1240,10 +1240,10 @@ def calculate_analytics(trades, config, mode="backtest"):
 
     # Orion Nova Metrics calculation
     if mode == "fondeo":
-        target_profit_usd = float(config.get("profit_target_usd", 2000.0))
+        target_profit_usd = float(config.get("profit_target_usd", round(initial_balance * 0.04, 2)))
         target_balance = initial_balance + target_profit_usd
-        daily_limit_usd = float(config.get("daily_loss_usd", 2000.0))
-        max_loss_usd = float(config.get("max_loss_usd", 4000.0))
+        daily_limit_usd = float(config.get("daily_loss_usd", round(initial_balance * 0.04, 2)))
+        max_loss_usd = float(config.get("max_loss_usd", round(initial_balance * 0.08, 2)))
 
         # Trailing-Lock Drawdown:
         # Initial floor is 50000 - 4000 = $46,000.
@@ -1279,19 +1279,28 @@ def calculate_analytics(trades, config, mode="backtest"):
 
         summary_data["orion_metrics"] = {
             "initial_capital": initial_balance,
+            "initial_balance": initial_balance,
             "target_profit_usd": target_profit_usd,
+            "profit_target_usd": target_profit_usd,
             "target_balance": target_balance,
             "target_progress_pct": round(target_progress_pct, 1),
             "target_remaining_usd": round(target_remaining_usd, 2),
+            "remaining_target": round(target_remaining_usd, 2),
             "daily_limit_usd": daily_limit_usd,
+            "daily_loss_limit_usd": daily_limit_usd,
             "today_pnl": round(today_pnl, 2),
             "today_loss": round(today_loss, 2),
+            "today_loss_usd": round(today_loss, 2),
             "daily_headroom": round(daily_headroom, 2),
+            "daily_loss_headroom": round(daily_headroom, 2),
             "max_loss_usd": max_loss_usd,
             "trailing_floor": round(trailing_floor, 2),
             "trailing_locked": trailing_locked,
+            "is_trailing_locked": trailing_locked,
             "max_dd_headroom": round(max_dd_headroom, 2),
+            "max_loss_headroom": round(max_dd_headroom, 2),
             "max_day_profit": round(max_day_profit, 2),
+            "best_day_profit": round(max_day_profit, 2),
             "best_day_pct": best_day_pct,
             "best_day_compliant": (best_day_pct <= 20.0 or pos_profits <= 0),
             "leverage": leverage,

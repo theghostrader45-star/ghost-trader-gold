@@ -249,7 +249,8 @@ function setupTabNavigation() {
       if (viewRealJournal) viewRealJournal.classList.remove('hidden');
       loadTrades('real').then(() => {
         renderRealJournalDashboard();
-        if (typeof recalculateRealQuickLot === 'function') recalculateRealQuickLot();
+        if (typeof syncRealUI === 'function') syncRealUI();
+        else if (typeof recalculateRealQuickLot === 'function') recalculateRealQuickLot();
       });
     } else if (tab === 'news') {
       if (btnNews) {
@@ -265,6 +266,7 @@ function setupTabNavigation() {
       }
       if (viewBacktestSimple) viewBacktestSimple.classList.remove('hidden');
       renderBacktestSimpleDashboard();
+      if (typeof syncBacktestUI === 'function') syncBacktestUI();
       setTimeout(() => {
         if (btSimpleEquityChartInstance) btSimpleEquityChartInstance.resize();
         if (btSimpleDrawdownChartInstance) btSimpleDrawdownChartInstance.resize();
@@ -376,12 +378,14 @@ function renderFondeoDashboard() {
   const elTargetPct = document.getElementById('fondeoTargetPctBadge');
   if (elTargetPct) elTargetPct.textContent = `${(orion.target_progress_pct || 0).toFixed(1)}% Alcanzado`;
   const elRemTarget = document.getElementById('fondeoRemainingTarget');
+  const targetAmt = orion.target_balance || (curBalance * 1.04);
+  const profitTargetAmt = orion.profit_target_usd || (targetAmt - curBalance);
   if (elRemTarget) {
     if (orion.remaining_target <= 0) {
-      elRemTarget.textContent = '¡Meta $2,000 alcanzada!';
+      elRemTarget.textContent = `¡Meta $${formatMoney(profitTargetAmt)} alcanzada!`;
       elRemTarget.className = 'text-xs text-emerald-400 font-bold';
     } else {
-      elRemTarget.textContent = `Faltan $${formatMoney(orion.remaining_target)} para $52,000`;
+      elRemTarget.textContent = `Faltan $${formatMoney(orion.remaining_target)} para $${formatMoney(targetAmt)}`;
       elRemTarget.className = 'text-xs text-gray-400';
     }
   }
@@ -391,16 +395,18 @@ function renderFondeoDashboard() {
     elBarTarget.style.width = `${w}%`;
   }
 
-  // 2. Pérdida Diaria (Daily Loss Limit $2,000)
+  // 2. Pérdida Diaria
   const elDailyBadge = document.getElementById('fondeoDailyLossStatusBadge');
   const elDailyHeadroom = document.getElementById('fondeoDailyHeadroom');
   const elTodayLoss = document.getElementById('fondeoTodayLoss');
   const elDailyBar = document.getElementById('fondeoDailyHealthBar');
 
-  if (elDailyHeadroom) elDailyHeadroom.textContent = `$${formatMoney(orion.daily_loss_headroom || 2000.0)}`;
+  const dailyHeadroomVal = (orion.daily_loss_headroom !== undefined) ? orion.daily_loss_headroom : (orion.daily_loss_limit_usd || 2000.0);
+  const dailyLimitVal = orion.daily_loss_limit_usd || 2000.0;
+  if (elDailyHeadroom) elDailyHeadroom.textContent = `$${formatMoney(dailyHeadroomVal)}`;
   if (elTodayLoss) elTodayLoss.textContent = `Pérdida hoy: $${formatMoney(orion.today_loss_usd || 0.0)}`;
   
-  const dailyHealthPct = Math.min(100, Math.max(0, ((orion.daily_loss_headroom || 2000.0) / 2000.0) * 100));
+  const dailyHealthPct = Math.min(100, Math.max(0, (dailyHeadroomVal / Math.max(1, dailyLimitVal)) * 100));
   if (elDailyBar) elDailyBar.style.width = `${dailyHealthPct}%`;
 
   if (elDailyBadge) {
@@ -416,15 +422,16 @@ function renderFondeoDashboard() {
     }
   }
 
-  // 3. Drawdown Máximo (Piso Trailing-Lock $46k -> $50k)
+  // 3. Drawdown Máximo (Piso Trailing-Lock)
+  const baseFondeoLock = Number(appState.fondeo?.config?.initial_balance || 50000.0);
   const elFloor = document.getElementById('fondeoTrailingFloor');
-  if (elFloor) elFloor.textContent = `$${formatMoney(orion.trailing_floor || 46000.0)}`;
+  if (elFloor) elFloor.textContent = `$${formatMoney(orion.trailing_floor !== undefined ? orion.trailing_floor : (baseFondeoLock * 0.92))}`;
   const elMaxDdHeadroom = document.getElementById('fondeoMaxDdHeadroom');
-  if (elMaxDdHeadroom) elMaxDdHeadroom.textContent = `Colchón de seguridad: $${formatMoney(orion.max_loss_headroom || 4000.0)}`;
+  if (elMaxDdHeadroom) elMaxDdHeadroom.textContent = `Colchón de seguridad: $${formatMoney(orion.max_loss_headroom !== undefined ? orion.max_loss_headroom : (baseFondeoLock * 0.08))}`;
   const elLockBadge = document.getElementById('fondeoTrailingLockBadge');
   if (elLockBadge) {
     if (orion.is_trailing_locked) {
-      elLockBadge.textContent = 'BLOQUEADO A $50,000';
+      elLockBadge.textContent = `BLOQUEADO A $${formatMoney(baseFondeoLock)}`;
       elLockBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800';
     } else {
       elLockBadge.textContent = 'TRAILING DINÁMICO';
@@ -470,6 +477,9 @@ function renderFondeoDashboard() {
 
   renderFondeoTradesTable();
   updateFondeoEquityChart();
+  try {
+    syncFondeoUI();
+  } catch (e) {}
 }
 
 function getAssetBadge(asset) {
@@ -1051,7 +1061,8 @@ function setupFondeoTradeForm() {
     const slSuffix = document.getElementById('fondeoSlPointsSuffix');
     const dynamicFormula = document.getElementById('fondeoDynamicFormulaText');
 
-    if (levBadge) levBadge.textContent = '1:30 AUD/JPY';
+    const fLev = Number(appState.fondeo?.config?.leverage) || 30.0;
+    if (levBadge) levBadge.textContent = `1:${Math.round(fLev)} AUD/JPY`;
     if (slLabel) slLabel.textContent = 'Stop Loss en Pips (AUD/JPY)';
     if (slSuffix) slSuffix.textContent = 'PIPS';
 
@@ -1099,16 +1110,17 @@ function setupFondeoTradeForm() {
 
     const lot = parseFloat(lotEl?.value) || autoLot;
 
-    // Margin calculation (1:30 apalancamiento, contrato 100,000 AUD, AUD/USD ~0.6550)
-    const marginToUse = roundNum((100000.0 * 0.6550 * lot) / 30.0, 2);
+    // Margin calculation (apalancamiento dinámico, contrato 100,000 AUD, AUD/USD ~0.6550)
+    const marginToUse = roundNum((100000.0 * 0.6550 * lot) / fLev, 2);
     const marginPct = (marginToUse / curBal) * 100.0;
 
     if (marginDisp) marginDisp.textContent = `$${formatMoney(marginToUse)} (${marginPct.toFixed(1)}%)`;
     if (riskUsdDisp) riskUsdDisp.textContent = `$${formatMoney(dollarRisk)} (${riskPct.toFixed(2)}%)`;
 
+    const fondeoDailyLimitUsd = baseBal * 0.04;
     const dailyHeadroom = (appState.fondeo?.summary?.daily_loss_headroom !== undefined) 
       ? Number(appState.fondeo.summary.daily_loss_headroom) 
-      : 2000.0;
+      : fondeoDailyLimitUsd;
     const lossesAllowed = Math.floor(dailyHeadroom / Math.max(1, dollarRisk));
 
     if (safetyText) {
@@ -1117,7 +1129,7 @@ function setupFondeoTradeForm() {
         if (safetyBanner) safetyBanner.className = 'text-[11px] p-2 rounded-lg bg-rose-950/40 border border-rose-800/60 text-rose-300 flex items-center gap-1.5';
       } else {
         const symbolBadgeText = `AUD/JPY (${slValCustom} pips)`;
-        safetyText.innerHTML = `🛡️ <b>Riesgo Óptimo en ${symbolBadgeText}:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b>. Soportas <strong>${lossesAllowed} pérdidas seguidas</strong> hoy sin violar el 4% diario ($2,000).`;
+        safetyText.innerHTML = `🛡️ <b>Riesgo Óptimo en ${symbolBadgeText}:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b>. Soportas <strong>${lossesAllowed} pérdidas seguidas</strong> hoy sin violar el 4% diario ($${formatMoney(fondeoDailyLimitUsd)}).`;
         if (safetyBanner) safetyBanner.className = 'text-[11px] p-2 rounded-lg bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 flex items-center gap-1.5';
       }
     }
@@ -1660,7 +1672,7 @@ function populateSettingsModal() {
   // Real
   const rCfg = appState.real?.config || {};
   const rSummary = appState.real?.summary || {};
-  const rInitBal = rSummary.initial_balance !== undefined ? rSummary.initial_balance : (rCfg.initial_balance || 92.08);
+  const rInitBal = rCfg.initial_balance !== undefined ? rCfg.initial_balance : (rSummary.initial_balance || 92.08);
   const rBalInp = document.getElementById('settingRealInitialBalance');
   if (rBalInp) rBalInp.value = Number(rInitBal).toFixed(2);
   const rRiskInp = document.getElementById('settingRealRiskPct');
@@ -1669,13 +1681,288 @@ function populateSettingsModal() {
   if (rLevInp) rLevInp.value = Math.round(Number(rCfg.leverage || 300));
 
   // Backtest
-  const bCfg = appState.config || {};
+  const bCfg = appState.backtest?.config || appState.config || {};
   const bBalInp = document.getElementById('settingBacktestInitialBalance');
   if (bBalInp) bBalInp.value = Number(bCfg.initial_balance || 1000.0).toFixed(2);
   const bRiskInp = document.getElementById('settingBacktestRiskPct');
   if (bRiskInp) bRiskInp.value = Number(bCfg.risk_pct || 1.0).toFixed(2);
   const bLevInp = document.getElementById('settingBacktestLeverage');
   if (bLevInp) bLevInp.value = Math.round(Number(bCfg.leverage || 30));
+}
+
+// ----------------------------------------------------
+// UI Synchronization Engine for All Accounts
+// ----------------------------------------------------
+function syncFondeoUI() {
+  const fCfg = appState.fondeo?.config || {};
+  const fInitBal = Number(fCfg.initial_balance || 50000.0);
+  const fRiskPct = Number(fCfg.risk_pct || 0.50);
+  const fLev = Number(fCfg.leverage || 30.0);
+  const summary = appState.fondeo?.summary || {};
+  const orion = summary.orion_metrics || {};
+
+  const curBal = (summary.current_balance !== undefined && summary.current_balance !== null) 
+    ? Number(summary.current_balance) 
+    : fInitBal;
+
+  const profitTargetUsd = Number(orion.profit_target_usd || orion.target_profit_usd || (fInitBal * 0.04));
+  const targetBal = Number(orion.target_balance || (fInitBal + profitTargetUsd));
+  const dailyLimitUsd = Number(orion.daily_loss_limit_usd || orion.daily_limit_usd || (fInitBal * 0.04));
+  const maxDdUsd = Number(orion.max_loss_usd || (fInitBal * 0.08));
+  const trailingFloor = Number(orion.trailing_floor !== undefined ? orion.trailing_floor : (fInitBal - maxDdUsd));
+  const dailyHeadroom = Number(orion.daily_loss_headroom !== undefined ? orion.daily_loss_headroom : dailyLimitUsd);
+  const maxDdHeadroom = Number(orion.max_loss_headroom !== undefined ? orion.max_loss_headroom : maxDdUsd);
+  const todayLoss = Number(orion.today_loss_usd !== undefined ? orion.today_loss_usd : (orion.today_loss || 0.0));
+  const remTarget = Number(orion.remaining_target !== undefined ? orion.remaining_target : Math.max(0, targetBal - curBal));
+  const progPct = Number(orion.target_progress_pct !== undefined ? orion.target_progress_pct : Math.max(0, Math.min(100, ((curBal - fInitBal) / profitTargetUsd) * 100)));
+
+  // Subtitle & Header Badges
+  const subEl = document.getElementById('badgeFondeoSubtitle');
+  if (subEl) subEl.textContent = `INTERÉS SIMPLE ($${formatMoney(fInitBal)} BASE)`;
+
+  const capEl = document.getElementById('badgeFondeoCapital');
+  if (capEl) capEl.textContent = `$${formatMoney(fInitBal)}`;
+
+  const targetBadge = document.getElementById('badgeFondeoTarget');
+  if (targetBadge) targetBadge.textContent = `+$${formatMoney(profitTargetUsd)} ($${formatMoney(targetBal)})`;
+
+  const dailyBadge = document.getElementById('badgeFondeoDailyLimit');
+  if (dailyBadge) dailyBadge.textContent = `-$${formatMoney(dailyLimitUsd)}`;
+
+  const maxLossBadge = document.getElementById('badgeFondeoMaxLoss');
+  if (maxLossBadge) maxLossBadge.textContent = `-$${formatMoney(maxDdUsd)} (Trailing-Lock)`;
+
+  const levBadge = document.getElementById('badgeFondeoLeverage');
+  if (levBadge) levBadge.textContent = `1:${Math.round(fLev)} AUD/JPY`;
+
+  // Card 1: Balance & Meta
+  const curBalEl = document.getElementById('fondeoCurrentBalance');
+  if (curBalEl) curBalEl.textContent = `$${formatMoney(curBal)}`;
+
+  const targetAmountEl = document.getElementById('fondeoTargetAmountDisplay');
+  if (targetAmountEl) targetAmountEl.textContent = `$${formatMoney(targetBal)}`;
+
+  const remTargetEl = document.getElementById('fondeoRemainingTarget');
+  if (remTargetEl) {
+    if (remTarget <= 0) {
+      remTargetEl.textContent = `¡Meta $${formatMoney(profitTargetUsd)} alcanzada!`;
+      remTargetEl.className = 'text-xs text-emerald-400 font-bold';
+    } else {
+      remTargetEl.textContent = `$${formatMoney(remTarget)}`;
+      remTargetEl.className = 'text-amber-400 font-mono';
+    }
+  }
+
+  const progBar = document.getElementById('fondeoTargetProgressBar');
+  if (progBar) progBar.style.width = `${Math.min(100, Math.max(0, progPct))}%`;
+
+  const progBadge = document.getElementById('fondeoTargetPctBadge');
+  if (progBadge) progBadge.textContent = `${progPct.toFixed(1)}% Meta`;
+
+  // Card 2: Pérdida Diaria
+  const dailyTitle = document.getElementById('fondeoDailyLossTitle');
+  if (dailyTitle) dailyTitle.textContent = `Pérdida Diaria (Máx $${formatMoney(dailyLimitUsd)})`;
+
+  const dailyHeadroomEl = document.getElementById('fondeoDailyHeadroom');
+  if (dailyHeadroomEl) dailyHeadroomEl.textContent = `$${formatMoney(dailyHeadroom)}`;
+
+  const todayLossEl = document.getElementById('fondeoTodayLoss');
+  if (todayLossEl) todayLossEl.textContent = `$${formatMoney(todayLoss)}`;
+
+  const dailyBar = document.getElementById('fondeoDailyHealthBar');
+  if (dailyBar && dailyLimitUsd > 0) {
+    const health = Math.min(100, Math.max(0, (dailyHeadroom / dailyLimitUsd) * 100));
+    dailyBar.style.width = `${health}%`;
+  }
+
+  // Card 3: Trailing Floor & Max DD
+  const floorEl = document.getElementById('fondeoTrailingFloor');
+  if (floorEl) floorEl.textContent = `$${formatMoney(trailingFloor)}`;
+
+  const maxDdHeadroomEl = document.getElementById('fondeoMaxDdHeadroom');
+  if (maxDdHeadroomEl) maxDdHeadroomEl.textContent = `$${formatMoney(maxDdHeadroom)}`;
+
+  const floorExp = document.getElementById('fondeoFloorExplanation');
+  if (floorExp) {
+    floorExp.innerHTML = `El piso sube con el pico de balance y se <strong>bloquea fijo en $${formatMoney(fInitBal)}</strong> al pasar a profit.`;
+  }
+
+  // Card 4: Margen y Apalancamiento
+  const freeMarginEl = document.getElementById('fondeoFreeMargin');
+  if (freeMarginEl) freeMarginEl.textContent = `$${formatMoney(curBal)}`;
+
+  const cardLev = document.getElementById('badgeFondeoCardLev');
+  if (cardLev) cardLev.textContent = `Apal. 1:${Math.round(fLev)} AUD/JPY`;
+
+  const margin1Lot = Math.round((100000.0 * 0.6550) / fLev);
+  const cardMarginExp = document.getElementById('fondeoCardMarginExplanation');
+  if (cardMarginExp) {
+    cardMarginExp.innerHTML = `1 lote AUD/JPY requiere <strong>~$${formatMoney(margin1Lot)} USD</strong> de margen (1:${Math.round(fLev)}). Margen protegido para control estricto.`;
+  }
+
+  // Formulario de Fondeo: Badges y Select de Riesgo
+  const formBalBadge = document.getElementById('fondeoFormBaseBalBadge');
+  if (formBalBadge) {
+    const kText = (fInitBal >= 1000) ? `${Math.round(fInitBal / 1000)}k` : `${Math.round(fInitBal)}`;
+    formBalBadge.textContent = `⚡ Interés Simple ($${kText})`;
+  }
+
+  const formLevBadge = document.getElementById('fondeoFormLevBadge');
+  if (formLevBadge) formLevBadge.textContent = `1:${Math.round(fLev)}`;
+
+  const assetLevBadge = document.getElementById('fondeoAssetLevBadge');
+  if (assetLevBadge) assetLevBadge.textContent = `1:${Math.round(fLev)} AUD/JPY`;
+
+  // Selector Dinámico de Riesgo % Fondeo
+  const selRisk = document.getElementById('fondeoFormRiskPct');
+  if (selRisk) {
+    const prevVal = selRisk.value;
+    const r025Usd = Math.round(fInitBal * 0.0025);
+    const r050Usd = Math.round(fInitBal * 0.0050);
+    const r075Usd = Math.round(fInitBal * 0.0075);
+    const r100Usd = Math.round(fInitBal * 0.0100);
+    const rCfgUsd = Math.round(fInitBal * (fRiskPct / 100.0));
+
+    const stdOptions = [
+      { val: '0.25', label: `0.25% ($${formatMoney(r025Usd)} - Conservador)` },
+      { val: '0.5', label: `0.50% ($${formatMoney(r050Usd)} - Recomendado)` },
+      { val: '0.75', label: `0.75% ($${formatMoney(r075Usd)} - Moderado)` },
+      { val: '1.0', label: `1.00% ($${formatMoney(r100Usd)} - Límite Máx)` }
+    ];
+
+    const matchStd = stdOptions.find(o => Math.abs(parseFloat(o.val) - fRiskPct) < 0.001);
+    let optionsHtml = '';
+    stdOptions.forEach(o => {
+      optionsHtml += `<option value="${o.val}">${o.label}</option>`;
+    });
+
+    if (!matchStd && fRiskPct > 0) {
+      optionsHtml += `<option value="${fRiskPct}">${fRiskPct.toFixed(2)}% ($${formatMoney(rCfgUsd)} - Configurado)</option>`;
+    }
+    optionsHtml += `<option value="manual">Manual ($ USD)</option>`;
+    selRisk.innerHTML = optionsHtml;
+
+    if (prevVal === 'manual') {
+      selRisk.value = 'manual';
+    } else if (matchStd) {
+      selRisk.value = matchStd.val;
+    } else {
+      selRisk.value = String(fRiskPct);
+    }
+  }
+
+  if (typeof updateFondeoCalculation === 'function') {
+    try {
+      updateFondeoCalculation();
+    } catch (e) {}
+  }
+}
+
+function syncRealUI() {
+  const rCfg = appState.real?.config || {};
+  const rInitBal = Number(rCfg.initial_balance || 92.08);
+  const rRiskPct = Number(rCfg.risk_pct || 1.0);
+  const rLev = Number(rCfg.leverage || 300.0);
+  const summary = appState.real?.summary || {};
+  const trades = appState.real?.trades || [];
+
+  const curBal = (summary.current_balance !== undefined && summary.current_balance !== null)
+    ? Number(summary.current_balance)
+    : (trades.length === 0 ? rInitBal : (rCfg.initial_balance || 92.08));
+
+  // Header & Calculator Leverage Badges
+  const headerLev = document.getElementById('badgeRealHeaderLeverage');
+  if (headerLev) headerLev.textContent = `Apalancamiento 1:${Math.round(rLev)}`;
+
+  const calcLev = document.getElementById('badgeRealCalcLeverage');
+  if (calcLev) {
+    calcLev.innerHTML = `<i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i><span>TradingView · Broker 1:${Math.round(rLev)}</span>`;
+  }
+
+  // Real Header Live Balance
+  const liveBalHeader = document.getElementById('realLiveBalHeader');
+  if (liveBalHeader) liveBalHeader.textContent = `$${curBal.toFixed(2)}`;
+
+  const topBal = document.getElementById('badgeTopRealBalance');
+  if (topBal) topBal.textContent = `$${curBal.toFixed(2)}`;
+
+  // Inputs de la calculadora rápida de posición TradingView
+  const balInp = document.getElementById('realCalcBalance');
+  if (balInp && document.activeElement !== balInp) {
+    balInp.value = curBal.toFixed(2);
+  }
+
+  const riskInp = document.getElementById('realCalcRiskPct');
+  if (riskInp && document.activeElement !== riskInp) {
+    riskInp.value = rRiskPct.toFixed(1);
+  }
+
+  // Dashboard Stats
+  const statBal = document.getElementById('realStatBalance');
+  if (statBal) statBal.textContent = `$${curBal.toFixed(2)}`;
+
+  const statInit = document.getElementById('realStatInitBal');
+  if (statInit) statInit.textContent = Number(rInitBal).toFixed(2);
+
+  if (typeof renderRealJournalDashboard === 'function') {
+    try {
+      renderRealJournalDashboard();
+    } catch (e) {}
+  }
+
+  if (typeof recalculateRealQuickLot === 'function') {
+    try {
+      recalculateRealQuickLot();
+    } catch (e) {}
+  }
+}
+
+function syncBacktestUI() {
+  const bCfg = appState.backtest?.config || appState.config || {};
+  const bInitBal = Number(bCfg.initial_balance || 1000.0);
+  const bRiskPct = Number(bCfg.risk_pct || 1.0);
+  const bLev = Number(bCfg.leverage || 30.0);
+
+  // Inputs en el panel de Backtesting Simple
+  const inpBal = document.getElementById('btSimpleInitialBalance');
+  if (inpBal && document.activeElement !== inpBal) {
+    inpBal.value = bInitBal.toFixed(2);
+  }
+
+  const inpRisk = document.getElementById('btSimpleRiskPct');
+  if (inpRisk && document.activeElement !== inpRisk) {
+    inpRisk.value = bRiskPct.toFixed(1);
+  }
+
+  // Leverage Badge en Backtest
+  const levBadge = document.getElementById('badgeBacktestLeverage');
+  if (levBadge) levBadge.textContent = `Apalancamiento 1:${Math.round(bLev)}`;
+
+  if (typeof updateBacktestSimplePreviews === 'function') {
+    try {
+      updateBacktestSimplePreviews();
+    } catch (e) {}
+  }
+
+  if (typeof renderBacktestSimpleDashboard === 'function') {
+    try {
+      renderBacktestSimpleDashboard();
+    } catch (e) {}
+  }
+
+  if (typeof updateBacktestSimpleCharts === 'function') {
+    try {
+      updateBacktestSimpleCharts();
+    } catch (e) {}
+  }
+}
+
+function syncAllAccountsUI() {
+  syncFondeoUI();
+  syncRealUI();
+  syncBacktestUI();
+  populateSettingsModal();
+  initIcons();
 }
 
 async function loadConfig() {
@@ -1685,9 +1972,12 @@ async function loadConfig() {
       const data = await res.json();
       if (data.fondeo) appState.fondeo.config = Object.assign({}, appState.fondeo.config, data.fondeo);
       if (data.real) appState.real.config = Object.assign({}, appState.real.config, data.real);
-      if (data.backtest) appState.config = Object.assign({}, appState.config, data.backtest);
+      if (data.backtest) {
+        appState.config = Object.assign({}, appState.config, data.backtest);
+        appState.backtest.config = Object.assign({}, appState.backtest.config, data.backtest);
+      }
       populateSettingsModal();
-      updateConfigUI();
+      syncAllAccountsUI();
     }
   } catch (err) {
     console.warn('Config local:', err);
@@ -2355,17 +2645,22 @@ async function loadBacktestSimpleData() {
     if (resConfig.ok) {
       const cfg = await resConfig.json();
       appState.backtest.config = cfg;
+      appState.config = Object.assign({}, appState.config, cfg);
       const inpBal = document.getElementById('btSimpleInitialBalance');
-      if (inpBal && (!inpBal.value || document.activeElement !== inpBal)) {
-        inpBal.value = cfg.initial_balance !== undefined ? cfg.initial_balance : 1000.0;
+      if (inpBal && document.activeElement !== inpBal) {
+        inpBal.value = cfg.initial_balance !== undefined ? Number(cfg.initial_balance).toFixed(2) : '1000.00';
       }
       const inpRr = document.getElementById('btSimpleRR');
-      if (inpRr && (!inpRr.value || document.activeElement !== inpRr)) {
+      if (inpRr && document.activeElement !== inpRr) {
         inpRr.value = cfg.rr_ratio !== undefined ? cfg.rr_ratio : 3.0;
       }
       const inpRisk = document.getElementById('btSimpleRiskPct');
-      if (inpRisk && (!inpRisk.value || document.activeElement !== inpRisk)) {
-        inpRisk.value = cfg.risk_pct !== undefined ? cfg.risk_pct : 1.0;
+      if (inpRisk && document.activeElement !== inpRisk) {
+        inpRisk.value = cfg.risk_pct !== undefined ? Number(cfg.risk_pct).toFixed(1) : '1.0';
+      }
+      const levBadge = document.getElementById('badgeBacktestLeverage');
+      if (levBadge) {
+        levBadge.textContent = `Apalancamiento 1:${Math.round(cfg.leverage || 30)}`;
       }
     }
 
@@ -2376,8 +2671,7 @@ async function loadBacktestSimpleData() {
       appState.backtest.trades = data.trades || [];
     }
 
-    updateBacktestSimplePreviews();
-    renderBacktestSimpleDashboard();
+    syncBacktestUI();
   } catch (err) {
     console.error('Error cargando backtesting simple:', err);
   }
@@ -3529,9 +3823,9 @@ function triggerBacktestPdfDownload() {
 function renderRealJournalDashboard() {
   const s = appState.real.summary || {};
   const trades = appState.real.trades || [];
-  const cfg = appState.config || {};
-  
-  const curBal = s.current_balance !== undefined ? s.current_balance : cfg.initial_balance;
+  const cfg = appState.real?.config || {};
+  const rInit = Number(cfg.initial_balance || 92.08);
+  const curBal = s.current_balance !== undefined ? s.current_balance : rInit;
   const netPnl = s.net_pnl !== undefined ? s.net_pnl : 0.0;
   const netRet = s.net_return_pct !== undefined ? s.net_return_pct : 0.0;
   const winRate = s.win_rate !== undefined ? s.win_rate : 0.0;
@@ -3564,6 +3858,14 @@ function renderRealJournalDashboard() {
   const initBalVal = s.initial_balance !== undefined ? s.initial_balance : (cfg.initial_balance || 92.08);
   const realStatInitBal = document.getElementById('realStatInitBal');
   if (realStatInitBal) realStatInitBal.textContent = Number(initBalVal).toFixed(2);
+
+  const rLev = Number(cfg.leverage || 300);
+  const badgeRealLev = document.getElementById('badgeRealHeaderLeverage');
+  if (badgeRealLev) badgeRealLev.textContent = `Apalancamiento 1:${Math.round(rLev)}`;
+  const badgeRealCalcLev = document.getElementById('badgeRealCalcLeverage');
+  if (badgeRealCalcLev) {
+    badgeRealCalcLev.innerHTML = `<i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i><span>TradingView · Broker 1:${Math.round(rLev)}</span>`;
+  }
   
   const badgeRealMt5 = document.getElementById('badgeRealMt5');
   if (badgeRealMt5) {
@@ -3814,10 +4116,19 @@ function recalculateRealQuickLot() {
   const actualRewardPct = bal > 0 ? (actualRewardUsd / bal) * 100.0 : 0.0;
   const tpPts = Math.round(slPts * rr);
 
-  // Margen en TradingView (Apalancamiento 1:300 para AUD/JPY: 100,000 AUD * 0.6550 USD / 300 = ~$218.33 USD por lote)
-  const marginRequired = roundNum((100000.0 * 0.6550 * recommendedLot) / 300.0, 2);
+  // Margen en TradingView (Apalancamiento dinámico para AUD/JPY: 100,000 AUD * 0.6550 USD / Leverage)
+  const rLev = Number(appState.real?.config?.leverage) || 300.0;
+  const marginRequired = roundNum((100000.0 * 0.6550 * recommendedLot) / rLev, 2);
   const currentPtVal = roundNum(recommendedLot * pointValue, 2);
   const units = Math.round(recommendedLot * 100000);
+
+  const headerLev = document.getElementById('badgeRealHeaderLeverage');
+  if (headerLev) headerLev.textContent = `Apalancamiento 1:${Math.round(rLev)}`;
+
+  const calcLev = document.getElementById('badgeRealCalcLeverage');
+  if (calcLev) {
+    calcLev.innerHTML = `<i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i><span>TradingView · Broker 1:${Math.round(rLev)}</span>`;
+  }
 
   // Elementos del Hero
   const heroLotEl = document.getElementById('realTickmillHeroLot');
@@ -5774,6 +6085,7 @@ async function handleSaveSettings() {
       // 3. Actualizar Backtesting
       if (results.backtest) {
         appState.config = Object.assign({}, appState.config, results.backtest.config);
+        appState.backtest.config = Object.assign({}, appState.backtest.config, results.backtest.config);
         if (results.backtest.analytics) {
           appState.backtest.summary = results.backtest.analytics.summary || {};
           appState.backtest.trades = results.backtest.analytics.trades || [];
@@ -5781,30 +6093,12 @@ async function handleSaveSettings() {
         }
       }
 
-      // Sincronizar inputs interactivos en pantalla
-      const realBalInp = document.getElementById('realCalcBalance');
-      if (realBalInp && appState.real.summary?.current_balance !== undefined) {
-        realBalInp.value = Number(appState.real.summary.current_balance).toFixed(2);
-      }
-      const realRiskInp = document.getElementById('realCalcRiskPct');
-      if (realRiskInp) {
-        realRiskInp.value = realRisk.toFixed(1);
-      }
-
-      // Re-renderizar dashboards y calculadoras
-      renderFondeoDashboard();
-      renderRealJournalDashboard();
-      recalculateRealQuickLot();
-      renderBacktestDashboard();
-      recalculateTradingViewValues();
-      populateSettingsModal();
-      try {
-        updateConfigUI();
-      } catch (e) {}
+      // Sincronización Integral Reactiva de Todas las Cuentas
+      syncAllAccountsUI();
 
       const modalSettings = document.getElementById('modalSettings');
       if (modalSettings) modalSettings.classList.add('hidden');
-      showToast('✅ Parámetros de Fondeo, Real y Backtesting guardados.', 'success', 3500);
+      showToast('✅ Parámetros de Fondeo, Real y Backtesting actualizados y sincronizados.', 'success', 3500);
     } else {
       showToast('Error al guardar configuración en servidor', 'error');
     }
