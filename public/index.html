@@ -58,9 +58,13 @@
         </div>
       </div>
 
-      <!-- Actions: Limpiar Todo & Config -->
+      <!-- Actions: Guardar Todo, Limpiar & Ajustes -->
       <div class="flex items-center gap-2">
         <div id="navNewsShieldBadge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold border transition cursor-default"></div>
+        <button id="btnSaveAllData" class="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-lg shadow-md shadow-emerald-600/30 transition flex items-center gap-1.5 cursor-pointer border border-emerald-400/40" title="Guardar todo: asegura todas las bitácoras y configuraciones en el servidor y memoria local (Atajo: Cmd+S o Ctrl+S)">
+          <i data-lucide="save" class="w-3.5 h-3.5"></i>
+          <span>Guardar Todo</span>
+        </button>
         <button id="btnClearData" class="px-2.5 py-1.5 bg-red-950/50 hover:bg-red-900/80 text-xs font-semibold rounded-lg border border-red-800/60 transition flex items-center gap-1.5 text-red-200 cursor-pointer" title="Reiniciar datos de la bitácora activa">
           <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
           <span>Limpiar</span>
@@ -4015,6 +4019,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261108_v37_persistence_safeguard"></script>
+<script src="app.js?v=20261108_v38_save_all_button"></script>
 </body>
 </html>

@@ -109,6 +109,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupPeriodFilterButtons();
   setupMonteCarloModal();
   setupBackupAndRestoreEvents();
+  setupSaveAllButton();
 });
 
 function initIcons() {
@@ -10687,4 +10688,100 @@ function setupBackupAndRestoreEvents() {
       }
     });
   }
+}
+
+// -------------------------------------------------------------
+// 7. Botón de Guardado General (Todas las Pestañas) & Cmd+S
+// -------------------------------------------------------------
+async function saveAllDashboardData(triggerSource = 'button') {
+  const btn = document.getElementById('btnSaveAllData');
+  let originalHtml = '';
+  if (btn) {
+    originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Guardando...</span>';
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  // 1. Recopilar todos los datos en memoria de las 3 bitácoras
+  const payload = {
+    configs: {
+      fondeo: appState.fondeo?.config || {},
+      real: appState.real?.config || {},
+      backtest: appState.backtest?.config || {}
+    },
+    trades: {
+      fondeo: appState.fondeo?.trades || [],
+      real: appState.real?.trades || [],
+      backtest: appState.backtest?.trades || []
+    }
+  };
+
+  // 2. Espejo preventivo en localStorage
+  try {
+    if (payload.trades.fondeo) localStorage.setItem('cached_fondeo_trades', JSON.stringify(payload.trades.fondeo));
+    if (payload.trades.real) localStorage.setItem('cached_real_trades_v2', JSON.stringify(payload.trades.real));
+    if (payload.trades.backtest) localStorage.setItem('cached_backtest_trades_v2', JSON.stringify(payload.trades.backtest));
+    localStorage.setItem('cached_app_config_all', JSON.stringify(payload.configs));
+    localStorage.setItem('last_saved_timestamp', new Date().toISOString());
+  } catch (e) {
+    console.warn('Advertencia al guardar espejo local:', e);
+  }
+
+  try {
+    const res = await fetch('/api/save-all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const fondeoCount = payload.trades.fondeo.length;
+      const realCount = payload.trades.real.length;
+      const btCount = payload.trades.backtest.length;
+
+      showToast(`💾 ¡Todo Guardado! Aseguradas: Fondeo (${fondeoCount}), Real (${realCount}) y Backtest (${btCount})`, 'success', 3500);
+
+      if (btn) {
+        btn.className = 'px-3.5 py-1.5 bg-emerald-600 text-white text-xs font-black rounded-lg shadow-lg shadow-emerald-500/40 transition flex items-center gap-1.5 cursor-pointer border border-emerald-300';
+        btn.innerHTML = '<i data-lucide="check-circle" class="w-3.5 h-3.5 text-white"></i><span>¡Todo Guardado!</span>';
+        if (window.lucide) window.lucide.createIcons();
+        setTimeout(() => {
+          btn.className = 'px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-lg shadow-md shadow-emerald-600/30 transition flex items-center gap-1.5 cursor-pointer border border-emerald-400/40';
+          btn.innerHTML = originalHtml;
+          btn.disabled = false;
+          if (window.lucide) window.lucide.createIcons();
+        }, 2200);
+      }
+    } else {
+      throw new Error(`Servidor status ${res.status}`);
+    }
+  } catch (err) {
+    console.error('Error al guardar todo:', err);
+    showToast('⚠️ Datos asegurados en la memoria de tu navegador (localStorage).', 'warning', 4000);
+    if (btn) {
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+      if (window.lucide) window.lucide.createIcons();
+    }
+  }
+}
+
+function setupSaveAllButton() {
+  const btnSaveAll = document.getElementById('btnSaveAllData');
+  if (btnSaveAll) {
+    btnSaveAll.addEventListener('click', (e) => {
+      e.preventDefault();
+      saveAllDashboardData('button');
+    });
+  }
+
+  // Atajo universal: Cmd + S o Ctrl + S
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) {
+      e.preventDefault();
+      saveAllDashboardData('shortcut');
+    }
+  });
 }

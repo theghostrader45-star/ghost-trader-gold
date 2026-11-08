@@ -2483,6 +2483,60 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 self.send_json({"error": str(e)}, 400)
             return
 
+        elif path == "/api/save-all":
+            try:
+                configs = payload.get("configs", payload.get("config", {}))
+                trades_data = payload.get("trades", {})
+
+                # Update & save configs if sent
+                for m in ["fondeo", "real", "backtest"]:
+                    if m in configs and isinstance(configs[m], dict):
+                        sub = configs[m]
+                        current_cfg = get_config(m)
+                        current_cfg.update({k: v for k, v in sub.items() if v is not None})
+                        save_config(current_cfg, m)
+
+                # Update & recalculate & save trades if sent
+                saved_counts = {}
+                for m in ["fondeo", "real", "backtest"]:
+                    if m in trades_data and isinstance(trades_data[m], list):
+                        cfg = get_config(m)
+                        recalc = recalculate_trade_history(trades_data[m], cfg, mode=m)
+                        save_trades(recalc, m)
+                        saved_counts[m] = len(recalc)
+                    else:
+                        saved_counts[m] = len(get_trades(m))
+
+                # Create safety snapshot in data/all_backup_latest.json
+                now_iso = datetime.now(timezone.utc).isoformat()
+                auto_snapshot = {
+                    "version": "3.5",
+                    "system": "Orion Nova & TradingView Dashboard",
+                    "asset": "AUD/JPY",
+                    "saved_at": now_iso,
+                    "configs": {
+                        "fondeo": get_config("fondeo"),
+                        "real": get_config("real"),
+                        "backtest": get_config("backtest")
+                    },
+                    "trades": {
+                        "fondeo": get_trades("fondeo"),
+                        "real": get_trades("real"),
+                        "backtest": get_trades("backtest")
+                    }
+                }
+                save_json(os.path.join(DATA_DIR, "all_backup_latest.json"), auto_snapshot)
+
+                self.send_json({
+                    "success": True,
+                    "message": "¡Todo guardado! Todas las bitácoras y configuraciones aseguradas en el servidor",
+                    "saved_at": now_iso,
+                    "counts": saved_counts
+                })
+            except Exception as e:
+                self.send_json({"error": str(e)}, 500)
+            return
+
         self.send_json({"error": "Endpoint not found"}, 404)
 
     def do_DELETE(self):
