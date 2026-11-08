@@ -10380,6 +10380,7 @@ function setupMonteCarloModal() {
   const modal = document.getElementById('modalMonteCarlo');
   const btnOpen = document.getElementById('btnOpenMonteCarlo');
   const btnClose = document.getElementById('btnCloseMonteCarlo');
+  const btnCloseBottom = document.getElementById('btnCloseMonteCarloBottom');
   const btnLoad = document.getElementById('btnMcLoadCurrentStats');
   const btnRun = document.getElementById('btnMcRunSim');
 
@@ -10387,24 +10388,36 @@ function setupMonteCarloModal() {
     btnOpen.addEventListener('click', (e) => {
       e.preventDefault();
       modal.classList.remove('hidden');
-      loadCurrentStatsIntoMonteCarlo();
-      runMonteCarloSimulation();
+      try {
+        loadCurrentStatsIntoMonteCarlo();
+        runMonteCarloSimulation();
+      } catch (err) {
+        console.error('Error iniciando Monte Carlo:', err);
+      }
       initIcons();
     });
   }
 
-  if (btnClose && modal) {
-    btnClose.addEventListener('click', (e) => {
-      e.preventDefault();
-      modal.classList.add('hidden');
-    });
-  }
+  [btnClose, btnCloseBottom].forEach(b => {
+    if (b && modal) {
+      b.addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.classList.add('hidden');
+      });
+    }
+  });
 
   if (modal) {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) modal.classList.add('hidden');
     });
   }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+      modal.classList.add('hidden');
+    }
+  });
 
   if (btnLoad) {
     btnLoad.addEventListener('click', (e) => {
