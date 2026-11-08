@@ -5847,10 +5847,9 @@ function updateMacroQuantIntelligence(data) {
   const adrDiag = document.getElementById("adrDiagnosticText");
 
   let consumedPts = 2650;
-  if (data.session_levels && data.session_levels.asian_range_pts) {
-    const aPts = (data.session_levels.asian_range_pts || 14) * 100;
-    const lPts = (data.session_levels.london_range_pts || 12) * 100;
-    consumedPts = Math.min(4500, Math.max(1800, Math.round((aPts + lPts) / 2)));
+  if (data.session_levels && data.session_levels.london_range_pts) {
+    const lPts = (data.session_levels.london_range_pts || 24) * 100;
+    consumedPts = Math.min(4500, Math.max(1800, Math.round(lPts * 1.1)));
   }
 
   const totalAdrPts = 5500;
@@ -5914,15 +5913,6 @@ function updateMacroQuantIntelligence(data) {
     if (ll && data.session_levels.london_low) ll.textContent = data.session_levels.london_low;
     if (lr && data.session_levels.london_range_pts) {
       lr.textContent = `${data.session_levels.london_range_pts.toLocaleString("en-US")} pts ($${(data.session_levels.london_range_pts/100).toFixed(2)})`;
-    }
-
-    const ah = document.getElementById("asianHighDisplay");
-    const al = document.getElementById("asianLowDisplay");
-    const ar = document.getElementById("asianRangeDisplay");
-    if (ah && data.session_levels.asian_high) ah.textContent = data.session_levels.asian_high;
-    if (al && data.session_levels.asian_low) al.textContent = data.session_levels.asian_low;
-    if (ar && data.session_levels.asian_range_pts) {
-      ar.textContent = `${data.session_levels.asian_range_pts.toLocaleString("en-US")} pts ($${(data.session_levels.asian_range_pts/100).toFixed(2)})`;
     }
 
     const pdh = document.getElementById("pdhDisplay");
@@ -7045,7 +7035,7 @@ async function triggerPremarketScan() {
   const steps = [
     { id: "scanStep1", name: "1. Noticias Macro (12h)", pct: "18%" },
     { id: "scanStep2", name: "2. Calendario UTC-5 & Bloqueo", pct: "36%" },
-    { id: "scanStep3", name: "3. Cierre Anterior & Asia/Londres", pct: "54%" },
+    { id: "scanStep3", name: "3. Cierre Anterior & Sesión de Londres", pct: "54%" },
     { id: "scanStep4", name: "4. Mapa Técnico & ADR 14", pct: "72%" },
     { id: "scanStep5", name: "5. Plan de Sesión New York", pct: "90%" },
     { id: "scanStep6", name: "6. Riesgos & Regla de Oro", pct: "100%" }
@@ -7147,11 +7137,10 @@ Gestión: Orion Nova 50K (0.50% / $250 - Máx 1.00%) · Bloqueo ±15 min noticia
 • 10:00 AM (UTC-5 NY) | USD | Confianza Univ. Michigan | MEDIO | Exp: 70.8 | Prev: 70.5 | ⚠️ Pausa táctica 09:45 – 10:15 AM
 • 01:00 PM (UTC-5 NY) | USD | Subasta Tesoro 10 Años (US10Y) | BAJO | Prev: 4.35% | Fuera de Killzone principal
 
-3. CIERRE ANTERIOR & ASIA/LONDRES:
+3. CIERRE ANTERIOR & SESIÓN DE LONDRES:
 • Cierre Ayer: $2,725.80 (-0.65% / -$17.80 USD) | Rango: $29.70 (2,970 pts) | Posición: Parte Baja (35%)
 • Máximo (PDH): $2,748.20 | Mínimo (PDL): $2,718.50
-• Sesión Asiática: Rango estrecho ($2,721.80 – $2,729.40), compresión de liquidez sin dirección definida.
-• Sesión de Londres: Barrió liquidez hasta $2,731.50 y fue absorbido con ventas institucionales hacia $2,724.00.
+• Sesión de Londres: Barrió liquidez previa hasta $2,731.50 y fue absorbido con ventas institucionales hacia $2,724.00.
 • Veredicto: Movimiento de CONTINUACIÓN BAJISTA respecto a los últimos días tras rechazo en $2,750+.
 
 4. MAPA TÉCNICO DE XAU/USD:
@@ -7225,12 +7214,12 @@ function startMarketClock() {
 
     const newsCurrentSession = document.getElementById("newsCurrentSession");
     if (newsCurrentSession) {
-      let sessionName = "Mercado Asiático / Pre-Londres";
+      let sessionName = "Pre-Londres (Fuera de Horario)";
       if (session.hour >= 3 && session.hour < 8) sessionName = "Sesión Londres (03:00 - 08:00 NY)";
       else if (session.hour >= 8 && (session.hour < 11 || (session.hour === 11 && session.min <= 30))) sessionName = "New York Killzone (08:00 - 11:30 NY)";
       else if (session.hour >= 11 && session.hour < 13) sessionName = "London Fix & Post-Killzone";
       else if (session.hour >= 13 && session.hour < 17) sessionName = "Sesión Tarde New York";
-      else sessionName = "Mercado Asiático (Cierre NY)";
+      else sessionName = "Mercado Fuera de Sesión (Cierre NY)";
       newsCurrentSession.textContent = sessionName;
     }
 
@@ -7290,7 +7279,7 @@ function startMarketClock() {
         guardCountdown.textContent = session.countdownText;
       }
       if (guardHeadline) {
-        guardHeadline.innerHTML = `El mercado Spot de Oro se encuentra fuera de la <strong>Ventana Dorada de New York</strong> (08:00 AM – 11:30 AM NY). En horas asiáticas o madrugada el volumen interbancario cae un 80% y los spreads se ensanchan. <strong>Disciplina: No regales tu dinero operando fuera de sesión.</strong>`;
+        guardHeadline.innerHTML = `El mercado Spot de Oro se encuentra fuera de la <strong>Ventana Dorada de New York</strong> (08:00 AM – 11:30 AM NY). Fuera de este horario el volumen interbancario cae drásticamente y los spreads se ensanchan. <strong>Disciplina: No regales tu dinero operando fuera de sesión.</strong>`;
       }
     }
 
@@ -7331,14 +7320,14 @@ function startMarketClock() {
         }
         if (precBadge) {
           precBadge.className = "px-3 py-1 rounded-lg bg-rose-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse";
-          precBadge.innerHTML = '<i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i><span>NO OPERAR · MERCADO FUERA DE NY (ASIA EN CURSO)</span>';
+          precBadge.innerHTML = '<i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i><span>NO OPERAR · MERCADO FUERA DE HORARIO NY</span>';
         }
         if (precCountdown) {
           precCountdown.textContent = session.countdownText;
           precCountdown.className = "text-xs font-mono font-bold text-rose-300";
         }
         if (precHeadline) {
-          precHeadline.innerHTML = `El oro en la sesión asiática acumula en rangos estrechos ($6 – $12) y los brokers amplían los spreads. <strong>Prohibido operar en Asia. El 80% del volumen y los movimientos de R:R 1:2 y 1:3 ocurren en New York.</strong>`;
+          precHeadline.innerHTML = `Mercado fuera de la ventana operativa autorizada. Spreads ensanchados y bajo volumen interbancario. <strong>El 80% del volumen y los movimientos de R:R 1:2 y 1:3 ocurren exclusivamente en New York (08:00 – 11:30 UTC-5).</strong>`;
         }
       }
     }
@@ -7349,7 +7338,7 @@ function startMarketClock() {
     if (tBadgeLive && tTextLive) {
       if (!session.isInSession) {
         tBadgeLive.className = "px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 bg-rose-950 text-rose-300 border border-rose-600/80 shadow-md animate-pulse";
-        tTextLive.textContent = `🚫 FUERA DE NY (NO OPERAR EN ASIA) · ${session.countdownText}`;
+        tTextLive.textContent = `🚫 FUERA DE HORARIO NY · ${session.countdownText}`;
       } else if (currentPrecisionRadarData && currentPrecisionRadarData.precision_radar && currentPrecisionRadarData.precision_radar.execution_ticket) {
         const liveTicket = currentPrecisionRadarData.precision_radar.execution_ticket;
         tTextLive.textContent = liveTicket.state_label;

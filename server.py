@@ -220,7 +220,7 @@ def execute_premarket_scan():
         "checklist": [
             "1. Noticias Macro (12h): Superávit laboral en EE.UU., tono Hawkish de la Fed y soporte físico PBoC analizados.",
             "2. Calendario Económico (UTC-5 NY): Ventana crítica NFP (08:15 a 08:45 AM NY) confirmada con regla estricta de NO OPERAR.",
-            "3. Cierre Anterior & Asia/Londres: Cierre en parte baja del rango ($2,725.80) y absorción de liquidez en Londres ($2,731.50) mapeados.",
+            "3. Cierre Anterior & Sesión de Londres: Cierre en parte baja del rango ($2,725.80) y absorción de liquidez en Londres ($2,731.50) mapeados.",
             "4. Mapa Técnico M15/H1: Tendencia bajista activa, niveles PDH/PDL y consumo de ADR 14 (38.2%) calculados.",
             "5. Plan de Sesión NY: Venta en retroceso a FVG M15 ($2,731.50 – $2,733.50) con SL $2,736.50 y TP $2,718.50 (R:R 1:3.0 a 1:4.2).",
             "6. Riesgos & Regla de Oro: Correlaciones DXY/US10Y/VIX y gatillo de inactivación por dilatación de spreads validados."
@@ -267,9 +267,9 @@ def generate_synthetic_historical_bias(date_str):
             "macro_summary": "Sin operativa institucional activa. Las mesas de dinero de bancos y fondos de cobertura reanudan operaciones el domingo a las 18:00 NY.",
             "catalyst": "Cierre Semanal de Mercados",
             "session_levels": {
-                "asian_high": "2,745.00",
-                "asian_low": "2,735.00",
-                "asian_range_pts": 1000,
+                "london_high": "2,745.00",
+                "london_low": "2,735.00",
+                "london_range_pts": 1000,
                 "pdh": "2,752.00",
                 "pdl": "2,730.00",
                 "pd_range_pts": 2200
@@ -343,9 +343,6 @@ def generate_synthetic_historical_bias(date_str):
             "london_high": f"{lh:,.2f}",
             "london_low": f"{ll:,.2f}",
             "london_range_pts": l_range_pts,
-            "asian_high": f"{ah:,.2f}",
-            "asian_low": f"{al:,.2f}",
-            "asian_range_pts": range_pts,
             "pdh": f"{pdh:,.2f}",
             "pdl": f"{pdl:,.2f}",
             "pd_range_pts": pd_range

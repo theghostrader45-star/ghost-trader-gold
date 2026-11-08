@@ -460,10 +460,10 @@ def calculate_precision_radar(current_price=None, daily_bias="BEARISH", session_
                 lh = float(str(session_levels["london_high"]).replace(",", ""))
                 if abs(lh - current_price) < 150:
                     sweep_high = max(sweep_high, lh)
-            if "asian_low" in session_levels:
-                al = float(str(session_levels["asian_low"]).replace(",", ""))
-                if abs(al - current_price) < 150:
-                    sweep_low = min(sweep_low, al)
+            if "london_low" in session_levels:
+                ll = float(str(session_levels["london_low"]).replace(",", ""))
+                if abs(ll - current_price) < 150:
+                    sweep_low = min(sweep_low, ll)
         except Exception:
             pass
             

@@ -146,7 +146,7 @@ def sync_mt5_closed_deals(closed_deals):
             elif 8 <= hour < 17:
                 session = "New York"
             else:
-                session = "Asia"
+                session = "Fuera de Horario"
         except Exception:
             session = "New York"
 
