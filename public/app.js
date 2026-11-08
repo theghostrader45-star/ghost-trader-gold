@@ -177,7 +177,7 @@ function formatMoney(val) {
 }
 
 // ----------------------------------------------------
-// TAB NAVIGATION: 1. Fondeo Orion 50K | 2. Bitácora Real (Tickmill) | 3. Noticias | 4. Backtest Simple
+// TAB NAVIGATION: 1. Fondeo Orion 50K | 2. Bitácora Real (TradingView) | 3. Noticias | 4. Backtest Simple
 // ----------------------------------------------------
 function setupTabNavigation() {
   const btnFondeo = document.getElementById('tabBtnFondeo');
@@ -3213,7 +3213,7 @@ function renderRealJournalDashboard() {
   const badgeRealMt5 = document.getElementById('badgeRealMt5');
   if (badgeRealMt5) {
     if (s.mt5_connected) {
-      badgeRealMt5.textContent = `🟢 MT5 (${s.broker || 'Tickmill'})`;
+      badgeRealMt5.textContent = `🟢 Conectado (${s.broker || 'TradingView'})`;
       badgeRealMt5.classList.remove('hidden');
     } else {
       badgeRealMt5.classList.add('hidden');
@@ -3459,20 +3459,24 @@ function recalculateRealQuickLot() {
   const actualRewardPct = bal > 0 ? (actualRewardUsd / bal) * 100.0 : 0.0;
   const tpPts = Math.round(slPts * rr);
 
-  // Margen en Tickmill (Apalancamiento 1:300 para AUD/JPY: 100,000 AUD * 0.6550 USD / 300 = ~$218.33 USD por lote)
+  // Margen en TradingView (Apalancamiento 1:300 para AUD/JPY: 100,000 AUD * 0.6550 USD / 300 = ~$218.33 USD por lote)
   const marginRequired = roundNum((100000.0 * 0.6550 * recommendedLot) / 300.0, 2);
   const currentPtVal = roundNum(recommendedLot * pointValue, 2);
+  const units = Math.round(recommendedLot * 100000);
 
   // Elementos del Hero
   const heroLotEl = document.getElementById('realTickmillHeroLot');
   if (heroLotEl) heroLotEl.textContent = recommendedLot.toFixed(2);
+
+  const heroUnitsEl = document.getElementById('realHeroUnits');
+  if (heroUnitsEl) heroUnitsEl.textContent = units.toLocaleString();
 
   const heroRiskEl = document.getElementById('realHeroRiskUsd');
   if (heroRiskEl) heroRiskEl.textContent = `-$${formatMoney(actualRiskUsd)} (-${actualRiskPct.toFixed(2)}%)`;
 
   const heroSlSub = document.getElementById('realHeroSlSub');
   if (heroSlSub) {
-    heroSlSub.textContent = `${slPts} pips`;
+    heroSlSub.textContent = `${slPts} pips (${slPts * 10} ticks)`;
   }
 
   const heroRewardEl = document.getElementById('realHeroRewardUsd');
@@ -3499,17 +3503,17 @@ function recalculateRealQuickLot() {
 
   const formulaExpEl = document.getElementById('realFormulaExplanation');
   if (formulaExpEl) {
-    formulaExpEl.innerHTML = `Fórmula Tickmill AUD/JPY: <code>${formulaText} = <b>${recommendedLot.toFixed(2)} lotes</b></code>`;
+    formulaExpEl.innerHTML = `Fórmula TradingView AUD/JPY: <code>${formulaText} = <b>${recommendedLot.toFixed(2)} lotes (${units.toLocaleString()} unidades)</b></code>`;
   }
 
   const riskBadge = document.getElementById('realCalcRiskUsdBadge');
   if (riskBadge) riskBadge.textContent = `$${formatMoney(dollarRisk)} USD`;
 
   const slBadge = document.getElementById('realCalcSlDistBadge');
-  if (slBadge) slBadge.textContent = `${slPts} pips`;
+  if (slBadge) slBadge.textContent = `${slPts} pips (${slPts * 10} ticks TV)`;
 
   const tpBadge = document.getElementById('realCalcTpPtsBadge');
-  if (tpBadge) tpBadge.textContent = `TP: ${tpPts} pips`;
+  if (tpBadge) tpBadge.textContent = `TP: ${tpPts} pips (${tpPts * 10} ticks TV)`;
 
   const winSub = document.getElementById('realWinRewardSubtext');
   if (winSub) winSub.textContent = `+${actualRewardPct.toFixed(1)}% (+${formatRRText(rr)}R) · +$${formatMoney(actualRewardUsd)}`;
@@ -3671,9 +3675,23 @@ function setupRealJournalView() {
       const heroLotEl = document.getElementById('realTickmillHeroLot');
       const lot = heroLotEl ? heroLotEl.textContent.trim() : '0.01';
       navigator.clipboard.writeText(lot).then(() => {
-        showToast(`📋 ¡Lotaje copiado: ${lot}! Pégalo en tu orden de Tickmill MT4/MT5 (${selectedRealAsset}).`, 'success', 4000);
+        showToast(`📋 ¡Lotaje copiado: ${lot}! Pégalo en tu orden de TradingView (${selectedRealAsset}).`, 'success', 4000);
       }).catch(() => {
-        showToast(`Lotaje Tickmill: ${lot}`, 'info');
+        showToast(`Lotaje TradingView: ${lot}`, 'info');
+      });
+    });
+  }
+
+  // Botón Copiar Unidades al Portapapeles para TradingView
+  const btnCopyUnits = document.getElementById('btnCopyRealUnits');
+  if (btnCopyUnits) {
+    btnCopyUnits.addEventListener('click', () => {
+      const heroUnitsEl = document.getElementById('realHeroUnits');
+      const unitsRaw = heroUnitsEl ? heroUnitsEl.textContent.replace(/,/g, '').trim() : '1000';
+      navigator.clipboard.writeText(unitsRaw).then(() => {
+        showToast(`📋 ¡Unidades copiadas: ${Number(unitsRaw).toLocaleString()}! Pégalas en la orden de TradingView (${selectedRealAsset}).`, 'success', 4000);
+      }).catch(() => {
+        showToast(`Unidades TradingView: ${unitsRaw}`, 'info');
       });
     });
   }
@@ -3685,7 +3703,7 @@ function setupRealJournalView() {
     const pad = (n) => String(n).padStart(2, '0');
     const dateStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-    // Tickmill comisión estándar: -$0.06 por 0.01 lote (-$6.00 por lote estándar)
+    // Comisión estimada: -$0.06 por 0.01 lote (-$6.00 por lote estándar)
     const comm = -roundNum(0.06 * Math.round(calc.recommendedLot / 0.01), 2);
 
     const payload = {
@@ -3703,9 +3721,9 @@ function setupRealJournalView() {
       commission: comm,
       date: dateStr,
       session: 'New York',
-      strategy: `Price Action Tickmill (AUD/JPY)`,
+      strategy: `Price Action AUD/JPY (TradingView)`,
       emotion: 'Plan Seguido',
-      notes: `Tickmill AUD/JPY (${status.toUpperCase()} ${status === 'win' ? '+' + calc.rr + 'R' : (status === 'loss' ? '-1R' : 'BE')})`
+      notes: `TradingView AUD/JPY (${status.toUpperCase()} ${status === 'win' ? '+' + calc.rr + 'R' : (status === 'loss' ? '-1R' : 'BE')})`
     };
 
     try {
@@ -3784,7 +3802,7 @@ function setupRealJournalView() {
   if (btnEditRealInit) {
     btnEditRealInit.addEventListener('click', async () => {
       const currentInit = appState.real?.summary?.initial_balance || 92.08;
-      const input = prompt('Introduce tu Saldo Original / Capital Inicial en USD para la Bitácora Real (Tickmill):', currentInit);
+      const input = prompt('Introduce tu Saldo Original / Capital Inicial en USD para la Bitácora Real (TradingView):', currentInit);
       if (input !== null) {
         const val = parseFloat(input.replace(',', '.').trim());
         if (!isNaN(val) && val > 0) {
@@ -4817,7 +4835,7 @@ async function handleAddRealTrade(e) {
     strategy,
     emotion,
     tv_chart_url: tvChartUrl,
-    notes: `Tickmill ${asset}`
+    notes: `TradingView ${asset}`
   };
 
   if (!isNaN(entry)) payload.entry_price = entry;

@@ -76,7 +76,7 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- NAVIGATION TABS: 1. Fondeo 50K / 2. Real (Tickmill) / 3. Noticias / 4. Backtesting -->
+    <!-- NAVIGATION TABS: 1. Fondeo 50K / 2. Real (TradingView) / 3. Noticias / 4. Backtesting -->
     <nav class="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-4xl mx-auto">
       <!-- Tab 1: Fondeo Orion 50K (Interés Simple) -->
       <button id="tabBtnFondeo" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition bg-amber-500 text-black shadow-lg shadow-amber-500/30 whitespace-nowrap cursor-pointer">
@@ -85,10 +85,10 @@
         <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-black/20 text-black font-bold rounded-full">Simple</span>
       </button>
 
-      <!-- Tab 2: Bitácora Real (Tickmill AUD/JPY) -->
+      <!-- Tab 2: Bitácora Real (TradingView AUD/JPY) -->
       <button id="tabBtnReal" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
         <i data-lucide="wallet" class="w-4 h-4 text-emerald-400 shrink-0"></i>
-        <span class="truncate">2. Real (Tickmill)</span>
+        <span class="truncate">2. Real (TradingView)</span>
         <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold rounded-full">1:300</span>
       </button>
 
@@ -1063,12 +1063,12 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- VIEW 2: BITÁCORA REAL (TICKMILL AUD/JPY) & CALCULADORA RÁPIDA  -->
-    <!-- CONTROL DE CUENTA REAL, LOTAJE EXACTO TICKMILL Y GESTIÓN R:R   -->
+    <!-- VIEW 2: BITÁCORA REAL (TRADINGVIEW AUD/JPY) & CALCULADORA RÁPIDA -->
+    <!-- CONTROL DE CUENTA REAL, POSICIÓN TRADINGVIEW Y GESTIÓN R:R      -->
     <!-- ============================================================== -->
     <div id="viewRealJournal" class="hidden space-y-6">
 
-      <!-- BANNER RESUMEN BITÁCORA REAL TICKMILL -->
+      <!-- BANNER RESUMEN BITÁCORA REAL TRADINGVIEW -->
       <section class="bg-gradient-to-r from-emerald-950/40 via-gray-900 to-teal-950/40 border-2 border-emerald-500/40 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
           <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-600 to-emerald-700 flex items-center justify-center text-black font-black shadow-lg shadow-emerald-500/20 shrink-0">
@@ -1076,23 +1076,27 @@
           </div>
           <div>
             <div class="flex items-center gap-2 flex-wrap">
-              <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wider">Bitácora Real — Tickmill AUD/JPY</h2>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                CUENTA REAL MT5
+              <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wider">Bitácora Real — TradingView (AUD/JPY)</h2>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+                CUENTA REAL TRADINGVIEW
               </span>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-950 text-blue-300 border border-blue-800">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-800">
                 Apalancamiento 1:300
               </span>
             </div>
-            <p class="text-xs text-gray-400 mt-0.5">Operativa personal en broker Tickmill • Par exclusivo AUD/JPY • Contrato 100,000 AUD • Comisión -$0.06/0.01L • Cálculo instantáneo de lotaje</p>
+            <p class="text-xs text-gray-400 mt-0.5">Operativa personal ejecutada en TradingView • Par exclusivo AUD/JPY • Contrato 100,000 AUD • Boleta de Lotes & Unidades</p>
           </div>
         </div>
 
-        <div class="flex items-center gap-3 text-xs flex-wrap">
+        <div class="flex items-center gap-2.5 text-xs flex-wrap">
           <div class="bg-gray-950/80 border border-gray-800 px-3 py-1.5 rounded-xl flex items-center gap-2">
             <span class="text-gray-400">Balance Real:</span>
             <span class="font-bold text-emerald-400 font-mono text-sm" id="realLiveBalHeader">$97.72</span>
           </div>
+          <a href="https://www.tradingview.com/chart/?symbol=AUDJPY" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-blue-950/70 hover:bg-blue-900/90 text-blue-300 border border-blue-700/80 rounded-xl font-semibold flex items-center gap-1.5 transition cursor-pointer" title="Abrir gráfico AUD/JPY en TradingView">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            <span>TradingView ↗</span>
+          </a>
           <button id="btnSyncRealBalance" class="px-3 py-1.5 bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-800/80 rounded-xl font-semibold flex items-center gap-1.5 transition cursor-pointer" title="Actualizar estadísticas y balance">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
             <span>Sincronizar</span>
@@ -1104,7 +1108,7 @@
         </div>
       </section>
 
-      <!-- CARD 1: CALCULADORA RÁPIDA DE LOTAJE EXACTO TICKMILL (HERO PROMINENTE) -->
+      <!-- CARD 1: CALCULADORA RÁPIDA DE POSICIÓN TRADINGVIEW (HERO PROMINENTE) -->
       <section class="bg-cardBg border-2 border-emerald-500/50 rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4">
         <div class="flex items-center justify-between flex-wrap gap-2 border-b border-gray-800 pb-3">
           <div class="flex items-center gap-2.5">
@@ -1113,19 +1117,19 @@
             </div>
             <div>
               <h3 class="text-sm sm:text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
-                <span>Calculadora Instantánea de Lotaje — Tickmill (AUD/JPY)</span>
-                <span class="text-[9px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/40 font-mono">1 LOTE = 100,000 AUD</span>
+                <span>Calculadora de Posición — TradingView (AUD/JPY)</span>
+                <span class="text-[9px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/40 font-mono">1 LOTE = 100k AUD (1k un = 0.01L)</span>
               </h3>
-              <p class="text-[11px] text-gray-400">Introduce tu balance, % de riesgo y pips de Stop Loss. El sistema calcula inmediatamente el lotaje exacto para MT4/MT5.</p>
+              <p class="text-[11px] text-gray-400">Introduce tu balance, % de riesgo y pips de Stop Loss. El sistema calcula al instante los lotes y unidades exactas para tu orden en TradingView.</p>
             </div>
           </div>
           <span class="px-2.5 py-1 rounded-lg bg-emerald-950 border border-emerald-800 text-[11px] font-mono font-bold text-emerald-300 flex items-center gap-1.5">
             <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>Tickmill Pro / Classic 1:300</span>
+            <span>TradingView · Broker 1:300</span>
           </span>
         </div>
 
-        <!-- Selector de Símbolo Activo Tickmill -->
+        <!-- Selector de Símbolo Activo TradingView -->
         <div class="flex items-center gap-2 pb-1 border-b border-gray-800/70 flex-wrap">
           <span class="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
             <i data-lucide="layers" class="w-3.5 h-3.5 text-emerald-400"></i> Símbolo a Operar:
@@ -1133,7 +1137,7 @@
           <div class="flex items-center gap-2 flex-wrap" id="realCalcAssetButtons">
             <button type="button" class="btn-real-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-orange-500/20 text-orange-300 border border-orange-500/50 shadow-md cursor-default" data-asset="AUD/JPY">
               <span>🟠 AUD/JPY</span>
-              <span class="text-[9px] font-mono opacity-90">(Pips)</span>
+              <span class="text-[9px] font-mono opacity-90">(Pips / Ticks)</span>
             </button>
           </div>
         </div>
@@ -1147,7 +1151,7 @@
                 <i data-lucide="wallet" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
                 <span class="truncate">1. Balance ($ USD)</span>
               </label>
-              <span class="text-[10px] text-gray-400 font-mono shrink-0">Tickmill</span>
+              <span class="text-[10px] text-gray-400 font-mono shrink-0">TradingView</span>
             </div>
             <div class="relative">
               <span class="absolute left-3 top-2 text-gray-500 font-mono text-sm font-bold">$</span>
@@ -1195,7 +1199,7 @@
                 <i data-lucide="target" class="w-3.5 h-3.5 text-rose-400 shrink-0"></i>
                 <span id="realCalcSlLabel" class="truncate">3. Stop Loss en Pips (AUD/JPY)</span>
               </label>
-              <span id="realCalcSlDistBadge" class="text-[10px] text-rose-300 font-mono font-bold shrink-0">25 pips</span>
+              <span id="realCalcSlDistBadge" class="text-[10px] text-rose-300 font-mono font-bold shrink-0">25 pips (250 ticks TV)</span>
             </div>
             <div class="relative">
               <input type="number" id="realCalcSlPoints" step="any" min="1" value="25" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-3 pr-12 py-1.5 text-rose-300 font-mono font-bold text-sm focus:border-rose-500 focus:outline-none transition">
@@ -1236,25 +1240,38 @@
           </div>
         </div>
 
-        <!-- HERO DISPLAY DE RESULTADO: LOTAJE TICKMILL & MÉTRICAS DE LA ORDEN -->
+        <!-- HERO DISPLAY DE RESULTADO: POSICIÓN TRADINGVIEW (LOTES & UNIDADES) -->
         <div class="p-4 sm:p-5 bg-gradient-to-r from-gray-950 via-gray-900 to-gray-950 border-2 border-emerald-500/60 rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-5">
-          <!-- Bloque Grande Lote Recomendado -->
+          <!-- Bloque Grande Posición TradingView: Lotes y Unidades -->
           <div class="flex items-center gap-4">
             <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-500 to-amber-600 flex items-center justify-center text-black font-black shadow-lg shadow-amber-500/30 shrink-0">
               <i data-lucide="layers" class="w-7 h-7 stroke-[2.5]"></i>
             </div>
             <div>
               <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                <span>Lotaje a Operar en Tickmill (MT4 / MT5)</span>
-                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono">EXACTO</span>
+                <span>Posición a Operar en TradingView</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40 font-mono">BOLETA TV</span>
               </div>
-              <div class="flex items-baseline gap-2 mt-0.5">
-                <span id="realTickmillHeroLot" class="text-4xl sm:text-5xl font-black text-amber-400 font-mono tracking-tight">0.01</span>
-                <span class="text-sm font-bold text-gray-400 uppercase">Lotes</span>
-                <button type="button" id="btnCopyRealLot" class="ml-2 px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="Copiar lotaje al portapapeles">
-                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                  <span>Copiar</span>
-                </button>
+              <div class="flex items-baseline gap-3 mt-0.5 flex-wrap">
+                <div class="flex items-baseline gap-1">
+                  <span id="realTickmillHeroLot" class="text-4xl sm:text-5xl font-black text-amber-400 font-mono tracking-tight">0.01</span>
+                  <span class="text-sm font-bold text-gray-400 uppercase">Lotes</span>
+                </div>
+                <div class="flex items-center gap-1.5 pl-2 border-l border-gray-700/80">
+                  <span class="text-xs text-gray-400 font-semibold">o</span>
+                  <span id="realHeroUnits" class="text-xl sm:text-2xl font-black text-emerald-400 font-mono">1,000</span>
+                  <span class="text-xs font-bold text-gray-400 uppercase">Unidades</span>
+                </div>
+                <div class="flex items-center gap-1.5 ml-1 flex-wrap">
+                  <button type="button" id="btnCopyRealLot" class="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="Copiar lotaje al portapapeles">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                    <span>Copiar Lote</span>
+                  </button>
+                  <button type="button" id="btnCopyRealUnits" class="px-2.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer" title="Copiar unidades exactas para TradingView">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                    <span>Copiar Unidades</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1265,21 +1282,21 @@
             <div class="bg-gray-950/80 border border-gray-800 p-2.5 rounded-xl">
               <span class="text-[10px] text-gray-400 uppercase block font-sans font-semibold">Riesgo Máximo (SL)</span>
               <span id="realHeroRiskUsd" class="text-sm font-black text-rose-400 block mt-0.5">-$0.98 (-1.00%)</span>
-              <span id="realHeroSlSub" class="text-[9px] text-gray-500 block">250 pts ($2.50)</span>
+              <span id="realHeroSlSub" class="text-[9px] text-gray-500 block">25 pips (250 ticks)</span>
             </div>
 
             <!-- 2. Beneficio Proyectado -->
             <div class="bg-gray-950/80 border border-gray-800 p-2.5 rounded-xl">
               <span class="text-[10px] text-gray-400 uppercase block font-sans font-semibold">Beneficio Proyectado</span>
               <span id="realHeroRewardUsd" class="text-sm font-black text-emerald-400 block mt-0.5">+$1.96 (+2.00%)</span>
-              <span id="realHeroTpSub" class="text-[9px] text-gray-500 block">500 pts (1:2.0)</span>
+              <span id="realHeroTpSub" class="text-[9px] text-gray-500 block">50 pips (1:2.0)</span>
             </div>
 
-            <!-- 3. Margen Retenido Tickmill (1:300) -->
+            <!-- 3. Margen Retenido TradingView (1:300) -->
             <div class="bg-gray-950/80 border border-gray-800 p-2.5 rounded-xl">
               <span class="text-[10px] text-gray-400 uppercase block font-sans font-semibold">Margen Requerido</span>
               <span id="realHeroMargin" class="text-sm font-black text-purple-300 block mt-0.5">~$9.07 USD</span>
-              <span class="text-[9px] text-gray-500 block">Tickmill 1:300</span>
+              <span class="text-[9px] text-gray-500 block">TradingView 1:300</span>
             </div>
 
             <!-- 4. Valor por Pip -->
@@ -1291,15 +1308,15 @@
           </div>
         </div>
 
-        <!-- Explicación Técnica y Comisión Tickmill -->
+        <!-- Explicación Técnica y Comisión TradingView -->
         <div class="flex flex-wrap items-center justify-between gap-3 text-[11px] text-gray-400 pt-1 border-t border-gray-800/80">
           <div class="flex items-center gap-1.5">
             <i data-lucide="info" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
             <span id="realFormulaExplanation">
-              <strong>Fórmula Tickmill AUD/JPY:</strong> <code>Lote = Riesgo_USD / (Pips_SL × $6.50)</code>. 1 lote estándar = 100,000 AUD. 1 pip (0.01) ≈ $6.50 USD.
+              <strong>Fórmula TradingView AUD/JPY:</strong> <code>Lote = Riesgo_USD / (Pips_SL × $6.50) · Unidades = Lote × 100,000</code>. 1 lote estándar = 100,000 AUD. 1 pip (0.01) ≈ $6.50 USD.
             </span>
           </div>
-          <span class="font-mono text-gray-400">Comisión típica Tickmill Pro: <strong>-$0.06 / 0.01 lote</strong></span>
+          <span class="font-mono text-gray-400">Comisión estimada broker: <strong>-$0.06 / 0.01 lote</strong></span>
         </div>
       </section>
 
@@ -1365,7 +1382,7 @@
         <div class="pt-2 border-t border-gray-800">
           <button type="button" class="btn-collapse-toggle text-xs font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition cursor-pointer" data-target="#realTradeForm">
             <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-            <span>Formulario detallado con Precios, Ticket MT5 y Comisión (Opcional)</span>
+            <span>Formulario detallado con Precios, Orden TradingView y Captura (Opcional)</span>
           </button>
 
           <form id="realTradeForm" class="hidden mt-3 p-3.5 bg-gray-950/70 border border-gray-800 rounded-xl space-y-3.5">
@@ -1415,7 +1432,7 @@
               <!-- Lote Operado Manual -->
               <div>
                 <label class="block text-gray-400 mb-1 font-semibold flex items-center justify-between">
-                  <span>Lote MT5</span>
+                  <span>Lote / Unidades TV</span>
                   <span class="text-[10px] text-gray-400 font-mono">Sugerido: <b id="realTradeSuggestedLotBadge" class="text-amber-400">0.01</b></span>
                 </label>
                 <input type="number" id="realTradeManualLot" step="0.01" min="0.01" value="0.01" class="w-full bg-gray-900 border border-amber-500/60 rounded-lg p-2 text-amber-300 font-mono font-bold">
@@ -1451,7 +1468,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
               <!-- Stop Loss Pips Directos -->
               <div>
-                <label class="block text-gray-400 mb-1 font-semibold">SL Pips Directo</label>
+                <label class="block text-gray-400 mb-1 font-semibold">SL Pips (o Ticks TV)</label>
                 <input type="number" id="realTradeTvPoints" value="25" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white font-mono font-bold">
               </div>
               <!-- Comisión Broker USD -->
@@ -1464,10 +1481,10 @@
                 <label class="block text-gray-400 mb-1 font-semibold">URL TradingView</label>
                 <input type="url" id="realTradeChartUrl" placeholder="https://tradingview.com/x/..." class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white">
               </div>
-              <!-- Notas / Ticket MT5 -->
+              <!-- Notas / ID Orden TradingView -->
               <div>
-                <label class="block text-gray-400 mb-1 font-semibold">Notas / Ticket MT5</label>
-                <input type="text" id="realTradeNotes" placeholder="ej. Ticket #290413115 Sweep NY" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white">
+                <label class="block text-gray-400 mb-1 font-semibold">Notas / ID Orden TradingView</label>
+                <input type="text" id="realTradeNotes" placeholder="ej. Orden #290413115 TradingView" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white">
               </div>
             </div>
 
@@ -1557,7 +1574,7 @@
         </div>
       </section>
 
-      <!-- CARD 4: TABLA DE OPERACIONES REALES (HISTORIAL COMPLETO TICKMILL) -->
+      <!-- CARD 4: TABLA DE OPERACIONES REALES (HISTORIAL COMPLETO TRADINGVIEW) -->
       <section class="bg-cardBg border border-cardBorder rounded-2xl shadow-xl overflow-hidden">
         <div class="p-4 sm:p-5 border-b border-gray-800 flex items-center justify-between flex-wrap gap-2">
           <div class="flex items-center gap-2">
@@ -1565,8 +1582,8 @@
               <i data-lucide="list-ordered" class="w-4 h-4"></i>
             </div>
             <div>
-              <h3 class="text-sm font-bold text-white uppercase tracking-wider">Historial de Operaciones Reales (Tickmill)</h3>
-              <p class="text-[11px] text-gray-400">Registro auditable trade a trade con puntos, lotaje, comisiones y PnL neto real</p>
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider">Historial de Operaciones Reales (TradingView)</h3>
+              <p class="text-[11px] text-gray-400">Registro auditable trade a trade con pips/ticks, unidades, lotaje y PnL neto real</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -2545,7 +2562,7 @@
           <input type="number" id="settingInitialBalance" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-white font-mono" value="50000.00">
         </div>
         <div>
-          <label class="block text-gray-400 mb-1">Saldo Original Bitácora Real (USD)</label>
+          <label class="block text-gray-400 mb-1">Saldo Original Bitácora Real (USD) — TradingView</label>
           <input type="number" id="settingRealInitialBalance" step="any" min="1" class="w-full bg-gray-950 border border-emerald-800/60 rounded-lg p-2 text-emerald-300 font-mono font-bold" value="92.08">
         </div>
         <div>

@@ -90,7 +90,8 @@ DEFAULT_FONDEO_CONFIG = {
 }
 
 DEFAULT_REAL_CONFIG = {
-    "account_type": "Cuenta Real Personal (Tickmill AUD/JPY)",
+    "account_type": "Cuenta Real Personal (TradingView AUD/JPY)",
+    "broker": "TradingView",
     "initial_balance": 92.08,
     "risk_pct": 1.0,
     "leverage": 300.0,
@@ -1031,7 +1032,7 @@ def calculate_analytics(trades, config, mode="backtest"):
     elif mode == "real":
         initial_balance = float(config.get("initial_balance", 97.72))
         leverage = float(config.get("leverage", 300.0))
-        mt5_broker = "Tickmill Real ($97.72)"
+        mt5_broker = "TradingView Real"
     else:
         initial_balance = float(config.get("initial_balance", 1000.0))
         leverage = float(config.get("leverage", 30.0))
