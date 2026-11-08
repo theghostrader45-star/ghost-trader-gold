@@ -7532,6 +7532,103 @@ function calculateOptimalTradingWindow(weekday, year, month, day, weeklyNews) {
   return { dayName, nyWindow, localWindow, newsReason };
 }
 
+// -------------------------------------------------------------
+// Cálculo de Sesiones y Cuenta Regresiva de Apertura
+// Horarios Oficiales Ghost Pro:
+// Londres:  02:00 – 05:00 NY
+// New York: 07:00 – 11:00 NY
+// En horario Local y New York
+// -------------------------------------------------------------
+function getSessionCountdownDetails(now, startH, startM, endH, endM) {
+  const nyParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    weekday: "short",
+    year: "numeric", month: "numeric", day: "numeric",
+    hour: "numeric", minute: "numeric", second: "numeric",
+    hour12: false
+  }).formatToParts(now);
+  const getP = t => nyParts.find(p => p.type === t)?.value;
+  const weekday = getP("weekday");
+  const hour = parseInt(getP("hour"), 10) % 24;
+  const min = parseInt(getP("minute"), 10);
+  const sec = parseInt(getP("second"), 10);
+
+  const currentSecs = hour * 3600 + min * 60 + sec;
+  const startSecs = startH * 3600 + startM * 60;
+  const endSecs = endH * 3600 + endM * 60;
+
+  let isOpen = false;
+  let remainingSecs = 0;
+  let label = "";
+  let badgeClass = "";
+  let state = ""; // "active", "before_open", "closed_today", "weekend"
+
+  const isTradingDay = ["Mon", "Tue", "Wed", "Thu", "Fri"].includes(weekday);
+
+  if (isTradingDay) {
+    if (currentSecs >= startSecs && currentSecs < endSecs) {
+      isOpen = true;
+      state = "active";
+      remainingSecs = endSecs - currentSecs;
+      label = "🟢 EN SESIÓN ACTIVA";
+      badgeClass = "bg-emerald-500/20 text-emerald-400 border-emerald-500/40";
+    } else if (currentSecs < startSecs) {
+      state = "before_open";
+      remainingSecs = startSecs - currentSecs;
+      label = "⏳ Abre hoy en:";
+      badgeClass = "bg-amber-500/20 text-amber-300 border-amber-500/40";
+    } else {
+      state = "closed_today";
+      let daysToAdd = (weekday === "Fri") ? 3 : 1;
+      remainingSecs = (daysToAdd * 86400) + startSecs - currentSecs;
+      label = (weekday === "Fri") ? "⏳ Abre lunes en:" : "⏳ Abre mañana en:";
+      badgeClass = "bg-rose-500/20 text-rose-300 border-rose-500/40";
+    }
+  } else if (weekday === "Sun") {
+    state = "before_open";
+    remainingSecs = 86400 + startSecs - currentSecs;
+    label = "⏳ Abre lunes en:";
+    badgeClass = "bg-amber-500/20 text-amber-300 border-amber-500/40";
+  } else if (weekday === "Sat") {
+    state = "weekend";
+    remainingSecs = (2 * 86400) + startSecs - currentSecs;
+    label = "⏳ Abre lunes en:";
+    badgeClass = "bg-slate-500/20 text-slate-300 border-slate-500/40";
+  }
+
+  const rH = Math.floor(remainingSecs / 3600);
+  const rM = Math.floor((remainingSecs % 3600) / 60);
+  const rS = remainingSecs % 60;
+  const timeFormatted = `${String(rH).padStart(2, "0")}h ${String(rM).padStart(2, "0")}m ${String(rS).padStart(2, "0")}s`;
+
+  // Cálculo de hora Local equivalente al horario NY
+  const localH = now.getHours();
+  const localM = now.getMinutes();
+  let diffMin = (localH * 60 + localM) - (hour * 60 + min);
+  if (diffMin > 720) diffMin -= 1440;
+  if (diffMin < -720) diffMin += 1440;
+
+  const startLocalMin = (startH * 60 + startM + diffMin + 1440) % 1440;
+  const endLocalMin = (endH * 60 + endM + diffMin + 1440) % 1440;
+  const formatTime = m => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+
+  const nyWindow = `${String(startH).padStart(2, "0")}:${String(startM).padStart(2, "0")} – ${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")} NY`;
+  const localWindow = `${formatTime(startLocalMin)} – ${formatTime(endLocalMin)} Local`;
+
+  return {
+    isOpen,
+    state,
+    remainingSecs,
+    timeFormatted,
+    fullCountdownText: isOpen ? `Cierra en: ${timeFormatted}` : `${label} ${timeFormatted}`,
+    label,
+    badgeClass,
+    nyWindow,
+    localWindow,
+    hour, min, sec, weekday
+  };
+}
+
 function getNySessionStatus(now) {
   const nyFormatter = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/New_York",
@@ -7556,48 +7653,36 @@ function getNySessionStatus(now) {
   const min = parseInt(getPart("minute"), 10) || 0;
   const sec = parseInt(getPart("second"), 10) || 0;
 
-  const currentSecsOfDay = hour * 3600 + min * 60 + sec;
-  const sessionStartSecs = 8 * 3600; // 08:00:00 NY
-  const sessionEndSecs = 11 * 3600 + 30 * 60; // 11:30:00 NY
+  // Sesión Londres: 02:00 – 05:00 NY
+  const londonStatus = getSessionCountdownDetails(now, 2, 0, 5, 0);
 
-  const isWeekday = ["Mon", "Tue", "Wed", "Thu", "Fri"].includes(weekday);
-  const isInSession = isWeekday && currentSecsOfDay >= sessionStartSecs && currentSecsOfDay < sessionEndSecs;
+  // Sesión New York: 07:00 – 11:00 NY
+  const nyStatus = getSessionCountdownDetails(now, 7, 0, 11, 0);
+
+  const isInSession = londonStatus.isOpen || nyStatus.isOpen;
+  const activeSessionName = londonStatus.isOpen ? "Sesión Londres (02:00 – 05:00 NY)" : (nyStatus.isOpen ? "Sesión New York (07:00 – 11:00 NY)" : null);
 
   let countdownText = "";
   let countdownFormatted = "";
 
   if (isInSession) {
-    const remainingSecs = Math.max(0, sessionEndSecs - currentSecsOfDay);
-    const rH = Math.floor(remainingSecs / 3600);
-    const rM = Math.floor((remainingSecs % 3600) / 60);
-    const rS = remainingSecs % 60;
-    countdownFormatted = `${String(rH).padStart(2, "0")}h ${String(rM).padStart(2, "0")}m ${String(rS).padStart(2, "0")}s`;
+    const activeObj = londonStatus.isOpen ? londonStatus : nyStatus;
+    countdownFormatted = activeObj.timeFormatted;
     countdownText = `⏳ Restan: ${countdownFormatted} de sesión`;
   } else {
-    let daysToAdd = 0;
-    if (["Mon", "Tue", "Wed", "Thu"].includes(weekday)) {
-      daysToAdd = (currentSecsOfDay < sessionStartSecs) ? 0 : 1;
-    } else if (weekday === "Fri") {
-      daysToAdd = (currentSecsOfDay < sessionStartSecs) ? 0 : 3;
-    } else if (weekday === "Sat") {
-      daysToAdd = 2;
-    } else if (weekday === "Sun") {
-      daysToAdd = 1;
-    }
-
-    const targetSecs = (daysToAdd * 86400) + sessionStartSecs;
-    const remainingSecs = Math.max(0, targetSecs - currentSecsOfDay);
-    const rH = Math.floor(remainingSecs / 3600);
-    const rM = Math.floor((remainingSecs % 3600) / 60);
-    const rS = remainingSecs % 60;
-    countdownFormatted = `${String(rH).padStart(2, "0")}h ${String(rM).padStart(2, "0")}m ${String(rS).padStart(2, "0")}s`;
-    countdownText = `⏳ Inicia en: ${countdownFormatted}`;
+    const nextSession = londonStatus.remainingSecs <= nyStatus.remainingSecs ? londonStatus : nyStatus;
+    const nextName = londonStatus.remainingSecs <= nyStatus.remainingSecs ? "Londres" : "New York";
+    countdownFormatted = nextSession.timeFormatted;
+    countdownText = `⏳ ${nextName} abre en: ${countdownFormatted}`;
   }
 
   const optimalInfo = calculateOptimalTradingWindow(weekday, year, month, day, weeklyNewsState);
 
   lastCalculatedSessionStatus = {
     isInSession,
+    activeSessionName,
+    londonStatus,
+    nyStatus,
     countdownText,
     countdownFormatted,
     optimalInfo,
@@ -8098,6 +8183,7 @@ function startMarketClock() {
     const now = new Date();
     const session = getNySessionStatus(now);
 
+    // 1. Relojes Digitales Oficiales (NY, Local, UTC)
     const nyClockEl = document.getElementById("marketNyClock");
     if (nyClockEl) {
       nyClockEl.textContent = `${String(session.hour).padStart(2, "0")}:${String(session.min).padStart(2, "0")}:${String(session.sec).padStart(2, "0")} NY (ET)`;
@@ -8108,67 +8194,158 @@ function startMarketClock() {
       newsNyClock.textContent = `${String(session.hour).padStart(2, "0")}:${String(session.min).padStart(2, "0")}:${String(session.sec).padStart(2, "0")} NY`;
     }
 
+    const newsLocalClockFull = document.getElementById("newsLocalClockFull");
+    if (newsLocalClockFull) {
+      newsLocalClockFull.textContent = `${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })} Local · ${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
+    }
+
     const newsUtcClock = document.getElementById("newsUtcClock");
     if (newsUtcClock) {
       newsUtcClock.textContent = `UTC: ${now.toUTCString().slice(17, 25)}`;
     }
 
-    const newsCurrentSession = document.getElementById("newsCurrentSession");
-    const newsCurrentSessionSub = document.getElementById("newsCurrentSessionSub");
-    const newsSessionIconBox = document.getElementById("newsSessionIconBox");
-
-    if (newsCurrentSession) {
-      const isWeekend = ["Sat", "Sun"].includes(session.weekday) || (session.weekday === "Fri" && session.hour >= 17);
-      let sessionTitle = "";
-      let sessionSub = "";
-      let titleClass = "text-amber-300";
-      let iconBoxClass = "p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20 shrink-0";
-
-      if (isWeekend) {
-        sessionTitle = "🔒 Fin de Semana (Mercado Cerrado)";
-        sessionSub = "Filtro Ghost Pro: Operativa pausada · Próxima apertura: Londres lunes 03:00 AM NY";
-        titleClass = "text-slate-400";
-        iconBoxClass = "p-3 bg-slate-800/50 text-slate-400 rounded-xl border border-slate-700/40 shrink-0";
-      } else if (session.hour >= 3 && session.hour < 8) {
-        sessionTitle = "🟢 Sesión Londres Activa (03:00 - 08:00 NY)";
-        sessionSub = "Ventana Operativa Válida · Filtro Ghost Pro [Londres]";
-        titleClass = "text-emerald-400";
-        iconBoxClass = "p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 shrink-0";
-      } else if (session.hour >= 8 && (session.hour < 11 || (session.hour === 11 && session.min <= 30))) {
-        sessionTitle = "🟢 New York Killzone (08:00 - 11:30 NY)";
-        sessionSub = "Ventana Dorada de Máxima Liquidez · Filtro Ghost Pro [NY]";
-        titleClass = "text-emerald-400";
-        iconBoxClass = "p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 shrink-0";
-      } else if (session.hour >= 11 && session.hour < 13) {
-        sessionTitle = "🟢 London Fix & New York (11:30 - 13:00 NY)";
-        sessionSub = "Solapamiento Operativo · Filtro Ghost Pro [Londres + NY]";
-        titleClass = "text-emerald-400";
-        iconBoxClass = "p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 shrink-0";
-      } else if (session.hour >= 13 && session.hour < 17) {
-        sessionTitle = "🟡 Sesión Tarde New York (13:00 - 17:00 NY)";
-        sessionSub = "Ventana de Tarde NY · Filtro Ghost Pro [NY]";
-        titleClass = "text-amber-300";
-        iconBoxClass = "p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20 shrink-0";
-      } else {
-        sessionTitle = "🔴 Fuera de Horario Operativo (Cierre NY)";
-        sessionSub = "Filtro Ghost Pro: Sesión Asia omitida · Próxima sesión: Londres 03:00 AM NY";
-        titleClass = "text-rose-400";
-        iconBoxClass = "p-3 bg-rose-500/10 text-rose-400 rounded-xl border border-rose-500/20 shrink-0";
-      }
-
-      newsCurrentSession.textContent = sessionTitle;
-      newsCurrentSession.className = `text-lg sm:text-xl font-black mt-1 ${titleClass}`;
-      if (newsCurrentSessionSub) {
-        newsCurrentSessionSub.textContent = sessionSub;
-      }
-      if (newsSessionIconBox) {
-        newsSessionIconBox.className = iconBoxClass;
-      }
-    }
-
     const localClockEl = document.getElementById("marketLocalClock");
     if (localClockEl) {
       localClockEl.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    }
+
+    // 2. Barra Universal Superior (Visible en todas las pestañas)
+    const barNyClock = document.getElementById("barNyClock");
+    if (barNyClock) {
+      barNyClock.textContent = `${String(session.hour).padStart(2, "0")}:${String(session.min).padStart(2, "0")}:${String(session.sec).padStart(2, "0")} NY`;
+    }
+
+    const barLocalClock = document.getElementById("barLocalClock");
+    if (barLocalClock) {
+      const tzName = Intl.DateTimeFormat().resolvedOptions().timeZone.split("/")[1] || "Local";
+      barLocalClock.textContent = `${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })} Local (${tzName})`;
+    }
+
+    // Barra Universal - Londres (02:00 – 05:00 NY)
+    if (session.londonStatus) {
+      const barLondonBadge = document.getElementById("barLondonBadge");
+      const barLondonCountdown = document.getElementById("barLondonCountdown");
+      const barLondonCountdownLabel = document.getElementById("barLondonCountdownLabel");
+      const barLondonLocalWindow = document.getElementById("barLondonLocalWindow");
+      const barLondonBox = document.getElementById("barLondonBox");
+
+      if (barLondonBadge) {
+        barLondonBadge.textContent = session.londonStatus.label;
+        barLondonBadge.className = `text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${session.londonStatus.badgeClass}`;
+      }
+      if (barLondonCountdown) {
+        barLondonCountdown.textContent = session.londonStatus.timeFormatted;
+        barLondonCountdown.className = `text-xs sm:text-sm font-mono font-black ${session.londonStatus.isOpen ? 'text-emerald-400 animate-pulse' : 'text-amber-300'}`;
+      }
+      if (barLondonCountdownLabel) {
+        barLondonCountdownLabel.textContent = session.londonStatus.isOpen ? "Cierra en" : "Falta apertura";
+      }
+      if (barLondonLocalWindow) {
+        barLondonLocalWindow.textContent = session.londonStatus.localWindow;
+      }
+      if (barLondonBox) {
+        barLondonBox.className = `bg-cardBg/90 border rounded-xl p-3 flex items-center justify-between gap-3 shadow-md transition-all ${session.londonStatus.isOpen ? 'border-emerald-500/60 bg-emerald-950/20' : 'border-cardBorder'}`;
+      }
+    }
+
+    // Barra Universal - New York (07:00 – 11:00 NY)
+    if (session.nyStatus) {
+      const barNyBadge = document.getElementById("barNyBadge");
+      const barNyCountdown = document.getElementById("barNyCountdown");
+      const barNyCountdownLabel = document.getElementById("barNyCountdownLabel");
+      const barNyLocalWindow = document.getElementById("barNyLocalWindow");
+      const barNyBox = document.getElementById("barNyBox");
+
+      if (barNyBadge) {
+        barNyBadge.textContent = session.nyStatus.label;
+        barNyBadge.className = `text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${session.nyStatus.badgeClass}`;
+      }
+      if (barNyCountdown) {
+        barNyCountdown.textContent = session.nyStatus.timeFormatted;
+        barNyCountdown.className = `text-xs sm:text-sm font-mono font-black ${session.nyStatus.isOpen ? 'text-emerald-400 animate-pulse' : 'text-sky-300'}`;
+      }
+      if (barNyCountdownLabel) {
+        barNyCountdownLabel.textContent = session.nyStatus.isOpen ? "Cierra en" : "Falta apertura";
+      }
+      if (barNyLocalWindow) {
+        barNyLocalWindow.textContent = session.nyStatus.localWindow;
+      }
+      if (barNyBox) {
+        barNyBox.className = `bg-cardBg/90 border rounded-xl p-3 flex items-center justify-between gap-3 shadow-md transition-all ${session.nyStatus.isOpen ? 'border-emerald-500/60 bg-emerald-950/20' : 'border-cardBorder'}`;
+      }
+    }
+
+    // 3. Tarjetas en Pestaña 3: Noticias
+    // Tarjeta Londres (02:00 – 05:00 NY)
+    if (session.londonStatus) {
+      const newsLondonBadge = document.getElementById("newsLondonBadge");
+      const newsLondonCountdown = document.getElementById("newsLondonCountdown");
+      const newsLondonLocalSub = document.getElementById("newsLondonLocalSub");
+      const newsLondonSub = document.getElementById("newsLondonSub");
+      const newsLondonIconBox = document.getElementById("newsLondonIconBox");
+      const newsLondonCard = document.getElementById("newsLondonCard");
+
+      if (newsLondonBadge) {
+        newsLondonBadge.textContent = session.londonStatus.label;
+        newsLondonBadge.className = `text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${session.londonStatus.badgeClass}`;
+      }
+      if (newsLondonCountdown) {
+        newsLondonCountdown.textContent = session.londonStatus.timeFormatted;
+        newsLondonCountdown.className = `text-xl font-mono font-black ${session.londonStatus.isOpen ? 'text-emerald-400' : 'text-amber-300'}`;
+      }
+      if (newsLondonLocalSub) {
+        newsLondonLocalSub.textContent = session.londonStatus.localWindow;
+      }
+      if (newsLondonSub) {
+        newsLondonSub.textContent = session.londonStatus.isOpen
+          ? "🟢 Ventana Apertura Londres en Curso · Ghost Pro"
+          : (session.londonStatus.state === "closed_today" ? "Sesión de hoy completada · Próxima sesión mañana" : "Apertura institucional europea · Ghost Pro");
+      }
+      if (newsLondonIconBox) {
+        newsLondonIconBox.className = `p-3 rounded-xl border shrink-0 ${session.londonStatus.isOpen ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`;
+      }
+      if (newsLondonCard) {
+        newsLondonCard.className = `bg-cardBg border rounded-2xl p-4 shadow-xl flex items-center justify-between transition-all ${session.londonStatus.isOpen ? 'border-emerald-500/50 shadow-emerald-500/10' : 'border-cardBorder'}`;
+      }
+    }
+
+    // Tarjeta New York (07:00 – 11:00 NY)
+    if (session.nyStatus) {
+      const newsNyBadge = document.getElementById("newsNyBadge");
+      const newsNyCountdown = document.getElementById("newsNyCountdown");
+      const newsNyLocalSub = document.getElementById("newsNyLocalSub");
+      const newsNySub = document.getElementById("newsNySub");
+      const newsNyIconBox = document.getElementById("newsNyIconBox");
+      const newsNyCard = document.getElementById("newsNyCard");
+
+      if (newsNyBadge) {
+        newsNyBadge.textContent = session.nyStatus.label;
+        newsNyBadge.className = `text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${session.nyStatus.badgeClass}`;
+      }
+      if (newsNyCountdown) {
+        newsNyCountdown.textContent = session.nyStatus.timeFormatted;
+        newsNyCountdown.className = `text-xl font-mono font-black ${session.nyStatus.isOpen ? 'text-emerald-400' : 'text-sky-300'}`;
+      }
+      if (newsNyLocalSub) {
+        newsNyLocalSub.textContent = session.nyStatus.localWindow;
+      }
+      if (newsNySub) {
+        newsNySub.textContent = session.nyStatus.isOpen
+          ? "🟢 Ventana Dorada New York en Curso · Ghost Pro"
+          : (session.nyStatus.state === "closed_today" ? "Sesión de hoy completada · Próxima sesión mañana" : "Ventana Dorada de Máxima Liquidez · Ghost Pro");
+      }
+      if (newsNyIconBox) {
+        newsNyIconBox.className = `p-3 rounded-xl border shrink-0 ${session.nyStatus.isOpen ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-sky-500/10 text-sky-400 border-sky-500/20'}`;
+      }
+      if (newsNyCard) {
+        newsNyCard.className = `bg-cardBg border rounded-2xl p-4 shadow-xl flex items-center justify-between transition-all ${session.nyStatus.isOpen ? 'border-emerald-500/50 shadow-emerald-500/10' : 'border-cardBorder'}`;
+      }
+    }
+
+    // Fallback retrocompatible
+    const newsCurrentSession = document.getElementById("newsCurrentSession");
+    if (newsCurrentSession) {
+      newsCurrentSession.textContent = session.isInSession ? session.activeSessionName : session.countdownText;
     }
 
     // Actualizar Banner de Guardia de Sesión NY
@@ -8198,13 +8375,13 @@ function startMarketClock() {
       }
       if (guardBadge) {
         guardBadge.className = "px-3 py-1 rounded-lg bg-emerald-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse";
-        guardBadge.innerHTML = '<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>SESIÓN NY ACTIVA · EN HORARIO</span>';
+        guardBadge.innerHTML = `<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>SESIÓN ACTIVA · ${session.activeSessionName || 'GHOST PRO'}</span>`;
       }
       if (guardCountdown) {
         guardCountdown.textContent = session.countdownText;
       }
       if (guardHeadline) {
-        guardHeadline.innerHTML = `Ventana Dorada de New York abierta (08:00 – 11:30 NY). Spreads mínimos y volumen bancario óptimo en XAU/USD. Ejecuta únicamente confluencia con el sesgo diario y gatillo M5.`;
+        guardHeadline.innerHTML = `Ventana institucional activa (${session.activeSessionName || 'Londres/NY'}). Spreads mínimos y volumen bancario óptimo. Ejecuta únicamente confluencia con el sesgo diario y gatillo M5.`;
       }
     } else {
       if (guardBanner) {
@@ -8216,13 +8393,13 @@ function startMarketClock() {
       }
       if (guardBadge) {
         guardBadge.className = "px-3 py-1 rounded-lg bg-rose-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse";
-        guardBadge.innerHTML = '<i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i><span>NO OPERAR · FUERA DE SESIÓN NY</span>';
+        guardBadge.innerHTML = '<i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i><span>NO OPERAR · FUERA DE SESIÓN</span>';
       }
       if (guardCountdown) {
         guardCountdown.textContent = session.countdownText;
       }
       if (guardHeadline) {
-        guardHeadline.innerHTML = `El mercado Spot de Oro se encuentra fuera de la <strong>Ventana Dorada de New York</strong> (08:00 AM – 11:30 AM NY). Fuera de este horario el volumen interbancario cae drásticamente y los spreads se ensanchan. <strong>Disciplina: No regales tu dinero operando fuera de sesión.</strong>`;
+        guardHeadline.innerHTML = `El mercado se encuentra fuera de las sesiones operativas de Ghost Pro: <strong>Londres (02:00 – 05:00 NY)</strong> y <strong>New York (07:00 – 11:00 NY)</strong>. Fuera de estos horarios el volumen cae y los spreads se ensanchan. <strong>Disciplina: No regales tu dinero operando fuera de sesión.</strong>`;
       }
     }
 
@@ -8244,14 +8421,14 @@ function startMarketClock() {
         }
         if (precBadge) {
           precBadge.className = "px-3 py-1 rounded-lg bg-emerald-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse";
-          precBadge.innerHTML = '<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>SESIÓN NY ACTIVA · VENTANA DORADA</span>';
+          precBadge.innerHTML = `<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>SESIÓN ACTIVA · ${session.activeSessionName || 'GHOST PRO'}</span>`;
         }
         if (precCountdown) {
           precCountdown.textContent = session.countdownText;
           precCountdown.className = "text-xs font-mono font-bold text-emerald-300";
         }
         if (precHeadline) {
-          precHeadline.innerHTML = `Ventana Dorada abierta (08:00 – 11:30 NY). Spreads mínimos y volumen bancario óptimo en XAU/USD. <strong>Operativa autorizada con confluencia del Gatillo M5 y R:R 1:2 mínimo.</strong>`;
+          precHeadline.innerHTML = `Ventana operativa Ghost Pro activa (${session.activeSessionName || 'Londres/NY'}). Spreads mínimos y volumen bancario óptimo. <strong>Operativa autorizada con confluencia del Gatillo M5.</strong>`;
         }
       } else {
         if (precBanner) {
@@ -8263,14 +8440,14 @@ function startMarketClock() {
         }
         if (precBadge) {
           precBadge.className = "px-3 py-1 rounded-lg bg-rose-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse";
-          precBadge.innerHTML = '<i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i><span>NO OPERAR · MERCADO FUERA DE HORARIO NY</span>';
+          precBadge.innerHTML = '<i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i><span>NO OPERAR · MERCADO FUERA DE SESIÓN</span>';
         }
         if (precCountdown) {
           precCountdown.textContent = session.countdownText;
           precCountdown.className = "text-xs font-mono font-bold text-rose-300";
         }
         if (precHeadline) {
-          precHeadline.innerHTML = `Mercado fuera de la ventana operativa autorizada. Spreads ensanchados y bajo volumen interbancario. <strong>El 80% del volumen y los movimientos de R:R 1:2 y 1:3 ocurren exclusivamente en New York (08:00 – 11:30 UTC-5).</strong>`;
+          precHeadline.innerHTML = `Mercado fuera de las ventanas operativas autorizadas: <strong>Londres (02:00 – 05:00 NY)</strong> y <strong>New York (07:00 – 11:00 NY)</strong>. Spreads ensanchados y bajo volumen institucional.`;
         }
       }
     }
