@@ -844,7 +844,8 @@ def recalculate_trade_history(trades, config, mode="backtest"):
         asset = t.get("asset", "XAU/USD")
         asset_str = str(asset).upper()
         is_gold = any(x in asset_str for x in ["XAU", "GOLD", "ORO"])
-        is_audusd = "AUD" in asset_str and "USD" in asset_str
+        is_audjpy = ("AUD" in asset_str and "JPY" in asset_str) or ("AUDJPY" in asset_str) or ("JPY" in asset_str)
+        is_audusd = ("AUD" in asset_str and "USD" in asset_str) and not is_audjpy
         is_eurcad = "EUR" in asset_str and "CAD" in asset_str
         direction = str(t.get("direction", "BUY")).upper()
 
@@ -854,6 +855,18 @@ def recalculate_trade_history(trades, config, mode="backtest"):
             pip_mult = 10.0
             loss_per_lot = tv_points * 1.0 if tv_points > 0 else 300.0
             margin_rate = 2720.0 * 100.0
+            eff_lev = 30.0 if mode == "fondeo" else leverage
+        elif is_audjpy:
+            mult = 650.0  # 1 pip = 0.01; 1,000 JPY / 153.80 ~= $6.50/pip
+            pt_mult = 1000.0
+            pip_mult = 100.0
+            sl_pips_val = t.get("sl_pips") or t.get("pips") or (tv_points / 10.0 if tv_points > 50 else tv_points)
+            try:
+                sl_pips_float = float(sl_pips_val)
+            except Exception:
+                sl_pips_float = 25.0
+            loss_per_lot = sl_pips_float * 6.50 if sl_pips_float > 0 else 162.50
+            margin_rate = 100000.0 * 0.6550
             eff_lev = 30.0 if mode == "fondeo" else leverage
         elif is_eurcad:
             mult = 100000.0 / 1.39
@@ -866,7 +879,7 @@ def recalculate_trade_history(trades, config, mode="backtest"):
                 sl_pips_float = 25.0
             loss_per_lot = sl_pips_float * 7.20 if sl_pips_float > 0 else 180.0
             margin_rate = 100000.0 * 1.0850
-            eff_lev = leverage
+            eff_lev = 30.0 if mode == "fondeo" else leverage
         else:
             mult = 100000.0
             pt_mult = 100000.0
@@ -878,7 +891,7 @@ def recalculate_trade_history(trades, config, mode="backtest"):
                 sl_pips_float = 20.0
             loss_per_lot = sl_pips_float * 10.0 if sl_pips_float > 0 else 200.0
             margin_rate = 100000.0 * 0.6550 if is_audusd else 100000.0 * 1.0850
-            eff_lev = leverage
+            eff_lev = 30.0 if mode == "fondeo" else leverage
 
         # Reference lot size based on symbol (points for Gold, pips for Forex)
         if mode == "fondeo":
@@ -1324,7 +1337,8 @@ def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="XAU/USD
 
     asset_str = str(asset).upper()
     is_gold = any(x in asset_str for x in ["XAU", "GOLD", "ORO"])
-    is_audusd = "AUD" in asset_str and "USD" in asset_str
+    is_audjpy = ("AUD" in asset_str and "JPY" in asset_str) or ("AUDJPY" in asset_str) or ("JPY" in asset_str)
+    is_audusd = ("AUD" in asset_str and "USD" in asset_str) and not is_audjpy
     is_eurcad = "EUR" in asset_str and "CAD" in asset_str
     raw_val = float(sl_pips)
 
@@ -1357,6 +1371,22 @@ def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="XAU/USD
         margin_used = round((entry_ref_price * contract_size * suggested_lot) / effective_leverage, 2)
         actual_dollar_risk = round(suggested_lot * loss_per_lot, 2)
         pip_value_trade = round(suggested_lot * 1.0, 2)  # $1.00/point on 1.00 lot
+    elif is_audjpy:
+        # Forex Cross AUD/JPY: 1 standard lot = 100,000 AUD
+        # 1 pip = 0.01 JPY = 1,000 JPY per lot -> in USD = 1,000 / ~153.80 ~= 6.50 USD
+        pip_val_per_lot = 6.50
+        calc_sl_pips = raw_val
+        sl_points = round(raw_val * 10.0, 1)
+        sl_price_dist = round(raw_val * 0.01, 3)
+        loss_per_lot = raw_val * pip_val_per_lot
+        raw_lot = dollar_risk / loss_per_lot if loss_per_lot > 0 else 0.01
+        contract_size = 100000
+        effective_leverage = 30.0 if mode == "fondeo" else leverage
+        suggested_lot = max(0.01, round(raw_lot, 2))
+        entry_ref_price = 0.6550  # AUDUSD rate for margin in USD
+        margin_used = round((contract_size * entry_ref_price * suggested_lot) / effective_leverage, 2)
+        actual_dollar_risk = round(suggested_lot * loss_per_lot, 2)
+        pip_value_trade = round(suggested_lot * pip_val_per_lot, 2)
     elif is_eurcad:
         # Forex Cross EUR/CAD: 1 standard lot = 100,000 EUR
         # 1 pip = 0.0001 CAD = 10 CAD per lot -> in USD = 10 / 1.39 ~= 7.20 USD
@@ -1981,7 +2011,8 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             asset = payload.get("asset", config.get("asset", "XAU/USD"))
             asset_str = str(asset).upper()
             is_gold = any(x in asset_str for x in ["XAU", "GOLD", "ORO"])
-            is_audusd = "AUD" in asset_str and "USD" in asset_str
+            is_audjpy = ("AUD" in asset_str and "JPY" in asset_str) or ("AUDJPY" in asset_str) or ("JPY" in asset_str)
+            is_audusd = ("AUD" in asset_str and "USD" in asset_str) and not is_audjpy
             is_eurcad = "EUR" in asset_str and "CAD" in asset_str
 
             raw_sl_input = payload.get("sl_pips") or payload.get("tv_points") or payload.get("sl_points") or payload.get("sl_distance") or 10.0
@@ -2031,6 +2062,15 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 suggested_lot = max(0.01, round(raw_lot, 2))
                 gold_lev = min(leverage, 30.0) if mode == "fondeo" else leverage
                 calc_margin = round((2720.0 * 100.0 * suggested_lot) / gold_lev, 2)
+            elif is_audjpy:
+                sl_pips = raw_sl
+                sl_points = round(raw_sl * 10.0, 1)
+                sl_price_dist = round(raw_sl * 0.01, 3)
+                loss_per_lot = raw_sl * 6.50
+                raw_lot = dollar_risk / loss_per_lot if loss_per_lot > 0 else 0.01
+                suggested_lot = max(0.01, round(raw_lot, 2))
+                eff_lev = 30.0 if mode == "fondeo" else leverage
+                calc_margin = round((100000 * 0.6550 * suggested_lot) / eff_lev, 2)
             elif is_eurcad:
                 sl_pips = raw_sl
                 sl_points = round(raw_sl * 10.0, 1)
@@ -2038,7 +2078,8 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 loss_per_lot = raw_sl * 7.20
                 raw_lot = dollar_risk / loss_per_lot if loss_per_lot > 0 else 0.01
                 suggested_lot = max(0.01, round(raw_lot, 2))
-                calc_margin = round((100000 * 1.0850 * suggested_lot) / leverage, 2)
+                eff_lev = 30.0 if mode == "fondeo" else leverage
+                calc_margin = round((100000 * 1.0850 * suggested_lot) / eff_lev, 2)
             else:
                 sl_pips = raw_sl
                 sl_points = round(raw_sl * 10.0, 1)
@@ -2046,7 +2087,8 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 loss_per_lot = raw_sl * 10.0
                 raw_lot = dollar_risk / loss_per_lot if loss_per_lot > 0 else 0.01
                 suggested_lot = max(0.01, round(raw_lot, 2))
-                calc_margin = round((100000 * (0.6550 if is_audusd else 1.0850) * suggested_lot) / leverage, 2)
+                eff_lev = 30.0 if mode == "fondeo" else leverage
+                calc_margin = round((100000 * (0.6550 if is_audusd else 1.0850) * suggested_lot) / eff_lev, 2)
 
             manual_lot_raw = payload.get("manual_lot") or payload.get("lot_size")
             manual_lot = float(str(manual_lot_raw).replace(",", ".")) if manual_lot_raw else 0.0
@@ -2073,12 +2115,20 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
 
             if is_gold:
                 mult = 100.0
+                pt_mult = 100.0
+                pip_mult = 10.0
+            elif is_audjpy:
+                mult = 650.0
+                pt_mult = 1000.0
+                pip_mult = 100.0
             elif is_eurcad:
                 mult = 100000.0 / 1.39
+                pt_mult = 100000.0
+                pip_mult = 10000.0
             else:
                 mult = 100000.0
-            pt_mult = 100.0 if is_gold else 100000.0
-            pip_mult = 10.0 if is_gold else 10000.0
+                pt_mult = 100000.0
+                pip_mult = 10000.0
 
             calc_points = user_points
             calc_pips = user_pips
