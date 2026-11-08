@@ -1634,6 +1634,7 @@ function setupFondeoActionButtons() {
         if (res.ok) {
           if (currentTab === 'fondeo') {
             await loadFondeoTrades();
+            showToast('Historial de fondeo reiniciado correctamente', 'success');
           } else if (currentTab === 'real') {
             try {
               localStorage.removeItem('cached_real_trades_v2');
@@ -1643,10 +1644,12 @@ function setupFondeoActionButtons() {
             await loadTrades('real');
             renderRealJournalDashboard();
             recalculateRealQuickLot();
+            showToast('Historial de la cuenta real reiniciado correctamente', 'success');
           } else {
             appState.backtest.trades = [];
             await loadTrades('backtest');
             renderBacktestSimpleDashboard();
+            showToast('Historial de backtesting reiniciado correctamente', 'success');
           }
         }
       } catch (err) {
@@ -3079,6 +3082,7 @@ function setupBacktestSimpleView() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             mode: 'backtest',
+            asset: 'AUD/JPY',
             num_trades: nTrades,
             win_rate: winRate,
             initial_balance: initBal,
@@ -3533,7 +3537,7 @@ function openBacktestReportModal() {
   const avgLoss = s.avg_loss || (losses > 0 ? totalLoss / losses : 0);
   const riskPct = parseFloat(document.getElementById('btSimpleRiskPct')?.value) || 1.0;
   const targetRr = parseFloat(document.getElementById('btSimpleRR')?.value) || 3.0;
-  const leverage = (appState.config?.backtest_leverage) || 300;
+  const leverage = Math.round(Number(appState.backtest?.config?.leverage || appState.config?.leverage || 30));
   const calmar = maxDd > 0 ? (netRet / maxDd).toFixed(2) : (netRet > 0 ? '∞' : '0.00');
   const payoffRatio = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '0.00';
 
@@ -5196,11 +5200,7 @@ function setupEventListeners() {
     }
   }
 
-  // Clear Button
-  const btnClear = document.getElementById('btnClearData');
-  if (btnClear) {
-    btnClear.addEventListener('click', handleClearData);
-  }
+  // Clear Button (manejado de forma unificada en setupFondeoActionButtons)
 
   // Backtest Table Filters (if present)
   const filterAll = document.getElementById('filterAll');

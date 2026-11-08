@@ -2274,7 +2274,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             initial_balance = float(config.get("initial_balance", 1000.0))
             risk_pct = float(config.get("risk_pct", 1.0))
             rr_ratio = float(config.get("rr_ratio", 3.0))
-            asset = payload.get("asset", "XAU/USD (Oro)")
+            asset = payload.get("asset", "AUD/JPY")
 
             import random
             from datetime import timedelta
@@ -2316,16 +2316,18 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                     "date": t_date_str,
                     "asset": asset,
                     "direction": random.choice(["BUY", "SELL"]),
-                    "sl_points": 300,
-                    "tp_points": int(round(300 * rr_ratio)),
+                    "sl_points": 25,
+                    "tp_points": int(round(25 * rr_ratio)),
+                    "sl_pips": 25,
+                    "tp_pips": int(round(25 * rr_ratio)),
                     "risk_pct": risk_pct,
                     "risk_pct_custom": risk_pct,
                     "ret_pct": ret_pct,
                     "rr": rr_ratio,
                     "is_manual_rr": False,
                     "dollar_risk": dollar_risk,
-                    "suggested_lot": round(dollar_risk / 300.0, 2) if dollar_risk >= 3.0 else 0.01,
-                    "lot_size": round(dollar_risk / 300.0, 2) if dollar_risk >= 3.0 else 0.01,
+                    "suggested_lot": max(0.01, round(dollar_risk / (25 * 6.50), 2)),
+                    "lot_size": max(0.01, round(dollar_risk / (25 * 6.50), 2)),
                     "status": st,
                     "pnl": pnl,
                     "balance_before": bal_before,
