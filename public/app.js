@@ -6769,6 +6769,7 @@ async function renderNewsView() {
     if (data) {
       weeklyNewsState = data;
       evaluateDynamicNewsShield();
+      renderWeeklyNews();
     }
   } catch (e) {
     console.error('Error cargando noticias:', e);
@@ -8023,16 +8024,32 @@ async function loadWeeklyNews() {
   // Fallback si no hay conexión al backend
   if (!weeklyNewsState || !weeklyNewsState.days) {
     weeklyNewsState = {
-      week_label: "Semana Operativa · 02 al 06 de Noviembre (Semana NFP & Empleo)",
+      week_label: "Semana Operativa AUD/JPY · Macro Australia, Japón & EE.UU.",
+      week_start: "2026-11-02",
+      week_end: "2026-11-06",
+      timezone: "America/New_York (UTC-4)",
       days: [
         {
           date: "2026-11-02",
           day_name: "Lunes",
           day_short: "LUN",
           impact_level: "HIGH",
-          badge_text: "🔴 ISM MANUFACTURERO",
+          badge_text: "🔴 ISM MANUFACTURERO (EE.UU.)",
           events: [
             {
+              id: "news_20261102_01",
+              time: "06:50 PM NY",
+              currency: "JPY",
+              title: "Gasto de los Hogares y Cuenta Corriente de Japón",
+              impact: "MEDIUM",
+              forecast: "-0.5% a/a",
+              previous: "-1.9% a/a",
+              actual: "+0.2% a/a",
+              impact_audjpy: "Medición clave del consumo interno nipón. Si el gasto repunta con fuerza, aumentan las probabilidades de subida de tipos del BoJ, apreciando al JPY y presionando a la baja el par AUD/JPY (-20 a -35 pips).",
+              rule_action: "Monitorear spreads en sesión asiática temprana. No ingresar órdenes si el spread supera 2.0 pips."
+            },
+            {
+              id: "news_20261102_02",
               time: "10:00 AM NY",
               currency: "USD",
               title: "ISM PMI Manufacturero de EE.UU.",
@@ -8040,19 +8057,8 @@ async function loadWeeklyNews() {
               forecast: "49.5",
               previous: "47.2",
               actual: "48.6",
-              impact_gold: "Cae en plena Killzone de NY. Si sale por debajo de 50 (contracción prolongada), debilita el dólar y da soporte alcista al Oro.",
-              rule_action: "⚠️ Pausa Táctica: Cero entradas de 09:58 a 10:05 NY. Esperar vela M5 cerrada."
-            },
-            {
-              time: "10:00 AM NY",
-              currency: "USD",
-              title: "Precios Pagados en Manufactura ISM",
-              impact: "MEDIUM",
-              forecast: "52.0",
-              previous: "48.3",
-              actual: "51.2",
-              impact_gold: "Componente inflacionario temprano. Un repunte eleva los rendimientos de los bonos a 10 años.",
-              rule_action: "Seguimiento simultáneo con el PMI principal."
+              impact_audjpy: "Barómetro del crecimiento industrial mundial. Lecturas sólidas (>50) activan apetito por el riesgo (Risk-On), impulsando al Dólar Australiano frente al Yen. Lecturas débiles provocan aversión al riesgo y compras de refugio en Yen.",
+              rule_action: "⚠️ Pausa Táctica: Cero entradas de 09:58 a 10:02 AM NY en cuenta fondeada. Esperar vela M5 cerrada."
             }
           ]
         },
@@ -8060,30 +8066,32 @@ async function loadWeeklyNews() {
           date: "2026-11-03",
           day_name: "Martes",
           day_short: "MAR",
-          impact_level: "HIGH",
-          badge_text: "🔴 VACANTES JOLTS",
+          impact_level: "CRITICAL",
+          badge_text: "💥 DECISIÓN TIPOS RBA (AUSTRALIA)",
           events: [
             {
+              id: "news_20261103_01",
+              time: "11:30 PM NY",
+              currency: "AUD",
+              title: "Decisión de Tipos de Interés del RBA & Declaración de Política Monetaria",
+              impact: "CRITICAL",
+              forecast: "4.35%",
+              previous: "4.35%",
+              actual: "--",
+              impact_audjpy: "El catalizador más potente para el Dólar Australiano. Si la gobernadora Michele Bullock mantiene sesgo restrictivo (Hawkish) debido a la inflación persistente, AUD/JPY reacciona con subidas violentas de 40 a 70 pips. Un recorte o tono Dovish desencadena ventas masivas.",
+              rule_action: "⛔ Bloqueo Estricto Orion Funded: Prohibido abrir, cerrar o modificar órdenes ±2 minutos antes y después del anuncio."
+            },
+            {
+              id: "news_20261103_02",
               time: "10:00 AM NY",
               currency: "USD",
-              title: "Encuesta de Ofertas de Empleo JOLTS",
+              title: "Encuesta de Ofertas de Empleo JOLTS de EE.UU.",
               impact: "HIGH",
               forecast: "7.98M",
               previous: "8.04M",
               actual: "--",
-              impact_gold: "Termómetro vital de la Fed para el empleo. Menos vacantes confirma enfriamiento laboral, impulsando compras en Oro.",
-              rule_action: "⚠️ Pausa Táctica 09:58 a 10:06 NY. Posible latigazo de 40 a 70 pts TV."
-            },
-            {
-              time: "01:30 PM NY",
-              currency: "USD",
-              title: "Discurso de Miembros de la Reserva Federal (Fed Speeches)",
-              impact: "MEDIUM",
-              forecast: "--",
-              previous: "--",
-              actual: "--",
-              impact_gold: "Riesgo de volatilidad en sesión de la tarde. No se recomienda abrir nuevos trades tras el London Fix (11:30 NY).",
-              rule_action: "Sesión ya finalizada según el plan institucional."
+              impact_audjpy: "Impacta el sentimiento global y el rendimiento de los bonos del Tesoro (US10Y). Un enfriamiento laboral severo eleva el riesgo de recesión e induce aversión al riesgo, debilitando al par AUD/JPY.",
+              rule_action: "⚠️ Pausa Táctica 09:58 a 10:05 NY. Posible latigazo de 20 a 35 pips en el cruce."
             }
           ]
         },
@@ -8091,29 +8099,55 @@ async function loadWeeklyNews() {
           date: "2026-11-04",
           day_name: "Miércoles",
           day_short: "MIÉ",
-          impact_level: "HIGH",
-          badge_text: "🔥 ADP + ISM SERVICIOS",
+          impact_level: "CRITICAL",
+          badge_text: "🔥 IPC AUSTRALIA + TOKIO CPI",
           events: [
             {
+              id: "news_20261104_01",
+              time: "07:30 PM NY",
+              currency: "AUD",
+              title: "Índice de Precios al Consumidor (CPI / IPC Trimestral de Australia)",
+              impact: "CRITICAL",
+              forecast: "+0.8% t/t",
+              previous: "+1.0% t/t",
+              actual: "--",
+              impact_audjpy: "Dato rector de la política del RBA. Una inflación por encima de lo previsto ensancha el diferencial de rendimientos de Australia (+4.35%) frente a Japón (+0.25%), atrayendo capitales masivos hacia AUD/JPY con movimientos de 50 a 80 pips.",
+              rule_action: "⛔ Bloqueo Estricto: Esperar 10 minutos tras la publicación para que el spread en Tickmill se normalice."
+            },
+            {
+              id: "news_20261104_02",
+              time: "07:50 PM NY",
+              currency: "JPY",
+              title: "IPC Subyacente de Tokio (Tokyo Core CPI)",
+              impact: "HIGH",
+              forecast: "+2.2% a/a",
+              previous: "+2.4% a/a",
+              actual: "--",
+              impact_audjpy: "Principal indicador adelantado de la inflación en Japón. Cifras superiores al 2.0% consolidan el plan de subida de tipos del Banco de Japón, desatando compras de JPY y caídas bruscas en AUD/JPY (-30 a -50 pips).",
+              rule_action: "Seguimiento simultáneo con el IPC australiano. Precaución por choque cruzado de divisas."
+            },
+            {
+              id: "news_20261104_03",
               time: "08:15 AM NY",
               currency: "USD",
-              title: "Informe de Empleo No Agrícola ADP",
+              title: "Informe de Empleo No Agrícola ADP de EE.UU.",
               impact: "HIGH",
               forecast: "145K",
               previous: "143K",
               actual: "--",
-              impact_gold: "Preludio directo de NFP. Genera quiebres anticipados en el rango previo de New York 15 min antes de la apertura de Wall Street.",
-              rule_action: "⛔ Bloqueo Estricto: 08:10 a 08:25 NY. Esperar que el spread regrese a lo normal."
+              impact_audjpy: "Anticipo de NFP. Mueve la liquidez en la apertura de New York con impacto directo en el apetito por riesgo internacional.",
+              rule_action: "⚠️ Bloqueo de órdenes de 08:13 a 08:17 AM NY."
             },
             {
+              id: "news_20261104_04",
               time: "10:00 AM NY",
               currency: "USD",
-              title: "ISM PMI del Sector Servicios (No Manufacturero)",
+              title: "ISM PMI del Sector Servicios de EE.UU.",
               impact: "HIGH",
               forecast: "53.8",
               previous: "54.9",
               actual: "--",
-              impact_gold: "El sector servicios representa más del 70% de la economía de EE.UU. Noticia catalizadora de gran recorrido direccional.",
+              impact_audjpy: "El sector servicios representa más del 70% de la economía de EE.UU. Un ISM de servicios expansivo favorece el Risk-On global (alcista AUD/JPY).",
               rule_action: "⚠️ Alerta Killzone: No tener órdenes pendientes abiertas a las 09:59 NY."
             }
           ]
@@ -8122,30 +8156,44 @@ async function loadWeeklyNews() {
           date: "2026-11-05",
           day_name: "Jueves",
           day_short: "JUE",
-          impact_level: "HIGH",
-          badge_text: "🔴 PETICIONES SUBSIDIO",
+          impact_level: "CRITICAL",
+          badge_text: "🔴 EMPLEO AUSTRALIA & DECISIÓN BOJ",
           events: [
             {
+              id: "news_20261105_01",
+              time: "07:30 PM NY",
+              currency: "AUD",
+              title: "Informe de Empleo de Australia (Cambio en el Empleo & Tasa de Desempleo)",
+              impact: "CRITICAL",
+              forecast: "+25.0K / 4.1%",
+              previous: "+64.1K / 4.1%",
+              actual: "--",
+              impact_audjpy: "Uno de los datos más explosivos para el cruce. Una sorpresa positiva en el mercado laboral australiano propulsa a AUD/JPY entre 35 y 65 pips de manera instantánea.",
+              rule_action: "⛔ Regla Orion: Cero aperturas en la ventana de ±2 minutos. Esperar vela de 5 minutos cerrada."
+            },
+            {
+              id: "news_20261105_02",
+              time: "11:00 PM NY",
+              currency: "JPY",
+              title: "Decisión de Tipos de Interés del Banco de Japón (BoJ) & Rueda de Prensa de Ueda",
+              impact: "CRITICAL",
+              forecast: "0.25%",
+              previous: "0.25%",
+              actual: "--",
+              impact_audjpy: "El evento de mayor repercusión sistémica para el Yen. Cualquier señal de ajuste cuantitativo o alza de tipos provoca liquidación masiva de Carry Trade, hundiendo al par AUD/JPY con latigazos de 80 a 140 pips y ensanchamiento de spreads.",
+              rule_action: "⛔ PROHIBICIÓN TOTAL: Cero operaciones durante la rueda de prensa del Gobernador Kazuo Ueda."
+            },
+            {
+              id: "news_20261105_03",
               time: "08:30 AM NY",
               currency: "USD",
-              title: "Nuevas Peticiones de Subsidio por Desempleo (Initial Jobless Claims)",
+              title: "Nuevas Peticiones de Subsidio por Desempleo de EE.UU. (Jobless Claims)",
               impact: "HIGH",
               forecast: "221K",
               previous: "218K",
               actual: "--",
-              impact_gold: "Peticiones semanales. Cifras superiores al pronóstico (>225K) debilitan al dólar y habilitan compras en soporte clave del Oro.",
-              rule_action: "⛔ Bloqueo: 08:25 a 08:40 NY. Buscar confirmación de entrada M5 a las 08:45 NY."
-            },
-            {
-              time: "08:30 AM NY",
-              currency: "USD",
-              title: "Balanza Comercial de EE.UU.",
-              impact: "MEDIUM",
-              forecast: "-70.2B",
-              previous: "-70.4B",
-              actual: "--",
-              impact_gold: "Publicación simultánea con peticiones de desempleo.",
-              rule_action: "Seguimiento unificado con Jobless Claims."
+              impact_audjpy: "Monitorea la estabilidad laboral de EE.UU. Si las peticiones se disparan (>240K), debilita el sentimiento de mercado y activa aversión al riesgo hacia el Yen como refugio.",
+              rule_action: "⛔ Bloqueo en Fondeado: 08:28 a 08:32 AM NY."
             }
           ]
         },
@@ -8154,40 +8202,31 @@ async function loadWeeklyNews() {
           day_name: "Viernes",
           day_short: "VIE",
           impact_level: "CRITICAL",
-          badge_text: "💥 NFP VIERNES (MÁXIMA VOLATILIDAD)",
+          badge_text: "💥 NFP VIERNES (MÁXIMO RISK-ON / RISK-OFF)",
           events: [
             {
+              id: "news_20261106_01",
               time: "08:30 AM NY",
               currency: "USD",
-              title: "NFP (Nóminas No Agrícolas de EE.UU.)",
+              title: "NFP (Nóminas No Agrícolas de EE.UU.) & Tasa de Desempleo",
               impact: "CRITICAL",
-              forecast: "180K",
-              previous: "254K",
+              forecast: "180K / 4.1%",
+              previous: "254K / 4.1%",
               actual: "--",
-              impact_gold: "El evento de mayor volatilidad mensual. Mueve entre 1,500 y 3,000 puntos TV ($15.00 a $30.00) en velas de 1 a 5 minutos. Spreads bancarios se disparan.",
-              rule_action: "⛔ PROHIBIDO DISPARAR ANTES DE LAS 08:45 NY. Cero apuestas previas. Esperar vela M5 cerrada."
+              impact_audjpy: "El evento macro más influyente del mes a nivel global. Un NFP muy robusto eleva los rendimientos de los bonos globales y activa el modo 'Risk-On', impulsando compras en AUD/JPY. Un colapso laboral desata pánico en bolsas ('Risk-Off') y catapulta al Yen como activo de refugio seguro, haciendo caer a AUD/JPY de 60 a 110 pips en minutos.",
+              rule_action: "⛔ BLOQUEO ESTRICTO ORION FUNDED: 08:28 a 08:32 AM NY. No apostar al dato; esperar 15 min (08:45 NY) para que los spreads se estabilicen antes de ejecutar."
             },
             {
-              time: "08:30 AM NY",
-              currency: "USD",
-              title: "Tasa de Desempleo de EE.UU.",
+              id: "news_20261106_02",
+              time: "07:30 PM NY",
+              currency: "AUD",
+              title: "Balanza Comercial y Ventas Minoristas de Australia",
               impact: "HIGH",
-              forecast: "4.1%",
-              previous: "4.1%",
+              forecast: "+5.8B / +0.4%",
+              previous: "+5.6B / +0.7%",
               actual: "--",
-              impact_gold: "Si el desempleo sube a 4.2% o superior, desata rally comprador agresivo en metales preciosos.",
-              rule_action: "Alineado con el bloqueo estricto de NFP."
-            },
-            {
-              time: "08:30 AM NY",
-              currency: "USD",
-              title: "Ingresos Medios por Hora (Salarios m/m)",
-              impact: "HIGH",
-              forecast: "+0.3%",
-              previous: "+0.4%",
-              actual: "--",
-              impact_gold: "Presión salarial subyacente. Clave para la reunión de política monetaria de la Reserva Federal.",
-              rule_action: "Esperar absorción completa antes de operar el Adaptive Supertrend."
+              impact_audjpy: "Mide el pulso exportador australiano de minerales y energía hacia Asia. Si las exportaciones superan el consenso, aporta soporte fundamental al Dólar Australiano frente al Yen.",
+              rule_action: "Operar únicamente si el spread de Tickmill se mantiene inferior a 1.5 pips."
             }
           ]
         }
@@ -8203,7 +8242,7 @@ async function loadWeeklyNews() {
 }
 
 function renderWeeklyNews() {
-  const container = document.getElementById("weeklyNewsContainer");
+  const container = document.getElementById("newsEventsTableContainer") || document.getElementById("weeklyNewsContainer");
   if (!container || !weeklyNewsState || !Array.isArray(weeklyNewsState.days)) return;
 
   const badge = document.getElementById("newsWeekBadge");
@@ -8251,7 +8290,7 @@ function renderWeeklyNews() {
                 <span>${day.day_name}, ${day.date}</span>
                 <span class="text-[10px] text-gray-400 font-mono font-normal">· New York (UTC-4)</span>
               </div>
-              <div class="text-[11px] text-gray-400">Ventana Operativa de Oro (08:30 – 11:30 NY)</div>
+              <div class="text-[11px] text-gray-400">Eventos Macro Australia, Japón & EE.UU. con impacto directo en AUD/JPY</div>
             </div>
           </div>
           <span class="text-[10px] font-mono font-bold px-3 py-1 rounded-lg border ${dayHeaderClass} flex items-center gap-1.5 shadow-sm">
@@ -8266,10 +8305,18 @@ function renderWeeklyNews() {
             const isCritical = ev.impact === "CRITICAL";
             const isHigh = ev.impact === "HIGH";
             const impactBadge = isCritical 
-              ? `<span class="px-2.5 py-0.5 rounded bg-red-900/80 text-red-200 border border-red-500 font-mono text-[10px] font-black animate-pulse flex items-center gap-1"><span>💥</span><span>CRÍTICA (NFP)</span></span>`
+              ? `<span class="px-2.5 py-0.5 rounded bg-red-900/80 text-red-200 border border-red-500 font-mono text-[10px] font-black animate-pulse flex items-center gap-1"><span>💥</span><span>CRÍTICA</span></span>`
               : (isHigh 
                   ? `<span class="px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 font-mono text-[10px] font-bold">🔴 ALTO IMPACTO</span>`
                   : `<span class="px-2 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-800 font-mono text-[10px] font-bold">🟡 MEDIO IMPACTO</span>`);
+
+            const currBadge = ev.currency === 'AUD'
+              ? '<span class="px-2 py-1 rounded-lg bg-emerald-950/80 border border-emerald-800 font-mono text-[10px] text-emerald-300 font-bold">🇦🇺 AUD</span>'
+              : (ev.currency === 'JPY'
+                  ? '<span class="px-2 py-1 rounded-lg bg-red-950/80 border border-red-800 font-mono text-[10px] text-red-300 font-bold">🇯🇵 JPY</span>'
+                  : (ev.currency === 'USD'
+                      ? '<span class="px-2 py-1 rounded-lg bg-blue-950/80 border border-blue-800 font-mono text-[10px] text-blue-300 font-bold">🇺🇸 USD</span>'
+                      : `<span class="px-2 py-1 rounded-lg bg-gray-900 border border-gray-700 font-mono text-[10px] text-gray-300 font-bold">${ev.currency}</span>`));
 
             return `
               <div class="p-4 rounded-xl bg-gray-900/80 border ${isCritical ? 'border-red-500/40 shadow-lg shadow-red-950/20' : 'border-gray-800/90 hover:border-gray-700'} space-y-3 transition">
@@ -8279,16 +8326,14 @@ function renderWeeklyNews() {
                       <i data-lucide="clock" class="w-3.5 h-3.5 text-yellow-400"></i>
                       <span>${ev.time}</span>
                     </span>
-                    <span class="px-2 py-1 rounded-lg bg-blue-950/80 border border-blue-800 font-mono text-[10px] text-blue-300 font-bold">
-                      🇺🇸 ${ev.currency}
-                    </span>
+                    ${currBadge}
                   </div>
                   ${impactBadge}
                 </div>
 
                 <div>
                   <h4 class="text-xs sm:text-sm font-bold text-white leading-snug">${ev.title}</h4>
-                  <p class="text-[11px] text-gray-300 mt-1.5 leading-relaxed">${ev.impact_gold || ''}</p>
+                  <p class="text-[11px] text-gray-300 mt-1.5 leading-relaxed">${ev.impact_audjpy || ev.impact_gold || ''}</p>
                 </div>
 
                 <!-- Consensus Metrics: Forecast / Prev / Actual -->
@@ -8310,7 +8355,7 @@ function renderWeeklyNews() {
                 <!-- Protective Action / Protocol -->
                 <div class="p-2.5 rounded-lg ${isCritical ? 'bg-red-950/40 border border-red-500/40 text-red-300' : 'bg-yellow-950/30 border border-yellow-500/30 text-yellow-300'} text-[11px] font-medium leading-relaxed flex items-start gap-2">
                   <i data-lucide="shield-alert" class="w-4 h-4 mt-0.5 shrink-0 ${isCritical ? 'text-red-400' : 'text-yellow-400'}"></i>
-                  <span><strong class="text-white">Regla Operativa Oro:</strong> ${ev.rule_action || 'Esperar digestión de spreads en M5.'}</span>
+                  <span><strong class="text-white">Regla Operativa AUD/JPY:</strong> ${ev.rule_action || 'Esperar digestión de spreads en M5.'}</span>
                 </div>
               </div>
             `;

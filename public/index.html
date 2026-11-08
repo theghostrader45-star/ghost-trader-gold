@@ -323,7 +323,7 @@
             <div>
               <h3 class="text-base font-bold text-white flex items-center gap-2">
                 <span>Registrar Operación Manual — Orion Nova 50K</span>
-                <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-mono font-bold">1:30 ORO</span>
+                <span class="text-[10px] bg-orange-500/20 text-orange-300 border border-orange-500/40 px-2 py-0.5 rounded-full font-mono font-bold">1:30 AUD/JPY</span>
               </h3>
               <p class="text-xs text-gray-400">Control estricto de riesgo por trade, dimensionamiento automático de lotaje y validación contra drawdown diario</p>
             </div>
@@ -1621,12 +1621,12 @@
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
                 VENTANA CRÍTICA ±2 MIN (FONDEADO)
               </span>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                XAU/USD ORO
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-orange-500/20 text-orange-300 border border-orange-500/40">
+                🟠 AUD/JPY (AUD · JPY · USD)
               </span>
             </div>
             <p class="text-xs text-gray-400 mt-0.5">
-              Control riguroso de eventos macroeconómicos de EE.UU. que desatan latigazos de 1,500 a 3,000 puntos en Oro y dilatación de spreads
+              Control riguroso de eventos macroeconómicos de Australia (RBA, Empleo, IPC), Japón (BoJ, IPC Tokio) y EE.UU. (NFP, CPI, Fed) que desatan latigazos de 30 a 90 pips en AUD/JPY y dilatación de spreads
             </p>
           </div>
         </div>
@@ -1661,8 +1661,8 @@
         <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex items-center justify-between">
           <div>
             <span class="text-[11px] text-gray-400 uppercase font-bold tracking-wider">Sesión de Mercado Activa</span>
-            <div class="text-lg sm:text-xl font-black text-amber-300 mt-1" id="newsCurrentSession">New York Killzone</div>
-            <span class="text-[10px] text-gray-400 mt-0.5 block">08:00 – 11:30 NY (Horario Institucional Oro)</span>
+            <div class="text-lg sm:text-xl font-black text-amber-300 mt-1" id="newsCurrentSession">Solapamientos y Killzones</div>
+            <span class="text-[10px] text-gray-400 mt-0.5 block">Horarios Clave AUD/JPY: Sídney/Tokio (Tarde/Noche NY) y Londres/NY</span>
           </div>
           <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20 shrink-0">
             <i data-lucide="activity" class="w-6 h-6"></i>
@@ -1713,51 +1713,114 @@
               Durante la fase de evaluación, se permite operar noticias, pero está <strong>prohibido el gap trading sistemático y el gambling de noticias</strong> (apostar con todo el margen segundos antes del dato con la intención de pasar o quemar la prueba).
             </p>
             <p class="text-[11px] text-gray-400">
-              • <em>Recomendación: esperar el cierre de la vela de 5 minutos tras el dato para no sufrir por spreads inflados de hasta 100 puntos en Oro.</em>
+              • <em>Recomendación: esperar el cierre de la vela de 5 minutos tras el dato para no sufrir por spreads inflados en AUD/JPY tras el dato.</em>
             </p>
           </div>
         </div>
       </section>
 
-      <!-- CALENDARIO DE NOTICIAS DE ALTO IMPACTO (ORO XAU/USD) -->
+      <!-- CALENDARIO DE NOTICIAS DE ALTO IMPACTO (AUD/JPY · AUD · JPY · USD) -->
       <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 shadow-xl space-y-4">
         <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
           <div class="flex items-center gap-2.5">
-            <div class="p-2 bg-rose-500/15 text-rose-400 rounded-xl border border-rose-500/30">
+            <div class="p-2 bg-orange-500/15 text-orange-400 rounded-xl border border-orange-500/30">
               <i data-lucide="calendar" class="w-5 h-5"></i>
             </div>
             <div>
-              <h3 class="text-base font-bold text-white">Calendario Económico Semanal de Alto Impacto para Oro</h3>
-              <p class="text-xs text-gray-400">Eventos que mueven el precio del Oro y activan la ventana de riesgo de Orion Funded</p>
+              <h3 class="text-base font-bold text-white">Calendario Económico Semanal de Alto Impacto para AUD/JPY</h3>
+              <p class="text-xs text-gray-400">Eventos de Australia, Japón y EE.UU. que mueven la liquidez y activan la ventana de riesgo de Orion Funded</p>
             </div>
           </div>
-          <span class="px-2.5 py-1 rounded-xl text-xs font-mono font-bold bg-rose-950 text-rose-300 border border-rose-800">
-            DATOS DE EE.UU. (USD)
+          <span class="px-2.5 py-1 rounded-xl text-xs font-mono font-bold bg-orange-950 text-orange-300 border border-orange-800">
+            🇦🇺 AUD · 🇯🇵 JPY · 🇺🇸 USD
           </span>
         </div>
 
         <div id="newsEventsTableContainer" class="space-y-3">
           <!-- Tarjetas de Eventos de la Semana -->
           
-          <!-- Evento 1: NFP Viernes -->
+          <!-- Evento 1: Decisión Tipos RBA (AUD) -->
+          <div class="bg-gray-950/80 border border-emerald-800/80 rounded-xl p-4 space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-600 text-white">CRÍTICO</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-emerald-950 text-emerald-300 border border-emerald-700">🇦🇺 AUD</span>
+                <span class="font-bold text-white text-sm">RBA — Decisión de Tipos de Interés & Declaración de Política Monetaria</span>
+              </div>
+              <div class="text-xs font-mono font-bold text-emerald-300 bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-800/60">
+                Martes 11:30 PM NY
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
+              <div>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Volatilidad Típica AUD/JPY</span>
+                <strong class="text-amber-300 font-mono">40 a 70 pips (Impulso Direccional)</strong>
+              </div>
+              <div>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Dilatación de Spreads</span>
+                <strong class="text-rose-300 font-mono">De 0.8 pips sube a 2.5–4.0 pips</strong>
+              </div>
+              <div>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
+                <strong class="text-white font-mono">⛔ Bloqueo 11:28 a 11:32 PM NY</strong>
+              </div>
+            </div>
+            <p class="text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 mt-1">
+              <strong>Impacto Institucional:</strong> Catalizador supremo para el Dólar Australiano. Sorpresas restrictivas (Hawkish) desatan subidas aceleradas por diferencial de tasas (+4.35% vs +0.25%); recortes o tono moderado hunden el cruce frente al Yen.
+            </p>
+          </div>
+
+          <!-- Evento 2: BoJ Decisión de Tipos & Rueda de Ueda (JPY) -->
           <div class="bg-gray-950/80 border border-rose-800/80 rounded-xl p-4 space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-600 text-white">CRÍTICO</span>
-                <span class="font-bold text-white text-sm">NFP — Nóminas No Agrícolas de EE.UU. & Tasa de Desempleo</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-950 text-red-300 border border-red-700">🇯🇵 JPY</span>
+                <span class="font-bold text-white text-sm">BoJ — Decisión de Tipos del Banco de Japón & Rueda de Prensa de Ueda</span>
               </div>
               <div class="text-xs font-mono font-bold text-rose-300 bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-800/60">
+                Jueves 11:00 PM NY
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
+              <div>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Volatilidad Típica AUD/JPY</span>
+                <strong class="text-amber-300 font-mono">80 a 140 pips (Desmonte de Carry Trade)</strong>
+              </div>
+              <div>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Riesgo de Liquidación</span>
+                <strong class="text-rose-400 font-mono">Máximo riesgo por volatilidad en JPY</strong>
+              </div>
+              <div>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
+                <strong class="text-white font-mono">⛔ Bloqueo Total durante discurso de Ueda</strong>
+              </div>
+            </div>
+            <p class="text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 mt-1">
+              <strong>Impacto Institucional:</strong> La reunión del BoJ define el coste de fondeo global. Cualquier endurecimiento monetario desmantela posiciones apalancadas de Carry Trade, provocando caídas violentas e inmediatas en AUD/JPY.
+            </p>
+          </div>
+
+          <!-- Evento 3: NFP Viernes EE.UU. (USD) -->
+          <div class="bg-gray-950/80 border border-purple-800/60 rounded-xl p-4 space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-purple-600 text-white">CRÍTICO</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-blue-950 text-blue-300 border border-blue-700">🇺🇸 USD</span>
+                <span class="font-bold text-white text-sm">NFP — Nóminas No Agrícolas de EE.UU. & Tasa de Desempleo</span>
+              </div>
+              <div class="text-xs font-mono font-bold text-purple-300 bg-purple-950/60 px-2.5 py-1 rounded-lg border border-purple-800/60">
                 Viernes 08:30 AM NY
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
               <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Volatilidad Típica en Oro</span>
-                <strong class="text-amber-300 font-mono">1,500 a 3,000 puntos ($15 a $30 USD)</strong>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Comportamiento en AUD/JPY</span>
+                <strong class="text-amber-300 font-mono">60 a 110 pips (Shock Risk-On / Risk-Off)</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Dilatación de Spreads</span>
-                <strong class="text-rose-300 font-mono">De 15 pts normales sube a 60–120 pts</strong>
+                <strong class="text-rose-400 font-mono">De 0.9 pips sube a 3.0–5.0 pips</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
@@ -1765,120 +1828,62 @@
               </div>
             </div>
             <p class="text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 mt-1">
-              <strong>Impacto Institucional:</strong> El dato más explosivo de cada mes. Si sale por debajo de lo previsto (< 150k), debilita el dólar y catapulta el Oro al alza. Si sale muy fuerte (> 220k), el Oro cae con violencia. <em>Esperar 15 minutos (08:45 NY) para que los spreads se normalicen antes de entrar.</em>
+              <strong>Impacto Institucional:</strong> Un informe laboral fuerte activa apetito por el riesgo mundial y compras en AUD/JPY. Cifras débiles desatan aversión al riesgo y compras de refugio seguro en Yen. Esperar a las 08:45 NY para entrar.
             </p>
           </div>
 
-          <!-- Evento 2: CPI Inflación EE.UU. -->
-          <div class="bg-gray-950/80 border border-rose-800/60 rounded-xl p-4 space-y-2">
+          <!-- Evento 4: Informe de Empleo de Australia (AUD) -->
+          <div class="bg-gray-950/80 border border-emerald-800/60 rounded-xl p-4 space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-rose-600 text-white">ALTO IMPACTO</span>
-                <span class="font-bold text-white text-sm">CPI / IPC — Índice de Precios al Consumidor (Inflación)</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-emerald-600 text-white">ALTO IMPACTO</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-emerald-950 text-emerald-300 border border-emerald-700">🇦🇺 AUD</span>
+                <span class="font-bold text-white text-sm">Informe de Empleo de Australia — Creación de Empleo & Desempleo</span>
               </div>
-              <div class="text-xs font-mono font-bold text-rose-300 bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-800/60">
-                Mensual 08:30 AM NY
+              <div class="text-xs font-mono font-bold text-emerald-300 bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-800/60">
+                Jueves 07:30 PM NY
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
-              <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Volatilidad Típica en Oro</span>
-                <strong class="text-amber-300 font-mono">1,200 a 2,500 puntos ($12 a $25 USD)</strong>
-              </div>
-              <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Rendimiento Bonos TIPS</span>
-                <strong class="text-blue-300 font-mono">Mueve agresivamente TIPS 10Y y DXY</strong>
-              </div>
-              <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
-                <strong class="text-white font-mono">⛔ Bloqueo 08:28 a 08:32 AM NY</strong>
-              </div>
-            </div>
-            <p class="text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 mt-1">
-              <strong>Impacto Institucional:</strong> Un repunte de inflación (+0.1% sobre lo esperado) fortalece la postura de tasas altas de la Fed, provocando ventas masivas inmediatas en metales.
-            </p>
-          </div>
-
-          <!-- Evento 3: FOMC / Tasas de la Fed -->
-          <div class="bg-gray-950/80 border border-purple-800/60 rounded-xl p-4 space-y-2">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-purple-600 text-white">CRÍTICO</span>
-                <span class="font-bold text-white text-sm">FOMC — Decisión de Tipos de Interés & Conferencia de Jerome Powell</span>
-              </div>
-              <div class="text-xs font-mono font-bold text-purple-300 bg-purple-950/60 px-2.5 py-1 rounded-lg border border-purple-800/60">
-                02:00 PM y 02:30 PM NY
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
-              <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Comportamiento en Oro</span>
-                <strong class="text-amber-300 font-mono">Latigazo en dos direcciones (Whipsaw)</strong>
-              </div>
-              <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Riesgo de Liquidación</span>
-                <strong class="text-rose-400 font-mono">Máximo riesgo de barrido de SL</strong>
-              </div>
-              <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
-                <strong class="text-white font-mono">⛔ Bloqueo 01:58 a 02:35 PM NY</strong>
-              </div>
-            </div>
-            <p class="text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 mt-1">
-              <strong>Impacto Institucional:</strong> Los algoritmos institucionales barren liquidez por encima y por debajo antes de definir la tendencia. <em>Cero operaciones manuales durante el discurso de Powell.</em>
-            </p>
-          </div>
-
-          <!-- Evento 4: ISM PMI Manufacturero y Servicios -->
-          <div class="bg-gray-950/80 border border-amber-800/60 rounded-xl p-4 space-y-2">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-amber-600 text-black">ALTO IMPACTO</span>
-                <span class="font-bold text-white text-sm">ISM PMI Manufacturero y de Servicios</span>
-              </div>
-              <div class="text-xs font-mono font-bold text-amber-300 bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-800/60">
-                10:00 AM NY (Killzone)
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
-              <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Horario Estratégico</span>
-                <strong class="text-amber-300 font-mono">En pleno volumen de New York</strong>
-              </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Recorrido Típico</span>
-                <strong class="text-blue-300 font-mono">400 a 900 puntos ($4 a $9 USD)</strong>
+                <strong class="text-amber-300 font-mono">35 a 65 pips en velas M5</strong>
+              </div>
+              <div>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Ensanchamiento Spread</span>
+                <strong class="text-blue-300 font-mono">Apertura de horquilla hasta 2.5 pips</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
-                <strong class="text-white font-mono">⛔ Bloqueo 09:58 a 10:02 AM NY</strong>
+                <strong class="text-white font-mono">⛔ Bloqueo 07:28 a 07:32 PM NY</strong>
               </div>
             </div>
           </div>
 
-          <!-- Evento 5: Peticiones de Subsidio por Desempleo (Jobless Claims) -->
+          <!-- Evento 5: IPC Tokio & CPI EE.UU. (JPY / USD) -->
           <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-900 text-blue-200">SEMANAL</span>
-                <span class="font-bold text-white text-sm">Nuevas Peticiones de Subsidio por Desempleo (Jobless Claims)</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-900 text-amber-200">INFLACIÓN CRUZADA</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-gray-900 text-gray-300 border border-gray-700">🇯🇵 JPY · 🇺🇸 USD</span>
+                <span class="font-bold text-white text-sm">IPC Tokio (Core CPI) & Inflación CPI de EE.UU.</span>
               </div>
-              <div class="text-xs font-mono font-bold text-blue-300 bg-blue-950/60 px-2.5 py-1 rounded-lg border border-blue-800/60">
-                Jueves 08:30 AM NY
+              <div class="text-xs font-mono font-bold text-amber-300 bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-800/60">
+                Miércoles 07:50 PM & Jueves 08:30 AM NY
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
               <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Frecuencia</span>
-                <strong class="text-white font-mono">Todos los jueves</strong>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Efecto en Cruce</span>
+                <strong class="text-white font-mono">Presión simultánea en tasas</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Sensibilidad de Mercado</span>
-                <strong class="text-amber-300 font-mono">>230k debilita dólar (alcista Oro)</strong>
+                <strong class="text-amber-300 font-mono">IPC Tokio >2.0% empuja al BoJ</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
-                <strong class="text-white font-mono">⛔ Bloqueo 08:28 a 08:32 AM NY</strong>
+                <strong class="text-white font-mono">⛔ Bloqueo ±2 min en cuenta fondeada</strong>
               </div>
             </div>
           </div>
@@ -1892,7 +1897,7 @@
             <i data-lucide="layers" class="w-5 h-5"></i>
           </div>
           <div>
-            <h3 class="text-base font-bold text-white">Protocolo Institucional de 3 Fases para Operar Noticias en Oro</h3>
+            <h3 class="text-base font-bold text-white">Protocolo Institucional de 3 Fases para Operar Noticias en AUD/JPY</h3>
             <p class="text-xs text-gray-400">Cómo operan los fondos para absorber la liquidez sin quemar cuentas</p>
           </div>
         </div>
