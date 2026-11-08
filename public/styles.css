@@ -77,31 +77,36 @@ table tbody tr:hover {
 
 /* Symmetrical Collapse Toggle Buttons */
 .btn-collapse-toggle {
-  height: 32px !important;
-  min-height: 32px !important;
-  max-height: 32px !important;
-  width: 104px !important;
-  min-width: 104px !important;
-  max-width: 104px !important;
   display: inline-flex !important;
   align-items: center !important;
-  justify-content: center !important;
-  gap: 6px !important;
-  padding: 0 10px !important;
-  border-radius: 12px !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  padding: 6px 10px !important;
+  border-radius: 10px !important;
   font-size: 12px !important;
   font-weight: 600 !important;
-  line-height: 1 !important;
-  white-space: nowrap !important;
+  line-height: 1.4 !important;
+  white-space: normal !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
   outline: none !important;
-  flex-shrink: 0 !important;
+  width: auto !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  text-align: left !important;
+  background: transparent !important;
+}
+
+.btn-collapse-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
 .btn-collapse-toggle .btn-collapse-label {
   display: inline-block;
-  text-align: center;
+  text-align: left;
 }
 
 /* ============================================================== */
