@@ -827,8 +827,13 @@ def recalculate_trade_history(trades, config, mode="backtest"):
             trade_risk = round(risk_pct, 2)
 
         is_manual_rr = bool(t.get("is_manual_rr") or (t.get("manual_rr") is not None and mode != "backtest"))
-        if is_manual_rr and (t.get("manual_rr") is not None or t.get("rr_custom") is not None):
-            trade_rr = round(float(str(t.get("manual_rr") or t.get("rr_custom") or t.get("rr")).replace(",", ".")), 2)
+        if t.get("rr") is not None and str(t.get("rr")).strip() != "":
+            try:
+                trade_rr = round(float(str(t.get("rr")).replace(",", ".")), 2)
+            except Exception:
+                trade_rr = round(global_rr, 2)
+        elif is_manual_rr and (t.get("manual_rr") is not None or t.get("rr_custom") is not None):
+            trade_rr = round(float(str(t.get("manual_rr") or t.get("rr_custom")).replace(",", ".")), 2)
         else:
             trade_rr = round(global_rr, 2)
 

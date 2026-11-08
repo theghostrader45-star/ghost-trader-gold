@@ -138,7 +138,7 @@
               </span>
             </div>
             <p class="text-xs text-gray-400 mt-0.5">
-              Operativa 100% Manual • Paso Único • Interés Simple Constante • R:R 1:3 Fijo (300 SL / 900 TP) • Control estricto de Drawdown
+              Operativa 100% Manual • Paso Único • Interés Simple Constante • R:R Manual / Flexible • Control estricto de Drawdown
             </p>
           </div>
         </div>
@@ -352,7 +352,7 @@
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="text-[10px] font-mono text-orange-400 font-semibold">AUD/JPY: 1 pip = 0.01 JPY = ~$6.50 USD/lote</span>
                   <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-orange-500/20 text-orange-300 border border-orange-500/40">
-                    ⭐ Regla Orion Nova: 25 SL · 75 TP · R:R 1:3 Fijo
+                    ⭐ R:R y Niveles de Operación Manuales (Modificables)
                   </span>
                 </div>
               </div>
@@ -384,15 +384,15 @@
                 </div>
               </div>
 
-              <!-- Encabezado de Precios con Botón de Fijación 25 SL / 75 TP -->
+              <!-- Encabezado de Precios con Botón de Autocalcular TP -->
               <div class="flex items-center justify-between pt-1">
                 <span class="text-xs font-bold text-gray-300 flex items-center gap-1.5">
                   <i data-lucide="crosshair" class="w-3.5 h-3.5 text-orange-400"></i>
-                  <span>Niveles de Operativa en AUD/JPY (Regla Fija 1:3)</span>
+                  <span>Niveles de Operativa en AUD/JPY (Manual / Flexible)</span>
                 </span>
-                <button type="button" id="btnLock300Sl900Tp" class="text-[10px] px-2.5 py-1 rounded-lg bg-orange-500/20 text-orange-300 border border-orange-500/40 hover:bg-orange-500/30 transition font-bold cursor-pointer flex items-center gap-1" title="Autocalcular y fijar Stop Loss a 25 pips (0.25) y Take Profit a 75 pips (0.75)">
-                  <i data-lucide="zap" class="w-3 h-3 text-orange-400"></i>
-                  <span>⚡ Fijar 25 SL / 75 TP (1:3)</span>
+                <button type="button" id="btnLock300Sl900Tp" class="text-[10px] px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition font-bold cursor-pointer flex items-center gap-1" title="Autocalcular y proyectar Take Profit según el R:R seleccionado">
+                  <i data-lucide="zap" class="w-3 h-3 text-amber-400"></i>
+                  <span>⚡ Autocalcular TP según R:R</span>
                 </button>
               </div>
 
@@ -462,12 +462,12 @@
                       <span>Precio Salida</span>
                     </label>
                     <div class="flex items-center gap-1">
-                      <button type="button" id="btnFondeoExitTp" class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900 transition font-bold cursor-pointer" title="Copiar Take Profit (+75 pips / 1:3)">TP (1:3)</button>
-                      <button type="button" id="btnFondeoExitSl" class="text-[9px] px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900 transition font-bold cursor-pointer" title="Copiar Stop Loss (-25 pips)">SL</button>
+                      <button type="button" id="btnFondeoExitTp" class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900 transition font-bold cursor-pointer" title="Copiar Take Profit al precio de salida">TP</button>
+                      <button type="button" id="btnFondeoExitSl" class="text-[9px] px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900 transition font-bold cursor-pointer" title="Copiar Stop Loss al precio de salida">SL</button>
                       <button type="button" id="btnFondeoExitBe" class="text-[9px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700 transition font-bold cursor-pointer" title="Breakeven (Precio Entrada)">BE</button>
                     </div>
                   </div>
-                  <input type="number" id="fondeoFormExit" step="any" placeholder="ej. 2729.50 (TP) o 2717.50 (SL)" class="w-full bg-gray-900 border border-blue-700/60 rounded-xl px-3 py-2 text-blue-300 font-mono font-bold focus:border-blue-500 focus:outline-none shadow-inner">
+                  <input type="number" id="fondeoFormExit" step="any" placeholder="ej. 100.500" class="w-full bg-gray-900 border border-blue-700/60 rounded-xl px-3 py-2 text-blue-300 font-mono font-bold focus:border-blue-500 focus:outline-none shadow-inner">
                 </div>
               </div>
 
@@ -476,30 +476,31 @@
                 <div class="flex items-center justify-between">
                   <label class="text-xs font-bold text-blue-300 flex items-center gap-1.5">
                     <i data-lucide="scale" class="w-3.5 h-3.5 text-blue-400"></i>
-                    <span>R:R de Operación (1:3 Fijo Fondeo)</span>
+                    <span>R:R de la Operación (Gestión Manual)</span>
                   </label>
                   <div class="flex items-center gap-2">
-                    <span id="badgeRrMode" class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold">1:3 FIJO</span>
-                    <button type="button" id="btnResetRrAuto" class="text-[9px] text-gray-400 hover:text-white underline cursor-pointer hidden">Restablecer 1:3</button>
+                    <span id="badgeRrMode" class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 font-bold">MANUAL</span>
+                    <button type="button" id="btnResetRrAuto" class="text-[9px] text-gray-400 hover:text-white underline cursor-pointer hidden">Auto por Precios</button>
                   </div>
                 </div>
 
                 <div class="flex items-center gap-2">
                   <div class="relative flex-1">
                     <span class="absolute left-3 top-2 text-blue-400 font-mono font-bold text-xs pointer-events-none">1:</span>
-                    <input type="number" id="fondeoFormRr" step="0.01" min="-20" max="100" value="3.00" class="w-full bg-gray-950 border border-blue-500/60 rounded-xl pl-7 pr-3 py-1.5 text-blue-300 font-mono font-bold text-sm focus:border-blue-400 focus:outline-none shadow-inner" placeholder="3.00">
+                    <input type="number" id="fondeoFormRr" step="0.1" min="-20" max="100" value="2.00" class="w-full bg-gray-950 border border-blue-500/60 rounded-xl pl-7 pr-3 py-1.5 text-blue-300 font-mono font-bold text-sm focus:border-blue-400 focus:outline-none shadow-inner" placeholder="2.00">
                   </div>
                   <!-- Botones rápidos de R:R obtenido -->
-                  <div class="flex items-center gap-1 shrink-0">
-                    <button type="button" class="btnQuickRr px-2.5 py-1.5 bg-amber-500 text-black hover:bg-amber-400 rounded-lg text-[10px] font-mono font-black transition cursor-pointer shadow-md shadow-amber-500/20" data-rr="3.0">⭐ 1:3 (Fondeo)</button>
+                  <div class="flex items-center gap-1 shrink-0 flex-wrap">
                     <button type="button" class="btnQuickRr px-2 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg text-[10px] font-mono font-bold transition cursor-pointer" data-rr="1.0">1:1</button>
                     <button type="button" class="btnQuickRr px-2 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg text-[10px] font-mono font-bold transition cursor-pointer" data-rr="1.5">1:1.5</button>
-                    <button type="button" class="btnQuickRr px-2 py-1.5 bg-gray-800 hover:bg-gray-700 text-blue-300 hover:text-white rounded-lg text-[10px] font-mono font-bold transition cursor-pointer" data-rr="2.0">1:2</button>
+                    <button type="button" class="btnQuickRr px-2 py-1.5 bg-blue-500/20 text-blue-300 border border-blue-500/40 hover:bg-blue-500/30 rounded-lg text-[10px] font-mono font-bold transition cursor-pointer" data-rr="2.0">1:2</button>
                     <button type="button" class="btnQuickRr px-2 py-1.5 bg-gray-800 hover:bg-gray-700 text-emerald-300 hover:text-white rounded-lg text-[10px] font-mono font-bold transition cursor-pointer" data-rr="2.5">1:2.5</button>
+                    <button type="button" class="btnQuickRr px-2 py-1.5 bg-gray-800 hover:bg-gray-700 text-amber-300 hover:text-white rounded-lg text-[10px] font-mono font-bold transition cursor-pointer" data-rr="3.0">1:3</button>
+                    <button type="button" class="btnQuickRr px-2 py-1.5 bg-gray-800 hover:bg-gray-700 text-purple-300 hover:text-white rounded-lg text-[10px] font-mono font-bold transition cursor-pointer" data-rr="4.0">1:4</button>
                   </div>
                 </div>
                 <p class="text-[10px] text-gray-400 leading-snug">
-                  Regla Orion Nova: <strong>300 pts SL / 900 pts TP (1:3)</strong>. Puedes escribirlo manualmente si cerraste parciales o saliste antes de tiempo.
+                  R:R 100% manual: puedes escribir cualquier ratio libremente o calcularlo automáticamente según tus precios de Entrada, Stop Loss y Salida.
                 </p>
               </div>
 
@@ -4004,6 +4005,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261108_v34_6features"></script>
+<script src="app.js?v=20261108_v35_fondeo_manual_rr"></script>
 </body>
 </html>

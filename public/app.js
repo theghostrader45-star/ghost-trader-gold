@@ -1233,30 +1233,14 @@ function setupFondeoTradeForm() {
         rrDisp.textContent = `1:${displayRr}`;
       }
     } else {
-      if (isManualRr && dollarRisk > 0) {
-        const manualRrVal = parseFloat(rrEl.value) || 3.0;
-        const manualPnl = roundNum(dollarRisk * manualRrVal, 2);
-        const manualPct = roundNum(riskPct * manualRrVal, 2);
-        if (ptsDisp) ptsDisp.textContent = `${Math.round(manualRrVal * (calc.slPoints || 300))} pts (implícito)`;
-        if (pnlDisp) {
-          pnlDisp.textContent = `+$${formatMoney(manualPnl)}`;
-          pnlDisp.className = 'font-bold text-emerald-400 text-sm';
+      const curRr = parseFloat(rrEl?.value) || 2.0;
+      if (dollarRisk > 0) {
+        const expectedPnl = roundNum(dollarRisk * curRr, 2);
+        const expectedPct = roundNum(riskPct * curRr, 2);
+        if (ptsDisp) {
+          const slPtsDisp = calc.slPoints || Math.round(slValCustom * 10);
+          ptsDisp.textContent = `${slValCustom} SL / ${Math.round(slValCustom * curRr)} TP (pips)`;
         }
-        if (pctDisp) {
-          pctDisp.textContent = `+${manualPct.toFixed(2)}%`;
-          pctDisp.className = 'font-bold text-emerald-400 text-sm';
-        }
-        if (pnlEl) pnlEl.value = manualPnl.toFixed(2);
-        if (statusEl) statusEl.value = 'win';
-        if (statusDisp) {
-          statusDisp.textContent = 'WIN (3R)';
-          statusDisp.className = 'font-bold px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800';
-        }
-        if (rrDisp) rrDisp.textContent = `1:${manualRrVal.toFixed(2)}`;
-      } else {
-        if (ptsDisp) ptsDisp.textContent = '300 SL / 900 TP';
-        const expectedPnl = roundNum(dollarRisk * 3.0, 2);
-        const expectedPct = roundNum(riskPct * 3.0, 2);
         if (pnlDisp) {
           pnlDisp.textContent = `+$${formatMoney(expectedPnl)}`;
           pnlDisp.className = 'font-bold text-emerald-400 text-sm';
@@ -1266,10 +1250,10 @@ function setupFondeoTradeForm() {
           pctDisp.className = 'font-bold text-emerald-400 text-sm';
         }
         if (statusDisp) {
-          statusDisp.textContent = 'WIN (3R)';
+          statusDisp.textContent = `WIN (${curRr}R)`;
           statusDisp.className = 'font-bold px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800';
         }
-        if (rrDisp) rrDisp.textContent = `1:${calc.projectedRr ? calc.projectedRr.toFixed(2) : (rrEl?.value || '3.00')}`;
+        if (rrDisp) rrDisp.textContent = `1:${curRr.toFixed(2)}`;
       }
     }
   }
@@ -1281,19 +1265,27 @@ function setupFondeoTradeForm() {
     }
     if (isManualRrEl) isManualRrEl.value = '1';
     if (badgeRrMode) {
-      badgeRrMode.textContent = val === 3.0 ? '1:3 FIJO' : 'MANUAL';
-      badgeRrMode.className = `text-[9px] font-mono px-2 py-0.5 rounded-full ${val === 3.0 ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-amber-950 text-amber-300 border border-amber-800'} font-bold`;
+      badgeRrMode.textContent = `1:${Number(val).toFixed(1)} MANUAL`;
+      badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 font-bold';
     }
     if (btnResetRrAuto) btnResetRrAuto.classList.remove('hidden');
 
-    // Si el precio de salida está vacío pero hay entrada y sl, autocompletar precio de salida implícito
+    // Actualizar TP si hay Entrada y SL
     const entry = parseFloat(entryEl?.value);
     const sl = parseFloat(slEl?.value);
     const dir = dirEl?.value || 'BUY';
+    const dec = 3;
+    if (!isNaN(entry) && !isNaN(sl) && sl > 0) {
+      const slDist = Math.abs(entry - sl);
+      const newTp = dir === 'BUY' ? roundNum(entry + slDist * val, dec) : roundNum(entry - slDist * val, dec);
+      if (tpEl) tpEl.value = newTp.toFixed(dec);
+    }
+
+    // Si el precio de salida está vacío pero hay entrada y sl, autocompletar precio de salida implícito
     if (!isNaN(entry) && !isNaN(sl) && (!exitEl || !exitEl.value)) {
       const slDist = Math.abs(entry - sl);
       const impliedExit = dir === 'BUY' ? (entry + slDist * val) : (entry - slDist * val);
-      if (exitEl) exitEl.placeholder = `Implícito 1:${val}: ${impliedExit.toFixed(2)}`;
+      if (exitEl) exitEl.placeholder = `Implícito 1:${val}: ${impliedExit.toFixed(dec)}`;
     }
     updateFondeoCalculation();
   }
@@ -1301,15 +1293,15 @@ function setupFondeoTradeForm() {
   function resetAutoRr() {
     if (rrEl) {
       delete rrEl.dataset.userManual;
-      rrEl.value = '3.00';
+      rrEl.value = '2.00';
     }
     if (isManualRrEl) isManualRrEl.value = '0';
     if (badgeRrMode) {
-      badgeRrMode.textContent = '1:3 FIJO';
-      badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold';
+      badgeRrMode.textContent = 'AUTO';
+      badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700 font-bold';
     }
     if (btnResetRrAuto) btnResetRrAuto.classList.add('hidden');
-    if (exitEl) exitEl.placeholder = 'ej. 2729.50 (TP) o 2717.50 (SL)';
+    if (exitEl) exitEl.placeholder = 'ej. 100.500';
     updateFondeoCalculation();
   }
 
@@ -1365,33 +1357,22 @@ function setupFondeoTradeForm() {
     });
   }
 
-  // Botón para fijar estrictamente 1:3 en Fondeo (25 SL / 75 TP en AUD/JPY)
+  // Botón para autocalcular TP según el R:R establecido en Fondeo
   const btnLockSlTp = document.getElementById('btnLock300Sl900Tp');
   if (btnLockSlTp) {
     btnLockSlTp.addEventListener('click', (e) => {
       e.preventDefault();
-      if (slEl) delete slEl.dataset.userEdited;
-      if (tpEl) delete tpEl.dataset.userEdited;
-      if (lotEl) delete lotEl.dataset.userModified;
-      if (rrEl) {
-        delete rrEl.dataset.userManual;
-        rrEl.value = '3.00';
-      }
-      if (isManualRrEl) isManualRrEl.value = '0';
-      if (badgeRrMode) {
-        badgeRrMode.textContent = '1:3 FIJO';
-        badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold';
-      }
+      const currentRr = parseFloat(rrEl?.value) || 2.0;
       const slPointsInp = document.getElementById('fondeoFormSlPoints');
-      const targetSl = 25;
-      if (slPointsInp) slPointsInp.value = targetSl;
+      const targetSlPips = parseFloat(slPointsInp?.value) || 25;
+      const targetTpPips = roundNum(targetSlPips * currentRr, 1);
       renderFondeoSlChips();
       
       const entryVal = parseFloat(entryEl?.value);
       const dirVal = dirEl?.value || 'BUY';
       const dec = 3;
-      const slDelta = 0.25; // 25 pips = 0.25 JPY
-      const tpDelta = 0.75; // 75 pips = 0.75 JPY
+      const slDelta = targetSlPips * 0.01; // en JPY (ej. 25 pips = 0.25)
+      const tpDelta = targetTpPips * 0.01; // en JPY
       if (!isNaN(entryVal) && entryVal > 0) {
         const fixedSl = dirVal === 'BUY' ? roundNum(entryVal - slDelta, dec) : roundNum(entryVal + slDelta, dec);
         const fixedTp = dirVal === 'BUY' ? roundNum(entryVal + tpDelta, dec) : roundNum(entryVal - tpDelta, dec);
@@ -1400,7 +1381,7 @@ function setupFondeoTradeForm() {
       }
       updateFondeoCalculation();
       if (typeof showToast === 'function') {
-        showToast('⚡ Stop Loss y Take Profit (25 pips / 75 pips - 1:3 AUD/JPY) fijados con éxito.', 'success', 2500);
+        showToast(`⚡ TP autocalculado: ${targetTpPips} pips según R:R 1:${currentRr}.`, 'success', 2500);
       }
     });
   }
@@ -1420,9 +1401,10 @@ function setupFondeoTradeForm() {
     rrEl.addEventListener('input', () => {
       rrEl.dataset.userManual = 'true';
       if (isManualRrEl) isManualRrEl.value = '1';
+      const curVal = parseFloat(rrEl.value) || 2.0;
       if (badgeRrMode) {
-        badgeRrMode.textContent = 'MANUAL';
-        badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold';
+        badgeRrMode.textContent = `1:${curVal.toFixed(1)} MANUAL`;
+        badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 font-bold';
       }
       if (btnResetRrAuto) btnResetRrAuto.classList.remove('hidden');
       updateFondeoCalculation();
