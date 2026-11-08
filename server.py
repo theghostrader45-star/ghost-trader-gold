@@ -796,7 +796,7 @@ def recalculate_trade_history(trades, config, mode="backtest"):
 
     risk_pct = float(config.get("risk_pct", 0.5))
     global_rr = float(config.get("rr_ratio", 3.0))
-    leverage = float(config.get("leverage", 30))
+    leverage = float(config.get("leverage", 300.0 if mode == "real" else 30.0))
     
     curr_bal = initial_balance
     updated_trades = []
@@ -857,7 +857,7 @@ def recalculate_trade_history(trades, config, mode="backtest"):
             pip_mult = 10.0
             loss_per_lot = tv_points * 1.0 if tv_points > 0 else 300.0
             margin_rate = 2720.0 * 100.0
-            eff_lev = 30.0 if mode == "fondeo" else leverage
+            eff_lev = leverage
         else:
             mult = 650.0  # 1 pip = 0.01; 1,000 JPY / 153.80 ~= $6.50/pip
             pt_mult = 1000.0
@@ -869,7 +869,7 @@ def recalculate_trade_history(trades, config, mode="backtest"):
                 sl_pips_float = 25.0
             loss_per_lot = sl_pips_float * 6.50 if sl_pips_float > 0 else 162.50
             margin_rate = 100000.0 * 0.6550
-            eff_lev = 30.0 if mode == "fondeo" else leverage
+            eff_lev = leverage
 
         # Reference lot size based on symbol (points for Gold, pips for Forex)
         if mode == "fondeo":
@@ -1568,6 +1568,13 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
         if path == "/api/config":
             query = parse_qs(parsed.query)
             mode = query.get("mode", ["backtest"])[0]
+            if mode == "all":
+                self.send_json({
+                    "fondeo": get_config("fondeo"),
+                    "real": get_config("real"),
+                    "backtest": get_config("backtest")
+                })
+                return
             config = get_config(mode)
             self.send_json(config)
             return
@@ -1830,14 +1837,52 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             payload = {}
 
         if path == "/api/config":
+            # Batch update for Fondeo, Real, and Backtesting
+            if "fondeo" in payload or "real" in payload or "backtest" in payload:
+                results = {}
+                for m in ["fondeo", "real", "backtest"]:
+                    if m in payload and isinstance(payload[m], dict):
+                        sub = payload[m]
+                        cfg = get_config(m)
+                        if "initial_balance" in sub and sub["initial_balance"] is not None:
+                            cfg["initial_balance"] = float(sub["initial_balance"])
+                        if "risk_pct" in sub and sub["risk_pct"] is not None:
+                            cfg["risk_pct"] = float(sub["risk_pct"])
+                        if "leverage" in sub and sub["leverage"] is not None:
+                            cfg["leverage"] = float(sub["leverage"])
+                        
+                        # Dynamic target & loss scaling for Fondeo
+                        if m == "fondeo" and "initial_balance" in sub:
+                            init_b = cfg["initial_balance"]
+                            p_target_pct = float(cfg.get("profit_target_pct", 4.0))
+                            p_daily_pct = float(cfg.get("daily_loss_pct", 4.0))
+                            p_max_pct = float(cfg.get("max_loss_pct", 8.0))
+                            cfg["profit_target_usd"] = round(init_b * (p_target_pct / 100.0), 2)
+                            cfg["daily_loss_usd"] = round(init_b * (p_daily_pct / 100.0), 2)
+                            cfg["max_loss_usd"] = round(init_b * (p_max_pct / 100.0), 2)
+
+                        save_config(cfg, m)
+                        trades = get_trades(m)
+                        recalculated = recalculate_trade_history(trades, cfg, mode=m)
+                        save_trades(recalculated, m)
+                        analytics = calculate_analytics(recalculated, cfg, mode=m)
+                        results[m] = {"config": cfg, "analytics": analytics}
+
+                self.send_json({"success": True, "results": results})
+                return
+
             query = parse_qs(parsed.query)
             mode = payload.get("mode") or query.get("mode", ["fondeo"])[0]
             config = get_config(mode)
             config.update(payload)
+            if "leverage" in payload and payload["leverage"] is not None:
+                config["leverage"] = float(payload["leverage"])
             save_config(config, mode)
             
             active_trades = get_trades(mode)
-            analytics = calculate_analytics(active_trades, config, mode=mode)
+            recalculated = recalculate_trade_history(active_trades, config, mode=mode)
+            save_trades(recalculated, mode)
+            analytics = calculate_analytics(recalculated, config, mode=mode)
             self.send_json({"config": config, "analytics": analytics})
             return
 
@@ -1928,6 +1973,8 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 config["rr_ratio"] = float(payload["rr_ratio"])
             if "initial_balance" in payload:
                 config["initial_balance"] = float(payload["initial_balance"])
+            if "leverage" in payload and payload["leverage"] is not None:
+                config["leverage"] = float(payload["leverage"])
             save_config(config, mode)
             
             trades = get_trades(mode)

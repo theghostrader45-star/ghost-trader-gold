@@ -2543,45 +2543,150 @@
     </div>
   </div>
 
-  <!-- Modal: Settings -->
-  <div id="modalSettings" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-cardBg border border-cardBorder rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+  <!-- Modal: Settings (Configuración General de Cuentas) -->
+  <div id="modalSettings" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden overflow-y-auto">
+    <div class="bg-cardBg border border-cardBorder rounded-2xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[95vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-gray-800 pb-3">
-        <div class="flex items-center gap-2">
-          <i data-lucide="settings" class="w-5 h-5 text-gray-300"></i>
-          <h3 class="text-base font-bold text-white">Parámetros Globales</h3>
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center shrink-0">
+            <i data-lucide="sliders" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-white uppercase tracking-wider">Configuración General de Cuentas</h3>
+            <p class="text-[11px] text-gray-400">Personaliza Balance, Riesgo y Apalancamiento para cada bitácora.</p>
+          </div>
         </div>
-        <button id="btnCloseSettings" class="text-gray-400 hover:text-white">
+        <button id="btnCloseSettings" class="text-gray-400 hover:text-white transition p-1 cursor-pointer" title="Cerrar ventana">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="block text-gray-400 mb-1">Capital Inicial Fondeo (USD)</label>
-          <input type="number" id="settingInitialBalance" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-white font-mono" value="50000.00">
+      <!-- 3 SECCIONES DE CONFIGURACIÓN -->
+      <div class="space-y-4 text-xs">
+        
+        <!-- SECCIÓN 1: FONDEO (ORION NOVA 50K - INTERÉS SIMPLE) -->
+        <div class="p-3.5 bg-amber-950/15 border border-amber-500/30 rounded-xl space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+              <h4 class="font-bold text-amber-300 uppercase tracking-wide text-xs">1. Cuenta de Fondeo (Orion Nova 50K)</h4>
+            </div>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold border border-amber-500/40">Interés Simple</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-gray-300 mb-1 font-semibold">Balance Inicial ($ USD)</label>
+              <div class="relative">
+                <span class="absolute left-2.5 top-2 text-gray-500 font-mono text-xs font-bold">$</span>
+                <input type="number" id="settingFondeoInitialBalance" step="any" min="100" class="w-full bg-gray-950 border border-gray-800 rounded-lg pl-6 pr-2 py-1.5 text-white font-mono font-bold focus:border-amber-500 focus:outline-none" value="50000.00">
+              </div>
+            </div>
+            <div>
+              <label class="block text-gray-300 mb-1 font-semibold">Riesgo por Trade (%)</label>
+              <div class="relative">
+                <input type="number" id="settingFondeoRiskPct" step="0.05" min="0.01" max="100" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-amber-300 font-mono font-bold focus:border-amber-500 focus:outline-none" value="0.50">
+                <span class="absolute right-2.5 top-2 text-gray-500 font-mono text-xs font-bold">%</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-gray-300 mb-1 font-semibold">Apalancamiento (1:X)</label>
+              <div class="relative">
+                <span class="absolute left-2.5 top-2 text-gray-500 font-mono text-xs font-bold">1:</span>
+                <input type="number" id="settingFondeoLeverage" step="1" min="1" max="2000" class="w-full bg-gray-950 border border-gray-800 rounded-lg pl-6 pr-2 py-1.5 text-white font-mono font-bold focus:border-amber-500 focus:outline-none" value="30">
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <label class="block text-gray-400 mb-1">Saldo Original Bitácora Real (USD) — TradingView</label>
-          <input type="number" id="settingRealInitialBalance" step="any" min="1" class="w-full bg-gray-950 border border-emerald-800/60 rounded-lg p-2 text-emerald-300 font-mono font-bold" value="92.08">
+
+        <!-- SECCIÓN 2: REAL (TRADINGVIEW AUD/JPY) -->
+        <div class="p-3.5 bg-emerald-950/15 border border-emerald-500/30 rounded-xl space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i data-lucide="wallet" class="w-4 h-4 text-emerald-400"></i>
+              <h4 class="font-bold text-emerald-300 uppercase tracking-wide text-xs">2. Bitácora Real (TradingView AUD/JPY)</h4>
+            </div>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold border border-emerald-500/40">Cuenta Real</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-gray-300 mb-1 font-semibold">Balance Inicial ($ USD)</label>
+              <div class="relative">
+                <span class="absolute left-2.5 top-2 text-gray-500 font-mono text-xs font-bold">$</span>
+                <input type="number" id="settingRealInitialBalance" step="any" min="1" class="w-full bg-gray-950 border border-gray-800 rounded-lg pl-6 pr-2 py-1.5 text-white font-mono font-bold focus:border-emerald-500 focus:outline-none" value="92.08">
+              </div>
+            </div>
+            <div>
+              <label class="block text-gray-300 mb-1 font-semibold">Riesgo por Trade (%)</label>
+              <div class="relative">
+                <input type="number" id="settingRealRiskPct" step="0.1" min="0.01" max="100" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-emerald-400 font-mono font-bold focus:border-emerald-500 focus:outline-none" value="1.00">
+                <span class="absolute right-2.5 top-2 text-gray-500 font-mono text-xs font-bold">%</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-gray-300 mb-1 font-semibold">Apalancamiento (1:X)</label>
+              <div class="relative">
+                <span class="absolute left-2.5 top-2 text-gray-500 font-mono text-xs font-bold">1:</span>
+                <input type="number" id="settingRealLeverage" step="1" min="1" max="2000" class="w-full bg-gray-950 border border-gray-800 rounded-lg pl-6 pr-2 py-1.5 text-white font-mono font-bold focus:border-emerald-500 focus:outline-none" value="300">
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <label class="block text-gray-400 mb-1">Riesgo por Operación en AUD/JPY (%)</label>
-          <input type="number" id="settingRiskPct" step="any" min="0.01" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-emerald-400 font-mono font-bold" value="0.50">
+
+        <!-- SECCIÓN 3: BACKTESTING (AUD/JPY - INTERÉS COMPUESTO) -->
+        <div class="p-3.5 bg-blue-950/15 border border-blue-500/30 rounded-xl space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i data-lucide="calculator" class="w-4 h-4 text-blue-400"></i>
+              <h4 class="font-bold text-blue-300 uppercase tracking-wide text-xs">3. Backtesting (Interés Compuesto)</h4>
+            </div>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono font-bold border border-blue-500/40">Compuesto</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-gray-300 mb-1 font-semibold">Balance Inicial ($ USD)</label>
+              <div class="relative">
+                <span class="absolute left-2.5 top-2 text-gray-500 font-mono text-xs font-bold">$</span>
+                <input type="number" id="settingBacktestInitialBalance" step="any" min="10" class="w-full bg-gray-950 border border-gray-800 rounded-lg pl-6 pr-2 py-1.5 text-white font-mono font-bold focus:border-blue-500 focus:outline-none" value="1000.00">
+              </div>
+            </div>
+            <div>
+              <label class="block text-gray-300 mb-1 font-semibold">Riesgo por Trade (%)</label>
+              <div class="relative">
+                <input type="number" id="settingBacktestRiskPct" step="0.1" min="0.01" max="100" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-blue-400 font-mono font-bold focus:border-blue-500 focus:outline-none" value="1.00">
+                <span class="absolute right-2.5 top-2 text-gray-500 font-mono text-xs font-bold">%</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-gray-300 mb-1 font-semibold">Apalancamiento (1:X)</label>
+              <div class="relative">
+                <span class="absolute left-2.5 top-2 text-gray-500 font-mono text-xs font-bold">1:</span>
+                <input type="number" id="settingBacktestLeverage" step="1" min="1" max="2000" class="w-full bg-gray-950 border border-gray-800 rounded-lg pl-6 pr-2 py-1.5 text-white font-mono font-bold focus:border-blue-500 focus:outline-none" value="30">
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <label class="block text-gray-400 mb-1">Ratio R:R Objetivo en AUD/JPY</label>
-          <input type="number" id="settingRR" step="any" min="0.01" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-blue-400 font-mono font-bold" value="3.0">
-        </div>
-        <div>
-          <label class="block text-gray-400 mb-1">Apalancamiento AUD/JPY (Fondeo 1:30 / Real 1:300)</label>
-          <input type="number" id="settingLeverage" class="w-full bg-gray-950 border border-orange-800/60 rounded-lg p-2 text-orange-300 font-mono font-bold" value="30" readonly>
-        </div>
+
       </div>
 
-      <button id="btnSaveSettings" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl transition">
-        Guardar Configuración
-      </button>
+      <!-- Nota Informativa de R:R Interno -->
+      <div class="p-2.5 bg-gray-950/80 border border-gray-800 rounded-xl flex items-center gap-2 text-[11px] text-gray-400">
+        <i data-lucide="info" class="w-4 h-4 text-amber-400 shrink-0"></i>
+        <span><strong>Nota R:R:</strong> El Ratio Riesgo:Beneficio se gestiona internamente en cada bitácora según el setup de cada operación.</span>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-gray-800">
+        <button type="button" id="btnCloseSettingsSecondary" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs rounded-xl transition cursor-pointer">
+          Cancelar
+        </button>
+        <button type="button" id="btnSaveSettings" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg transition flex items-center gap-1.5 cursor-pointer">
+          <i data-lucide="check" class="w-4 h-4"></i>
+          <span>Guardar Configuración</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
