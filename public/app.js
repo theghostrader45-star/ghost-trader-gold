@@ -177,7 +177,7 @@ function formatMoney(val) {
 }
 
 // ----------------------------------------------------
-// TAB NAVIGATION: 1. Fondeo Orion 50K | 2. Bitácora Real (Tickmill) | 3. Pre-Mercado NY | 4. Noticias | 5. Reglas | 6. Manual | 7. Backtest Simple
+// TAB NAVIGATION: 1. Fondeo Orion 50K | 2. Bitácora Real (Tickmill) | 3. Pre-Mercado NY | 4. Noticias | 5. Reglas | 6. Backtest Simple
 // ----------------------------------------------------
 function setupTabNavigation() {
   const btnFondeo = document.getElementById('tabBtnFondeo');
@@ -185,7 +185,6 @@ function setupTabNavigation() {
   const btnPremarket = document.getElementById('tabBtnPremarket');
   const btnNews = document.getElementById('tabBtnNews');
   const btnRules = document.getElementById('tabBtnRules');
-  const btnManual = document.getElementById('tabBtnManual');
   const btnBacktestSimple = document.getElementById('tabBtnBacktestSimple');
 
   const viewFondeo = document.getElementById('viewFondeo');
@@ -193,7 +192,6 @@ function setupTabNavigation() {
   const viewPremarket = document.getElementById('viewPremarket');
   const viewNews = document.getElementById('viewNews');
   const viewRules = document.getElementById('viewRules');
-  const viewManual = document.getElementById('viewManual');
   const viewBacktestSimple = document.getElementById('viewBacktestSimple');
 
   function switchTab(tab) {
@@ -205,7 +203,7 @@ function setupTabNavigation() {
     const activeClasses = ['bg-amber-500', 'bg-sky-600', 'bg-rose-600', 'bg-emerald-600', 'bg-purple-600', 'text-black', 'text-white', 'shadow-lg', 'shadow-amber-500/30', 'shadow-sky-600/30', 'shadow-rose-600/30', 'shadow-emerald-600/30', 'shadow-purple-600/30', 'font-black', 'font-bold'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnFondeo, btnReal, btnPremarket, btnNews, btnRules, btnManual, btnBacktestSimple].forEach(btn => {
+    [btnFondeo, btnReal, btnPremarket, btnNews, btnRules, btnBacktestSimple].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
@@ -217,7 +215,6 @@ function setupTabNavigation() {
     if (viewPremarket) viewPremarket.classList.add('hidden');
     if (viewNews) viewNews.classList.add('hidden');
     if (viewRules) viewRules.classList.add('hidden');
-    if (viewManual) viewManual.classList.add('hidden');
     if (viewBacktestSimple) viewBacktestSimple.classList.add('hidden');
 
     // Adaptive Top Bar Badges according to current Active Tab / Account
@@ -303,12 +300,6 @@ function setupTabNavigation() {
         btnRules.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-bold');
       }
       if (viewRules) viewRules.classList.remove('hidden');
-    } else if (tab === 'manual') {
-      if (btnManual) {
-        btnManual.classList.remove(...inactiveClasses);
-        btnManual.classList.add('bg-purple-600', 'text-white', 'shadow-lg', 'shadow-purple-600/30', 'font-bold');
-      }
-      if (viewManual) viewManual.classList.remove('hidden');
     } else if (tab === 'backtest') {
       if (btnBacktestSimple) {
         btnBacktestSimple.classList.remove(...inactiveClasses);
@@ -332,11 +323,10 @@ function setupTabNavigation() {
   if (btnPremarket) btnPremarket.addEventListener('click', () => switchTab('premarket'));
   if (btnNews) btnNews.addEventListener('click', () => switchTab('news'));
   if (btnRules) btnRules.addEventListener('click', () => switchTab('rules'));
-  if (btnManual) btnManual.addEventListener('click', () => switchTab('manual'));
   if (btnBacktestSimple) btnBacktestSimple.addEventListener('click', () => switchTab('backtest'));
 
   let savedTab = localStorage.getItem('activeTab_orion_v3');
-  if (!savedTab || !['fondeo', 'real', 'premarket', 'news', 'rules', 'manual', 'backtest'].includes(savedTab)) {
+  if (!savedTab || !['fondeo', 'real', 'premarket', 'news', 'rules', 'backtest'].includes(savedTab)) {
     savedTab = 'fondeo';
   }
   switchTab(savedTab);
