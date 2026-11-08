@@ -8114,14 +8114,56 @@ function startMarketClock() {
     }
 
     const newsCurrentSession = document.getElementById("newsCurrentSession");
+    const newsCurrentSessionSub = document.getElementById("newsCurrentSessionSub");
+    const newsSessionIconBox = document.getElementById("newsSessionIconBox");
+
     if (newsCurrentSession) {
-      let sessionName = "Pre-Londres (Fuera de Horario)";
-      if (session.hour >= 3 && session.hour < 8) sessionName = "Sesión Londres (03:00 - 08:00 NY)";
-      else if (session.hour >= 8 && (session.hour < 11 || (session.hour === 11 && session.min <= 30))) sessionName = "New York Killzone (08:00 - 11:30 NY)";
-      else if (session.hour >= 11 && session.hour < 13) sessionName = "London Fix & Post-Killzone";
-      else if (session.hour >= 13 && session.hour < 17) sessionName = "Sesión Tarde New York";
-      else sessionName = "Mercado Fuera de Sesión (Cierre NY)";
-      newsCurrentSession.textContent = sessionName;
+      const isWeekend = ["Sat", "Sun"].includes(session.weekday) || (session.weekday === "Fri" && session.hour >= 17);
+      let sessionTitle = "";
+      let sessionSub = "";
+      let titleClass = "text-amber-300";
+      let iconBoxClass = "p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20 shrink-0";
+
+      if (isWeekend) {
+        sessionTitle = "🔒 Fin de Semana (Mercado Cerrado)";
+        sessionSub = "Filtro Ghost Pro: Operativa pausada · Próxima apertura: Londres lunes 03:00 AM NY";
+        titleClass = "text-slate-400";
+        iconBoxClass = "p-3 bg-slate-800/50 text-slate-400 rounded-xl border border-slate-700/40 shrink-0";
+      } else if (session.hour >= 3 && session.hour < 8) {
+        sessionTitle = "🟢 Sesión Londres Activa (03:00 - 08:00 NY)";
+        sessionSub = "Ventana Operativa Válida · Filtro Ghost Pro [Londres]";
+        titleClass = "text-emerald-400";
+        iconBoxClass = "p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 shrink-0";
+      } else if (session.hour >= 8 && (session.hour < 11 || (session.hour === 11 && session.min <= 30))) {
+        sessionTitle = "🟢 New York Killzone (08:00 - 11:30 NY)";
+        sessionSub = "Ventana Dorada de Máxima Liquidez · Filtro Ghost Pro [NY]";
+        titleClass = "text-emerald-400";
+        iconBoxClass = "p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 shrink-0";
+      } else if (session.hour >= 11 && session.hour < 13) {
+        sessionTitle = "🟢 London Fix & New York (11:30 - 13:00 NY)";
+        sessionSub = "Solapamiento Operativo · Filtro Ghost Pro [Londres + NY]";
+        titleClass = "text-emerald-400";
+        iconBoxClass = "p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 shrink-0";
+      } else if (session.hour >= 13 && session.hour < 17) {
+        sessionTitle = "🟡 Sesión Tarde New York (13:00 - 17:00 NY)";
+        sessionSub = "Ventana de Tarde NY · Filtro Ghost Pro [NY]";
+        titleClass = "text-amber-300";
+        iconBoxClass = "p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20 shrink-0";
+      } else {
+        sessionTitle = "🔴 Fuera de Horario Operativo (Cierre NY)";
+        sessionSub = "Filtro Ghost Pro: Sesión Asia omitida · Próxima sesión: Londres 03:00 AM NY";
+        titleClass = "text-rose-400";
+        iconBoxClass = "p-3 bg-rose-500/10 text-rose-400 rounded-xl border border-rose-500/20 shrink-0";
+      }
+
+      newsCurrentSession.textContent = sessionTitle;
+      newsCurrentSession.className = `text-lg sm:text-xl font-black mt-1 ${titleClass}`;
+      if (newsCurrentSessionSub) {
+        newsCurrentSessionSub.textContent = sessionSub;
+      }
+      if (newsSessionIconBox) {
+        newsSessionIconBox.className = iconBoxClass;
+      }
     }
 
     const localClockEl = document.getElementById("marketLocalClock");
@@ -9198,7 +9240,7 @@ async function loadWeeklyNews() {
           day_name: "Miércoles",
           day_short: "MIÉ",
           impact_level: "CRITICAL",
-          badge_text: "🔥 IPC AUSTRALIA + TOKIO CPI",
+          badge_text: "🔥 IPC AUSTRALIA + INFLACIÓN JAPÓN",
           events: [
             {
               id: "news_20261104_01",
@@ -9216,7 +9258,7 @@ async function loadWeeklyNews() {
               id: "news_20261104_02",
               time: "07:50 PM NY",
               currency: "JPY",
-              title: "IPC Subyacente de Tokio (Tokyo Core CPI)",
+              title: "Inflación Subyacente de Japón (Core CPI)",
               impact: "HIGH",
               forecast: "+2.2% a/a",
               previous: "+2.4% a/a",
