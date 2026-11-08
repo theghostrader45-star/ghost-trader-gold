@@ -90,7 +90,7 @@ DEFAULT_REAL_CONFIG = {
     "account_type": "Cuenta Real Personal",
     "initial_balance": 92.08,
     "risk_pct": 1.0,
-    "leverage": 500.0,
+    "leverage": 300.0,
     "rr_ratio": 2.0,
     "currency": "USD",
     "asset": "XAU/USD",
@@ -1036,11 +1036,11 @@ def recalculate_trade_history(trades, config, mode="backtest"):
 def calculate_analytics(trades, config, mode="backtest"):
     if mode == "fondeo":
         initial_balance = float(config.get("initial_balance", 50000.0))
-        leverage = float(config.get("leverage", 100.0))
+        leverage = float(config.get("leverage", 30.0))
         mt5_broker = "Orion Funded (Nova 50K)"
     elif mode == "real":
         initial_balance = float(config.get("initial_balance", 97.72))
-        leverage = float(config.get("leverage", 500.0))
+        leverage = float(config.get("leverage", 300.0))
         mt5_broker = "Tickmill Real ($97.72)"
     else:
         initial_balance = float(config.get("initial_balance", 1000.0))
@@ -2010,7 +2010,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 dollar_risk = round(init_bal * (trade_risk_pct / 100.0), 2)
             else:
                 dollar_risk = round(cur_bal * (trade_risk_pct / 100.0), 2)
-            leverage = float(config.get("leverage", 100.0 if mode == "fondeo" else 500.0))
+            leverage = float(config.get("leverage", 30.0 if mode == "fondeo" else 300.0))
             
             if is_gold:
                 if raw_sl <= 15.0:

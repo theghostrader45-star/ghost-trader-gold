@@ -27,7 +27,7 @@ let appState = {
     initial_balance: 92.08,
     risk_pct: 1.0,
     rr_ratio: 2.0,
-    leverage: 500,
+    leverage: 300,
     asset: 'XAU/USD',
     gold_price: 2720.0,
     contract_size: 100,
@@ -3539,13 +3539,13 @@ function recalculateRealQuickLot() {
   const actualRewardPct = bal > 0 ? (actualRewardUsd / bal) * 100.0 : 0.0;
   const tpPts = Math.round(slPts * rr);
 
-  // Margen en Tickmill (Apalancamiento 1:500 para Oro y Forex)
+  // Margen en Tickmill (Apalancamiento 1:300 para Oro y Forex)
   if (isGold) {
-    marginRequired = roundNum((2720.0 * 100.0 * recommendedLot) / 500.0, 2);
+    marginRequired = roundNum((2720.0 * 100.0 * recommendedLot) / 300.0, 2);
   } else if (isAudUsd) {
-    marginRequired = roundNum((100000.0 * 0.6550 * recommendedLot) / 500.0, 2);
+    marginRequired = roundNum((100000.0 * 0.6550 * recommendedLot) / 300.0, 2);
   } else {
-    marginRequired = roundNum((100000.0 * 1.0850 * recommendedLot) / 500.0, 2);
+    marginRequired = roundNum((100000.0 * 1.0850 * recommendedLot) / 300.0, 2);
   }
 
   const currentPtVal = roundNum(recommendedLot * pointValue, 2);
@@ -4826,7 +4826,7 @@ async function handleAddRealTrade(e) {
     }
   }
 
-  const leverage = parseFloat(appState.config.leverage) || 500;
+  const leverage = parseFloat(appState.config.leverage) || 300;
   let margin_used = 0.0;
   if (isGold) {
     margin_used = roundNum((2720.0 * 100 * lot_size / leverage), 2);

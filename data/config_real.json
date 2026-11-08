@@ -2,7 +2,7 @@
   "account_type": "Cuenta Real Personal",
   "initial_balance": 92.08,
   "risk_pct": 1.0,
-  "leverage": 500.0,
+  "leverage": 300.0,
   "rr_ratio": 2.0,
   "currency": "USD",
   "asset": "XAU/USD",
