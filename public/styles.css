@@ -354,22 +354,30 @@ table tbody tr:hover {
    ==================================================== */
 html.streamer-mode-active .privacy-sensitive,
 body.streamer-mode-active .privacy-sensitive {
-  filter: blur(8px) grayscale(0.6) !important;
+  color: transparent !important;
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.85) !important;
+  filter: blur(10px) !important;
   user-select: none !important;
   pointer-events: none !important;
-  transition: filter 0.15s ease-in-out !important;
+  transition: all 0.15s ease-in-out !important;
   position: relative !important;
 }
 
 html.streamer-mode-active input.privacy-sensitive,
 body.streamer-mode-active input.privacy-sensitive {
   color: transparent !important;
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.7) !important;
-  filter: blur(6px) !important;
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.85) !important;
+  filter: blur(10px) !important;
+  user-select: none !important;
+  pointer-events: none !important;
 }
 
 html.streamer-mode-active table td.privacy-sensitive,
 body.streamer-mode-active table td.privacy-sensitive {
-  filter: blur(8px) !important;
+  color: transparent !important;
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.85) !important;
+  filter: blur(10px) !important;
+  user-select: none !important;
+  pointer-events: none !important;
 }
 

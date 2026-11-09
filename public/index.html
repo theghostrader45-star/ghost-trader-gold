@@ -34,7 +34,7 @@
   <script src="vendor/lucide.min.js"></script>
   <!-- Chart.js Local Bundle -->
   <script src="vendor/chart.min.js"></script>
-  <link rel="stylesheet" href="styles.css?v=20261109_v46_streamer_privacy_mode">
+  <link rel="stylesheet" href="styles.css?v=20261109_v47_bulletproof_streamer_mode">
   <script>
     if (localStorage.getItem('streamer_privacy_mode') === 'true') {
       document.documentElement.classList.add('streamer-mode-active');
@@ -3500,150 +3500,6 @@
     </div>
   </div>
 
-  <!-- ============================================================== -->
-  <!-- MODAL: CONECTAR TRADINGVIEW EN TIEMPO REAL (WEBHOOKS)          -->
-  <!-- ============================================================== -->
-  <div id="modalTvWebhookInfo" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
-    <div class="bg-cardBg border border-blue-500/40 rounded-2xl max-w-xl w-full p-5 sm:p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
-      
-      <div class="flex items-center justify-between border-b border-gray-800 pb-3">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
-            <i data-lucide="radio" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h3 class="text-base font-black text-white flex items-center gap-2">
-              <span>Conexión TradingView en Tiempo Real</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono font-bold border border-blue-500/30">Webhooks</span>
-            </h3>
-            <p class="text-xs text-gray-400">Recibe las señales del Adaptive Supertrend en vivo y valida confluencia A+</p>
-          </div>
-        </div>
-        <button id="btnCloseTvWebhookModal" class="w-8 h-8 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white flex items-center justify-center transition cursor-pointer">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-      <div class="space-y-3.5 text-xs text-gray-300">
-        <!-- Banner Opción A: Motor Nativo en Python (Cero Costo) -->
-        <div class="p-3.5 rounded-xl bg-gradient-to-r from-emerald-950/60 to-gray-900 border border-emerald-500/40 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-emerald-400 font-black text-xs flex items-center gap-1.5">
-              <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
-              <span>Opción A Recomendada: Motor Nativo Autónomo (100% Gratis)</span>
-            </span>
-            <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-300 border border-emerald-600 font-bold">ACTIVO</span>
-          </div>
-          <p class="text-[11px] text-gray-300 leading-relaxed">
-            Pro Terminal calcula el <strong>Adaptive Supertrend Multimethod</strong> internamente en tu servidor local con tus configuraciones finales: <strong>ATR 13 · Mult 2.9 · MA 45 · RSI 14 (55/45) · MACD 8/21/5 · Targets 1.5, 3.0, 5.0 R:R</strong>. No necesitas suscripción de pago en TradingView.
-          </p>
-        </div>
-
-        <!-- Paso 1: URL Webhook -->
-        <div class="space-y-1.5">
-          <label class="block font-bold text-white flex items-center justify-between">
-            <span>1. URL de Notificación Webhook (En TradingView Alert):</span>
-            <span class="text-[10px] text-blue-400 font-mono">POST Endpoint</span>
-          </label>
-          <div class="flex items-center gap-2">
-            <input type="text" id="tvWebhookUrlInput" readonly value="http://localhost:8081/api/webhook/tradingview" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-blue-300 font-mono text-xs focus:outline-none select-all">
-            <button type="button" id="btnCopyWebhookUrl" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition cursor-pointer shrink-0 flex items-center gap-1">
-              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-              <span>Copiar</span>
-            </button>
-          </div>
-          <p class="text-[10px] text-gray-400 leading-tight">
-            💡 <em>Para recibir alertas desde la nube de TradingView hacia tu ordenador, puedes usar un túnel seguro como <code>ngrok http 8081</code> o Cloudflare Tunnel.</em>
-          </p>
-        </div>
-
-        <!-- Paso 2: Mensaje JSON del Alert -->
-        <div class="space-y-1.5">
-          <label class="block font-bold text-white flex items-center justify-between">
-            <span>2. Plantilla de Mensaje (Pega esto en el cuerpo de la alerta):</span>
-            <span class="text-[10px] text-emerald-400 font-mono">JSON Estándar</span>
-          </label>
-          <div class="relative">
-            <textarea id="tvWebhookPayloadArea" rows="4" readonly class="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-emerald-400 font-mono text-[11px] focus:outline-none select-all leading-relaxed">
-{
-  "ticker": "{{ticker}}",
-  "action": "{{strategy.order.action}}",
-  "price": {{close}},
-  "timeframe": "5",
-  "sl_points": 2100
-}</textarea>
-            <button type="button" id="btnCopyWebhookPayload" class="absolute right-2.5 top-2.5 px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-gray-200 text-[10px] font-bold rounded-lg transition cursor-pointer flex items-center gap-1">
-              <i data-lucide="copy" class="w-3 h-3"></i>
-              <span>Copiar JSON</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Paso 3: Cómo Funciona el Filtro Institucional -->
-        <div class="p-3 bg-gray-900 border border-gray-800 rounded-xl space-y-1.5 text-[11px]">
-          <div class="font-bold text-amber-400 flex items-center gap-1.5">
-            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
-            <span>Validación Automática Contra el Sesgo Macro</span>
-          </div>
-          <ul class="space-y-1 pl-4 list-disc text-gray-300">
-            <li><strong>Si el Sesgo es BAJISTA y llega SELL (o ALCISTA y llega BUY):</strong> El Radar de Confluencia se pone en <strong>4/4 Verde (Setup A+)</strong> y el formulario de la Bitácora Real se pre-rellena automáticamente para que registres el trade en 1 clic.</li>
-            <li><strong>Si el Sesgo es contrario:</strong> El sistema descarta la señal por ser contratendencia y te protege de entradas impulsivas.</li>
-          </ul>
-        </div>
-
-        <!-- Guía Especial: TradingView Gratis, Conexión Local y Servidores Gratuitos -->
-        <div class="p-3.5 bg-blue-950/30 border border-blue-500/30 rounded-xl space-y-2 text-[11px]">
-          <div class="font-bold text-blue-300 flex items-center gap-1.5">
-            <i data-lucide="help-circle" class="w-3.5 h-3.5 text-blue-400"></i>
-            <span>Preguntas Frecuentes: TV Gratis, Localhost y Servidor Nube</span>
-          </div>
-
-          <div class="space-y-2 text-gray-300">
-            <div>
-              <strong class="text-white">1. Tengo TradingView Gratis, ¿puedo usar Webhooks?</strong>
-              <p class="text-gray-400 mt-0.5">
-                TradingView bloquea la casilla de Webhooks en cuentas gratuitas (requiere TV Pro). ¡No te preocupes! En TV Gratis tienes <strong>Alertas Sonoras y Notificaciones a tu móvil 100% gratis</strong>. En cuanto tu alerta suene en TradingView M5, tocas el botón <strong class="text-emerald-400">🎯 Gatillo M5 (Setup A+)</strong> en tu dashboard para validar confluencia instantánea y registrar tu trade sin pagar nada.
-              </p>
-            </div>
-
-            <div>
-              <strong class="text-white">2. Si mi dashboard corre en local, ¿cómo tiene conexión a Internet?</strong>
-              <p class="text-gray-400 mt-0.5">
-                <code>localhost:8081</code> es una dirección privada de tu computadora. Si deseas que un servicio en la nube (como TradingView) le envíe alertas a tu Mac sin abrir puertos de red, puedes usar un <strong>túnel gratuito</strong>:
-                <br>• <strong>Cloudflare Tunnel (100% gratis):</strong> <code>cloudflared tunnel --url http://localhost:8081</code>
-                <br>• <strong>ngrok (gratis):</strong> <code>ngrok http 8081</code>
-              </p>
-            </div>
-
-            <div>
-              <strong class="text-white">3. ¿Puedo alojar este dashboard en un servidor gratuito en la nube?</strong>
-              <p class="text-gray-400 mt-0.5">
-                ¡Sí! Puedes subir esta carpeta a un repositorio privado de GitHub y conectarlo gratis a <strong>Render.com</strong> o <strong>Railway</strong> (Free Tier). Te dará un enlace permanente HTTPS público (ej: <code>https://mi-oro-dashboard.onrender.com</code>) disponible 24/7 en tu móvil y computadora.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-gray-800 text-xs">
-        <div class="flex items-center gap-2">
-          <button type="button" id="btnTestWebhookSignalFromModal" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-md">
-            <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-            <span>Simular Señal A+ (SELL)</span>
-          </button>
-          <button type="button" id="btnTestCounterSignalFromModal" class="px-3 py-1.5 bg-rose-950/70 hover:bg-rose-900 border border-rose-600/50 text-rose-300 font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5">
-            <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
-            <span>Simular Contratendencia (BUY)</span>
-          </button>
-        </div>
-        <button id="btnCloseTvWebhookModalBottom" class="px-4 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold rounded-xl transition cursor-pointer ml-auto">
-          Cerrar
-        </button>
-      </div>
-
-    </div>
-  </div>
-
   <!-- Modal: Simular Serie de Trades (Backtesting Simple) -->
   <div id="modalBtSimpleSimulate" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-cardBg border border-cardBorder rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
@@ -4283,6 +4139,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261109_v45_clean_quiet_mode"></script>
+<script src="app.js?v=20261109_v47_bulletproof_streamer_mode"></script>
 </body>
 </html>

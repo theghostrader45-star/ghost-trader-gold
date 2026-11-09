@@ -86,7 +86,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupPrecisionRadarEvents();
   setupCollapsibleSections();
   setupMacroGuideModalEvents();
-  setupTradingViewWebhookEvents();
 
   // Cargar configuración y datos de Fondeo Orion Nova 50K
   await loadConfig();
@@ -294,6 +293,7 @@ function setupTabNavigation() {
     }
 
     initIcons();
+    if (typeof applyPrivacyClasses === 'function') applyPrivacyClasses();
   }
 
   window.switchTabTo = switchTab;
@@ -545,6 +545,7 @@ function renderFondeoTradesTable() {
       </tr>
     `;
     initIcons();
+    if (typeof applyPrivacyClasses === 'function') applyPrivacyClasses();
     return;
   }
 
@@ -663,6 +664,7 @@ function renderFondeoTradesTable() {
   }).join('');
 
   initIcons();
+  if (typeof applyPrivacyClasses === 'function') applyPrivacyClasses();
 }
 
 function updateFondeoEquityChart() {
@@ -2841,6 +2843,7 @@ function runRealCalculator() {
   if (marginPctEl) marginPctEl.textContent = `${marginPct}% del balance`;
 
   initIcons();
+  if (typeof applyPrivacyClasses === 'function') applyPrivacyClasses();
 }
 
 function runMyfxbookCalculator() {
@@ -2952,6 +2955,7 @@ function updateBacktestSimplePreviews() {
   if (lossSubtext) {
     lossSubtext.textContent = `-${riskPctVal.toFixed(2)}% (-1R) · -$${formatMoney(nextRiskUsd)}`;
   }
+  if (typeof applyPrivacyClasses === 'function') applyPrivacyClasses();
 }
 
 function setupBacktestSimpleView() {
@@ -3483,6 +3487,7 @@ function renderBacktestSimpleDashboard() {
   updateBacktestSimpleCharts();
   renderBacktestSimpleTradesTable();
   initIcons();
+  if (typeof applyPrivacyClasses === 'function') applyPrivacyClasses();
 }
 
 // Retrocompatibilidad con otros módulos
@@ -3771,6 +3776,7 @@ function renderBacktestSimpleTradesTable() {
 
   tbody.innerHTML = rowsHtml;
   initIcons();
+  if (typeof applyPrivacyClasses === 'function') applyPrivacyClasses();
 }
 
 // Retrocompatibilidad
@@ -4536,6 +4542,8 @@ function recalculateRealQuickLot() {
 
   const topRealBal = document.getElementById('badgeTopRealBalance');
   if (topRealBal) topRealBal.textContent = `$${currentBal.toFixed(2)}`;
+
+  if (typeof applyPrivacyClasses === 'function') applyPrivacyClasses();
 
   return {
     bal,
@@ -9192,12 +9200,39 @@ function setupSoundAlertSystem() {}
 // ====================================================
 function applyPrivacyClasses() {
   const sensitiveSelectors = [
+    // 1. Cabecera Universal & Badges Superiores
     '#realLiveBalHeader',
     '#badgeTopRealBalance',
     '#badgeFondeoCapital',
     '#badgeFondeoTarget',
     '#badgeFondeoDailyLimit',
     '#badgeFondeoMaxLoss',
+    '#badgeFondeoSubtitle',
+    
+    // 2. Pestaña 1: Fondeo Orion Nova 50K (Tarjetas, Margen & Formulario)
+    '#fondeoCurrentBalance',
+    '#fondeoTargetAmountDisplay',
+    '#fondeoRemainingTarget',
+    '#fondeoDailyHeadroom',
+    '#fondeoTodayLoss',
+    '#fondeoFreeMargin',
+    '#fondeoLastMargin',
+    '#fondeoCardMarginExplanation',
+    '#fondeoTrailingFloor',
+    '#fondeoMaxDdHeadroom',
+    '#fondeoFormMarginDisplay',
+    '#fondeoFormRiskUsdDisplay',
+    '#fondeoFormSafetyText',
+    '#fondeoFormSafetyBanner',
+    '#fondeoPnlDisplay',
+    '#fondeoPctDisplay',
+    '#fondeoEntryDisplay',
+    '#fondeoSlDisplay',
+    '#fondeoTpDisplay',
+    '#fondeoPeriodSummary',
+    '#fondeoPnlStatsTotal',
+    
+    // 3. Pestaña 2: Bitácora Real (TradingView / Tickmill)
     '#realStatBalance',
     '#realStatNetPnL',
     '#realStatInitBal',
@@ -9205,40 +9240,80 @@ function applyPrivacyClasses() {
     '#realQuickLiveBalText',
     '#realQuickLiveRiskText',
     '#realCalcBalance',
-    '#realCalcRiskUsd',
-    '#realCalcRewardUsd',
-    '#realCalcMargin',
-    '#fondeoCurrentBalance',
-    '#fondeoTargetAmountDisplay',
-    '#fondeoRemainingTarget',
-    '#fondeoDailyHeadroom',
-    '#fondeoTodayLoss',
-    '#fondeoTrailingFloor',
-    '#fondeoMaxDdHeadroom',
+    '#realCalcRiskUsdBadge',
+    '#realCalcSlDistBadge',
+    '#realCalcTpPtsBadge',
+    '#realHeroRiskUsd',
+    '#realHeroRewardUsd',
+    '#realHeroMargin',
+    '#realHeroPointValue',
+    '#realLossRiskSubtext',
+    '#realWinRewardSubtext',
+    '#realCalcPointsDisplay',
+    '#realCalcPnlDisplay',
+    '#realCalcPctDisplay',
+    '#myfxMarginReq',
+    '#myfxMarginPct',
+    '#myfxBalLabel',
+    '#realPeriodSummary',
+    '#realFormulaExplanation',
+    
+    // 4. Pestaña 4: Backtesting Simple (Interés Compuesto)
     '#btSimpleInitialBalance',
     '#btSimpleLiveBalText',
     '#btSimpleRiskUsdPreview',
     '#btSimpleLiveRiskText',
     '#btSimpleWinRewardSubtext',
     '#btSimpleLossRiskSubtext',
+    '#btSimpleStatBalance',
+    '#btSimpleStatNetPnl',
+    '#btSimpleStatMaxDdUsd',
+    '#btSimpleStatGainsVsLosses',
+    '#btSimpleStatExpectancy',
+    '#btSimpleStatAvgWinLoss',
     '#btSimpleStatTotalProfit',
     '#btSimpleStatCurrentBal',
+    '#btPeriodSummary',
+    
+    // 5. Modal de Retiro de Dinero (Bitácora Real)
+    '#withdrawCurrentBalanceDisplay',
+    '#withdrawNewBalanceDisplay',
+    '#withdrawAmountPreview',
+    '#withdrawAmountUsd',
+    '#withdrawPercentInput',
+    '#withdrawQuickPctPreview',
+    
+    // 6. Modal de Configuración General
     '#settingRealInitialBalance',
     '#settingFondeoInitialBalance',
     '#settingBacktestInitialBalance'
   ];
 
+  // 1. Etiquetar selectores exactos
   sensitiveSelectors.forEach(sel => {
     document.querySelectorAll(sel).forEach(el => {
       el.classList.add('privacy-sensitive');
     });
   });
 
-  document.querySelectorAll('#tableRealTrades tbody td, #tableFondeoTrades tbody td, #tableBacktestSimpleTrades tbody td').forEach(td => {
+  // 2. Etiquetar todas las celdas de tablas con montos monetarios, porcentajes o divisas
+  document.querySelectorAll('#tableRealTrades tbody td, #tableFondeoTrades tbody td, #tableBacktestSimpleTrades tbody td, #btSimpleTradesTableBody td').forEach(td => {
     const txt = td.textContent.trim();
-    if (txt.includes('$') || (txt.startsWith('+') && txt.includes('%')) || (txt.startsWith('-') && txt.includes('%'))) {
+    if (txt.includes('$') || (txt.startsWith('+') && txt.includes('%')) || (txt.startsWith('-') && txt.includes('%')) || txt.includes('USD')) {
       td.classList.add('privacy-sensitive');
     }
+  });
+
+  // 3. Escaneo Profundo Dinámico: cualquier nodo hoja que muestre signo $ o moneda
+  const dollarRegex = /\$\s*[\d,]+(\.[\d]+)?/;
+  const scanContainers = document.querySelectorAll('#viewFondeo, #viewRealJournal, #viewBacktestSimple, #modalWithdraw, #modalSettings');
+  scanContainers.forEach(container => {
+    const candidates = container.querySelectorAll('span, strong, p, div, b');
+    candidates.forEach(el => {
+      if (el.children.length === 0 && dollarRegex.test(el.textContent)) {
+        el.classList.add('privacy-sensitive');
+      }
+    });
   });
 }
 
@@ -9257,7 +9332,7 @@ function updatePrivacyModeUI() {
     if (isStreamerMode) {
       btn.className = 'px-3 py-1.5 bg-gradient-to-r from-purple-900 to-indigo-950 hover:from-purple-800 hover:to-indigo-900 text-purple-200 hover:text-white border border-purple-500/70 text-xs font-bold rounded-lg shadow-md shadow-purple-950/50 transition flex items-center gap-1.5 cursor-pointer ring-1 ring-purple-400/40';
       text.textContent = 'Modo Streamer (Oculto)';
-      btn.title = 'Modo Streamer ACTIVO: Saldos ocultos para YouTube. Clic para mostrar.';
+      btn.title = 'Modo Streamer ACTIVO: 100% de saldos y márgenes ocultos para YouTube. Clic para mostrar.';
       if (icon) {
         icon.setAttribute('data-lucide', 'eye-off');
         icon.className = 'w-3.5 h-3.5 text-purple-300';
@@ -9265,7 +9340,7 @@ function updatePrivacyModeUI() {
     } else {
       btn.className = 'px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold rounded-lg border border-gray-700 transition flex items-center gap-1.5 cursor-pointer shadow-sm';
       text.textContent = 'Saldos Visibles';
-      btn.title = 'Clic para activar Modo Streamer: Oculta saldos para transmitir en vivo en YouTube.';
+      btn.title = 'Clic para activar Modo Streamer: Oculta saldos y márgenes para transmitir en vivo en YouTube.';
       if (icon) {
         icon.setAttribute('data-lucide', 'eye');
         icon.className = 'w-3.5 h-3.5 text-gray-400';
@@ -9277,6 +9352,7 @@ function updatePrivacyModeUI() {
   if (window.lucide) window.lucide.createIcons();
 }
 
+let privacyObserverSetup = false;
 function setupPrivacyMode() {
   updatePrivacyModeUI();
 
@@ -9290,294 +9366,31 @@ function setupPrivacyMode() {
       updatePrivacyModeUI();
 
       if (next) {
-        showToast('🔒 <strong>Modo Streamer ACTIVADO:</strong> Saldos y valores monetarios ocultos para tu transmisión en vivo en YouTube.', 'success', 3500);
+        showToast('🔒 <strong>Modo Streamer ACTIVADO:</strong> 100% de saldos, márgenes y cifras monetarias ocultos en todas las pestañas para YouTube.', 'success', 3500);
       } else {
         showToast('👁️ <strong>Modo Streamer DESACTIVADO:</strong> Saldos y métricas financieras visibles.', 'info', 2500);
       }
     });
   }
-}
 
-function applySignalToUI(signal, isManual = false) {
-  if (!signal) return;
-
-  const confDot2 = document.getElementById("confluenceDot2");
-  const confCheck2 = document.getElementById("confluenceCheck2");
-  const confDot4 = document.getElementById("confluenceDot4");
-  const confCheck4 = document.getElementById("confluenceCheck4");
-  const confBadge = document.getElementById("confluenceScoreBadge");
-  const confBanner = document.getElementById("confluenceVerdictBanner");
-
-  const session = getNySessionStatus(new Date());
-  const isValidA = signal.status === "VALIDATED_A_PLUS";
-
-  // Protección News Shield: Bloquear ejecución si estamos dentro de la ventana ±15 min de noticia
-  if (lastNewsShieldStatus && lastNewsShieldStatus.isBlocked) {
-    if (confBadge) {
-      confBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-600 font-bold flex items-center gap-1 animate-pulse";
-      confBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>🚫 BLOQUEADO POR NOTICIA</span>';
-    }
-    if (confBanner) {
-      confBanner.className = "p-2 rounded-lg bg-rose-950/60 border border-rose-500/60 text-[10px] text-rose-200 font-medium leading-tight";
-      confBanner.innerHTML = lastNewsShieldStatus.bannerText;
-    }
-    playTradeAlertSound(false);
-    showToast(`🚫 <strong>GATILLO BLOQUEADO POR NOTICIA:</strong> Señal ${signal.action} M5 descartada por coincidir con ventana de alto impacto (±15 min). Capital protegido.`, "error", 8000);
-    return;
-  }
-
-  if (isValidA) {
-    if (session.isInSession) {
-      if (confDot2) confDot2.className = "w-2 h-2 rounded-full bg-emerald-400";
-      if (confCheck2) {
-        confCheck2.className = "font-mono text-emerald-400 font-bold text-[10px]";
-        confCheck2.textContent = "✓ SESIÓN ACTIVA (NY)";
+  // MutationObserver continuo para blindar instantáneamente cualquier nuevo elemento que se renderice
+  if (!privacyObserverSetup && window.MutationObserver) {
+    privacyObserverSetup = true;
+    const observer = new MutationObserver(() => {
+      if (document.documentElement.classList.contains('streamer-mode-active')) {
+        applyPrivacyClasses();
       }
-      if (confDot4) confDot4.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping";
-      if (confCheck4) {
-        confCheck4.className = "font-mono text-emerald-400 font-bold text-[10px]";
-        confCheck4.textContent = `✓ GATILLO: ${signal.action} M5 @ $${Number(signal.price || 2720.5).toFixed(1)}`;
-      }
-      if (confBadge) {
-        confBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500 font-bold flex items-center gap-1 animate-pulse";
-        confBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>4/4 SETUP A+ CONFIRMADO</span>';
-      }
-      if (confBanner) {
-        confBanner.className = "p-2 rounded-lg bg-emerald-950/60 border border-emerald-500/50 text-[10px] text-emerald-300 font-bold leading-tight";
-        confBanner.innerHTML = `🔥 <strong>¡GATILLO CONFIRMADO EN TRADINGVIEW!</strong> Señal de ${signal.action} M5 @ $${Number(signal.price || 2720.5).toFixed(2)}. Confluencia 4/4 activa en New York. Dispara en tu broker y anota el trade.`;
-      }
-
-      // Sonido campana de éxito
-      playTradeAlertSound(true);
-
-      // Pre-rellenar formulario de Bitácora Real automáticamente
-      const dirBuy = document.getElementById("btnRealDirBuy");
-      const dirSell = document.getElementById("btnRealDirSell");
-      const pointsInput = document.getElementById("realTradeTvPoints");
-
-      if (signal.action === "BUY") {
-        if (dirBuy) dirBuy.click();
-      } else if (signal.action === "SELL") {
-        if (dirSell) dirSell.click();
-      }
-      if (pointsInput && signal.sl_points) {
-        pointsInput.value = signal.sl_points;
-      }
-
-      showToast(`🚨 <strong>¡GATILLO A+ CONFIRMADO!</strong> Señal de <strong>${signal.action}</strong> M5 alineada con el sesgo diario en plena sesión NY. Confluencia 4/4 activa.`, "success", 6000);
-    } else {
-      // Gatillo técnico presente PERO fuera de sesión
-      if (confDot2) confDot2.className = "w-2 h-2 rounded-full bg-rose-500 animate-pulse";
-      if (confCheck2) {
-        confCheck2.className = "font-mono text-rose-400 font-bold text-[10px]";
-        confCheck2.textContent = "✗ FUERA DE SESIÓN";
-      }
-      if (confDot4) confDot4.className = "w-2.5 h-2.5 rounded-full bg-yellow-400 animate-ping";
-      if (confCheck4) {
-        confCheck4.className = "font-mono text-yellow-400 font-bold text-[10px]";
-        confCheck4.textContent = `⚠️ GATILLO ${signal.action} (BLOQUEADO)`;
-      }
-      if (confBadge) {
-        confBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-600 font-bold flex items-center gap-1";
-        confBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>🚫 BLOQUEADO: FUERA DE SESIÓN</span>';
-      }
-      if (confBanner) {
-        confBanner.className = "p-2 rounded-lg bg-rose-950/60 border border-rose-500/60 text-[10px] text-rose-200 font-medium leading-tight";
-        confBanner.innerHTML = `🚫 <strong>NO OPERAR · GATILLO BLOQUEADO POR SESIÓN:</strong> Señal técnica de ${signal.action} M5 detectada, pero el mercado está en horas asiáticas/madrugada. Faltan ${session.countdownFormatted} para la sesión de New York. Disciplina: no abras operaciones sin volumen interbancario.`;
-      }
-
-      // Sonido advertencia
-      playTradeAlertSound(false);
-
-      showToast(`🚫 <strong>NO OPERAR · FUERA DE SESIÓN NY:</strong> Señal ${signal.action} en M5 detectada pero bloqueada. Faltan <strong>${session.countdownFormatted}</strong> para la apertura (08:00 NY). Hora óptima: <strong>${session.optimalInfo ? session.optimalInfo.nyWindow : "08:15 – 11:30 NY"}</strong>.`, "error", 8000);
-    }
-  } else {
-    // Señal en contratendencia
-    if (confDot4) confDot4.className = "w-2.5 h-2.5 rounded-full bg-rose-400";
-    if (confCheck4) {
-      confCheck4.className = "font-mono text-rose-400 font-bold text-[10px]";
-      confCheck4.textContent = `✗ ${signal.action} DESCARTADO`;
-    }
-    if (confBadge) {
-      confBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-600 font-bold flex items-center gap-1";
-      confBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>3/4 SEÑAL RECHAZADA</span>';
-    }
-    if (confBanner) {
-      confBanner.className = "p-2 rounded-lg bg-rose-950/40 border border-rose-500/40 text-[10px] text-rose-300 font-medium leading-tight";
-      confBanner.textContent = `⚠️ Señal de ${signal.action} en M5 descartada por contradecir el sesgo institucional (${signal.bias_at_time || "BEARISH"}). Disciplina: jamás operar contratendencia.`;
-    }
-
-    // Sonido advertencia
-    playTradeAlertSound(false);
-
-    showToast(`⚠️ <strong>SEÑAL DESCARTADA:</strong> Señal de <strong>${signal.action}</strong> rechazada por ir contra el sesgo macro diario (${signal.bias_at_time || "BEARISH"}). Capital protegido.`, "warning", 6000);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 }
 
-async function triggerSimulatedTvSignal(forcedAction = null, triggerBtn = null) {
-  const currentBias = (goldBiasState && goldBiasState.bias) ? goldBiasState.bias : "BEARISH";
-  
-  let action = forcedAction;
-  if (!action) {
-    action = (currentBias === "BEARISH") ? "SELL" : "BUY";
-  }
+// Funciones retiradas/silenciadas: TradingView Webhooks y Simulación Externa
+function setupTradingViewWebhookEvents() {}
+function pollLiveSignal() {}
+function triggerSimulatedTvSignal() {}
+function applySignalToUI() {}
 
-  const isAligned = (currentBias === "BEARISH" && action === "SELL") || (currentBias === "BULLISH" && action === "BUY");
-  const status = isAligned ? "VALIDATED_A_PLUS" : "FILTERED_DISCARDED";
-
-  const payload = {
-    id: Date.now(),
-    ticker: "XAUUSD",
-    action: action,
-    price: 2720.50,
-    timeframe: "5",
-    sl_points: 2100,
-    status: status,
-    bias_at_time: currentBias,
-    timestamp: new Date().toISOString()
-  };
-
-  lastProcessedSignalId = payload.id;
-
-  // Feedback inmediato en la interfaz
-  applySignalToUI(payload, true);
-
-  // Animación / feedback en el botón que disparó la acción
-  const targetBtn = triggerBtn || document.getElementById("btnSimulateTvSignal");
-  if (targetBtn) {
-    const origHtml = targetBtn.innerHTML;
-    targetBtn.innerHTML = isAligned 
-      ? '<i data-lucide="check" class="w-3 h-3 text-white"></i><span>¡Gatillo Disparado!</span>'
-      : '<i data-lucide="shield-alert" class="w-3 h-3 text-white"></i><span>¡Filtro Activado!</span>';
-    initIcons();
-    setTimeout(() => {
-      targetBtn.innerHTML = origHtml;
-      initIcons();
-    }, 2000);
-  }
-
-  try {
-    await fetch("/api/webhook/tradingview", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-  } catch (err) {
-    console.warn("Webhook post logged locally:", err);
-  }
-}
-
-async function pollLiveSignal() {
-  try {
-    const res = await fetch("/api/live-signal");
-    if (!res.ok) return;
-    const signal = await res.json();
-    if (!signal || !signal.id) return;
-
-    if (signal.epoch) {
-      const nowSec = Math.floor(Date.now() / 1000);
-      if (nowSec - signal.epoch > 30 * 60) return; // Más de 30 min
-    }
-
-    if (lastProcessedSignalId !== signal.id) {
-      lastProcessedSignalId = signal.id;
-      applySignalToUI(signal, false);
-    }
-  } catch (err) {
-    // Silently continue polling
-  }
-}
-
-function setupTradingViewWebhookEvents() {
-  const modalTv = document.getElementById("modalTvWebhookInfo");
-  const btnOpen = document.getElementById("btnOpenTvWebhookModal");
-  const btnClose = document.getElementById("btnCloseTvWebhookModal");
-  const btnCloseBottom = document.getElementById("btnCloseTvWebhookModalBottom");
-  const btnSimulate = document.getElementById("btnSimulateTvSignal");
-  const btnCounter = document.getElementById("btnSimulateCounterSignal");
-  const btnTestModal = document.getElementById("btnTestWebhookSignalFromModal");
-  const btnCounterModal = document.getElementById("btnTestCounterSignalFromModal");
-  const btnCopyUrl = document.getElementById("btnCopyWebhookUrl");
-  const btnCopyPayload = document.getElementById("btnCopyWebhookPayload");
-
-  if (btnOpen && modalTv) {
-    btnOpen.addEventListener("click", () => {
-      modalTv.classList.remove("hidden");
-      initIcons();
-    });
-  }
-
-  const closeTvModal = () => {
-    if (modalTv) modalTv.classList.add("hidden");
-  };
-
-  if (btnClose) btnClose.addEventListener("click", closeTvModal);
-  if (btnCloseBottom) btnCloseBottom.addEventListener("click", closeTvModal);
-
-  if (modalTv) {
-    modalTv.addEventListener("click", (e) => {
-      if (e.target === modalTv) closeTvModal();
-    });
-  }
-
-  if (btnCopyUrl) {
-    btnCopyUrl.addEventListener("click", () => {
-      const urlInput = document.getElementById("tvWebhookUrlInput");
-      if (urlInput) {
-        navigator.clipboard.writeText(urlInput.value);
-        showToast("📋 URL de Webhook copiada al portapapeles", "info");
-      }
-    });
-  }
-
-  if (btnCopyPayload) {
-    btnCopyPayload.addEventListener("click", () => {
-      const payloadArea = document.getElementById("tvWebhookPayloadArea");
-      if (payloadArea) {
-        navigator.clipboard.writeText(payloadArea.value);
-        showToast("📋 JSON de plantilla copiado", "info");
-      }
-    });
-  }
-
-  if (btnSimulate) {
-    btnSimulate.addEventListener("click", () => {
-      const currentBias = (goldBiasState && goldBiasState.bias) ? goldBiasState.bias : "BEARISH";
-      const action = (currentBias === "BEARISH") ? "SELL" : "BUY";
-      triggerSimulatedTvSignal(action, btnSimulate);
-    });
-  }
-
-  if (btnCounter) {
-    btnCounter.addEventListener("click", () => {
-      const currentBias = (goldBiasState && goldBiasState.bias) ? goldBiasState.bias : "BEARISH";
-      const counterAction = (currentBias === "BEARISH") ? "BUY" : "SELL";
-      triggerSimulatedTvSignal(counterAction, btnCounter);
-    });
-  }
-
-  if (btnTestModal) {
-    btnTestModal.addEventListener("click", () => {
-      const currentBias = (goldBiasState && goldBiasState.bias) ? goldBiasState.bias : "BEARISH";
-      const action = (currentBias === "BEARISH") ? "SELL" : "BUY";
-      triggerSimulatedTvSignal(action, btnTestModal);
-      closeTvModal();
-    });
-  }
-
-  if (btnCounterModal) {
-    btnCounterModal.addEventListener("click", () => {
-      const currentBias = (goldBiasState && goldBiasState.bias) ? goldBiasState.bias : "BEARISH";
-      const counterAction = (currentBias === "BEARISH") ? "BUY" : "SELL";
-      triggerSimulatedTvSignal(counterAction, btnCounterModal);
-      closeTvModal();
-    });
-  }
-
-  // Polling cada 3 segundos
-  setInterval(pollLiveSignal, 3000);
-  pollLiveSignal();
-}
 
 // -------------------------------------------------------------
 // Modal: Manual Operativo & Guía Macro XAU/USD (PDF)
