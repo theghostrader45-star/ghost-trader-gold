@@ -1091,6 +1091,9 @@ function setupFondeoTradeForm() {
     }
 
     const entry = parseFloat(entryEl?.value);
+    const sl = parseFloat(slEl?.value);
+    const tp = parseFloat(tpEl?.value);
+    const exit = parseFloat(exitEl?.value);
     const dir = dirEl?.value || 'BUY';
     const asset = assetEl?.value || 'AUD/JPY';
     const isGold = anyStringIncludes(asset, ['XAU', 'GOLD', 'ORO']);
@@ -1106,71 +1109,104 @@ function setupFondeoTradeForm() {
     if (slLabel) slLabel.textContent = 'Stop Loss en Pips (AUD/JPY)';
     if (slSuffix) slSuffix.textContent = 'PIPS';
 
-    // Auto-completar SL y TP de acuerdo a AUD/JPY (1 pip = 0.01 JPY = ~$6.50 USD/lote calibrado)
+    // AUD/JPY: 1 pip = 0.01 JPY = ~$6.50 USD/lote calibrado
     const pipValUsd = (typeof getAudJpyPipValueUsd === 'function') ? getAudJpyPipValueUsd() : 6.50;
     const slPointsEl = document.getElementById('fondeoFormSlPoints');
-    const slValCustom = parseFloat(slPointsEl?.value) || 25;
-    const rrVal = parseFloat(rrEl?.value) || 3.0;
+    let slValCustom = parseFloat(slPointsEl?.value) || 25;
+
+    // AUTO-CÁLCULO DE R:R BASADO EN PRECIOS (ENTRADA, SL Y TP)
+    let autoCalculatedRr = null;
+    if (!isNaN(entry) && !isNaN(sl) && !isNaN(tp) && entry > 0 && sl > 0 && tp > 0) {
+      const slDistExact = Math.abs(entry - sl);
+      const tpDistExact = Math.abs(tp - entry);
+      if (slDistExact > 0) {
+        autoCalculatedRr = roundNum(tpDistExact / slDistExact, 2);
+        if (rrEl) {
+          rrEl.value = autoCalculatedRr.toFixed(2);
+        }
+        if (badgeRrMode) {
+          badgeRrMode.textContent = `⚡ 1:${autoCalculatedRr.toFixed(2)} AUTO PRECIOS`;
+          badgeRrMode.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 font-bold';
+        }
+        // Actualizar pips calculados según precios
+        slValCustom = roundNum(slDistExact * 100, 1);
+        if (slPointsEl) slPointsEl.value = slValCustom;
+      }
+    } else if (!isNaN(entry) && !isNaN(sl) && entry > 0 && sl > 0) {
+      const slDistExact = Math.abs(entry - sl);
+      slValCustom = roundNum(slDistExact * 100, 1);
+      if (slPointsEl) slPointsEl.value = slValCustom;
+    }
+
+    const rrVal = autoCalculatedRr || parseFloat(rrEl?.value) || 3.0;
 
     const slDollarDist = slValCustom * 0.01; // en JPY (ej. 25 pips = 0.25)
     const tpDollarDist = slDollarDist * rrVal;
     const lossPerLot = slValCustom * pipValUsd;
     const slDistEl = document.getElementById('fondeoSlDollarDist');
     if (slDistEl) slDistEl.textContent = `≈$${pipValUsd.toFixed(2)}/pip por lote`;
-    const formulaHtml = `Cálculo dinámico: <code>Lote = Riesgo $ / (Pips × $${pipValUsd.toFixed(2)})</code>`;
-
+    const formulaHtml = `Cálculo dinámico: <code>Lote Sugerido = Riesgo $ / (Pips × $${pipValUsd.toFixed(2)})</code>`;
     if (dynamicFormula) dynamicFormula.innerHTML = formulaHtml;
 
+    // Si Entrada fue ingresada pero SL o TP están vacíos, autocompletar sugeridos
     if (!isNaN(entry) && entry > 0) {
       const dec = 3; // AUD/JPY usa 3 decimales
-      if (slEl && (!slEl.dataset.userEdited || !slEl.value)) {
+      if (slEl && (!slEl.value || slEl.value.trim() === '')) {
         const autoSl = dir === 'BUY' ? roundNum(entry - slDollarDist, dec) : roundNum(entry + slDollarDist, dec);
         slEl.value = autoSl.toFixed(dec);
       }
-      if (tpEl && (!tpEl.dataset.userEdited || !tpEl.value)) {
+      if (tpEl && (!tpEl.value || tpEl.value.trim() === '')) {
         const autoTp = dir === 'BUY' ? roundNum(entry + tpDollarDist, dec) : roundNum(entry - tpDollarDist, dec);
         tpEl.value = autoTp.toFixed(dec);
       }
     }
 
-    const sl = parseFloat(slEl?.value);
-    const tp = parseFloat(tpEl?.value);
-    const exit = parseFloat(exitEl?.value);
+    // Cálculo dinámico de lotaje sugerido basado en 0.5% de riesgo y pips
+    const autoLot = Math.max(0.01, roundNum(dollarRisk / Math.max(0.01, lossPerLot), 2));
+    window._lastFondeoSuggestedLot = autoLot;
 
-    // Cálculo dinámico de lotaje basado en pips de AUD/JPY
-    const autoLot = Math.max(0.01, roundNum(dollarRisk / lossPerLot, 2));
     const formulaPrevEl = document.getElementById('fondeoLotFormulaPreview');
     if (formulaPrevEl) {
       formulaPrevEl.textContent = `$${dollarRisk.toFixed(0)} / (${slValCustom} pips × $${pipValUsd.toFixed(2)}) = ${autoLot.toFixed(2)} lotes`;
     }
 
-    if (autoLotHint) autoLotHint.textContent = `Auto (${slValCustom} pips): ${autoLot.toFixed(2)} lotes`;
-    if (lotEl && !lotEl.dataset.userModified) {
+    const fondeoSugBadge = document.getElementById('fondeoSuggestedLotBadge');
+    if (fondeoSugBadge) {
+      fondeoSugBadge.textContent = `Sugerido: ${autoLot.toFixed(2)} L`;
+    }
+
+    // LOTE 100% MANUAL: No sobreescribir lo que el usuario haya escrito
+    if (lotEl && (!lotEl.value || lotEl.value.trim() === '')) {
       lotEl.value = autoLot.toFixed(2);
     }
 
+    // El lote operado es el ingresado manualmente por el usuario
     const lot = parseFloat(lotEl?.value) || autoLot;
 
-    // Margin calculation (apalancamiento dinámico, contrato 100,000 AUD, AUD/USD ~0.6550)
+    // Cálculo de Margen con el Lote Manual (AUD/JPY apalancamiento 1:30 en Orion Nova)
     const marginToUse = roundNum((100000.0 * 0.6550 * lot) / fLev, 2);
     const marginPct = (marginToUse / curBal) * 100.0;
 
+    // Riesgo y Beneficio exactos con el Lote Manual
+    const actualTradeDollarRisk = roundNum(lot * lossPerLot, 2);
+    const actualTradeRiskPct = (actualTradeDollarRisk / baseBal) * 100.0;
+
     if (marginDisp) marginDisp.textContent = `$${formatMoney(marginToUse)} (${marginPct.toFixed(1)}%)`;
-    if (riskUsdDisp) riskUsdDisp.textContent = `$${formatMoney(dollarRisk)} (${riskPct.toFixed(2)}%)`;
+    if (riskUsdDisp) riskUsdDisp.textContent = `$${formatMoney(actualTradeDollarRisk)} (${actualTradeRiskPct.toFixed(2)}%)`;
 
     const fondeoDailyLimitUsd = baseBal * 0.04;
     const dailyHeadroom = (appState.fondeo?.summary?.daily_loss_headroom !== undefined) 
       ? Number(appState.fondeo.summary.daily_loss_headroom) 
       : fondeoDailyLimitUsd;
-    const lossesAllowed = Math.floor(dailyHeadroom / Math.max(1, dollarRisk));
+    const lossesAllowed = Math.floor(dailyHeadroom / Math.max(1, actualTradeDollarRisk));
 
     if (safetyText) {
-      if (dollarRisk > dailyHeadroom * 0.5) {
-        safetyText.innerHTML = `⚠️ <b>Riesgo Elevado:</b> Arriesgas <b>$${formatMoney(dollarRisk)}</b>, consumiendo más del 50% de tu colchón diario ($${formatMoney(dailyHeadroom)}). Soportas solo <strong>${lossesAllowed} pérdidas</strong> hoy.`;
+      if (actualTradeDollarRisk > dailyHeadroom * 0.5) {
+        safetyText.innerHTML = `⚠️ <b>Riesgo Elevado:</b> Arriesgas <b>$${formatMoney(actualTradeDollarRisk)}</b> con ${lot.toFixed(2)} lotes, consumiendo más del 50% de tu colchón diario ($${formatMoney(dailyHeadroom)}). Soportas solo <strong>${lossesAllowed} pérdidas</strong> hoy.`;
         if (safetyBanner) safetyBanner.className = 'text-[11px] p-2 rounded-lg bg-rose-950/40 border border-rose-800/60 text-rose-300 flex items-center gap-1.5';
       } else {
         const symbolBadgeText = `AUD/JPY (${slValCustom} pips)`;
-        safetyText.innerHTML = `🛡️ <b>Riesgo Óptimo en ${symbolBadgeText}:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b>. Soportas <strong>${lossesAllowed} pérdidas seguidas</strong> hoy sin violar el 4% diario ($${formatMoney(fondeoDailyLimitUsd)}).`;
+        safetyText.innerHTML = `🛡️ <b>Riesgo Óptimo en ${symbolBadgeText}:</b> Arriesgas <b>${actualTradeRiskPct.toFixed(2)}% ($${formatMoney(actualTradeDollarRisk)})</b> con ${lot.toFixed(2)} lotes manuales. Soportas <strong>${lossesAllowed} pérdidas seguidas</strong> hoy sin violar el 4% diario ($${formatMoney(fondeoDailyLimitUsd)}).`;
         if (safetyBanner) safetyBanner.className = 'text-[11px] p-2 rounded-lg bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 flex items-center gap-1.5';
       }
     }
@@ -1195,13 +1231,10 @@ function setupFondeoTradeForm() {
     }
 
     if (calc.tpPoints !== null) {
-      const projRr = calc.projectedRr ? `1:${calc.projectedRr}` : '1:3.0';
+      const projRr = autoCalculatedRr ? `1:${autoCalculatedRr.toFixed(2)}` : (calc.projectedRr ? `1:${calc.projectedRr}` : `1:${rrVal.toFixed(2)}`);
       if (tpBadge) tpBadge.textContent = `${calc.tpPips} pips (${projRr})`;
-      if (calc.projectedRr !== null && rrEl && !rrEl.dataset.userManual && isNaN(parseFloat(exitEl?.value))) {
-        rrEl.value = calc.projectedRr.toFixed(2);
-      }
     } else {
-      if (tpBadge) tpBadge.textContent = `${Math.round(slValCustom * rrVal)} pips (1:3.0)`;
+      if (tpBadge) tpBadge.textContent = `${Math.round(slValCustom * rrVal)} pips (1:${rrVal.toFixed(2)})`;
     }
 
     const isManualRr = rrEl?.dataset.userManual === 'true';
@@ -1215,10 +1248,10 @@ function setupFondeoTradeForm() {
       let finalStatus = calc.status;
 
       // Si el usuario especificó manualmente el R:R obtenido al finalizar:
-      if (isManualRr && dollarRisk > 0) {
-        const manualRrVal = parseFloat(rrEl.value) || 3.0;
-        finalPnl = roundNum(dollarRisk * manualRrVal, 2);
-        finalRetPct = roundNum(riskPct * manualRrVal, 2);
+      if (isManualRr && actualTradeDollarRisk > 0) {
+        const manualRrVal = parseFloat(rrEl.value) || rrVal;
+        finalPnl = roundNum(actualTradeDollarRisk * manualRrVal, 2);
+        finalRetPct = roundNum(actualTradeRiskPct * manualRrVal, 2);
         finalStatus = manualRrVal > 0 ? 'win' : (manualRrVal < 0 ? 'loss' : 'be');
       }
 
@@ -1239,21 +1272,21 @@ function setupFondeoTradeForm() {
       if (pnlEl) pnlEl.value = finalPnl.toFixed(2);
       if (statusEl) statusEl.value = finalStatus;
 
-      if (!isManualRr) {
+      if (!isManualRr && autoCalculatedRr === null) {
         if (calc.realizedRr !== null && rrEl) {
           rrEl.value = calc.realizedRr.toFixed(2);
         }
       }
 
       if (rrDisp) {
-        const displayRr = isManualRr ? (parseFloat(rrEl?.value) || 3.0).toFixed(2) : (calc.realizedRr !== null ? calc.realizedRr.toFixed(2) : (calc.projectedRr ? calc.projectedRr.toFixed(2) : '3.00'));
+        const displayRr = autoCalculatedRr ? autoCalculatedRr.toFixed(2) : (isManualRr ? (parseFloat(rrEl?.value) || 3.0).toFixed(2) : (calc.realizedRr !== null ? calc.realizedRr.toFixed(2) : (calc.projectedRr ? calc.projectedRr.toFixed(2) : rrVal.toFixed(2))));
         rrDisp.textContent = `1:${displayRr}`;
       }
     } else {
-      const curRr = parseFloat(rrEl?.value) || 2.0;
-      if (dollarRisk > 0) {
-        const expectedPnl = roundNum(dollarRisk * curRr, 2);
-        const expectedPct = roundNum(riskPct * curRr, 2);
+      const curRr = autoCalculatedRr || parseFloat(rrEl?.value) || 2.0;
+      if (actualTradeDollarRisk > 0) {
+        const expectedPnl = roundNum(actualTradeDollarRisk * curRr, 2);
+        const expectedPct = roundNum(actualTradeRiskPct * curRr, 2);
         if (ptsDisp) {
           const slPtsDisp = calc.slPoints || Math.round(slValCustom * 10);
           ptsDisp.textContent = `${slValCustom} SL / ${Math.round(slValCustom * curRr)} TP (pips)`;
@@ -1523,6 +1556,21 @@ function setupFondeoTradeForm() {
       if (entryEl && entryEl.value) {
         exitEl.value = entryEl.value;
         updateFondeoCalculation();
+      }
+    });
+  }
+
+  const btnApplyFondeoSug = document.getElementById('btnApplyFondeoSuggestedLot');
+  if (btnApplyFondeoSug) {
+    btnApplyFondeoSug.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (lotEl && typeof window._lastFondeoSuggestedLot === 'number') {
+        lotEl.value = window._lastFondeoSuggestedLot.toFixed(2);
+        lotEl.dataset.userModified = 'true';
+        updateFondeoCalculation();
+        if (typeof showToast === 'function') {
+          showToast(`⚡ Lote sugerido (${window._lastFondeoSuggestedLot.toFixed(2)}) aplicado.`, 'info', 2000);
+        }
       }
     });
   }
@@ -2561,7 +2609,7 @@ function recalculateTradingViewValues() {
 function recalculateRealJournalPreview() {
   const curBal = (appState.real.summary && appState.real.summary.current_balance !== undefined)
     ? Number(appState.real.summary.current_balance)
-    : Number(appState.config.initial_balance || 110.0);
+    : Number(appState.config?.initial_balance || 110.0);
 
   const entryEl = document.getElementById('realTradeEntry');
   const slEl = document.getElementById('realTradeSl');
@@ -2577,157 +2625,174 @@ function recalculateRealJournalPreview() {
 
   const slBadge = document.getElementById('realTradeSlPtsBadge');
   const tpBadge = document.getElementById('realTradeTpPtsBadge');
-  const ptsDisp = document.getElementById('realCalcPointsDisplay');
-  const rrDisp = document.getElementById('realCalcRrDisplay');
-  const pnlDisp = document.getElementById('realCalcPnlDisplay');
-  const pctDisp = document.getElementById('realCalcPctDisplay');
-
-  let slDist = null;
-  if (!isNaN(entry) && !isNaN(sl) && entry > 0 && sl > 0) {
-    slDist = Math.abs(entry - sl);
-    const slPts = Math.round(slDist * 100);
-    const ptsInput = document.getElementById('realTradeTvPoints');
-    if (ptsInput) ptsInput.value = slPts;
-    if (slBadge) slBadge.textContent = `${slPts} pts ($${slDist.toFixed(2)})`;
-  } else {
-    if (slBadge) slBadge.textContent = '0 pts';
-  }
-
-  let tpDist = null;
-  if (!isNaN(entry) && !isNaN(tp) && entry > 0 && tp > 0) {
-    tpDist = Math.abs(tp - entry);
-    const tpPts = Math.round(tpDist * 100);
-    if (tpBadge) tpBadge.textContent = `${tpPts} pts ($${tpDist.toFixed(2)})`;
-    if (slDist && slDist > 0) {
-      const projRR = roundNum(tpDist / slDist, 2);
-      const rrInput = document.getElementById('realTradeRR');
-      if (rrInput && isNaN(exit)) rrInput.value = projRR;
-    }
-  } else {
-    if (tpBadge) tpBadge.textContent = '0 pts';
-  }
-
   const assetEl = document.getElementById('realTradeAsset');
   const asset = assetEl?.value || 'AUD/JPY';
   const isGold = anyStringIncludes(asset, ['XAU', 'GOLD', 'ORO']);
-
-  const rawInput = document.getElementById('realTradeTvPoints')?.value || '25';
-  const { points, price } = parseTradingViewInput(rawInput);
-  
-  const riskPctStr = document.getElementById('realTradeRiskPct')?.value || '1.0';
-  let riskPct = parseFloat(String(riskPctStr).replace(',', '.').trim()) || 1.0;
-  
-  const rrStr = document.getElementById('realTradeRR')?.value || '2.0';
-  const rr = parseFloat(String(rrStr).replace(',', '.').trim()) || 2.0;
-  
-  const leverage = parseFloat(appState.config?.leverage) || 300;
-
-  const dollarRiskBudget = roundNum(curBal * (riskPct / 100.0), 2);
   const pipValUsd = isGold ? 1.0 : ((typeof getAudJpyPipValueUsd === 'function') ? getAudJpyPipValueUsd() : 6.50);
-  const lossPerLot = points * pipValUsd;
-  const rawLot = (points > 0 && lossPerLot > 0) ? (dollarRiskBudget / lossPerLot) : 0.01;
+  const leverage = parseFloat(appState.config?.leverage) || 300.0;
+
+  let slPips = 25.0;
+  let tpPips = 50.0;
+  let autoRr = 2.00;
+
+  // Cálculo exacto de Stop Loss en pips según precio de entrada y SL
+  if (!isNaN(entry) && !isNaN(sl) && entry > 0 && sl > 0) {
+    const slDist = Math.abs(entry - sl);
+    slPips = isGold ? roundNum(slDist * 10, 1) : roundNum(slDist * 100, 1);
+    if (slBadge) slBadge.textContent = `${slPips.toFixed(1)} pips`;
+  } else {
+    if (slBadge) slBadge.textContent = '25.0 pips';
+  }
+
+  // Cálculo exacto de Take Profit en pips según precio de entrada y TP
+  if (!isNaN(entry) && !isNaN(tp) && entry > 0 && tp > 0) {
+    const tpDist = Math.abs(tp - entry);
+    tpPips = isGold ? roundNum(tpDist * 10, 1) : roundNum(tpDist * 100, 1);
+    if (tpBadge) tpBadge.textContent = `${tpPips.toFixed(1)} pips`;
+  } else {
+    if (tpBadge) tpBadge.textContent = '50.0 pips';
+  }
+
+  // R:R AUTOMÁTICO BASADO EN PRECIOS (ENTRADA, SL Y TP)
+  const rrInput = document.getElementById('realTradeRR');
+  const badgeRrMode = document.getElementById('badgeRealRrMode');
+  if (!isNaN(entry) && !isNaN(sl) && !isNaN(tp) && entry > 0 && sl > 0 && tp > 0) {
+    const slDist = Math.abs(entry - sl);
+    const tpDist = Math.abs(tp - entry);
+    if (slDist > 0) {
+      autoRr = roundNum(tpDist / slDist, 2);
+      if (rrInput && isNaN(exit)) {
+        rrInput.value = autoRr.toFixed(2);
+      }
+      if (badgeRrMode) {
+        badgeRrMode.textContent = `⚡ 1:${autoRr.toFixed(2)} AUTO PRECIOS`;
+      }
+    }
+  } else if (rrInput && rrInput.value) {
+    autoRr = parseFloat(String(rrInput.value).replace(',', '.').trim()) || 2.0;
+    if (badgeRrMode) {
+      badgeRrMode.textContent = `⚡ 1:${autoRr.toFixed(2)} AUTO`;
+    }
+  }
+
+  // Presupuesto de riesgo (1% del balance actual)
+  const riskPctStr = document.getElementById('realTradeRiskPct')?.value || '1.0';
+  const riskPct = parseFloat(String(riskPctStr).replace(',', '.').trim()) || 1.0;
+  const dollarRiskBudget = roundNum(curBal * (riskPct / 100.0), 2);
+
+  // Lote sugerido automático según riesgo y pips
+  const lossPerLot = slPips * pipValUsd;
+  const rawLot = (slPips > 0 && lossPerLot > 0) ? (dollarRiskBudget / lossPerLot) : 0.01;
   const suggestedLot = Math.max(0.01, roundNum(rawLot, 2));
+  window._lastRealSuggestedLot = suggestedLot;
 
-  // Actualización del badge de lote sugerido
   const suggestedBadge = document.getElementById('realTradeSuggestedLotBadge');
-  if (suggestedBadge) suggestedBadge.textContent = suggestedLot.toFixed(2);
+  if (suggestedBadge) {
+    suggestedBadge.textContent = `Sugerido: ${suggestedLot.toFixed(2)}`;
+  }
 
-  // Manejo de lote manual ingresado por el usuario
+  // LOTE MANUAL INGRESADO POR EL USUARIO (100% respetado)
   const manualLotInput = document.getElementById('realTradeManualLot');
-  const manualLotVal = manualLotInput && manualLotInput.value ? parseFloat(String(manualLotInput.value).replace(',', '.').trim()) : null;
-  const effectiveLot = (manualLotVal && manualLotVal > 0) ? roundNum(manualLotVal, 2) : suggestedLot;
+  let effectiveLot = 0.01;
+  if (manualLotInput && manualLotInput.value && parseFloat(manualLotInput.value) > 0) {
+    effectiveLot = roundNum(parseFloat(manualLotInput.value), 2);
+  } else {
+    effectiveLot = suggestedLot;
+    if (manualLotInput && (!manualLotInput.value || manualLotInput.value.trim() === '')) {
+      manualLotInput.value = suggestedLot.toFixed(2);
+    }
+  }
 
-  // Manejo de comisión (permite negativos -0.06 o -0,06 o positivos 0.06)
+  // Comisión Broker USD (ej. -0.06)
   const commInput = document.getElementById('realTradeCommission');
-  let commVal = 0.0;
+  let commVal = 0.06;
   if (commInput && commInput.value) {
     const rawComm = parseFloat(String(commInput.value).replace(',', '.').trim());
     if (!isNaN(rawComm)) commVal = Math.abs(rawComm);
   }
 
-  // Si hay Entrada y Salida, calcular PnL y puntos exactos
+  // Margen requerido con Tickmill 1:300 y el Lote Manual
+  const effectiveMargin = isGold 
+    ? roundNum((2720.0 * 100.0 * effectiveLot) / leverage, 2)
+    : roundNum((100000.0 * 0.6550 * effectiveLot) / leverage, 2);
+
+  // Riesgo y Beneficio exactos en dólares usando el Lote Manual
+  const tradeRiskUsd = roundNum(effectiveLot * pipValUsd * slPips, 2);
+  const tradeRewardUsd = roundNum(effectiveLot * pipValUsd * tpPips, 2);
+
+  // Cálculo de PnL Neto
+  let finalPnl = 0.0;
+  let exitPips = null;
+
   if (!isNaN(entry) && !isNaN(exit) && entry > 0 && exit > 0) {
     const exitDiff = direction === 'BUY' ? (exit - entry) : (entry - exit);
-    const wonPts = isGold ? Math.round(exitDiff * 100) : Math.round(exitDiff * 1000);
-    const mult = isGold ? 100.0 : (pipValUsd * 100.0);
-    const calcPnl = roundNum((effectiveLot * mult * exitDiff) - commVal, 2);
-    const calcRetPct = curBal > 0 ? roundNum((calcPnl / curBal) * 100, 2) : 0.0;
-
-    const manualPnlInput = document.getElementById('realTradeManualPnl');
-    if (manualPnlInput) manualPnlInput.value = calcPnl.toFixed(2);
+    exitPips = isGold ? roundNum(exitDiff * 10, 1) : roundNum(exitDiff * 100, 1);
+    const pnlGross = roundNum(effectiveLot * pipValUsd * exitPips, 2);
+    finalPnl = roundNum(pnlGross - commVal, 2);
 
     const winRadio = document.querySelector('input[name="realTradeResult"][value="win"]');
     const lossRadio = document.querySelector('input[name="realTradeResult"][value="loss"]');
     const beRadio = document.querySelector('input[name="realTradeResult"][value="be"]');
 
-    if (calcPnl > 0.05 && winRadio) winRadio.checked = true;
-    else if (calcPnl < -0.05 && lossRadio) lossRadio.checked = true;
+    if (finalPnl > 0.05 && winRadio) winRadio.checked = true;
+    else if (finalPnl < -0.05 && lossRadio) lossRadio.checked = true;
     else if (beRadio) beRadio.checked = true;
-
-    if (ptsDisp) {
-      const sign = wonPts > 0 ? '+' : '';
-      ptsDisp.textContent = isGold ? `${sign}${wonPts} pts` : `${sign}${Math.round(wonPts / 10)} pips`;
-      ptsDisp.className = `font-bold text-sm ${wonPts > 0 ? 'text-emerald-400' : (wonPts < 0 ? 'text-rose-400' : 'text-gray-400')}`;
-    }
-    if (pnlDisp) {
-      const sign = calcPnl > 0 ? '+' : '';
-      pnlDisp.textContent = `${sign}$${Number(calcPnl).toFixed(2)}`;
-      pnlDisp.className = `font-bold text-sm ${calcPnl > 0 ? 'text-emerald-400' : (calcPnl < 0 ? 'text-rose-400' : 'text-gray-400')}`;
-    }
-    if (pctDisp) {
-      const sign = calcRetPct > 0 ? '+' : '';
-      pctDisp.textContent = `${sign}${calcRetPct.toFixed(2)}%`;
-      pctDisp.className = `font-bold text-sm ${calcRetPct > 0 ? 'text-emerald-400' : (calcRetPct < 0 ? 'text-rose-400' : 'text-amber-400')}`;
-    }
-    if (rrDisp) {
-      const rRatio = slDist && slDist > 0 ? roundNum(Math.abs(exitDiff) / slDist, 2) : rr;
-      rrDisp.textContent = `1:${rRatio}`;
-    }
   } else {
-    if (ptsDisp) {
-      ptsDisp.textContent = '0 pts';
-      ptsDisp.className = 'font-bold text-white text-sm';
+    const resChoice = document.querySelector('input[name="realTradeResult"]:checked')?.value || 'win';
+    if (resChoice === 'win') {
+      finalPnl = roundNum(tradeRewardUsd - commVal, 2);
+    } else if (resChoice === 'loss') {
+      finalPnl = roundNum(-tradeRiskUsd - commVal, 2);
+    } else {
+      finalPnl = roundNum(-commVal, 2);
     }
-    if (pnlDisp) {
-      pnlDisp.textContent = '+$0.00';
-      pnlDisp.className = 'font-bold text-emerald-400 text-sm';
-    }
-    if (pctDisp) {
-      pctDisp.textContent = '0.00%';
-      pctDisp.className = 'font-bold text-amber-400 text-sm';
-    }
-    if (rrDisp) rrDisp.textContent = `1:${rr}`;
   }
 
-  const effectiveMargin = isGold 
-    ? roundNum((2720.0 * 100.0 * effectiveLot) / leverage, 2)
-    : roundNum((100000.0 * 0.6550 * effectiveLot) / leverage, 2);
-  const effectiveRiskDollar = roundNum(lossPerLot * effectiveLot, 2);
-  const effectiveRewardDollar = roundNum(lossPerLot * effectiveLot * rr, 2);
-  const effectiveRiskPct = curBal > 0 ? roundNum(((effectiveRiskDollar + commVal) / curBal) * 100, 2) : riskPct;
-  const effectiveRewardPct = curBal > 0 ? roundNum(((effectiveRewardDollar - commVal) / curBal) * 100, 2) : (riskPct * rr);
+  // ACTUALIZACIÓN DE LA FRANJA EN VIVO DEL FORMULARIO REAL
+  const realPointsDisp = document.getElementById('realCalcPointsDisplay');
+  if (realPointsDisp) {
+    if (exitPips !== null) {
+      const sign = exitPips >= 0 ? '+' : '';
+      realPointsDisp.textContent = `${sign}${exitPips.toFixed(1)} pips (Salida)`;
+      realPointsDisp.className = `font-bold text-sm ${exitPips > 0 ? 'text-emerald-400' : (exitPips < 0 ? 'text-rose-400' : 'text-gray-400')}`;
+    } else {
+      realPointsDisp.textContent = `${slPips.toFixed(1)} SL / ${tpPips.toFixed(1)} TP`;
+      realPointsDisp.className = 'font-bold text-white text-sm';
+    }
+  }
 
-  const slExplain = document.getElementById('realSlExplain');
-  if (slExplain) slExplain.textContent = `${points} pts ($${price})`;
+  const realRrDisp = document.getElementById('realCalcRrDisplay');
+  if (realRrDisp) {
+    realRrDisp.textContent = `1:${autoRr.toFixed(2)}`;
+  }
 
+  const realRiskDisp = document.getElementById('realCalcRiskUsdDisplay');
+  if (realRiskDisp) {
+    realRiskDisp.textContent = `-$${formatMoney(tradeRiskUsd)}`;
+  }
+
+  const realRewardDisp = document.getElementById('realCalcRewardUsdDisplay');
+  if (realRewardDisp) {
+    realRewardDisp.textContent = `+$${formatMoney(tradeRewardUsd)}`;
+  }
+
+  const realMarginDisp = document.getElementById('realCalcMarginDisplay');
+  if (realMarginDisp) {
+    realMarginDisp.textContent = `~$${formatMoney(effectiveMargin)} USD`;
+  }
+
+  const realPnlDisp = document.getElementById('realCalcPnlDisplay');
+  if (realPnlDisp) {
+    const pSign = finalPnl >= 0 ? '+' : '';
+    realPnlDisp.textContent = `${pSign}$${formatMoney(finalPnl)}`;
+    realPnlDisp.className = `font-bold text-sm ${finalPnl > 0 ? 'text-emerald-400' : (finalPnl < 0 ? 'text-rose-400' : 'text-gray-400')}`;
+  }
+
+  // Sincronizar elementos auxiliares si existen en el DOM
   const curBalDisplay = document.getElementById('realFormCurrentBalDisplay');
   if (curBalDisplay) curBalDisplay.textContent = `$${curBal.toFixed(2)}`;
-
-  const previewRisk = document.getElementById('realPreviewRiskDollar');
-  if (previewRisk) {
-    const totalRiskDol = roundNum(effectiveRiskDollar + commVal, 2);
-    previewRisk.textContent = `-$${totalRiskDol.toFixed(2)} (-${effectiveRiskPct.toFixed(2)}%)`;
-  }
-
-  const previewReward = document.getElementById('realPreviewRewardDollar');
-  if (previewReward) {
-    const totalRewardDol = roundNum(effectiveRewardDollar - commVal, 2);
-    previewReward.textContent = `+$${totalRewardDol.toFixed(2)} (+${effectiveRewardPct.toFixed(2)}%)`;
-  }
-
   const previewLot = document.getElementById('realPreviewLot');
   if (previewLot) previewLot.textContent = effectiveLot.toFixed(2);
-
   const previewMargin = document.getElementById('realPreviewMargin');
   if (previewMargin) previewMargin.textContent = `~$${effectiveMargin.toFixed(2)}`;
 }
@@ -5541,22 +5606,44 @@ function setupEventListeners() {
     }
   }
 
-  // Real Journal Submit
+  // Real Journal Submit & Listeners de Alta Precisión
   const realTradeForm = document.getElementById('realTradeForm');
   if (realTradeForm) {
     realTradeForm.addEventListener('submit', handleAddRealTrade);
-    const rPts = document.getElementById('realTradeTvPoints');
-    if (rPts) rPts.addEventListener('input', recalculateRealJournalPreview);
-    const rRisk = document.getElementById('realTradeRiskPct');
-    if (rRisk) rRisk.addEventListener('input', recalculateRealJournalPreview);
+
     const rRR = document.getElementById('realTradeRR');
     if (rRR) rRR.addEventListener('input', recalculateRealJournalPreview);
     const rLot = document.getElementById('realTradeManualLot');
     if (rLot) rLot.addEventListener('input', recalculateRealJournalPreview);
     const rComm = document.getElementById('realTradeCommission');
     if (rComm) rComm.addEventListener('input', recalculateRealJournalPreview);
+    const rDir = document.getElementById('realTradeDirection');
+    if (rDir) rDir.addEventListener('change', recalculateRealJournalPreview);
+    const rAsset = document.getElementById('realTradeAsset');
+    if (rAsset) rAsset.addEventListener('change', recalculateRealJournalPreview);
 
-    // Price inputs (Entry, SL, TP, Exit)
+    // Botón para aplicar lote sugerido en Real
+    const btnApplyRealSug = document.getElementById('btnApplyRealSuggestedLot');
+    if (btnApplyRealSug) {
+      btnApplyRealSug.addEventListener('click', (e) => {
+        e.preventDefault();
+        const manualInp = document.getElementById('realTradeManualLot');
+        if (manualInp && typeof window._lastRealSuggestedLot === 'number') {
+          manualInp.value = window._lastRealSuggestedLot.toFixed(2);
+          recalculateRealJournalPreview();
+          if (typeof showToast === 'function') {
+            showToast(`⚡ Lote sugerido (${window._lastRealSuggestedLot.toFixed(2)}) aplicado.`, 'info', 2000);
+          }
+        }
+      });
+    }
+
+    // Radios de resultado WIN / LOSS / BE
+    document.querySelectorAll('input[name="realTradeResult"]').forEach(radio => {
+      radio.addEventListener('change', recalculateRealJournalPreview);
+    });
+
+    // Entradas de precio: Entry, SL, TP, Exit
     ['realTradeEntry', 'realTradeSl', 'realTradeTp', 'realTradeExit'].forEach(id => {
       const el = document.getElementById(id);
       if (el) {
@@ -5570,7 +5657,8 @@ function setupEventListeners() {
     const btnRealSl = document.getElementById('btnRealExitSl');
     const btnRealBe = document.getElementById('btnRealExitBe');
     if (btnRealTp) {
-      btnRealTp.addEventListener('click', () => {
+      btnRealTp.addEventListener('click', (e) => {
+        e.preventDefault();
         const tpVal = document.getElementById('realTradeTp')?.value;
         const exitEl = document.getElementById('realTradeExit');
         if (tpVal && exitEl) {
@@ -5580,7 +5668,8 @@ function setupEventListeners() {
       });
     }
     if (btnRealSl) {
-      btnRealSl.addEventListener('click', () => {
+      btnRealSl.addEventListener('click', (e) => {
+        e.preventDefault();
         const slVal = document.getElementById('realTradeSl')?.value;
         const exitEl = document.getElementById('realTradeExit');
         if (slVal && exitEl) {
@@ -5590,7 +5679,8 @@ function setupEventListeners() {
       });
     }
     if (btnRealBe) {
-      btnRealBe.addEventListener('click', () => {
+      btnRealBe.addEventListener('click', (e) => {
+        e.preventDefault();
         const entryVal = document.getElementById('realTradeEntry')?.value;
         const exitEl = document.getElementById('realTradeExit');
         if (entryVal && exitEl) {
@@ -5858,102 +5948,105 @@ async function handleAddRealTrade(e) {
   e.preventDefault();
 
   const curBal = (appState.real.summary && appState.real.summary.current_balance !== undefined) 
-    ? appState.real.summary.current_balance 
-    : appState.config.initial_balance;
+    ? Number(appState.real.summary.current_balance) 
+    : Number(appState.config?.initial_balance || 110.0);
 
   const now = new Date();
   const pad = (n) => String(n).padStart(2, '0');
   const defaultDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
   const inputDate = document.getElementById('realTradeDate')?.value?.trim();
   const date = inputDate || defaultDate;
-  const session = 'New York';
+  const session = document.getElementById('realTradeSession')?.value || 'New York';
   const direction = document.getElementById('realTradeDirection')?.value || 'BUY';
   const asset = document.getElementById('realTradeAsset')?.value || 'AUD/JPY';
   const isGold = anyStringIncludes(asset, ['XAU', 'GOLD', 'ORO']);
-
-  const rawInput = document.getElementById('realTradeTvPoints')?.value || '25';
-  const { points, price } = parseTradingViewInput(rawInput);
-
-  const riskPctRaw = document.getElementById('realTradeRiskPct')?.value || '1.0';
-  const riskPct = roundNum(parseFloat(String(riskPctRaw).replace(',', '.').trim()) || 1.0, 2);
-  const rrRaw = document.getElementById('realTradeRR')?.value || '2.0';
-  const rr = roundNum(parseFloat(String(rrRaw).replace(',', '.').trim()) || 2.0, 2);
-  const strategy = `Price Action (${asset})`;
-  const emotion = '';
-  const tvChartUrl = document.getElementById('realTradeChartUrl')?.value || '';
-
-  const statusRadio = document.querySelector('input[name="realTradeResult"]:checked');
-  const status = statusRadio ? statusRadio.value : 'win';
-
-  let lossPerLot = points * 6.50;
-  if (isGold) {
-    lossPerLot = points * 1.0;
-  } else {
-    // AUD/JPY: 1 pip = 0.01 JPY = ~$6.50 USD / standard lot
-    lossPerLot = points * 6.50;
-  }
-
-  const dollarRiskBudget = roundNum(curBal * (riskPct / 100.0), 2);
-  const rawLot = (points > 0 && lossPerLot > 0) ? (dollarRiskBudget / lossPerLot) : 0.01;
-  const suggested_lot = Math.max(0.01, roundNum(rawLot, 2));
-
-  // Opción de lote manual
-  const manualLotInput = document.getElementById('realTradeManualLot');
-  const manualLotVal = manualLotInput && manualLotInput.value ? parseFloat(String(manualLotInput.value).replace(',', '.').trim()) : null;
-  const lot_size = (manualLotVal && manualLotVal > 0) ? roundNum(manualLotVal, 2) : suggested_lot;
-
-  const commissionInput = document.getElementById('realTradeCommission');
-  let commission = 0.0;
-  if (commissionInput && commissionInput.value) {
-    const rawComm = parseFloat(String(commissionInput.value).replace(',', '.').trim());
-    if (!isNaN(rawComm)) {
-      commission = roundNum(Math.abs(rawComm), 2);
-    }
-  }
-
-  // PnL Neto Manual o Calculado Automático
-  const manualPnlInput = document.getElementById('realTradeManualPnl');
-  let manualPnlVal = null;
-  if (manualPnlInput && manualPnlInput.value && manualPnlInput.value.trim() !== '') {
-    const rawVal = parseFloat(String(manualPnlInput.value).replace(',', '.').trim());
-    if (!isNaN(rawVal)) {
-      manualPnlVal = roundNum(rawVal, 2);
-    }
-  }
-
-  const actualDollarRisk = roundNum(lossPerLot * lot_size, 2);
-  let pnl = 0.0;
-  let retPct = 0.0;
-
-  if (manualPnlVal !== null) {
-    pnl = manualPnlVal;
-    retPct = curBal > 0 ? roundNum((pnl / curBal) * 100.0, 2) : 0.0;
-  } else {
-    if (status === 'win') {
-      pnl = roundNum((lossPerLot * lot_size * rr) - commission, 2);
-      retPct = curBal > 0 ? roundNum((pnl / curBal) * 100.0, 2) : (riskPct * rr);
-    } else if (status === 'loss') {
-      pnl = roundNum(-actualDollarRisk - commission, 2);
-      retPct = curBal > 0 ? roundNum((pnl / curBal) * 100.0, 2) : -riskPct;
-    } else {
-      pnl = roundNum(-commission, 2);
-      retPct = curBal > 0 ? roundNum((pnl / curBal) * 100.0, 2) : 0.0;
-    }
-  }
-
-  const leverage = parseFloat(appState.config.leverage) || 300;
-  let margin_used = 0.0;
-  if (isGold) {
-    margin_used = roundNum((2720.0 * 100 * lot_size / leverage), 2);
-  } else {
-    // AUD/JPY en Tickmill (1:300, 100,000 AUD * 0.6550 USD / 300 = ~$218.33 USD por lote)
-    margin_used = roundNum((100000.0 * 0.6550 * lot_size / leverage), 2);
-  }
+  const pipValUsd = isGold ? 1.0 : ((typeof getAudJpyPipValueUsd === 'function') ? getAudJpyPipValueUsd() : 6.50);
+  const leverage = parseFloat(appState.config?.leverage) || 300.0;
 
   const entry = parseFloat(document.getElementById('realTradeEntry')?.value);
   const sl = parseFloat(document.getElementById('realTradeSl')?.value);
   const tp = parseFloat(document.getElementById('realTradeTp')?.value);
   const exit = parseFloat(document.getElementById('realTradeExit')?.value);
+
+  let slPips = 25.0;
+  let tpPips = 50.0;
+  let autoRr = 2.0;
+
+  if (!isNaN(entry) && !isNaN(sl) && entry > 0 && sl > 0) {
+    const slDist = Math.abs(entry - sl);
+    slPips = isGold ? roundNum(slDist * 10, 1) : roundNum(slDist * 100, 1);
+  }
+  if (!isNaN(entry) && !isNaN(tp) && entry > 0 && tp > 0) {
+    const tpDist = Math.abs(tp - entry);
+    tpPips = isGold ? roundNum(tpDist * 10, 1) : roundNum(tpDist * 100, 1);
+  }
+
+  // R:R auto-calculado por precios
+  if (!isNaN(entry) && !isNaN(sl) && !isNaN(tp) && entry > 0 && sl > 0 && tp > 0) {
+    const slDist = Math.abs(entry - sl);
+    const tpDist = Math.abs(tp - entry);
+    if (slDist > 0) {
+      autoRr = roundNum(tpDist / slDist, 2);
+    }
+  } else {
+    const rrRaw = document.getElementById('realTradeRR')?.value || '2.0';
+    autoRr = roundNum(parseFloat(String(rrRaw).replace(',', '.').trim()) || 2.0, 2);
+  }
+
+  // Lote manual o sugerido
+  const dollarRiskBudget = roundNum(curBal * 0.01, 2);
+  const lossPerLot = slPips * pipValUsd;
+  const rawLot = (slPips > 0 && lossPerLot > 0) ? (dollarRiskBudget / lossPerLot) : 0.01;
+  const suggested_lot = Math.max(0.01, roundNum(rawLot, 2));
+
+  const manualLotInput = document.getElementById('realTradeManualLot');
+  const manualLotVal = manualLotInput && manualLotInput.value ? parseFloat(String(manualLotInput.value).replace(',', '.').trim()) : null;
+  const lot_size = (manualLotVal && manualLotVal > 0) ? roundNum(manualLotVal, 2) : suggested_lot;
+
+  // Comisión Broker USD
+  const commissionInput = document.getElementById('realTradeCommission');
+  let commission = 0.06;
+  if (commissionInput && commissionInput.value) {
+    const rawComm = parseFloat(String(commissionInput.value).replace(',', '.').trim());
+    if (!isNaN(rawComm)) commission = roundNum(Math.abs(rawComm), 2);
+  }
+
+  // Resultado (WIN / LOSS / BE)
+  const statusRadio = document.querySelector('input[name="realTradeResult"]:checked');
+  let status = statusRadio ? statusRadio.value : 'win';
+
+  const actualDollarRisk = roundNum(lossPerLot * lot_size, 2);
+  const actualDollarReward = roundNum(lossPerLot * lot_size * autoRr, 2);
+  let pnl = 0.0;
+  let retPct = 0.0;
+
+  if (!isNaN(entry) && !isNaN(exit) && entry > 0 && exit > 0) {
+    const exitDiff = direction === 'BUY' ? (exit - entry) : (entry - exit);
+    const exitPipsVal = isGold ? roundNum(exitDiff * 10, 1) : roundNum(exitDiff * 100, 1);
+    const pnlGross = roundNum(lot_size * pipValUsd * exitPipsVal, 2);
+    pnl = roundNum(pnlGross - commission, 2);
+    if (pnl > 0.05) status = 'win';
+    else if (pnl < -0.05) status = 'loss';
+    else status = 'be';
+  } else {
+    if (status === 'win') {
+      pnl = roundNum(actualDollarReward - commission, 2);
+    } else if (status === 'loss') {
+      pnl = roundNum(-actualDollarRisk - commission, 2);
+    } else {
+      pnl = roundNum(-commission, 2);
+    }
+  }
+
+  retPct = curBal > 0 ? roundNum((pnl / curBal) * 100.0, 2) : 0.0;
+  const riskPct = curBal > 0 ? roundNum((actualDollarRisk / curBal) * 100.0, 2) : 1.0;
+
+  const margin_used = isGold
+    ? roundNum((2720.0 * 100.0 * lot_size / leverage), 2)
+    : roundNum((100000.0 * 0.6550 * lot_size / leverage), 2);
+
+  const tvChartUrl = document.getElementById('realTradeChartUrl')?.value || '';
+  const notes = document.getElementById('realTradeNotes')?.value || `TradingView ${asset}`;
 
   const payload = {
     mode: 'real',
@@ -5961,27 +6054,26 @@ async function handleAddRealTrade(e) {
     date,
     session,
     direction,
-    tv_points: points,
-    price_dist: price,
-    sl_points: points,
-    sl_pips: points,
-    tp_points: Math.round(points * rr),
-    sl_distance: price,
+    tv_points: slPips,
+    sl_points: slPips,
+    sl_pips: slPips,
+    tp_points: tpPips,
+    tp_pips: tpPips,
     risk_pct: riskPct,
     ret_pct: retPct,
     dollar_risk: actualDollarRisk,
     suggested_lot,
     lot_size,
-    manual_lot: manualLotVal || null,
+    manual_lot: manualLotVal || lot_size,
     commission,
     margin_used,
     status,
     pnl,
-    rr,
-    strategy,
-    emotion,
+    rr: autoRr,
+    strategy: `Price Action (${asset})`,
+    emotion: '',
     tv_chart_url: tvChartUrl,
-    notes: `TradingView ${asset}`
+    notes
   };
 
   if (!isNaN(entry)) payload.entry_price = entry;
@@ -6002,32 +6094,21 @@ async function handleAddRealTrade(e) {
       appState.real.equityCurve = data.analytics.equity_curve;
       appState.real.trades = data.analytics.trades;
       
-      // Espejo de persistencia local inmediata
       try {
         localStorage.setItem('cached_real_trades_v2', JSON.stringify(appState.real.trades));
       } catch (e) {}
 
       renderRealJournalDashboard();
       setCurrentDateTime(true);
-      if (manualLotInput) manualLotInput.value = '';
-      if (manualPnlInput) manualPnlInput.value = '';
-      const chartUrlEl = document.getElementById('realTradeChartUrl');
-      if (chartUrlEl) chartUrlEl.value = '';
-
+      
+      // Limpiar campos de precio para el próximo registro
       if (document.getElementById('realTradeEntry')) document.getElementById('realTradeEntry').value = '';
       if (document.getElementById('realTradeSl')) document.getElementById('realTradeSl').value = '';
       if (document.getElementById('realTradeTp')) document.getElementById('realTradeTp').value = '';
       if (document.getElementById('realTradeExit')) document.getElementById('realTradeExit').value = '';
-      const slBadge = document.getElementById('realTradeSlPtsBadge');
-      if (slBadge) slBadge.textContent = '0 pts';
-      const tpBadge = document.getElementById('realTradeTpPtsBadge');
-      if (tpBadge) tpBadge.textContent = '0 pts';
-      const ptsDisp = document.getElementById('realCalcPointsDisplay');
-      if (ptsDisp) ptsDisp.textContent = '0 pts';
-      const pnlDisp = document.getElementById('realCalcPnlDisplay');
-      if (pnlDisp) pnlDisp.textContent = '+$0.00';
-      const pctDisp = document.getElementById('realCalcPctDisplay');
-      if (pctDisp) pctDisp.textContent = '0.00%';
+      if (document.getElementById('realTradeChartUrl')) document.getElementById('realTradeChartUrl').value = '';
+      
+      recalculateRealJournalPreview();
 
       if (typeof showToast === 'function') {
         showToast('✅ Operación registrada en Bitácora Real con éxito.', 'success', 3000);
@@ -9250,6 +9331,12 @@ function applyPrivacyClasses() {
     '#realLossRiskSubtext',
     '#realWinRewardSubtext',
     '#realCalcPointsDisplay',
+    '#realCalcRiskUsdDisplay',
+    '#realCalcRewardUsdDisplay',
+    '#realCalcMarginDisplay',
+    '#realCalcRrDisplay',
+    '#fondeoSuggestedLotBadge',
+    '#realTradeSuggestedLotBadge',
     '#realCalcPnlDisplay',
     '#realCalcPctDisplay',
     '#myfxMarginReq',
