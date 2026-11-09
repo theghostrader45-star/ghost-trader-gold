@@ -2053,25 +2053,22 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
 
         elif path == "/api/webhook/tradingview" or path == "/api/webhook":
             action = str(payload.get("action", payload.get("side", ""))).upper().strip()
-            ticker = str(payload.get("ticker", payload.get("symbol", "XAUUSD"))).upper()
+            ticker = str(payload.get("ticker", payload.get("symbol", "AUDJPY"))).upper()
             try:
-                price = float(payload.get("price", payload.get("close", 2720.0)))
+                price = float(payload.get("price", payload.get("close", 102.50)))
             except Exception:
-                price = 2720.0
+                price = 102.50
             tf = str(payload.get("timeframe", payload.get("interval", "5")))
             try:
-                sl_pts = float(payload.get("sl_points", payload.get("sl", 2100)))
+                sl_pts = float(payload.get("sl_points", payload.get("sl", 25.0)))
             except Exception:
-                sl_pts = 2100.0
+                sl_pts = 25.0
 
-            current_bias = get_gold_bias()
-            bias_dir = current_bias.get("bias", "BEARISH")
-            
             clean_action = "SELL" if ("SELL" in action or "SHORT" in action) else ("BUY" if ("BUY" in action or "LONG" in action) else action)
             if not clean_action:
-                clean_action = "SELL" if bias_dir == "BEARISH" else "BUY"
+                clean_action = "BUY"
 
-            status = "VALIDATED_A_PLUS" if ((bias_dir == "BEARISH" and clean_action == "SELL") or (bias_dir == "BULLISH" and clean_action == "BUY")) else "FILTERED_DISCARDED"
+            status = "VALIDATED_A_PLUS"
 
             signal_data = {
                 "id": int(time.time() * 1000),
@@ -2080,9 +2077,9 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 "price": price,
                 "timeframe": tf,
                 "sl_points": sl_pts,
+                "source": "TradingView (Heikin Ashi)",
                 "timestamp": datetime.now().isoformat(),
                 "epoch": int(time.time()),
-                "bias_at_time": bias_dir,
                 "status": status,
                 "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }

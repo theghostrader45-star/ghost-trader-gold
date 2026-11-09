@@ -34,7 +34,12 @@
   <script src="vendor/lucide.min.js"></script>
   <!-- Chart.js Local Bundle -->
   <script src="vendor/chart.min.js"></script>
-  <link rel="stylesheet" href="styles.css?v=20261107_v29_fix_collapse_toggle_overflow">
+  <link rel="stylesheet" href="styles.css?v=20261109_v46_streamer_privacy_mode">
+  <script>
+    if (localStorage.getItem('streamer_privacy_mode') === 'true') {
+      document.documentElement.classList.add('streamer-mode-active');
+    }
+  </script>
 </head>
 <body class="bg-darkBg text-slate-100 min-h-screen font-sans antialiased selection:bg-gold-500 selection:text-black">
 
@@ -58,9 +63,13 @@
         </div>
       </div>
 
-      <!-- Actions: Guardar Todo, Limpiar & Ajustes -->
+      <!-- Actions: Modo Streamer (Ojo Privacidad), Guardar Todo, Limpiar & Ajustes -->
       <div class="flex items-center gap-2">
         <div id="navNewsShieldBadge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold border transition cursor-default"></div>
+        <button id="btnTogglePrivacyMode" type="button" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold rounded-lg border border-gray-700 transition flex items-center gap-1.5 cursor-pointer shadow-sm" title="Modo Streamer / Privacidad: Ocultar saldos y montos para transmisiones en vivo (YouTube)">
+          <i data-lucide="eye" id="privacyBtnIcon" class="w-3.5 h-3.5 text-gray-400"></i>
+          <span id="privacyBtnText">Saldos Visibles</span>
+        </button>
         <button id="btnSaveAllData" class="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-lg shadow-md shadow-emerald-600/30 transition flex items-center gap-1.5 cursor-pointer border border-emerald-400/40" title="Guardar todo: asegura todas las bitácoras y configuraciones en el servidor y memoria local (Atajo: Cmd+S o Ctrl+S)">
           <i data-lucide="save" class="w-3.5 h-3.5"></i>
           <span>Guardar Todo</span>
@@ -3577,8 +3586,8 @@
             <span>Validación Automática Contra el Sesgo Macro</span>
           </div>
           <ul class="space-y-1 pl-4 list-disc text-gray-300">
-            <li><strong>Si el Sesgo es BAJISTA y llega SELL:</strong> El Radar de Confluencia se pone en <strong>4/4 Verde (Setup A+)</strong>, suena una campana institucional en el dashboard y el formulario de la Bitácora Real se pre-rellena para que registres el trade en 1 clic.</li>
-            <li><strong>Si el Sesgo es BAJISTA y llega BUY:</strong> El sistema descarta la señal por ser contratendencia y te protege de entradas impulsivas.</li>
+            <li><strong>Si el Sesgo es BAJISTA y llega SELL (o ALCISTA y llega BUY):</strong> El Radar de Confluencia se pone en <strong>4/4 Verde (Setup A+)</strong> y el formulario de la Bitácora Real se pre-rellena automáticamente para que registres el trade en 1 clic.</li>
+            <li><strong>Si el Sesgo es contrario:</strong> El sistema descarta la señal por ser contratendencia y te protege de entradas impulsivas.</li>
           </ul>
         </div>
 

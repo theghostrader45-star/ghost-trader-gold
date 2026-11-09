@@ -348,3 +348,28 @@ table tbody tr:hover {
     display: block !important;
   }
 }
+
+/* ====================================================
+   MODO STREAMER / PRIVACIDAD (TRANSMISIÓN YOUTUBE)
+   ==================================================== */
+html.streamer-mode-active .privacy-sensitive,
+body.streamer-mode-active .privacy-sensitive {
+  filter: blur(8px) grayscale(0.6) !important;
+  user-select: none !important;
+  pointer-events: none !important;
+  transition: filter 0.15s ease-in-out !important;
+  position: relative !important;
+}
+
+html.streamer-mode-active input.privacy-sensitive,
+body.streamer-mode-active input.privacy-sensitive {
+  color: transparent !important;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.7) !important;
+  filter: blur(6px) !important;
+}
+
+html.streamer-mode-active table td.privacy-sensitive,
+body.streamer-mode-active table td.privacy-sensitive {
+  filter: blur(8px) !important;
+}
+

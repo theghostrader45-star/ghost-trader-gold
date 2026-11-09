@@ -78,6 +78,7 @@ let btSimpleDrawdownChartInstance = null;
 document.addEventListener('DOMContentLoaded', async () => {
   startMarketClock();
   initIcons();
+  setupPrivacyMode();
 
   setupTabNavigation();
   initCharts();
@@ -2090,6 +2091,9 @@ function syncAllAccountsUI() {
   syncRealUI();
   syncBacktestUI();
   populateSettingsModal();
+  if (typeof applyPrivacyClasses === 'function') {
+    applyPrivacyClasses();
+  }
   initIcons();
 }
 
@@ -9182,6 +9186,117 @@ function playTradeAlertSound(isAcknowledge = true) {
 
 function updateSoundAlertButtonUI() {}
 function setupSoundAlertSystem() {}
+
+// ====================================================
+// MODO STREAMER / PRIVACIDAD (TRANSMISIÓN YOUTUBE)
+// ====================================================
+function applyPrivacyClasses() {
+  const sensitiveSelectors = [
+    '#realLiveBalHeader',
+    '#badgeTopRealBalance',
+    '#badgeFondeoCapital',
+    '#badgeFondeoTarget',
+    '#badgeFondeoDailyLimit',
+    '#badgeFondeoMaxLoss',
+    '#realStatBalance',
+    '#realStatNetPnL',
+    '#realStatInitBal',
+    '#realStatTotalWithdrawn',
+    '#realQuickLiveBalText',
+    '#realQuickLiveRiskText',
+    '#realCalcBalance',
+    '#realCalcRiskUsd',
+    '#realCalcRewardUsd',
+    '#realCalcMargin',
+    '#fondeoCurrentBalance',
+    '#fondeoTargetAmountDisplay',
+    '#fondeoRemainingTarget',
+    '#fondeoDailyHeadroom',
+    '#fondeoTodayLoss',
+    '#fondeoTrailingFloor',
+    '#fondeoMaxDdHeadroom',
+    '#btSimpleInitialBalance',
+    '#btSimpleLiveBalText',
+    '#btSimpleRiskUsdPreview',
+    '#btSimpleLiveRiskText',
+    '#btSimpleWinRewardSubtext',
+    '#btSimpleLossRiskSubtext',
+    '#btSimpleStatTotalProfit',
+    '#btSimpleStatCurrentBal',
+    '#settingRealInitialBalance',
+    '#settingFondeoInitialBalance',
+    '#settingBacktestInitialBalance'
+  ];
+
+  sensitiveSelectors.forEach(sel => {
+    document.querySelectorAll(sel).forEach(el => {
+      el.classList.add('privacy-sensitive');
+    });
+  });
+
+  document.querySelectorAll('#tableRealTrades tbody td, #tableFondeoTrades tbody td, #tableBacktestSimpleTrades tbody td').forEach(td => {
+    const txt = td.textContent.trim();
+    if (txt.includes('$') || (txt.startsWith('+') && txt.includes('%')) || (txt.startsWith('-') && txt.includes('%'))) {
+      td.classList.add('privacy-sensitive');
+    }
+  });
+}
+
+function updatePrivacyModeUI() {
+  const isStreamerMode = localStorage.getItem('streamer_privacy_mode') === 'true';
+  document.documentElement.classList.toggle('streamer-mode-active', isStreamerMode);
+  if (document.body) {
+    document.body.classList.toggle('streamer-mode-active', isStreamerMode);
+  }
+
+  const btn = document.getElementById('btnTogglePrivacyMode');
+  const icon = document.getElementById('privacyBtnIcon');
+  const text = document.getElementById('privacyBtnText');
+
+  if (btn && text) {
+    if (isStreamerMode) {
+      btn.className = 'px-3 py-1.5 bg-gradient-to-r from-purple-900 to-indigo-950 hover:from-purple-800 hover:to-indigo-900 text-purple-200 hover:text-white border border-purple-500/70 text-xs font-bold rounded-lg shadow-md shadow-purple-950/50 transition flex items-center gap-1.5 cursor-pointer ring-1 ring-purple-400/40';
+      text.textContent = 'Modo Streamer (Oculto)';
+      btn.title = 'Modo Streamer ACTIVO: Saldos ocultos para YouTube. Clic para mostrar.';
+      if (icon) {
+        icon.setAttribute('data-lucide', 'eye-off');
+        icon.className = 'w-3.5 h-3.5 text-purple-300';
+      }
+    } else {
+      btn.className = 'px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold rounded-lg border border-gray-700 transition flex items-center gap-1.5 cursor-pointer shadow-sm';
+      text.textContent = 'Saldos Visibles';
+      btn.title = 'Clic para activar Modo Streamer: Oculta saldos para transmitir en vivo en YouTube.';
+      if (icon) {
+        icon.setAttribute('data-lucide', 'eye');
+        icon.className = 'w-3.5 h-3.5 text-gray-400';
+      }
+    }
+  }
+
+  applyPrivacyClasses();
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function setupPrivacyMode() {
+  updatePrivacyModeUI();
+
+  const btn = document.getElementById('btnTogglePrivacyMode');
+  if (btn) {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const current = localStorage.getItem('streamer_privacy_mode') === 'true';
+      const next = !current;
+      localStorage.setItem('streamer_privacy_mode', next ? 'true' : 'false');
+      updatePrivacyModeUI();
+
+      if (next) {
+        showToast('🔒 <strong>Modo Streamer ACTIVADO:</strong> Saldos y valores monetarios ocultos para tu transmisión en vivo en YouTube.', 'success', 3500);
+      } else {
+        showToast('👁️ <strong>Modo Streamer DESACTIVADO:</strong> Saldos y métricas financieras visibles.', 'info', 2500);
+      }
+    });
+  }
+}
 
 function applySignalToUI(signal, isManual = false) {
   if (!signal) return;
