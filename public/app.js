@@ -78,7 +78,6 @@ let btSimpleDrawdownChartInstance = null;
 document.addEventListener('DOMContentLoaded', async () => {
   startMarketClock();
   initIcons();
-  setupSoundAlertSystem();
 
   setupTabNavigation();
   initCharts();
@@ -9169,140 +9168,20 @@ function showToast(message, type = "info", duration = 5000) {
 }
 
 // ====================================================
-// SISTEMA INTEGRAL DE ALERTAS SONORAS DE SEÑALES (GHOST PRO)
+// ALERTAS SONORAS DESACTIVADAS A PETICIÓN DEL USUARIO
 // ====================================================
-let isSoundAlertEnabled = localStorage.getItem('sound_alerts_enabled') !== 'false';
-let sharedAudioContext = null;
-
-function getSharedAudioContext() {
-  if (!sharedAudioContext) {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (AudioCtx) {
-      sharedAudioContext = new AudioCtx();
-    }
-  }
-  if (sharedAudioContext && sharedAudioContext.state === 'suspended') {
-    sharedAudioContext.resume().catch(() => {});
-  }
-  return sharedAudioContext;
-}
-
-function unlockAudioContextOnGesture() {
-  ['click', 'keydown', 'touchstart'].forEach(evtName => {
-    window.addEventListener(evtName, () => {
-      try {
-        const ctx = getSharedAudioContext();
-        if (ctx && ctx.state === 'suspended') {
-          ctx.resume().catch(() => {});
-        }
-      } catch (e) {}
-    }, { once: true, passive: true });
-  });
-}
+let isSoundAlertEnabled = false;
 
 function playSignalSoundAlert(signalType = 'BUY') {
-  if (!isSoundAlertEnabled) return;
-  try {
-    const ctx = getSharedAudioContext();
-    if (!ctx) return;
-    if (ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
-    }
-
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-
-    const typeUpper = String(signalType || 'BUY').toUpperCase();
-
-    if (typeUpper.includes('SELL') || typeUpper.includes('VENTA') || typeUpper.includes('ROJO')) {
-      // Campana institucional armónica descendente para SELL (880Hz -> 587Hz)
-      osc.frequency.setValueAtTime(880.0, now);
-      osc.frequency.exponentialRampToValueAtTime(587.33, now + 0.18);
-      gain.gain.setValueAtTime(0.35, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.40);
-    } else if (typeUpper === 'BLOCKED' || typeUpper === 'WARNING') {
-      // Tono de advertencia por noticia de alto impacto (440Hz -> 220Hz)
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(440.0, now);
-      osc.frequency.exponentialRampToValueAtTime(220.0, now + 0.22);
-      gain.gain.setValueAtTime(0.30, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-    } else {
-      // Campana institucional armónica ascendente para BUY / Setup A+ / Test (587Hz -> 880Hz -> 1046Hz)
-      osc.frequency.setValueAtTime(587.33, now);
-      osc.frequency.exponentialRampToValueAtTime(880.00, now + 0.12);
-      osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.25);
-      gain.gain.setValueAtTime(0.35, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-    }
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.45);
-  } catch (err) {
-    console.warn('Alerta sonora suspendida por política del navegador:', err);
-  }
+  // Desactivado completamente: sin campanas ni alertas sonoras
 }
 
 function playTradeAlertSound(isAcknowledge = true) {
-  playSignalSoundAlert(isAcknowledge ? 'BUY' : 'BLOCKED');
+  // Desactivado completamente
 }
 
-function updateSoundAlertButtonUI() {
-  const btn = document.getElementById('btnToggleSoundAlert');
-  const icon = document.getElementById('soundAlertBtnIcon');
-  const text = document.getElementById('soundAlertBtnText');
-  if (!btn || !text) return;
-
-  if (isSoundAlertEnabled) {
-    btn.className = 'px-3 py-1.5 bg-indigo-950/70 hover:bg-indigo-900/90 text-indigo-200 hover:text-white border border-indigo-600/80 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-md shadow-indigo-950/40';
-    text.textContent = 'Sonido: ON';
-    btn.title = 'Alerta Sonora ACTIVADA (Campana institucional). Haz clic para probar o silenciar';
-    if (icon) {
-      icon.setAttribute('data-lucide', 'bell');
-      icon.className = 'w-3.5 h-3.5 text-indigo-400';
-    }
-  } else {
-    btn.className = 'px-3 py-1.5 bg-gray-800/80 hover:bg-gray-700 text-gray-400 hover:text-gray-200 border border-gray-700 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer';
-    text.textContent = 'Sonido: OFF';
-    btn.title = 'Alerta Sonora SILENCIADA. Haz clic para activar';
-    if (icon) {
-      icon.setAttribute('data-lucide', 'bell-off');
-      icon.className = 'w-3.5 h-3.5 text-gray-500';
-    }
-  }
-  if (window.lucide) window.lucide.createIcons();
-}
-
-function setupSoundAlertSystem() {
-  unlockAudioContextOnGesture();
-  updateSoundAlertButtonUI();
-
-  const btn = document.getElementById('btnToggleSoundAlert');
-  if (!btn) return;
-
-  btn.addEventListener('click', (e) => {
-    e.preventDefault();
-    getSharedAudioContext();
-
-    if (!isSoundAlertEnabled) {
-      isSoundAlertEnabled = true;
-      localStorage.setItem('sound_alerts_enabled', 'true');
-      updateSoundAlertButtonUI();
-      playSignalSoundAlert('BUY');
-      showToast('🔔 <strong>Alerta Sonora Activada:</strong> Sonará una campana armónica institucional con cada señal confirmada.', 'success', 3500);
-    } else {
-      playSignalSoundAlert('BUY');
-      isSoundAlertEnabled = false;
-      localStorage.setItem('sound_alerts_enabled', 'false');
-      updateSoundAlertButtonUI();
-      showToast('🔕 <strong>Alerta Sonora Silenciada:</strong> Pulsa de nuevo para reactivar.', 'info', 2500);
-    }
-  });
-}
+function updateSoundAlertButtonUI() {}
+function setupSoundAlertSystem() {}
 
 function applySignalToUI(signal, isManual = false) {
   if (!signal) return;
@@ -10405,27 +10284,7 @@ let dualTerminalListenersAttached = false;
 let audioContext = null;
 
 function playTriggerChime() {
-  try {
-    if (!audioContext) {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioContext.state === 'suspended') {
-      audioContext.resume();
-    }
-    const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(587.33, audioContext.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(880.00, audioContext.currentTime + 0.15);
-    gain.gain.setValueAtTime(0.15, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.35);
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    osc.start();
-    osc.stop(audioContext.currentTime + 0.35);
-  } catch (e) {
-    console.warn("Audio chime not allowed:", e);
-  }
+  // Desactivado: sin alertas sonoras
 }
 
 function setupDualTerminalControls() {
