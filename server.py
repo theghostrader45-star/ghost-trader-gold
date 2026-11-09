@@ -92,7 +92,7 @@ DEFAULT_FONDEO_CONFIG = {
 DEFAULT_REAL_CONFIG = {
     "account_type": "Cuenta Real Personal (TradingView AUD/JPY)",
     "broker": "TradingView",
-    "initial_balance": 92.08,
+    "initial_balance": 107.83,
     "risk_pct": 1.0,
     "leverage": 300.0,
     "rr_ratio": 2.0,
@@ -1083,7 +1083,7 @@ def calculate_analytics(trades, config, mode="backtest"):
         leverage = float(config.get("leverage", 30.0))
         mt5_broker = "Orion Funded (Nova 50K)"
     elif mode == "real":
-        initial_balance = float(config.get("initial_balance", 97.72))
+        initial_balance = float(config.get("initial_balance", 107.83))
         leverage = float(config.get("leverage", 300.0))
         mt5_broker = "TradingView Real"
     else:

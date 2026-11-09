@@ -46,10 +46,11 @@ let appState = {
     equityCurve: [],
     filter: 'all',
     config: {
-      initial_balance: 92.08,
+      initial_balance: 107.83,
       risk_pct: 1.0,
       leverage: 300.0,
       rr_ratio: 2.0,
+      sl_pips: 25.0,
       asset: 'AUD/JPY'
     }
   },
@@ -77,6 +78,7 @@ let btSimpleDrawdownChartInstance = null;
 document.addEventListener('DOMContentLoaded', async () => {
   startMarketClock();
   initIcons();
+  setupSoundAlertSystem();
 
   setupTabNavigation();
   initCharts();
@@ -111,6 +113,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupWithdrawRealModal();
   setupBackupAndRestoreEvents();
   setupSaveAllButton();
+
+  // Restaurar pestaña activa tras carga asíncrona completa
+  let savedTab = localStorage.getItem('activeTab_orion_v3');
+  if (!savedTab || !['fondeo', 'real', 'news', 'backtest'].includes(savedTab)) {
+    savedTab = 'fondeo';
+  }
+  if (typeof window.switchTabTo === 'function') {
+    window.switchTabTo(savedTab);
+  }
+  syncAllAccountsUI();
 });
 
 function initIcons() {
@@ -1693,7 +1705,7 @@ function populateSettingsModal() {
   // Real
   const rCfg = appState.real?.config || {};
   const rSummary = appState.real?.summary || {};
-  const rInitBal = rCfg.initial_balance !== undefined ? rCfg.initial_balance : (rSummary.initial_balance || 92.08);
+  const rInitBal = rCfg.initial_balance !== undefined ? rCfg.initial_balance : (rSummary.initial_balance || 107.83);
   const rBalInp = document.getElementById('settingRealInitialBalance');
   if (rBalInp) rBalInp.value = Number(rInitBal).toFixed(2);
   const rRiskInp = document.getElementById('settingRealRiskPct');
@@ -1872,6 +1884,18 @@ function syncFondeoUI() {
     }
   }
 
+  const fondeoSlInp = document.getElementById('fondeoFormSlPoints');
+  const fSlPips = Number(fCfg.sl_pips || fCfg.sl_default || 25.0);
+  if (fondeoSlInp && document.activeElement !== fondeoSlInp) {
+    fondeoSlInp.value = fSlPips;
+  }
+
+  const fondeoRrInp = document.getElementById('fondeoFormRr');
+  const fRr = Number(fCfg.rr_ratio || 2.0);
+  if (fondeoRrInp && document.activeElement !== fondeoRrInp) {
+    fondeoRrInp.value = fRr;
+  }
+
   if (typeof updateFondeoCalculation === 'function') {
     try {
       updateFondeoCalculation();
@@ -1884,6 +1908,8 @@ function syncRealUI() {
   const rInitBal = Number(rCfg.initial_balance || 107.83);
   const rRiskPct = Number(rCfg.risk_pct || 1.0);
   const rLev = Number(rCfg.leverage || 300.0);
+  const rSlPips = Number(rCfg.sl_pips || rCfg.sl_default || 25.0);
+  const rRr = Number(rCfg.rr_ratio || 2.0);
   const summary = appState.real?.summary || {};
   const trades = appState.real?.trades || [];
 
@@ -1918,6 +1944,46 @@ function syncRealUI() {
     riskInp.value = rRiskPct.toFixed(1);
   }
 
+  const slInp = document.getElementById('realCalcSlPoints');
+  if (slInp && document.activeElement !== slInp) {
+    slInp.value = rSlPips;
+  }
+
+  const rrInp = document.getElementById('realCalcRR');
+  if (rrInp && document.activeElement !== rrInp) {
+    rrInp.value = rRr;
+  }
+
+  // Sincronizar clases visuales de los chips de Riesgo
+  document.querySelectorAll('.btn-real-chip-risk').forEach(c => {
+    const v = parseFloat(c.dataset.val);
+    if (Math.abs(v - rRiskPct) < 0.01) {
+      c.className = 'btn-real-chip-risk py-1 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 transition text-center cursor-pointer';
+    } else {
+      c.className = 'btn-real-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
+    }
+  });
+
+  // Sincronizar clases visuales de los chips de Stop Loss
+  document.querySelectorAll('.btn-real-chip-sl').forEach(c => {
+    const v = parseFloat(c.dataset.val);
+    if (Math.abs(v - rSlPips) < 0.01) {
+      c.className = 'btn-real-chip-sl py-1 rounded text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 transition text-center cursor-pointer';
+    } else {
+      c.className = 'btn-real-chip-sl py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
+    }
+  });
+
+  // Sincronizar clases visuales de los chips de R:R
+  document.querySelectorAll('.btn-real-chip-rr').forEach(c => {
+    const v = parseFloat(c.dataset.val);
+    if (Math.abs(v - rRr) < 0.01) {
+      c.className = 'btn-real-chip-rr py-1 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 transition text-center cursor-pointer';
+    } else {
+      c.className = 'btn-real-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
+    }
+  });
+
   // Dashboard Stats
   const statBal = document.getElementById('realStatBalance');
   if (statBal) statBal.textContent = `$${curBal.toFixed(2)}`;
@@ -1943,6 +2009,8 @@ function syncBacktestUI() {
   const bInitBal = Number(bCfg.initial_balance || 1000.0);
   const bRiskPct = Number(bCfg.risk_pct || 1.0);
   const bLev = Number(bCfg.leverage || 30.0);
+  const bSlPips = Number(bCfg.sl_pips || bCfg.sl_default || 25.0);
+  const bRr = Number(bCfg.rr_ratio || 3.0);
 
   // Inputs en el panel de Backtesting Simple
   const inpBal = document.getElementById('btSimpleInitialBalance');
@@ -1954,6 +2022,46 @@ function syncBacktestUI() {
   if (inpRisk && document.activeElement !== inpRisk) {
     inpRisk.value = bRiskPct.toFixed(1);
   }
+
+  const slInp = document.getElementById('btSimpleManualSlPoints');
+  if (slInp && document.activeElement !== slInp) {
+    slInp.value = bSlPips;
+  }
+
+  const rrInp = document.getElementById('btSimpleRR');
+  if (rrInp && document.activeElement !== rrInp) {
+    rrInp.value = bRr;
+  }
+
+  // Sincronizar clases visuales de los chips de Balance en Backtest
+  document.querySelectorAll('.btn-bt-chip-balance').forEach(c => {
+    const v = parseFloat(c.dataset.val);
+    if (Math.abs(v - bInitBal) < 0.01) {
+      c.className = 'btn-bt-chip-balance py-1 rounded text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 transition text-center cursor-pointer';
+    } else {
+      c.className = 'btn-bt-chip-balance py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
+    }
+  });
+
+  // Sincronizar clases visuales de los chips de Riesgo en Backtest
+  document.querySelectorAll('.btn-bt-chip-risk').forEach(c => {
+    const v = parseFloat(c.dataset.val);
+    if (Math.abs(v - bRiskPct) < 0.01) {
+      c.className = 'btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 transition text-center cursor-pointer';
+    } else {
+      c.className = 'btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
+    }
+  });
+
+  // Sincronizar clases visuales de los chips de R:R en Backtest
+  document.querySelectorAll('.btn-bt-chip-rr').forEach(c => {
+    const v = parseFloat(c.dataset.val);
+    if (Math.abs(v - bRr) < 0.01) {
+      c.className = 'btn-bt-chip-rr py-1 rounded text-[9px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 transition text-center cursor-pointer';
+    } else {
+      c.className = 'btn-bt-chip-rr py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
+    }
+  });
 
   // Leverage Badge en Backtest
   const levBadge = document.getElementById('badgeBacktestLeverage');
@@ -1987,7 +2095,25 @@ function syncAllAccountsUI() {
 }
 
 async function loadConfig() {
-  // 1. Carga inmediata del espejo localStorage para no parpadear con saldos viejos
+  // 1. Carga inmediata del snapshot maestro desde localStorage (persistencia total)
+  try {
+    const masterRaw = localStorage.getItem('dashboard_master_snapshot_v1');
+    if (masterRaw) {
+      const master = JSON.parse(masterRaw);
+      if (master && master.configs) {
+        if (master.configs.fondeo) appState.fondeo.config = Object.assign({}, appState.fondeo.config, master.configs.fondeo);
+        if (master.configs.real) appState.real.config = Object.assign({}, appState.real.config, master.configs.real);
+        if (master.configs.backtest) {
+          appState.backtest.config = Object.assign({}, appState.backtest.config, master.configs.backtest);
+          appState.config = Object.assign({}, appState.config, master.configs.backtest);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Error leyendo snapshot maestro:', e);
+  }
+
+  // 2. Comprobar respaldos individuales de seguridad
   try {
     const cachedConfig = localStorage.getItem('cached_app_config_all');
     if (cachedConfig) {
@@ -2004,37 +2130,61 @@ async function loadConfig() {
       if (!appState.real.config) appState.real.config = {};
       appState.real.config.initial_balance = realBalOverride;
     }
+    const realRiskOverride = parseFloat(localStorage.getItem('cached_real_risk_override'));
+    if (!isNaN(realRiskOverride) && realRiskOverride > 0) {
+      if (!appState.real.config) appState.real.config = {};
+      appState.real.config.risk_pct = realRiskOverride;
+    }
     const btBalOverride = parseFloat(localStorage.getItem('cached_backtest_balance_override'));
     if (!isNaN(btBalOverride) && btBalOverride > 0) {
       if (!appState.backtest.config) appState.backtest.config = {};
       appState.backtest.config.initial_balance = btBalOverride;
       appState.config.initial_balance = btBalOverride;
     }
+    const btRiskOverride = parseFloat(localStorage.getItem('cached_backtest_risk_override'));
+    if (!isNaN(btRiskOverride) && btRiskOverride > 0) {
+      if (!appState.backtest.config) appState.backtest.config = {};
+      appState.backtest.config.risk_pct = btRiskOverride;
+      appState.config.risk_pct = btRiskOverride;
+    }
+    const fondeoBalOverride = parseFloat(localStorage.getItem('cached_fondeo_balance_override'));
+    if (!isNaN(fondeoBalOverride) && fondeoBalOverride > 0) {
+      if (!appState.fondeo.config) appState.fondeo.config = {};
+      appState.fondeo.config.initial_balance = fondeoBalOverride;
+    }
   } catch (e) {}
 
+  // 3. Consultar configuración del servidor y sincronizar
   try {
     const res = await fetch('/api/config?mode=all');
     if (res.ok) {
       const data = await res.json();
-      if (data.fondeo) appState.fondeo.config = Object.assign({}, appState.fondeo.config, data.fondeo);
-      if (data.real) appState.real.config = Object.assign({}, appState.real.config, data.real);
+      const hasLocalSnapshot = !!localStorage.getItem('dashboard_master_snapshot_v1') || !!localStorage.getItem('cached_app_config_all');
+      
+      // Si el cliente ya tiene una snapshot guardada localmente, preservamos la personalización del usuario
+      if (data.fondeo) {
+        appState.fondeo.config = hasLocalSnapshot
+          ? Object.assign({}, data.fondeo, appState.fondeo.config)
+          : Object.assign({}, appState.fondeo.config, data.fondeo);
+      }
+      if (data.real) {
+        appState.real.config = hasLocalSnapshot
+          ? Object.assign({}, data.real, appState.real.config)
+          : Object.assign({}, appState.real.config, data.real);
+      }
       if (data.backtest) {
-        appState.config = Object.assign({}, appState.config, data.backtest);
-        appState.backtest.config = Object.assign({}, appState.backtest.config, data.backtest);
+        appState.backtest.config = hasLocalSnapshot
+          ? Object.assign({}, data.backtest, appState.backtest.config)
+          : Object.assign({}, appState.backtest.config, data.backtest);
+        appState.config = Object.assign({}, appState.config, appState.backtest.config);
       }
-      // Si el navegador guardó recientemente un saldo personalizado en localStorage, preservarlo
-      const realBalOverride = parseFloat(localStorage.getItem('cached_real_balance_override'));
-      if (!isNaN(realBalOverride) && realBalOverride > 0 && (!data.real || !data.real.initial_balance || data.real.initial_balance === 92.08)) {
-        appState.real.config.initial_balance = realBalOverride;
-      }
-      populateSettingsModal();
-      syncAllAccountsUI();
     }
   } catch (err) {
     console.warn('Config local fallback:', err);
-    populateSettingsModal();
-    syncAllAccountsUI();
   }
+
+  populateSettingsModal();
+  syncAllAccountsUI();
 }
 
 async function loadTrades(mode = 'backtest') {
@@ -2823,7 +2973,10 @@ function setupBacktestSimpleView() {
 
     const slInput = document.getElementById('btSimpleManualSlPoints');
     if (slInput) {
-      slInput.value = 25;
+      const bSl = Number(appState.backtest?.config?.sl_pips || 25);
+      if (!slInput.value || parseFloat(slInput.value) <= 0) {
+        slInput.value = bSl;
+      }
     }
 
     updateBacktestSimplePreviews();
@@ -3949,7 +4102,7 @@ function renderRealJournalDashboard() {
   const s = appState.real.summary || {};
   const trades = appState.real.trades || [];
   const cfg = appState.real?.config || {};
-  const rInit = Number(cfg.initial_balance || 92.08);
+  const rInit = Number(cfg.initial_balance || 107.83);
   const curBal = s.current_balance !== undefined ? s.current_balance : rInit;
   const netPnl = s.net_pnl !== undefined ? s.net_pnl : 0.0;
   const netRet = s.net_return_pct !== undefined ? s.net_return_pct : 0.0;
@@ -3986,7 +4139,7 @@ function renderRealJournalDashboard() {
   if (realStatTotalWithdrawn) realStatTotalWithdrawn.textContent = `$${Number(s.total_withdrawn || 0).toFixed(2)}`;
   const realStatWithdrawCount = document.getElementById('realStatWithdrawCount');
   if (realStatWithdrawCount) realStatWithdrawCount.textContent = s.withdrawals_count || 0;
-  const initBalVal = s.initial_balance !== undefined ? s.initial_balance : (cfg.initial_balance || 92.08);
+  const initBalVal = s.initial_balance !== undefined ? s.initial_balance : (cfg.initial_balance || 107.83);
   const realStatInitBal = document.getElementById('realStatInitBal');
   if (realStatInitBal) realStatInitBal.textContent = Number(initBalVal).toFixed(2);
 
@@ -4265,14 +4418,15 @@ function recalculateRealQuickLot() {
   const slInp = document.getElementById('realCalcSlPoints');
   const rrInp = document.getElementById('realCalcRR');
 
+  const rInit = Number(appState.real?.config?.initial_balance || 107.83);
   const s = appState.real.summary || {};
-  const currentBal = (s.current_balance !== undefined && s.current_balance !== null) 
+  const currentBal = (s.current_balance !== undefined && s.current_balance !== null && (appState.real.trades || []).length > 0) 
     ? Number(s.current_balance) 
-    : 97.72;
+    : rInit;
 
   let bal = parseFloat(balInp?.value);
   if (isNaN(bal) || bal <= 0) {
-    bal = currentBal > 0 ? currentBal : 97.72;
+    bal = currentBal > 0 ? currentBal : rInit;
     if (balInp && document.activeElement !== balInp && !balInp.value) {
       balInp.value = bal.toFixed(2);
     }
@@ -4408,7 +4562,8 @@ function setupRealJournalView() {
     const chipsContainer = document.getElementById('realCalcSlChips');
     const slInp = document.getElementById('realCalcSlPoints');
     if (chipsContainer && slInp) {
-      const currentSl = parseFloat(slInp.value) || 25;
+      const currentSl = parseFloat(slInp.value) || Number(appState.real?.config?.sl_pips) || 25;
+      slInp.value = currentSl;
       const presets = [15, 20, 25, 30, 40];
       chipsContainer.innerHTML = presets.map(v => {
         const isSel = (v === currentSl);
@@ -4445,7 +4600,7 @@ function setupRealJournalView() {
       selectedRealAsset = 'AUD/JPY';
       const slInp = document.getElementById('realCalcSlPoints');
       if (slInp) {
-        slInp.value = 25;
+        slInp.value = Number(appState.real?.config?.sl_pips) || 25;
       }
       updateRealAssetUI();
     });
@@ -4706,7 +4861,7 @@ function setupRealJournalView() {
   const btnEditRealInit = document.getElementById('btnEditRealInitBal');
   if (btnEditRealInit) {
     btnEditRealInit.addEventListener('click', async () => {
-      const currentInit = appState.real?.summary?.initial_balance || 92.08;
+      const currentInit = appState.real?.config?.initial_balance || appState.real?.summary?.initial_balance || 107.83;
       const input = prompt('Introduce tu Saldo Original / Capital Inicial en USD para la Bitácora Real (TradingView):', currentInit);
       if (input !== null) {
         const val = parseFloat(input.replace(',', '.').trim());
@@ -6304,7 +6459,7 @@ async function handleSaveSettings() {
     const fondeoLev = parseFloat(document.getElementById('settingFondeoLeverage')?.value) || 30.0;
 
     // 2. Real: Balance, Riesgo, Apalancamiento
-    const realBal = parseFloat(document.getElementById('settingRealInitialBalance')?.value) || 92.08;
+    const realBal = parseFloat(document.getElementById('settingRealInitialBalance')?.value) || Number(appState.real?.config?.initial_balance) || 107.83;
     const realRisk = parseFloat(document.getElementById('settingRealRiskPct')?.value) || 1.0;
     const realLev = parseFloat(document.getElementById('settingRealLeverage')?.value) || 300.0;
 
@@ -9013,33 +9168,140 @@ function showToast(message, type = "info", duration = 5000) {
   }
 }
 
-function playTradeAlertSound(isAcknowledge = true) {
-  try {
+// ====================================================
+// SISTEMA INTEGRAL DE ALERTAS SONORAS DE SEÑALES (GHOST PRO)
+// ====================================================
+let isSoundAlertEnabled = localStorage.getItem('sound_alerts_enabled') !== 'false';
+let sharedAudioContext = null;
+
+function getSharedAudioContext() {
+  if (!sharedAudioContext) {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
-    if (ctx.state === "suspended") {
-      ctx.resume();
+    if (AudioCtx) {
+      sharedAudioContext = new AudioCtx();
     }
+  }
+  if (sharedAudioContext && sharedAudioContext.state === 'suspended') {
+    sharedAudioContext.resume().catch(() => {});
+  }
+  return sharedAudioContext;
+}
+
+function unlockAudioContextOnGesture() {
+  ['click', 'keydown', 'touchstart'].forEach(evtName => {
+    window.addEventListener(evtName, () => {
+      try {
+        const ctx = getSharedAudioContext();
+        if (ctx && ctx.state === 'suspended') {
+          ctx.resume().catch(() => {});
+        }
+      } catch (e) {}
+    }, { once: true, passive: true });
+  });
+}
+
+function playSignalSoundAlert(signalType = 'BUY') {
+  if (!isSoundAlertEnabled) return;
+  try {
+    const ctx = getSharedAudioContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+
+    const now = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = "sine";
-    if (isAcknowledge) {
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.15);
+    osc.type = 'sine';
+
+    const typeUpper = String(signalType || 'BUY').toUpperCase();
+
+    if (typeUpper.includes('SELL') || typeUpper.includes('VENTA') || typeUpper.includes('ROJO')) {
+      // Campana institucional armónica descendente para SELL (880Hz -> 587Hz)
+      osc.frequency.setValueAtTime(880.0, now);
+      osc.frequency.exponentialRampToValueAtTime(587.33, now + 0.18);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.40);
+    } else if (typeUpper === 'BLOCKED' || typeUpper === 'WARNING') {
+      // Tono de advertencia por noticia de alto impacto (440Hz -> 220Hz)
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(440.0, now);
+      osc.frequency.exponentialRampToValueAtTime(220.0, now + 0.22);
+      gain.gain.setValueAtTime(0.30, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
     } else {
-      osc.frequency.setValueAtTime(440, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.2);
+      // Campana institucional armónica ascendente para BUY / Setup A+ / Test (587Hz -> 880Hz -> 1046Hz)
+      osc.frequency.setValueAtTime(587.33, now);
+      osc.frequency.exponentialRampToValueAtTime(880.00, now + 0.12);
+      osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.25);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
     }
-    gain.gain.setValueAtTime(0.35, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
     osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.35);
-  } catch (e) {
-    console.warn("Audio chime prevented:", e);
+    osc.start(now);
+    osc.stop(now + 0.45);
+  } catch (err) {
+    console.warn('Alerta sonora suspendida por política del navegador:', err);
   }
+}
+
+function playTradeAlertSound(isAcknowledge = true) {
+  playSignalSoundAlert(isAcknowledge ? 'BUY' : 'BLOCKED');
+}
+
+function updateSoundAlertButtonUI() {
+  const btn = document.getElementById('btnToggleSoundAlert');
+  const icon = document.getElementById('soundAlertBtnIcon');
+  const text = document.getElementById('soundAlertBtnText');
+  if (!btn || !text) return;
+
+  if (isSoundAlertEnabled) {
+    btn.className = 'px-3 py-1.5 bg-indigo-950/70 hover:bg-indigo-900/90 text-indigo-200 hover:text-white border border-indigo-600/80 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-md shadow-indigo-950/40';
+    text.textContent = 'Sonido: ON';
+    btn.title = 'Alerta Sonora ACTIVADA (Campana institucional). Haz clic para probar o silenciar';
+    if (icon) {
+      icon.setAttribute('data-lucide', 'bell');
+      icon.className = 'w-3.5 h-3.5 text-indigo-400';
+    }
+  } else {
+    btn.className = 'px-3 py-1.5 bg-gray-800/80 hover:bg-gray-700 text-gray-400 hover:text-gray-200 border border-gray-700 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer';
+    text.textContent = 'Sonido: OFF';
+    btn.title = 'Alerta Sonora SILENCIADA. Haz clic para activar';
+    if (icon) {
+      icon.setAttribute('data-lucide', 'bell-off');
+      icon.className = 'w-3.5 h-3.5 text-gray-500';
+    }
+  }
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function setupSoundAlertSystem() {
+  unlockAudioContextOnGesture();
+  updateSoundAlertButtonUI();
+
+  const btn = document.getElementById('btnToggleSoundAlert');
+  if (!btn) return;
+
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    getSharedAudioContext();
+
+    if (!isSoundAlertEnabled) {
+      isSoundAlertEnabled = true;
+      localStorage.setItem('sound_alerts_enabled', 'true');
+      updateSoundAlertButtonUI();
+      playSignalSoundAlert('BUY');
+      showToast('🔔 <strong>Alerta Sonora Activada:</strong> Sonará una campana armónica institucional con cada señal confirmada.', 'success', 3500);
+    } else {
+      playSignalSoundAlert('BUY');
+      isSoundAlertEnabled = false;
+      localStorage.setItem('sound_alerts_enabled', 'false');
+      updateSoundAlertButtonUI();
+      showToast('🔕 <strong>Alerta Sonora Silenciada:</strong> Pulsa de nuevo para reactivar.', 'info', 2500);
+    }
+  });
 }
 
 function applySignalToUI(signal, isManual = false) {
@@ -10214,7 +10476,7 @@ function setupDualTerminalControls() {
     if (eurTicketRiskPctText) eurTicketRiskPctText.textContent = `${selectedRiskPct}% riesgo exacto`;
 
     if (labelRiskDollar && lastDualSignalsData && lastDualSignalsData.account) {
-      const bal = lastDualSignalsData.account.balance || 97.72;
+      const bal = lastDualSignalsData.account.balance || Number(appState.real?.config?.initial_balance) || 107.83;
       const usd = (bal * (selectedRiskPct / 100.0)).toFixed(2);
       labelRiskDollar.textContent = `$${usd} (${selectedRiskPct}%)`;
     }
@@ -11322,7 +11584,7 @@ function setupBackupAndRestoreEvents() {
 // 7. Botón de Guardado General (Todas las Pestañas) & Cmd+S
 // -------------------------------------------------------------
 function collectAllLiveDashboardData() {
-  // 1. REAL: balance, risk, leverage, rr
+  // 1. REAL: balance, risk, leverage, rr, sl
   const realBalInp = document.getElementById('realCalcBalance');
   const realSettingBalInp = document.getElementById('settingRealInitialBalance');
   let realBal = null;
@@ -11342,6 +11604,7 @@ function collectAllLiveDashboardData() {
 
   const realLev = parseFloat(document.getElementById('settingRealLeverage')?.value) || Number(appState.real?.config?.leverage) || 300.0;
   const realRr = parseFloat(document.getElementById('realCalcRR')?.value) || Number(appState.real?.config?.rr_ratio) || 2.0;
+  const realSl = parseFloat(document.getElementById('realCalcSlPoints')?.value) || Number(appState.real?.config?.sl_pips) || 25.0;
 
   if (!appState.real) appState.real = {};
   if (!appState.real.config) appState.real.config = {};
@@ -11349,13 +11612,17 @@ function collectAllLiveDashboardData() {
   appState.real.config.risk_pct = realRisk;
   appState.real.config.leverage = realLev;
   appState.real.config.rr_ratio = realRr;
+  appState.real.config.sl_pips = realSl;
+  appState.real.config.sl_default = realSl;
+  appState.real.config.asset = 'AUD/JPY';
+
   if (!appState.real.summary) appState.real.summary = {};
   if (!appState.real.trades || appState.real.trades.length === 0) {
     appState.real.summary.initial_balance = realBal;
     appState.real.summary.current_balance = realBal;
   }
 
-  // 2. FONDEO: balance, risk, leverage, rr
+  // 2. FONDEO: balance, risk, leverage, rr, sl
   const fondeoBalInp = document.getElementById('settingFondeoInitialBalance');
   const fondeoBal = parseFloat(fondeoBalInp?.value) || Number(appState.fondeo?.config?.initial_balance) || 50000.0;
 
@@ -11372,6 +11639,7 @@ function collectAllLiveDashboardData() {
 
   const fondeoLev = parseFloat(document.getElementById('settingFondeoLeverage')?.value) || Number(appState.fondeo?.config?.leverage) || 30.0;
   const fondeoRr = parseFloat(document.getElementById('fondeoFormRr')?.value) || Number(appState.fondeo?.config?.rr_ratio) || 2.0;
+  const fondeoSl = parseFloat(document.getElementById('fondeoFormSlPoints')?.value) || Number(appState.fondeo?.config?.sl_pips) || 25.0;
 
   if (!appState.fondeo) appState.fondeo = {};
   if (!appState.fondeo.config) appState.fondeo.config = {};
@@ -11379,13 +11647,17 @@ function collectAllLiveDashboardData() {
   appState.fondeo.config.risk_pct = fondeoRisk;
   appState.fondeo.config.leverage = fondeoLev;
   appState.fondeo.config.rr_ratio = fondeoRr;
+  appState.fondeo.config.sl_pips = fondeoSl;
+  appState.fondeo.config.sl_default = fondeoSl;
+  appState.fondeo.config.asset = 'AUD/JPY';
+
   if (!appState.fondeo.trades || appState.fondeo.trades.length === 0) {
     if (!appState.fondeo.summary) appState.fondeo.summary = {};
     appState.fondeo.summary.initial_balance = fondeoBal;
     appState.fondeo.summary.current_balance = fondeoBal;
   }
 
-  // 3. BACKTEST: balance, risk, leverage, rr
+  // 3. BACKTEST: balance, risk, leverage, rr, sl
   const btBalInp = document.getElementById('btSimpleInitialBalance');
   const btSettingBalInp = document.getElementById('settingBacktestInitialBalance');
   let btBal = 1000.0;
@@ -11403,6 +11675,7 @@ function collectAllLiveDashboardData() {
 
   const btLev = parseFloat(document.getElementById('settingBacktestLeverage')?.value) || Number(appState.backtest?.config?.leverage) || 30.0;
   const btRr = parseFloat(document.getElementById('btSimpleRR')?.value) || Number(appState.backtest?.config?.rr_ratio) || 3.0;
+  const btSl = parseFloat(document.getElementById('btSimpleManualSlPoints')?.value) || Number(appState.backtest?.config?.sl_pips) || 25.0;
 
   if (!appState.backtest) appState.backtest = {};
   if (!appState.backtest.config) appState.backtest.config = {};
@@ -11410,7 +11683,13 @@ function collectAllLiveDashboardData() {
   appState.backtest.config.risk_pct = btRisk;
   appState.backtest.config.leverage = btLev;
   appState.backtest.config.rr_ratio = btRr;
+  appState.backtest.config.sl_pips = btSl;
+  appState.backtest.config.sl_default = btSl;
+  appState.backtest.config.asset = 'AUD/JPY';
+
   appState.config = Object.assign({}, appState.config, appState.backtest.config);
+
+  const activeTab = appState.activeTab || localStorage.getItem('activeTab_orion_v3') || 'fondeo';
 
   return {
     configs: {
@@ -11422,6 +11701,10 @@ function collectAllLiveDashboardData() {
       fondeo: appState.fondeo.trades || [],
       real: appState.real.trades || [],
       backtest: appState.backtest.trades || []
+    },
+    ui: {
+      activeTab: activeTab,
+      isSoundAlertEnabled: (typeof isSoundAlertEnabled !== 'undefined') ? isSoundAlertEnabled : true
     }
   };
 }
@@ -11439,15 +11722,26 @@ async function saveAllDashboardData(triggerSource = 'button') {
   // 1. Recopilar todos los datos en vivo de los inputs de las 3 pestañas
   const payload = collectAllLiveDashboardData();
 
-  // 2. Espejo preventivo en localStorage
+  // 2. Espejo preventivo y snapshot maestro en localStorage
   try {
+    localStorage.setItem('dashboard_master_snapshot_v1', JSON.stringify({
+      saved_at: new Date().toISOString(),
+      configs: payload.configs,
+      ui: payload.ui
+    }));
     if (payload.trades.fondeo) localStorage.setItem('cached_fondeo_trades', JSON.stringify(payload.trades.fondeo));
     if (payload.trades.real) localStorage.setItem('cached_real_trades_v2', JSON.stringify(payload.trades.real));
     if (payload.trades.backtest) localStorage.setItem('cached_backtest_trades_v2', JSON.stringify(payload.trades.backtest));
     localStorage.setItem('cached_app_config_all', JSON.stringify(payload.configs));
     localStorage.setItem('cached_real_balance_override', Number(payload.configs.real.initial_balance).toFixed(2));
+    localStorage.setItem('cached_real_risk_override', Number(payload.configs.real.risk_pct).toFixed(2));
     localStorage.setItem('cached_backtest_balance_override', Number(payload.configs.backtest.initial_balance).toFixed(2));
+    localStorage.setItem('cached_backtest_risk_override', Number(payload.configs.backtest.risk_pct).toFixed(2));
     localStorage.setItem('cached_fondeo_balance_override', Number(payload.configs.fondeo.initial_balance).toFixed(2));
+    localStorage.setItem('cached_fondeo_risk_override', Number(payload.configs.fondeo.risk_pct).toFixed(2));
+    if (payload.ui && payload.ui.activeTab) {
+      localStorage.setItem('activeTab_orion_v3', payload.ui.activeTab);
+    }
     localStorage.setItem('last_saved_timestamp', new Date().toISOString());
   } catch (e) {
     console.warn('Advertencia al guardar espejo local:', e);

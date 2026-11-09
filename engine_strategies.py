@@ -38,12 +38,12 @@ mt5_store = {
     "connected": False,
     "last_ping": saved_acc.get("last_ping", 0),
     "account": {
-        "balance": float(saved_acc.get("balance", 97.72)),
-        "equity": float(saved_acc.get("equity", 97.72)),
+        "balance": float(saved_acc.get("balance", 107.83)),
+        "equity": float(saved_acc.get("equity", 107.83)),
         "currency": str(saved_acc.get("currency", "USD")),
         "company": str(saved_acc.get("company", "Tickmill Ltd")),
-        "leverage": int(saved_acc.get("leverage", 500)),
-        "initial_deposit": float(saved_acc.get("initial_deposit", 92.08))
+        "leverage": int(saved_acc.get("leverage", 300)),
+        "initial_deposit": float(saved_acc.get("initial_deposit", 107.83))
     },
     "symbols": {
         "XAUUSD": {
@@ -266,8 +266,8 @@ def get_mt5_status():
         "connected": is_live or (mt5_store["last_ping"] > 0 and (now - mt5_store["last_ping"]) < 120.0),
         "seconds_since_ping": round(now - mt5_store["last_ping"], 1) if mt5_store["last_ping"] > 0 else None,
         "broker": broker if is_live else f"{broker} (Standby)",
-        "balance": float(mt5_store["account"].get("balance", 97.72)),
-        "equity": float(mt5_store["account"].get("equity", 97.72)),
+        "balance": float(mt5_store["account"].get("balance", 107.83)),
+        "equity": float(mt5_store["account"].get("equity", 107.83)),
         "currency": mt5_store["account"].get("currency", "USD"),
         "symbols_tracked": ["EURUSD"]
     }
@@ -1129,7 +1129,7 @@ def get_dual_scanner_signals(risk_pct=1.0):
         eur_ask = float(eur_data.get("ask", 0.0))
     else:
         source = f"Spot Web · MT5 {mt5_store['account'].get('company', 'Tickmill Ltd')}"
-        balance = float(mt5_store['account'].get('balance', 97.72))
+        balance = float(mt5_store['account'].get('balance', 107.83))
         currency = mt5_store['account'].get('currency', 'USD')
         
         # Fallback to Yahoo EURUSD
