@@ -1000,20 +1000,44 @@ def recalculate_trade_history(trades, config, mode="backtest"):
                         pnl = raw_pnl
                     else:
                         base_calc = initial_balance if mode == "fondeo" else curr_bal
+                        if lot_size > 0 and loss_per_lot > 0:
+                            actual_risk_d = round(lot_size * loss_per_lot, 2)
+                            dollar_risk = actual_risk_d
+                            if status == "win":
+                                pnl = round(actual_risk_d * trade_rr - commission, 2)
+                            elif status == "loss":
+                                pnl = -round(actual_risk_d + commission, 2)
+                            else:
+                                pnl = -commission
+                        else:
+                            if status == "win":
+                                pnl = round(base_calc * (ret_pct / 100.0) - commission, 2)
+                            elif status == "loss":
+                                pnl = -round(base_calc * (trade_risk / 100.0) + commission, 2)
+                            else:
+                                pnl = -commission
+                        if base_calc > 0:
+                            ret_pct = round((pnl / base_calc) * 100.0, 2)
+                else:
+                    base_calc = initial_balance if mode == "fondeo" else curr_bal
+                    if lot_size > 0 and loss_per_lot > 0:
+                        actual_risk_d = round(lot_size * loss_per_lot, 2)
+                        dollar_risk = actual_risk_d
+                        if status == "win":
+                            pnl = round(actual_risk_d * trade_rr - commission, 2)
+                        elif status == "loss":
+                            pnl = -round(actual_risk_d + commission, 2)
+                        else:
+                            pnl = -commission
+                    else:
                         if status == "win":
                             pnl = round(base_calc * (ret_pct / 100.0) - commission, 2)
                         elif status == "loss":
                             pnl = -round(base_calc * (trade_risk / 100.0) + commission, 2)
                         else:
                             pnl = -commission
-                else:
-                    base_calc = initial_balance if mode == "fondeo" else curr_bal
-                    if status == "win":
-                        pnl = round(base_calc * (ret_pct / 100.0) - commission, 2)
-                    elif status == "loss":
-                        pnl = -round(base_calc * (trade_risk / 100.0) + commission, 2)
-                    else:
-                        pnl = -commission
+                    if base_calc > 0:
+                        ret_pct = round((pnl / base_calc) * 100.0, 2)
             
         margin_used = round((margin_rate * lot_size) / eff_lev, 2)
         
@@ -2307,14 +2331,30 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 if "pnl" in payload and payload["pnl"] is not None and str(payload["pnl"]).strip() != "":
                     pnl = round(float(str(payload["pnl"]).replace(",", ".")), 2)
                     dollar_risk = round(float(str(payload.get("dollar_risk", dollar_risk)).replace(",", ".")), 2)
+                    if "ret_pct" in payload and payload["ret_pct"] is not None:
+                        try:
+                            ret_pct = round(float(str(payload["ret_pct"]).replace(",", ".")), 2)
+                        except Exception:
+                            pass
                 else:
                     base_pnl_calc = init_bal if mode == "fondeo" else cur_bal
-                    if status == "win":
-                        pnl = round(base_pnl_calc * (ret_pct / 100.0) - commission, 2)
-                    elif status == "loss":
-                        pnl = -round(dollar_risk + commission, 2)
+                    if lot_size > 0 and loss_per_lot > 0:
+                        dollar_risk = round(lot_size * loss_per_lot, 2)
+                        if status == "win":
+                            pnl = round(dollar_risk * trade_rr - commission, 2)
+                        elif status == "loss":
+                            pnl = -round(dollar_risk + commission, 2)
+                        else:
+                            pnl = -commission
                     else:
-                        pnl = -commission
+                        if status == "win":
+                            pnl = round(base_pnl_calc * (ret_pct / 100.0) - commission, 2)
+                        elif status == "loss":
+                            pnl = -round(dollar_risk + commission, 2)
+                        else:
+                            pnl = -commission
+                    if base_pnl_calc > 0:
+                        ret_pct = round((pnl / base_pnl_calc) * 100.0, 2)
 
             trade = {
                 "id": str(uuid.uuid4()),
