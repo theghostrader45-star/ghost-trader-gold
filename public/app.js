@@ -2963,26 +2963,47 @@ async function loadBacktestSimpleData() {
       fetch('/api/config?mode=backtest')
     ]);
 
+    let cfg = {};
     if (resConfig.ok) {
-      const cfg = await resConfig.json();
-      appState.backtest.config = cfg;
-      appState.config = Object.assign({}, appState.config, cfg);
-      const inpBal = document.getElementById('btSimpleInitialBalance');
-      if (inpBal && document.activeElement !== inpBal) {
-        inpBal.value = cfg.initial_balance !== undefined ? Number(cfg.initial_balance).toFixed(2) : '1000.00';
+      cfg = await resConfig.json();
+    }
+
+    // Persistencia resiliente para Render (sobrevive a reinicios y modo reposo del contenedor)
+    const cachedBalOverride = parseFloat(localStorage.getItem('cached_backtest_balance_override') || localStorage.getItem('cached_calc_balance'));
+    let needServerPush = false;
+    if (!isNaN(cachedBalOverride) && cachedBalOverride > 0) {
+      if (cfg.initial_balance === undefined || Math.abs(Number(cfg.initial_balance) - cachedBalOverride) > 0.01) {
+        cfg.initial_balance = cachedBalOverride;
+        needServerPush = true;
       }
-      const inpRr = document.getElementById('btSimpleRR');
-      if (inpRr && document.activeElement !== inpRr) {
-        inpRr.value = cfg.rr_ratio !== undefined ? cfg.rr_ratio : 3.0;
-      }
-      const inpRisk = document.getElementById('btSimpleRiskPct');
-      if (inpRisk && document.activeElement !== inpRisk) {
-        inpRisk.value = cfg.risk_pct !== undefined ? Number(cfg.risk_pct).toFixed(1) : '1.0';
-      }
-      const levBadge = document.getElementById('badgeBacktestLeverage');
-      if (levBadge) {
-        levBadge.textContent = `Apalancamiento 1:${Math.round(cfg.leverage || 30)}`;
-      }
+    } else if (cfg.initial_balance !== undefined) {
+      try {
+        localStorage.setItem('cached_backtest_balance_override', Number(cfg.initial_balance).toFixed(2));
+      } catch (e) {}
+    }
+
+    appState.backtest.config = cfg;
+    appState.config = Object.assign({}, appState.config, cfg);
+
+    const inpBal = document.getElementById('btSimpleInitialBalance');
+    if (inpBal && document.activeElement !== inpBal) {
+      inpBal.value = cfg.initial_balance !== undefined ? Number(cfg.initial_balance).toFixed(2) : '1000.00';
+    }
+    const calcBal = document.getElementById('calcAccountBalance');
+    if (calcBal && document.activeElement !== calcBal && (!calcBal.value || parseFloat(calcBal.value) <= 0 || parseFloat(calcBal.value) === 1000)) {
+      calcBal.value = cfg.initial_balance !== undefined ? Number(cfg.initial_balance).toFixed(2) : '1000.00';
+    }
+    const inpRr = document.getElementById('btSimpleRR');
+    if (inpRr && document.activeElement !== inpRr) {
+      inpRr.value = cfg.rr_ratio !== undefined ? cfg.rr_ratio : 3.0;
+    }
+    const inpRisk = document.getElementById('btSimpleRiskPct');
+    if (inpRisk && document.activeElement !== inpRisk) {
+      inpRisk.value = cfg.risk_pct !== undefined ? Number(cfg.risk_pct).toFixed(1) : '1.0';
+    }
+    const levBadge = document.getElementById('badgeBacktestLeverage');
+    if (levBadge) {
+      levBadge.textContent = `Apalancamiento 1:${Math.round(cfg.leverage || 30)}`;
     }
 
     if (resTrades.ok) {
@@ -3013,6 +3034,27 @@ async function loadBacktestSimpleData() {
     }
 
     syncBacktestUI();
+
+    // Sincronizar hacia Render en segundo plano si restauramos un balance de localStorage
+    if (needServerPush && !isNaN(cachedBalOverride) && cachedBalOverride > 0) {
+      fetch('/api/recalculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'backtest',
+          initial_balance: cachedBalOverride,
+          rr_ratio: parseFloat(cfg.rr_ratio) || 3.0,
+          risk_pct: parseFloat(cfg.risk_pct) || 1.0
+        })
+      }).then(r => r.json()).then(data => {
+        if (data && data.summary) {
+          appState.backtest.summary = data.summary;
+          appState.backtest.equityCurve = data.equity_curve || [];
+          appState.backtest.trades = data.trades || [];
+          renderBacktestSimpleDashboard();
+        }
+      }).catch(err => console.warn('Sync balance resiliente a Render falló (silencioso):', err));
+    }
   } catch (err) {
     console.error('Error cargando backtesting simple:', err);
   }
@@ -3060,6 +3102,188 @@ function updateBacktestSimplePreviews() {
   }
   if (typeof applyPrivacyClasses === 'function') applyPrivacyClasses();
 }
+
+// ----------------------------------------------------
+// GUARDADO DE BALANCE EN RENDER & ALMACENAMIENTO PERMANENTE
+// ----------------------------------------------------
+window.saveBacktestInitialBalance = async function(source = 'button') {
+  const inpBal = document.getElementById('btSimpleInitialBalance');
+  if (!inpBal) return;
+  const val = parseFloat(inpBal.value);
+  if (isNaN(val) || val <= 0) {
+    showToast('Por favor introduce un capital válido mayor a 0', 'warning');
+    return;
+  }
+
+  // 1. Actualizar estado reactivo
+  if (!appState.backtest.config) appState.backtest.config = {};
+  appState.backtest.config.initial_balance = val;
+  appState.config.initial_balance = val;
+
+  // 2. Sincronizar input de Calculadora si no está enfocado
+  const calcBal = document.getElementById('calcAccountBalance');
+  if (calcBal && document.activeElement !== calcBal && calcBal.value !== val.toFixed(2)) {
+    calcBal.value = val.toFixed(2);
+    if (typeof recalculateStandaloneCalculator === 'function') {
+      recalculateStandaloneCalculator();
+    }
+  }
+
+  // 3. Persistir en localStorage inmediatamente
+  try {
+    localStorage.setItem('cached_backtest_balance_override', val.toFixed(2));
+    localStorage.setItem('cached_calc_balance', val.toFixed(2));
+    const cachedConfig = localStorage.getItem('cached_app_config_all');
+    if (cachedConfig) {
+      const parsed = JSON.parse(cachedConfig);
+      if (parsed.backtest) parsed.backtest.initial_balance = val;
+      localStorage.setItem('cached_app_config_all', JSON.stringify(parsed));
+    }
+  } catch (err) {
+    console.warn('Error guardando balance en localStorage:', err);
+  }
+
+  // 4. Feedback visual en botón y badge
+  const btnSave = document.getElementById('btnBtSimpleSaveBalance');
+  const btnText = document.getElementById('btnBtSimpleSaveBalanceText');
+  const badgeSaved = document.getElementById('btBalanceSavedBadge');
+
+  if (btnSave && btnText) {
+    btnSave.disabled = true;
+    btnText.textContent = 'Guardando...';
+  }
+
+  const rr = parseFloat(document.getElementById('btSimpleRR')?.value) || 3.0;
+  const risk = parseFloat(document.getElementById('btSimpleRiskPct')?.value) || 1.0;
+
+  try {
+    // 5. Enviar POST a Render para persistir en disco del servidor
+    await fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'backtest',
+        initial_balance: val,
+        backtest: {
+          initial_balance: val,
+          rr_ratio: rr,
+          risk_pct: risk
+        }
+      })
+    });
+
+    const resRecalc = await fetch('/api/recalculate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'backtest',
+        initial_balance: val,
+        rr_ratio: rr,
+        risk_pct: risk
+      })
+    });
+
+    if (resRecalc.ok) {
+      const data = await resRecalc.json();
+      appState.backtest.summary = data.summary || {};
+      appState.backtest.equityCurve = data.equity_curve || [];
+      appState.backtest.trades = data.trades || [];
+      try { localStorage.removeItem('cached_backtest_trades_v2'); } catch (e) {}
+      renderBacktestSimpleDashboard();
+    } else {
+      updateBacktestSimplePreviews();
+    }
+
+    if (btnSave && btnText) {
+      btnSave.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+      btnSave.classList.add('bg-teal-500');
+      btnText.textContent = '✓ ¡Guardado!';
+      setTimeout(() => {
+        btnSave.classList.remove('bg-teal-500');
+        btnSave.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
+        btnText.textContent = 'Guardar';
+        btnSave.disabled = false;
+      }, 2200);
+    }
+
+    if (badgeSaved) {
+      badgeSaved.classList.remove('hidden');
+      badgeSaved.classList.add('flex');
+      setTimeout(() => {
+        badgeSaved.classList.remove('flex');
+        badgeSaved.classList.add('hidden');
+      }, 3000);
+    }
+
+    if (source === 'button') {
+      showToast(`✓ Balance inicial guardado en Render: $${formatMoney(val)} USD`, 'success', 3500);
+    } else if (source === 'chip') {
+      showToast(`✓ Balance actualizado a $${formatMoney(val)} USD y guardado`, 'success', 2500);
+    } else if (source === 'enter') {
+      showToast(`✓ Balance inicial guardado: $${formatMoney(val)} USD`, 'success', 3000);
+    }
+  } catch (err) {
+    console.error('Error guardando balance en Render:', err);
+    if (btnSave && btnText) {
+      btnText.textContent = '✓ Guardado local';
+      setTimeout(() => {
+        btnText.textContent = 'Guardar';
+        btnSave.disabled = false;
+      }, 2000);
+    }
+    showToast(`✓ Balance guardado en navegador: $${formatMoney(val)} USD`, 'info', 3000);
+    updateBacktestSimplePreviews();
+  }
+};
+
+window.saveCalculatorBalance = async function(source = 'button') {
+  const calcBal = document.getElementById('calcAccountBalance');
+  if (!calcBal) return;
+  const val = parseFloat(calcBal.value);
+  if (isNaN(val) || val <= 0) {
+    showToast('Por favor introduce un capital válido mayor a 0', 'warning');
+    return;
+  }
+
+  const btnCalcSave = document.getElementById('btnCalcSaveBalance');
+  const btnCalcText = document.getElementById('btnCalcSaveBalanceText');
+  const badgeCalc = document.getElementById('calcBalanceSavedBadge');
+
+  if (btnCalcSave && btnCalcText) {
+    btnCalcSave.disabled = true;
+    btnCalcText.textContent = 'Guardando...';
+  }
+
+  // Sincronizar input de Backtesting
+  const btInp = document.getElementById('btSimpleInitialBalance');
+  if (btInp) btInp.value = val.toFixed(2);
+
+  // Ejecutar guardado maestro hacia Render y localStorage
+  await window.saveBacktestInitialBalance('calc_internal');
+
+  if (btnCalcSave && btnCalcText) {
+    btnCalcSave.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+    btnCalcSave.classList.add('bg-teal-500');
+    btnCalcText.textContent = '✓ ¡Guardado!';
+    setTimeout(() => {
+      btnCalcSave.classList.remove('bg-teal-500');
+      btnCalcSave.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
+      btnCalcText.textContent = 'Guardar';
+      btnCalcSave.disabled = false;
+    }, 2200);
+  }
+
+  if (badgeCalc) {
+    badgeCalc.classList.remove('hidden');
+    badgeCalc.classList.add('flex');
+    setTimeout(() => {
+      badgeCalc.classList.remove('flex');
+      badgeCalc.classList.add('hidden');
+    }, 3000);
+  }
+
+  showToast(`✓ Balance guardado y sincronizado: $${formatMoney(val)} USD`, 'success', 3500);
+};
 
 // ====================================================
 // CALCULADORA PROFESIONAL DE LOTE & GESTIÓN DE RIESGO
@@ -3206,7 +3430,16 @@ function setupCalculatorView() {
     });
   });
 
-  // Chips: Balance
+  // Botón Guardar Balance en Calculadora
+  const btnSaveCalc = document.getElementById('btnCalcSaveBalance');
+  if (btnSaveCalc) {
+    btnSaveCalc.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.saveCalculatorBalance('button');
+    });
+  }
+
+  // Chips: Balance con Auto-Guardado en Render
   document.querySelectorAll('.btn-calc-chip-bal').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -3215,6 +3448,9 @@ function setupCalculatorView() {
       if (inp && !isNaN(val)) {
         inp.value = val.toFixed(2);
         recalculateStandaloneCalculator();
+        const btInp = document.getElementById('btSimpleInitialBalance');
+        if (btInp) btInp.value = val.toFixed(2);
+        window.saveBacktestInitialBalance('chip');
       }
     });
   });
@@ -3309,6 +3545,22 @@ function setupCalculatorView() {
       el.addEventListener('change', recalculateStandaloneCalculator);
     }
   });
+
+  const calcBalInp = document.getElementById('calcAccountBalance');
+  if (calcBalInp) {
+    calcBalInp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        window.saveCalculatorBalance('enter');
+      }
+    });
+    calcBalInp.addEventListener('change', (e) => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val > 0) {
+        try { localStorage.setItem('cached_calc_balance', val.toFixed(2)); } catch (err) {}
+      }
+    });
+  }
 
   // Botón Sincronizar Balance con Backtest
   const btnSync = document.getElementById('btnCalcSyncBacktest');
@@ -3440,15 +3692,25 @@ function setupBacktestSimpleView() {
     });
   }
 
-  // Preset Chips: Capital Inicial
+  // Botón Dedicado: Guardar Balance Inicial en Render & LocalStorage
+  const btnSaveBtBal = document.getElementById('btnBtSimpleSaveBalance');
+  if (btnSaveBtBal) {
+    btnSaveBtBal.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.saveBacktestInitialBalance('button');
+    });
+  }
+
+  // Preset Chips: Capital Inicial (con auto-guardado en Render)
   document.querySelectorAll('.btn-bt-chip-balance').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       const val = parseFloat(btn.dataset.val);
       const inp = document.getElementById('btSimpleInitialBalance');
-      if (inp) {
-        inp.value = val;
+      if (inp && !isNaN(val)) {
+        inp.value = val.toFixed(2);
         updateBacktestSimplePreviews();
+        window.saveBacktestInitialBalance('chip');
       }
     });
   });
@@ -3507,6 +3769,12 @@ function setupBacktestSimpleView() {
     };
     btBalInputEl.addEventListener('input', handleBtBalChange);
     btBalInputEl.addEventListener('change', handleBtBalChange);
+    btBalInputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        window.saveBacktestInitialBalance('enter');
+      }
+    });
   }
 
   // Botón: Recalcular Todo con Interés Compuesto

@@ -654,11 +654,22 @@
                 <i data-lucide="wallet" class="w-3.5 h-3.5 text-emerald-400"></i>
                 <span>1. Capital / Balance de Cuenta ($ USD)</span>
               </label>
-              <span class="text-xs font-mono text-emerald-400 font-bold" id="calcPreviewBalDisplay">$1,000.00</span>
+              <div class="flex items-center gap-2">
+                <span id="calcBalanceSavedBadge" class="text-[10px] text-emerald-400 font-mono font-bold hidden items-center gap-1">
+                  <i data-lucide="check" class="w-3 h-3 inline"></i> Guardado
+                </span>
+                <span class="text-xs font-mono text-emerald-400 font-bold" id="calcPreviewBalDisplay">$1,000.00</span>
+              </div>
             </div>
-            <div class="relative">
-              <span class="absolute left-3 top-2.5 text-gray-500 font-mono text-base font-bold">$</span>
-              <input type="number" id="calcAccountBalance" step="any" min="1" value="1000.00" class="w-full bg-gray-900 border border-gray-700 focus:border-amber-400 rounded-xl pl-8 pr-3 py-2 text-white font-mono font-black text-base focus:outline-none transition shadow-inner">
+            <div class="flex items-center gap-1.5">
+              <div class="relative flex-1 min-w-0">
+                <span class="absolute left-3 top-2.5 text-gray-500 font-mono text-base font-bold">$</span>
+                <input type="number" id="calcAccountBalance" step="any" min="1" value="1000.00" class="w-full bg-gray-900 border border-gray-700 focus:border-amber-400 rounded-xl pl-8 pr-3 py-2 text-white font-mono font-black text-base focus:outline-none transition shadow-inner" placeholder="1000.00">
+              </div>
+              <button type="button" id="btnCalcSaveBalance" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-black text-xs rounded-xl transition-all duration-150 flex items-center gap-1.5 shadow-md shadow-emerald-950/40 shrink-0 cursor-pointer border border-emerald-400/40 hover:scale-[1.02] active:scale-[0.98]" title="Guardar balance y sincronizar con Backtesting">
+                <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                <span id="btnCalcSaveBalanceText">Guardar</span>
+              </button>
             </div>
             <!-- Chips de Balance -->
             <div class="grid grid-cols-6 gap-1 pt-1">
@@ -947,20 +958,28 @@
                 <i data-lucide="wallet" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
                 <span class="truncate">1. Capital Inicial ($ USD)</span>
               </label>
-              <span class="text-[10px] text-gray-400 font-mono shrink-0">Libre</span>
+              <span id="btBalanceSavedBadge" class="text-[10px] text-emerald-400 font-mono font-bold shrink-0 hidden items-center gap-1">
+                <i data-lucide="check" class="w-3 h-3 inline"></i> Guardado
+              </span>
             </div>
-            <div class="relative">
-              <span class="absolute left-3 top-2 text-gray-500 font-mono text-sm font-bold">$</span>
-              <input type="number" id="btSimpleInitialBalance" step="any" min="1" value="1000.00" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-7 pr-3 py-1.5 text-white font-mono font-bold text-sm focus:border-emerald-500 focus:outline-none transition">
+            <div class="flex items-center gap-1.5">
+              <div class="relative flex-1 min-w-0">
+                <span class="absolute left-3 top-2 text-gray-500 font-mono text-sm font-bold">$</span>
+                <input type="number" id="btSimpleInitialBalance" step="any" min="1" value="1000.00" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-7 pr-2.5 py-1.5 text-white font-mono font-bold text-sm focus:border-emerald-500 focus:outline-none transition" placeholder="1000.00">
+              </div>
+              <button type="button" id="btnBtSimpleSaveBalance" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-black text-xs rounded-lg transition-all duration-150 flex items-center gap-1 shadow-md shadow-emerald-950/40 shrink-0 cursor-pointer border border-emerald-400/40 hover:scale-[1.02] active:scale-[0.98]" title="Guardar balance inicial en Render y memoria permanente">
+                <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                <span id="btnBtSimpleSaveBalanceText">Guardar</span>
+              </button>
             </div>
             <!-- Quick Chips Balance en cuadrícula de 6 columnas -->
             <div class="grid grid-cols-6 gap-1 pt-0.5">
-              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="500">$500</button>
-              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="1000">$1k</button>
-              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="5000">$5k</button>
-              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="10000">$10k</button>
-              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="50000">$50k</button>
-              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center" data-val="100000">$100k</button>
+              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="500">$500</button>
+              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="1000">$1k</button>
+              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="5000">$5k</button>
+              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="10000">$10k</button>
+              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="50000">$50k</button>
+              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="100000">$100k</button>
             </div>
           </div>
 
@@ -2670,6 +2689,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261110_v50_backtest_news_calculator_usdcad_audcad_audjpy"></script>
+<script src="app.js?v=20261110_v52_save_balance_buttons_resilient"></script>
 </body>
 </html>
