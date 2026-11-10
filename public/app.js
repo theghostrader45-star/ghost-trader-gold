@@ -1,34 +1,80 @@
 /**
- * Pro Terminal — Terminal Institucional de Trading MT5, Metodología Price Action & Bitácora Real
- * Cálculo de interés compuesto basado puramente en porcentaje y puntos de oro.
+ * Pro Terminal — Backtesting Institucional, Noticias de Alto Impacto & Calculadora Profesional
+ * Pares Forex calibrados: USDCAD (5 dec) · AUDCAD (5 dec) · AUDJPY (3 dec)
  */
+
+// Forex Pair Specifications
+const FOREX_SPECS = {
+  USDCAD: {
+    symbol: 'USDCAD',
+    displayName: 'USDCAD',
+    flag: '🇺🇸🇨🇦',
+    base: 'USD',
+    quote: 'CAD',
+    contractSize: 100000,
+    decimals: 5,
+    pipSize: 0.0001,
+    pipValueUsd: 7.22,
+    baseRateUsd: 1.0,
+    defaultSlPips: 25.0,
+    color: 'blue',
+    description: 'USD/CAD · Contrato $100k USD · 5 dec'
+  },
+  AUDCAD: {
+    symbol: 'AUDCAD',
+    displayName: 'AUDCAD',
+    flag: '🇦🇺🇨🇦',
+    base: 'AUD',
+    quote: 'CAD',
+    contractSize: 100000,
+    decimals: 5,
+    pipSize: 0.0001,
+    pipValueUsd: 7.22,
+    baseRateUsd: 0.655,
+    defaultSlPips: 25.0,
+    color: 'emerald',
+    description: 'AUD/CAD · Contrato 100k AUD · 5 dec'
+  },
+  AUDJPY: {
+    symbol: 'AUDJPY',
+    displayName: 'AUDJPY',
+    flag: '🇦🇺🇯🇵',
+    base: 'AUD',
+    quote: 'JPY',
+    contractSize: 100000,
+    decimals: 3,
+    pipSize: 0.01,
+    pipValueUsd: 6.50,
+    baseRateUsd: 0.655,
+    defaultSlPips: 25.0,
+    color: 'amber',
+    description: 'AUD/JPY · Contrato 100k AUD · 3 dec'
+  }
+};
+
+function normalizeForexAsset(asset) {
+  if (!asset) return 'USDCAD';
+  const clean = String(asset).replace(/[^a-zA-Z]/g, '').toUpperCase();
+  if (clean.includes('USDCAD')) return 'USDCAD';
+  if (clean.includes('AUDCAD')) return 'AUDCAD';
+  if (clean.includes('AUDJPY')) return 'AUDJPY';
+  return 'USDCAD';
+}
+
+function getForexSpec(asset) {
+  const norm = normalizeForexAsset(asset);
+  return FOREX_SPECS[norm] || FOREX_SPECS.USDCAD;
+}
 
 // Global State
 let appState = {
-  activeTab: 'fondeo',
-  fondeo: {
-    summary: {},
-    trades: [],
-    equityCurve: [],
-    config: {
-      initial_balance: 50000.0,
-      risk_pct: 0.5,
-      rr_ratio: 3.0,
-      leverage: 30.0,
-      asset: 'AUD/JPY',
-      contract_size: 100000,
-      sl_pips: 25.0,
-      profit_target_usd: 2000.0,
-      daily_loss_usd: 2000.0,
-      max_loss_usd: 4000.0
-    }
-  },
+  activeTab: 'backtest',
   config: {
     initial_balance: 1000.0,
     risk_pct: 1.0,
     rr_ratio: 3.0,
-    leverage: 30,
-    asset: 'AUD/JPY',
+    leverage: 300,
+    asset: 'USDCAD',
     contract_size: 100000,
     sl_pips: 25.0,
     min_lot: 0.01,
@@ -38,29 +84,47 @@ let appState = {
     summary: {},
     trades: [],
     equityCurve: [],
-    filter: 'all'
+    filter: 'all',
+    config: {
+      initial_balance: 1000.0,
+      risk_pct: 1.0,
+      rr_ratio: 3.0,
+      leverage: 300,
+      asset: 'USDCAD',
+      sl_pips: 25.0
+    }
+  },
+  calculator: {
+    pair: 'USDCAD',
+    balance: 1000.0,
+    risk_pct: 1.0,
+    sl_pips: 25.0,
+    rr_ratio: 3.0,
+    leverage: 300
+  },
+  fondeo: {
+    summary: {},
+    trades: [],
+    equityCurve: [],
+    config: {
+      initial_balance: 50000.0,
+      risk_pct: 0.5,
+      rr_ratio: 3.0,
+      leverage: 30.0,
+      asset: 'USDCAD'
+    }
   },
   real: {
     summary: {},
     trades: [],
     equityCurve: [],
-    filter: 'all',
     config: {
-      initial_balance: 107.83,
+      initial_balance: 1000.0,
       risk_pct: 1.0,
       leverage: 300.0,
-      rr_ratio: 2.0,
-      sl_pips: 25.0,
-      asset: 'AUD/JPY'
+      rr_ratio: 3.0,
+      asset: 'USDCAD'
     }
-  },
-  calculator: {
-    balance: 50000.0,
-    risk_pct: 0.5,
-    sl_points: 100,
-    rr: 2.0,
-    leverage: 100,
-    gold_price: 2720.0
   }
 };
 
@@ -87,30 +151,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupCollapsibleSections();
   setupMacroGuideModalEvents();
 
-  // Cargar configuración y datos de Fondeo Orion Nova 50K
+  // Cargar configuración global y vistas principales
   await loadConfig();
-  await loadFondeoTrades();
-  setupFondeoTradeForm();
-  setupFondeoActionButtons();
   setupNewsView();
   setupPremarketView();
   setCurrentDateTime();
   loadGoldBiasData();
 
+  // Calculadora de Posición & Riesgo
+  setupCalculatorView();
+
   // Backtesting Simple (Interés Compuesto)
   await loadBacktestSimpleData();
   setupBacktestSimpleView();
 
-  // Mejoras Integrales Fondeo & Backtest
+  // Mejoras y utilidades
   setupPeriodFilterButtons();
   setupMonteCarloModal();
   setupBackupAndRestoreEvents();
   setupSaveAllButton();
 
-  // Restaurar pestaña activa tras carga asíncrona completa (Fondeo, Noticias, Backtest)
+  // Restaurar pestaña activa tras carga asíncrona completa (Backtest, Noticias, Calculadora)
   let savedTab = localStorage.getItem('activeTab_orion_v3');
-  if (!savedTab || !['fondeo', 'news', 'backtest'].includes(savedTab)) {
-    savedTab = 'fondeo';
+  if (!savedTab || !['backtest', 'news', 'calculator'].includes(savedTab)) {
+    savedTab = 'backtest';
   }
   if (typeof window.switchTabTo === 'function') {
     window.switchTabTo(savedTab);
@@ -197,32 +261,26 @@ function formatMoney(val) {
 }
 
 // ----------------------------------------------------
-// TAB NAVIGATION: 1. Fondeo Orion 50K | 2. Bitácora Real (TradingView) | 3. Noticias | 4. Backtest Simple
+// TAB NAVIGATION: 1. Backtesting | 2. Noticias | 3. Calculadora
 // ----------------------------------------------------
 function setupTabNavigation() {
-  const btnFondeo = document.getElementById('tabBtnFondeo');
-  const btnNews = document.getElementById('tabBtnNews');
   const btnBacktestSimple = document.getElementById('tabBtnBacktestSimple');
+  const btnNews = document.getElementById('tabBtnNews');
+  const btnCalculator = document.getElementById('tabBtnCalculator');
 
-  const viewFondeo = document.getElementById('viewFondeo');
-  const viewNews = document.getElementById('viewNews');
   const viewBacktestSimple = document.getElementById('viewBacktestSimple');
+  const viewNews = document.getElementById('viewNews');
+  const viewCalculator = document.getElementById('viewCalculator');
 
   function switchTab(tab) {
-    // Si se invoca 'rules', redirigir a fondeo y hacer scroll a las reglas integradas
-    if (tab === 'rules') {
-      tab = 'fondeo';
-      setTimeout(() => {
-        const rulesSec = document.getElementById('sectionFondeoRules');
-        if (rulesSec) rulesSec.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+    if (tab === 'rules' || tab === 'fondeo' || tab === 'real') {
+      tab = 'backtest';
     }
-    // Si se invoca 'premarket' o 'real', normalizar
     if (tab === 'premarket') {
       tab = 'news';
     }
-    if (tab === 'real') {
-      tab = 'fondeo';
+    if (!['backtest', 'news', 'calculator'].includes(tab)) {
+      tab = 'backtest';
     }
 
     appState.activeTab = tab;
@@ -230,38 +288,21 @@ function setupTabNavigation() {
       localStorage.setItem('activeTab_orion_v3', tab);
     } catch (e) {}
 
-    const activeClasses = ['bg-amber-500', 'bg-rose-600', 'bg-emerald-600', 'text-black', 'text-white', 'shadow-lg', 'shadow-amber-500/30', 'shadow-rose-600/30', 'shadow-emerald-600/30', 'font-black', 'font-bold'];
+    const activeClasses = ['bg-emerald-600', 'bg-rose-600', 'bg-amber-500', 'text-white', 'text-black', 'shadow-lg', 'shadow-emerald-600/30', 'shadow-rose-600/30', 'shadow-amber-500/30', 'font-black', 'font-bold'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnFondeo, btnNews, btnBacktestSimple].forEach(btn => {
+    [btnBacktestSimple, btnNews, btnCalculator].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
       }
     });
 
-    if (viewFondeo) viewFondeo.classList.add('hidden');
-    if (viewNews) viewNews.classList.add('hidden');
     if (viewBacktestSimple) viewBacktestSimple.classList.add('hidden');
+    if (viewNews) viewNews.classList.add('hidden');
+    if (viewCalculator) viewCalculator.classList.add('hidden');
 
-    if (tab === 'fondeo') {
-      if (btnFondeo) {
-        btnFondeo.classList.remove(...inactiveClasses);
-        btnFondeo.classList.add('bg-amber-500', 'text-black', 'shadow-lg', 'shadow-amber-500/30', 'font-black');
-      }
-      if (viewFondeo) viewFondeo.classList.remove('hidden');
-      renderFondeoDashboard();
-      setTimeout(() => {
-        if (fondeoEquityChart) fondeoEquityChart.resize();
-      }, 50);
-    } else if (tab === 'news') {
-      if (btnNews) {
-        btnNews.classList.remove(...inactiveClasses);
-        btnNews.classList.add('bg-rose-600', 'text-white', 'shadow-lg', 'shadow-rose-600/30', 'font-bold');
-      }
-      if (viewNews) viewNews.classList.remove('hidden');
-      renderNewsView();
-    } else if (tab === 'backtest') {
+    if (tab === 'backtest') {
       if (btnBacktestSimple) {
         btnBacktestSimple.classList.remove(...inactiveClasses);
         btnBacktestSimple.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-bold');
@@ -273,6 +314,22 @@ function setupTabNavigation() {
         if (btSimpleEquityChartInstance) btSimpleEquityChartInstance.resize();
         if (btSimpleDrawdownChartInstance) btSimpleDrawdownChartInstance.resize();
       }, 50);
+    } else if (tab === 'news') {
+      if (btnNews) {
+        btnNews.classList.remove(...inactiveClasses);
+        btnNews.classList.add('bg-rose-600', 'text-white', 'shadow-lg', 'shadow-rose-600/30', 'font-bold');
+      }
+      if (viewNews) viewNews.classList.remove('hidden');
+      renderNewsView();
+    } else if (tab === 'calculator') {
+      if (btnCalculator) {
+        btnCalculator.classList.remove(...inactiveClasses);
+        btnCalculator.classList.add('bg-amber-500', 'text-black', 'shadow-lg', 'shadow-amber-500/30', 'font-black');
+      }
+      if (viewCalculator) viewCalculator.classList.remove('hidden');
+      if (typeof recalculateStandaloneCalculator === 'function') {
+        recalculateStandaloneCalculator();
+      }
     }
 
     initIcons();
@@ -281,13 +338,13 @@ function setupTabNavigation() {
 
   window.switchTabTo = switchTab;
 
-  if (btnFondeo) btnFondeo.addEventListener('click', () => switchTab('fondeo'));
-  if (btnNews) btnNews.addEventListener('click', () => switchTab('news'));
   if (btnBacktestSimple) btnBacktestSimple.addEventListener('click', () => switchTab('backtest'));
+  if (btnNews) btnNews.addEventListener('click', () => switchTab('news'));
+  if (btnCalculator) btnCalculator.addEventListener('click', () => switchTab('calculator'));
 
   let savedTab = localStorage.getItem('activeTab_orion_v3');
-  if (!savedTab || !['fondeo', 'news', 'backtest'].includes(savedTab)) {
-    savedTab = 'fondeo';
+  if (!savedTab || !['backtest', 'news', 'calculator'].includes(savedTab)) {
+    savedTab = 'backtest';
   }
   switchTab(savedTab);
 }
@@ -485,7 +542,15 @@ function renderFondeoDashboard() {
 }
 
 function getAssetBadge(asset) {
-  return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-orange-500/20 text-orange-300 border border-orange-500/40 whitespace-nowrap">🟠 AUD/JPY</span>';
+  const norm = normalizeForexAsset(asset);
+  if (norm === 'USDCAD') {
+    return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/40 whitespace-nowrap">🇺🇸🇨🇦 USDCAD</span>';
+  } else if (norm === 'AUDCAD') {
+    return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 whitespace-nowrap">🇦🇺🇨🇦 AUDCAD</span>';
+  } else if (norm === 'AUDJPY') {
+    return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 whitespace-nowrap">🇦🇺🇯🇵 AUDJPY</span>';
+  }
+  return `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-gray-700/50 text-gray-300 border border-gray-600 whitespace-nowrap">${asset || 'USDCAD'}</span>`;
 }
 
 function anyStringIncludes(str, arr) {
@@ -2109,9 +2174,11 @@ function syncBacktestUI() {
 }
 
 function syncAllAccountsUI() {
-  syncFondeoUI();
-  syncBacktestUI();
-  populateSettingsModal();
+  try { syncBacktestUI(); } catch (e) {}
+  try { populateSettingsModal(); } catch (e) {}
+  if (typeof recalculateStandaloneCalculator === 'function') {
+    try { recalculateStandaloneCalculator(); } catch (e) {}
+  }
   if (typeof applyPrivacyClasses === 'function') {
     applyPrivacyClasses();
   }
@@ -2994,15 +3061,341 @@ function updateBacktestSimplePreviews() {
   if (typeof applyPrivacyClasses === 'function') applyPrivacyClasses();
 }
 
+// ====================================================
+// CALCULADORA PROFESIONAL DE LOTE & GESTIÓN DE RIESGO
+// Pares Forex: USDCAD · AUDCAD · AUDJPY (100k Standard Contracts)
+// ====================================================
+let activeCalcPair = localStorage.getItem('calc_active_pair') || 'USDCAD';
+
+function recalculateStandaloneCalculator() {
+  const spec = getForexSpec(activeCalcPair);
+  const balInput = document.getElementById('calcAccountBalance');
+  const riskInput = document.getElementById('calcRiskPercent');
+  const slInput = document.getElementById('calcSlPips');
+  const rrInput = document.getElementById('calcRatioRR');
+  const levSelect = document.getElementById('calcLeverageSelect');
+
+  const balance = Math.max(1.0, parseFloat(balInput?.value) || 1000.0);
+  const riskPct = Math.max(0.01, parseFloat(riskInput?.value) || 1.0);
+  const slPips = Math.max(0.1, parseFloat(slInput?.value) || spec.defaultSlPips);
+  const rrRatio = Math.max(0.1, parseFloat(rrInput?.value) || 3.0);
+  const leverage = Math.max(1, parseFloat(levSelect?.value) || 300);
+
+  // Fórmulas matemáticas institucionales Forex
+  const targetRiskUsd = balance * (riskPct / 100.0);
+  const lossPerLot = slPips * spec.pipValueUsd;
+  const rawLot = lossPerLot > 0 ? (targetRiskUsd / lossPerLot) : 0.01;
+  const heroLot = Math.max(0.01, roundNum(rawLot, 2));
+
+  const actualRiskUsd = heroLot * lossPerLot;
+  const actualRiskPct = (actualRiskUsd / balance) * 100.0;
+  const actualRewardUsd = actualRiskUsd * rrRatio;
+  const actualRewardPct = actualRiskPct * rrRatio;
+
+  const positionBaseUsd = heroLot * spec.contractSize * spec.baseRateUsd;
+  const marginUsd = positionBaseUsd / leverage;
+  const marginPct = (marginUsd / balance) * 100.0;
+  const tradePipVal = heroLot * spec.pipValueUsd;
+
+  // Actualizar UI Hero & Desglose
+  const elHeroLot = document.getElementById('calcHeroLot');
+  if (elHeroLot) elHeroLot.textContent = heroLot.toFixed(2);
+
+  const elRawLot = document.getElementById('calcExactRawLot');
+  if (elRawLot) elRawLot.textContent = `Exacto: ${rawLot.toFixed(4)} L`;
+
+  const elPipValUsd = document.getElementById('calcPipValUsdText');
+  if (elPipValUsd) elPipValUsd.textContent = `$${spec.pipValueUsd.toFixed(2)}/pip`;
+
+  const elPreviewBal = document.getElementById('calcPreviewBalDisplay');
+  if (elPreviewBal) elPreviewBal.textContent = `$${formatMoney(balance)}`;
+
+  const elPreviewRisk = document.getElementById('calcPreviewRiskUsdDisplay');
+  if (elPreviewRisk) elPreviewRisk.textContent = `$${targetRiskUsd.toFixed(2)} USD`;
+
+  const elSlBadge = document.getElementById('calcSlDistanceBadge');
+  if (elSlBadge) elSlBadge.textContent = `${slPips.toFixed(1)} pips`;
+
+  const elRrBadge = document.getElementById('calcPreviewRrBadge');
+  if (elRrBadge) elRrBadge.textContent = `1:${rrRatio.toFixed(1)}`;
+
+  const elHeroRiskUsd = document.getElementById('calcHeroRiskUsd');
+  if (elHeroRiskUsd) elHeroRiskUsd.textContent = `-$${formatMoney(actualRiskUsd)}`;
+
+  const elHeroRiskPct = document.getElementById('calcHeroRiskPct');
+  if (elHeroRiskPct) elHeroRiskPct.textContent = `-${actualRiskPct.toFixed(2)}% del capital`;
+
+  const elHeroRewardUsd = document.getElementById('calcHeroRewardUsd');
+  if (elHeroRewardUsd) elHeroRewardUsd.textContent = `+$${formatMoney(actualRewardUsd)}`;
+
+  const elHeroRewardPct = document.getElementById('calcHeroRewardPct');
+  if (elHeroRewardPct) elHeroRewardPct.textContent = `+${actualRewardPct.toFixed(2)}% (1:${rrRatio.toFixed(1)})`;
+
+  const elHeroMarginUsd = document.getElementById('calcHeroMarginUsd');
+  if (elHeroMarginUsd) elHeroMarginUsd.textContent = `~$${formatMoney(marginUsd)}`;
+
+  const elHeroMarginPct = document.getElementById('calcHeroMarginPct');
+  if (elHeroMarginPct) elHeroMarginPct.textContent = `${marginPct.toFixed(1)}% del balance`;
+
+  const elHeroTradePipVal = document.getElementById('calcHeroTradePipVal');
+  if (elHeroTradePipVal) elHeroTradePipVal.textContent = `$${formatMoney(tradePipVal)} USD`;
+
+  const elHeroTradePipSub = document.getElementById('calcHeroTradePipSub');
+  if (elHeroTradePipSub) elHeroTradePipSub.textContent = `por cada pip operado (${heroLot.toFixed(2)} L)`;
+
+  // Sincronizar label del botón con balance de Backtesting
+  const curBtBal = (appState.backtest.summary && appState.backtest.summary.current_balance !== undefined)
+    ? Number(appState.backtest.summary.current_balance)
+    : (parseFloat(document.getElementById('btSimpleInitialBalance')?.value) || 1000.0);
+  const elSyncBalLabel = document.getElementById('calcSyncBalLabel');
+  if (elSyncBalLabel) elSyncBalLabel.textContent = `$${formatMoney(curBtBal)}`;
+
+  if (typeof applyPrivacyClasses === 'function') applyPrivacyClasses();
+}
+
+function updateCalculatorPairUI() {
+  const spec = getForexSpec(activeCalcPair);
+
+  // Cards de pares
+  document.querySelectorAll('.btn-calc-pair-card').forEach(btn => {
+    const p = btn.dataset.pair || 'USDCAD';
+    const isSel = (p === activeCalcPair);
+    if (isSel) {
+      if (p === 'USDCAD') {
+        btn.className = 'btn-calc-pair-card p-3.5 rounded-xl border-2 transition text-left cursor-pointer bg-blue-950/50 border-blue-500 text-white shadow-lg shadow-blue-500/20';
+      } else if (p === 'AUDCAD') {
+        btn.className = 'btn-calc-pair-card p-3.5 rounded-xl border-2 transition text-left cursor-pointer bg-emerald-950/50 border-emerald-500 text-white shadow-lg shadow-emerald-500/20';
+      } else {
+        btn.className = 'btn-calc-pair-card p-3.5 rounded-xl border-2 transition text-left cursor-pointer bg-amber-950/50 border-amber-500 text-white shadow-lg shadow-amber-500/20';
+      }
+    } else {
+      btn.className = 'btn-calc-pair-card p-3.5 rounded-xl border border-gray-800 hover:border-gray-700 transition text-left cursor-pointer bg-gray-900/60 text-gray-400 hover:text-white';
+    }
+  });
+
+  // Badge en el formulario
+  const activeBadge = document.getElementById('calcActivePairBadge');
+  if (activeBadge) {
+    if (spec.color === 'blue') {
+      activeBadge.className = 'text-xs font-mono font-bold text-blue-300 px-2.5 py-0.5 rounded-full bg-blue-950 border border-blue-800';
+    } else if (spec.color === 'emerald') {
+      activeBadge.className = 'text-xs font-mono font-bold text-emerald-300 px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-800';
+    } else {
+      activeBadge.className = 'text-xs font-mono font-bold text-amber-300 px-2.5 py-0.5 rounded-full bg-amber-950 border border-amber-800';
+    }
+    activeBadge.textContent = `${spec.flag} ${spec.displayName}`;
+  }
+
+  // Info del contrato
+  const contractInfo = document.getElementById('calcContractSizeInfo');
+  if (contractInfo) {
+    contractInfo.textContent = spec.description;
+  }
+
+  recalculateStandaloneCalculator();
+}
+
+function setupCalculatorView() {
+  // Selector de Par (Cards)
+  document.querySelectorAll('.btn-calc-pair-card').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      activeCalcPair = btn.dataset.pair || 'USDCAD';
+      try { localStorage.setItem('calc_active_pair', activeCalcPair); } catch (err) {}
+      updateCalculatorPairUI();
+    });
+  });
+
+  // Chips: Balance
+  document.querySelectorAll('.btn-calc-chip-bal').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const val = parseFloat(btn.dataset.val);
+      const inp = document.getElementById('calcAccountBalance');
+      if (inp && !isNaN(val)) {
+        inp.value = val.toFixed(2);
+        recalculateStandaloneCalculator();
+      }
+    });
+  });
+
+  // Chips: Riesgo %
+  document.querySelectorAll('.btn-calc-chip-risk').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const val = parseFloat(btn.dataset.val);
+      const inp = document.getElementById('calcRiskPercent');
+      if (inp && !isNaN(val)) {
+        inp.value = val;
+        document.querySelectorAll('.btn-calc-chip-risk').forEach(b => {
+          b.className = 'btn-calc-chip-risk py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer';
+        });
+        btn.className = 'btn-calc-chip-risk py-1 rounded text-[10px] font-mono font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/50 transition cursor-pointer';
+        recalculateStandaloneCalculator();
+      }
+    });
+  });
+
+  // Chips: Stop Loss Pips
+  document.querySelectorAll('.btn-calc-chip-sl').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const val = parseFloat(btn.dataset.val);
+      const inp = document.getElementById('calcSlPips');
+      if (inp && !isNaN(val)) {
+        inp.value = val;
+        const entryInp = document.getElementById('calcEntryPrice');
+        const slPriceInp = document.getElementById('calcSlPrice');
+        if (entryInp) entryInp.value = '';
+        if (slPriceInp) slPriceInp.value = '';
+        document.querySelectorAll('.btn-calc-chip-sl').forEach(b => {
+          b.className = 'btn-calc-chip-sl py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer';
+        });
+        btn.className = 'btn-calc-chip-sl py-1 rounded text-[10px] font-mono font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/50 transition cursor-pointer';
+        recalculateStandaloneCalculator();
+      }
+    });
+  });
+
+  // Chips: Ratio R:R
+  document.querySelectorAll('.btn-calc-chip-rr').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const val = parseFloat(btn.dataset.val);
+      const inp = document.getElementById('calcRatioRR');
+      if (inp && !isNaN(val)) {
+        inp.value = val;
+        document.querySelectorAll('.btn-calc-chip-rr').forEach(b => {
+          b.className = 'btn-calc-chip-rr py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer';
+        });
+        btn.className = 'btn-calc-chip-rr py-1 rounded text-[9px] font-mono font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/50 transition cursor-pointer';
+        recalculateStandaloneCalculator();
+      }
+    });
+  });
+
+  // Precios Entrada / SL dinámicos -> actualizan pips automáticamente
+  function handlePriceInputs() {
+    const entryVal = parseFloat(document.getElementById('calcEntryPrice')?.value);
+    const slVal = parseFloat(document.getElementById('calcSlPrice')?.value);
+    const spec = getForexSpec(activeCalcPair);
+    if (!isNaN(entryVal) && !isNaN(slVal) && entryVal > 0 && slVal > 0) {
+      const diff = Math.abs(entryVal - slVal);
+      const pips = diff / spec.pipSize;
+      if (pips > 0) {
+        const slInput = document.getElementById('calcSlPips');
+        if (slInput) slInput.value = roundNum(pips, 1);
+      }
+    }
+    recalculateStandaloneCalculator();
+  }
+
+  const elEntryPrice = document.getElementById('calcEntryPrice');
+  if (elEntryPrice) {
+    elEntryPrice.addEventListener('input', handlePriceInputs);
+    elEntryPrice.addEventListener('change', handlePriceInputs);
+  }
+  const elSlPrice = document.getElementById('calcSlPrice');
+  if (elSlPrice) {
+    elSlPrice.addEventListener('input', handlePriceInputs);
+    elSlPrice.addEventListener('change', handlePriceInputs);
+  }
+
+  // Inputs en tiempo real
+  ['calcAccountBalance', 'calcRiskPercent', 'calcSlPips', 'calcRatioRR', 'calcLeverageSelect'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', recalculateStandaloneCalculator);
+      el.addEventListener('change', recalculateStandaloneCalculator);
+    }
+  });
+
+  // Botón Sincronizar Balance con Backtest
+  const btnSync = document.getElementById('btnCalcSyncBacktest');
+  if (btnSync) {
+    btnSync.addEventListener('click', (e) => {
+      e.preventDefault();
+      const curBtBal = (appState.backtest.summary && appState.backtest.summary.current_balance !== undefined)
+        ? Number(appState.backtest.summary.current_balance)
+        : (parseFloat(document.getElementById('btSimpleInitialBalance')?.value) || 1000.0);
+      const balInp = document.getElementById('calcAccountBalance');
+      if (balInp) balInp.value = curBtBal.toFixed(2);
+      recalculateStandaloneCalculator();
+      showToast(`Balance sincronizado de Backtesting: $${formatMoney(curBtBal)} USD`, 'info');
+    });
+  }
+
+  // Botón Copiar Lote
+  const btnCopy = document.getElementById('btnCalcCopyLot');
+  if (btnCopy) {
+    btnCopy.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const lotVal = document.getElementById('calcHeroLot')?.textContent?.trim() || '0.01';
+      try {
+        await navigator.clipboard.writeText(lotVal);
+        const lbl = document.getElementById('btnCalcCopyLotText');
+        if (lbl) {
+          const prev = lbl.textContent;
+          lbl.textContent = '¡Copiado! ✓';
+          setTimeout(() => { lbl.textContent = prev; }, 2000);
+        }
+        showToast(`Lote copiado al portapapeles: ${lotVal}`, 'success', 2000);
+      } catch (err) {
+        showToast(`Lote: ${lotVal} (selecciona y copia manualmente)`, 'info', 3000);
+      }
+    });
+  }
+
+  // Botón Transferir Parámetros a Backtesting
+  const btnApply = document.getElementById('btnCalcApplyToBacktest');
+  if (btnApply) {
+    btnApply.addEventListener('click', (e) => {
+      e.preventDefault();
+      const pair = activeCalcPair;
+      const risk = parseFloat(document.getElementById('calcRiskPercent')?.value) || 1.0;
+      const rr = parseFloat(document.getElementById('calcRatioRR')?.value) || 3.0;
+      const sl = parseFloat(document.getElementById('calcSlPips')?.value) || 25.0;
+
+      // Transferir a formulario y configuración de Backtesting
+      const btRiskInp = document.getElementById('btSimpleRiskPct');
+      if (btRiskInp) btRiskInp.value = risk;
+      const btRrInp = document.getElementById('btSimpleRR');
+      if (btRrInp) btRrInp.value = rr;
+      const btSlInp = document.getElementById('btSimpleManualSlPoints');
+      if (btSlInp) btSlInp.value = sl;
+
+      if (typeof window.selectBtAsset === 'function') {
+        window.selectBtAsset(pair);
+      }
+      if (typeof updateBacktestSimplePreviews === 'function') {
+        updateBacktestSimplePreviews();
+      }
+      if (typeof window.switchTabTo === 'function') {
+        window.switchTabTo('backtest');
+      }
+      showToast(`🚀 ¡Parámetros aplicados al Backtesting! (${pair} · ${risk}% · 1:${rr} · ${sl}p)`, 'success', 3500);
+    });
+  }
+
+  updateCalculatorPairUI();
+}
+
 function setupBacktestSimpleView() {
-  let selectedBtSimpleAsset = 'AUD/JPY';
+  let selectedBtSimpleAsset = 'USDCAD';
 
   function updateBtSimpleAssetUI() {
     document.querySelectorAll('.btn-bt-asset').forEach(btn => {
-      const a = btn.dataset.asset || 'AUD/JPY';
+      const a = btn.dataset.asset || 'USDCAD';
       const isSel = (a === selectedBtSimpleAsset);
+      const spec = getForexSpec(a);
       if (isSel) {
-        btn.className = 'btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-orange-500/20 text-orange-300 border border-orange-500/50 shadow-sm shadow-orange-500/20';
+        if (spec.color === 'blue') {
+          btn.className = 'btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-blue-500/20 text-blue-300 border border-blue-500/50 shadow-sm';
+        } else if (spec.color === 'emerald') {
+          btn.className = 'btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm';
+        } else {
+          btn.className = 'btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm';
+        }
       } else {
         btn.className = 'btn-bt-asset px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 border border-gray-700';
       }
@@ -3012,11 +3405,12 @@ function setupBacktestSimpleView() {
     if (manualAssetSel) manualAssetSel.value = selectedBtSimpleAsset;
 
     const slLabel = document.getElementById('btSimpleManualSlLabel');
-    if (slLabel) slLabel.textContent = 'Stop Loss en Pips (AUD/JPY)';
+    if (slLabel) slLabel.textContent = `Stop Loss en Pips (${selectedBtSimpleAsset})`;
 
     const slInput = document.getElementById('btSimpleManualSlPoints');
     if (slInput) {
-      const bSl = Number(appState.backtest?.config?.sl_pips || 25);
+      const spec = getForexSpec(selectedBtSimpleAsset);
+      const bSl = Number(appState.backtest?.config?.sl_pips || spec.defaultSlPips || 25);
       if (!slInput.value || parseFloat(slInput.value) <= 0) {
         slInput.value = bSl;
       }
@@ -3025,13 +3419,26 @@ function setupBacktestSimpleView() {
     updateBacktestSimplePreviews();
   }
 
+  window.selectBtAsset = function(asset) {
+    selectedBtSimpleAsset = normalizeForexAsset(asset);
+    updateBtSimpleAssetUI();
+  };
+
   document.querySelectorAll('.btn-bt-asset').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      selectedBtSimpleAsset = btn.dataset.asset || 'AUD/JPY';
+      selectedBtSimpleAsset = btn.dataset.asset || 'USDCAD';
       updateBtSimpleAssetUI();
     });
   });
+
+  const manualAssetSel = document.getElementById('btSimpleManualAsset');
+  if (manualAssetSel) {
+    manualAssetSel.addEventListener('change', () => {
+      selectedBtSimpleAsset = manualAssetSel.value;
+      updateBtSimpleAssetUI();
+    });
+  }
 
   // Preset Chips: Capital Inicial
   document.querySelectorAll('.btn-bt-chip-balance').forEach(btn => {
@@ -3143,14 +3550,16 @@ function setupBacktestSimpleView() {
     });
   }
 
-  // Helper para registrar trade rápido en Backtesting (AUD/JPY)
+  // Helper para registrar trade rápido en Backtesting
   async function submitQuickBtTrade(status) {
     const rr = parseFloat(document.getElementById('btSimpleRR')?.value) || 3.0;
     const risk = parseFloat(document.getElementById('btSimpleRiskPct')?.value) || 1.0;
     const now = new Date();
     const pad = (n) => String(n).padStart(2, '0');
     const dateStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-    const slUnits = 25; // 25 pips por defecto para AUD/JPY
+    const asset = selectedBtSimpleAsset || 'USDCAD';
+    const spec = getForexSpec(asset);
+    const slUnits = parseFloat(document.getElementById('btSimpleManualSlPoints')?.value) || spec.defaultSlPips || 25.0;
 
     try {
       const res = await fetch('/api/trades?mode=backtest', {
@@ -3158,7 +3567,7 @@ function setupBacktestSimpleView() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           mode: 'backtest',
-          asset: 'AUD/JPY',
+          asset: asset,
           status: status,
           direction: status === 'loss' ? 'SELL' : 'BUY',
           rr: rr,
@@ -3166,9 +3575,9 @@ function setupBacktestSimpleView() {
           sl_pips: slUnits,
           tv_points: slUnits,
           date: dateStr,
-          strategy: `Estrategia Rápida 1-Click (AUD/JPY)`,
+          strategy: `Estrategia Rápida 1-Click (${asset})`,
           emotion: 'Plan 100% Seguido',
-          notes: `Trade Rápido AUD/JPY (${status.toUpperCase()} ${status === 'win' ? `+${rr}R` : (status === 'loss' ? '-1R' : 'BE')})`
+          notes: `Trade Rápido ${asset} (${status.toUpperCase()} ${status === 'win' ? `+${rr}R` : (status === 'loss' ? '-1R' : 'BE')})`
         })
       });
       if (res.ok) {
@@ -3195,7 +3604,7 @@ function setupBacktestSimpleView() {
   const btnAddManual = document.getElementById('btnBtSimpleAddManualTrade');
   if (btnAddManual) {
     btnAddManual.addEventListener('click', async () => {
-      const asset = document.getElementById('btSimpleManualAsset')?.value || 'AUD/JPY';
+      const asset = document.getElementById('btSimpleManualAsset')?.value || selectedBtSimpleAsset || 'USDCAD';
       const dir = document.getElementById('btSimpleManualDirection')?.value || 'BUY';
       const status = document.getElementById('btSimpleManualStatus')?.value || 'win';
       const manualRrInput = document.getElementById('btSimpleManualRR')?.value;
@@ -9364,7 +9773,7 @@ function applyPrivacyClasses() {
 
   // 3. Escaneo Profundo Dinámico: cualquier nodo hoja que muestre signo $ o moneda
   const dollarRegex = /\$\s*[\d,]+(\.[\d]+)?/;
-  const scanContainers = document.querySelectorAll('#viewFondeo, #viewRealJournal, #viewBacktestSimple, #modalWithdraw, #modalSettings');
+  const scanContainers = document.querySelectorAll('#viewCalculator, #viewBacktestSimple, #modalSettings');
   scanContainers.forEach(container => {
     const candidates = container.querySelectorAll('span, strong, p, div, b');
     candidates.forEach(el => {
@@ -11493,11 +11902,15 @@ function collectAllLiveDashboardData() {
   appState.backtest.config.rr_ratio = btRr;
   appState.backtest.config.sl_pips = btSl;
   appState.backtest.config.sl_default = btSl;
-  appState.backtest.config.asset = 'AUD/JPY';
+  const activeBtAsset = document.getElementById('btSimpleManualAsset')?.value || 'USDCAD';
+  appState.backtest.config.asset = activeBtAsset;
 
   appState.config = Object.assign({}, appState.config, appState.backtest.config);
 
-  const activeTab = appState.activeTab || localStorage.getItem('activeTab_orion_v3') || 'fondeo';
+  let activeTab = appState.activeTab || localStorage.getItem('activeTab_orion_v3') || 'backtest';
+  if (!['backtest', 'news', 'calculator'].includes(activeTab)) {
+    activeTab = 'backtest';
+  }
 
   return {
     configs: {
@@ -11509,7 +11922,7 @@ function collectAllLiveDashboardData() {
       backtest: appState.backtest.trades || []
     },
     ui: {
-      activeTab: activeTab === 'real' ? 'fondeo' : activeTab,
+      activeTab: activeTab,
       isSoundAlertEnabled: (typeof isSoundAlertEnabled !== 'undefined') ? isSoundAlertEnabled : true
     }
   };
@@ -11577,7 +11990,7 @@ async function saveAllDashboardData(triggerSource = 'button') {
 
       syncAllAccountsUI();
 
-      showToast(`💾 ¡Todo Guardado! Aseguradas: Fondeo ($${formatMoney(payload.configs.fondeo.initial_balance)}) y Backtest ($${formatMoney(payload.configs.backtest.initial_balance)})`, 'success', 3500);
+      showToast(`💾 ¡Todo Guardado! Configuración y Backtesting asegurados con éxito ($${formatMoney(payload.configs.backtest.initial_balance)})`, 'success', 3500);
 
       if (btn) {
         btn.className = 'px-3.5 py-1.5 bg-emerald-600 text-white text-xs font-black rounded-lg shadow-lg shadow-emerald-500/40 transition flex items-center gap-1.5 cursor-pointer border border-emerald-300';
