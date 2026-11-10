@@ -101,21 +101,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadBacktestSimpleData();
   setupBacktestSimpleView();
 
-  // Bitácora Real Tickmill (XAU/USD)
-  await loadTrades('real');
-  setupRealJournalView();
-
-  // 6 Nuevas Mejoras Integrales AUD/JPY (v3.4)
-  setupUsdJpyCalibrator();
+  // Mejoras Integrales Fondeo & Backtest
   setupPeriodFilterButtons();
   setupMonteCarloModal();
-  setupWithdrawRealModal();
   setupBackupAndRestoreEvents();
   setupSaveAllButton();
 
-  // Restaurar pestaña activa tras carga asíncrona completa
+  // Restaurar pestaña activa tras carga asíncrona completa (Fondeo, Noticias, Backtest)
   let savedTab = localStorage.getItem('activeTab_orion_v3');
-  if (!savedTab || !['fondeo', 'real', 'news', 'backtest'].includes(savedTab)) {
+  if (!savedTab || !['fondeo', 'news', 'backtest'].includes(savedTab)) {
     savedTab = 'fondeo';
   }
   if (typeof window.switchTabTo === 'function') {
@@ -207,12 +201,10 @@ function formatMoney(val) {
 // ----------------------------------------------------
 function setupTabNavigation() {
   const btnFondeo = document.getElementById('tabBtnFondeo');
-  const btnReal = document.getElementById('tabBtnReal');
   const btnNews = document.getElementById('tabBtnNews');
   const btnBacktestSimple = document.getElementById('tabBtnBacktestSimple');
 
   const viewFondeo = document.getElementById('viewFondeo');
-  const viewRealJournal = document.getElementById('viewRealJournal');
   const viewNews = document.getElementById('viewNews');
   const viewBacktestSimple = document.getElementById('viewBacktestSimple');
 
@@ -225,9 +217,12 @@ function setupTabNavigation() {
         if (rulesSec) rulesSec.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     }
-    // Si se invoca 'premarket', redirigir a noticias
+    // Si se invoca 'premarket' o 'real', normalizar
     if (tab === 'premarket') {
       tab = 'news';
+    }
+    if (tab === 'real') {
+      tab = 'fondeo';
     }
 
     appState.activeTab = tab;
@@ -238,7 +233,7 @@ function setupTabNavigation() {
     const activeClasses = ['bg-amber-500', 'bg-rose-600', 'bg-emerald-600', 'text-black', 'text-white', 'shadow-lg', 'shadow-amber-500/30', 'shadow-rose-600/30', 'shadow-emerald-600/30', 'font-black', 'font-bold'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnFondeo, btnReal, btnNews, btnBacktestSimple].forEach(btn => {
+    [btnFondeo, btnNews, btnBacktestSimple].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
@@ -246,7 +241,6 @@ function setupTabNavigation() {
     });
 
     if (viewFondeo) viewFondeo.classList.add('hidden');
-    if (viewRealJournal) viewRealJournal.classList.add('hidden');
     if (viewNews) viewNews.classList.add('hidden');
     if (viewBacktestSimple) viewBacktestSimple.classList.add('hidden');
 
@@ -260,17 +254,6 @@ function setupTabNavigation() {
       setTimeout(() => {
         if (fondeoEquityChart) fondeoEquityChart.resize();
       }, 50);
-    } else if (tab === 'real') {
-      if (btnReal) {
-        btnReal.classList.remove(...inactiveClasses);
-        btnReal.classList.add('bg-emerald-600', 'text-white', 'shadow-lg', 'shadow-emerald-600/30', 'font-bold');
-      }
-      if (viewRealJournal) viewRealJournal.classList.remove('hidden');
-      loadTrades('real').then(() => {
-        renderRealJournalDashboard();
-        if (typeof syncRealUI === 'function') syncRealUI();
-        else if (typeof recalculateRealQuickLot === 'function') recalculateRealQuickLot();
-      });
     } else if (tab === 'news') {
       if (btnNews) {
         btnNews.classList.remove(...inactiveClasses);
@@ -299,12 +282,11 @@ function setupTabNavigation() {
   window.switchTabTo = switchTab;
 
   if (btnFondeo) btnFondeo.addEventListener('click', () => switchTab('fondeo'));
-  if (btnReal) btnReal.addEventListener('click', () => switchTab('real'));
   if (btnNews) btnNews.addEventListener('click', () => switchTab('news'));
   if (btnBacktestSimple) btnBacktestSimple.addEventListener('click', () => switchTab('backtest'));
 
   let savedTab = localStorage.getItem('activeTab_orion_v3');
-  if (!savedTab || !['fondeo', 'real', 'news', 'backtest'].includes(savedTab)) {
+  if (!savedTab || !['fondeo', 'news', 'backtest'].includes(savedTab)) {
     savedTab = 'fondeo';
   }
   switchTab(savedTab);
@@ -1701,8 +1683,8 @@ function setupFondeoActionButtons() {
   const btnClearAll = document.getElementById('btnClearData');
   if (btnClearAll) {
     btnClearAll.addEventListener('click', async () => {
-      const currentTab = appState.activeTab;
-      const tabName = currentTab === 'fondeo' ? 'Orion Nova 50K' : currentTab === 'real' ? 'Cuenta Real' : 'Backtest';
+      const currentTab = appState.activeTab === 'backtest' ? 'backtest' : 'fondeo';
+      const tabName = currentTab === 'fondeo' ? 'Orion Nova 50K' : 'Backtesting';
       if (!confirm(`¿Deseas reiniciar y limpiar los datos de la pestaña activa (${tabName})?`)) return;
 
       try {
@@ -1715,16 +1697,6 @@ function setupFondeoActionButtons() {
           if (currentTab === 'fondeo') {
             await loadFondeoTrades();
             showToast('Historial de fondeo reiniciado correctamente', 'success');
-          } else if (currentTab === 'real') {
-            try {
-              localStorage.removeItem('cached_real_trades_v2');
-              localStorage.removeItem('cached_real_trades');
-            } catch (e) {}
-            appState.real.trades = [];
-            await loadTrades('real');
-            renderRealJournalDashboard();
-            recalculateRealQuickLot();
-            showToast('Historial de la cuenta real reiniciado correctamente', 'success');
           } else {
             appState.backtest.trades = [];
             await loadTrades('backtest');
@@ -2138,7 +2110,6 @@ function syncBacktestUI() {
 
 function syncAllAccountsUI() {
   syncFondeoUI();
-  syncRealUI();
   syncBacktestUI();
   populateSettingsModal();
   if (typeof applyPrivacyClasses === 'function') {
@@ -11153,7 +11124,8 @@ function runMonteCarloSimulation() {
 // Medición Dual (Porcentaje vs Monto), Recálculo de Balance
 // Registro Auditado en Historial de Operaciones
 // -------------------------------------------------------------
-function setupWithdrawRealModal() {
+function setupWithdrawRealModal() { return; /* Desactivado */
+
   const modal = document.getElementById('modalWithdrawReal');
   const btnOpen = document.getElementById('btnOpenRealWithdrawModal');
   const btnClose = document.getElementById('btnCloseWithdrawModal');
@@ -11458,45 +11430,7 @@ function setupBackupAndRestoreEvents() {
 // 7. Botón de Guardado General (Todas las Pestañas) & Cmd+S
 // -------------------------------------------------------------
 function collectAllLiveDashboardData() {
-  // 1. REAL: balance, risk, leverage, rr, sl
-  const realBalInp = document.getElementById('realCalcBalance');
-  const realSettingBalInp = document.getElementById('settingRealInitialBalance');
-  let realBal = null;
-  if (realBalInp && !isNaN(parseFloat(realBalInp.value)) && parseFloat(realBalInp.value) > 0) {
-    realBal = parseFloat(realBalInp.value);
-  } else if (realSettingBalInp && !isNaN(parseFloat(realSettingBalInp.value)) && parseFloat(realSettingBalInp.value) > 0) {
-    realBal = parseFloat(realSettingBalInp.value);
-  } else if (appState.real?.config?.initial_balance) {
-    realBal = Number(appState.real.config.initial_balance);
-  } else {
-    realBal = 107.83;
-  }
-
-  const realRiskInp = document.getElementById('realCalcRiskPct');
-  const realSettingRiskInp = document.getElementById('settingRealRiskPct');
-  const realRisk = parseFloat(realRiskInp?.value) || parseFloat(realSettingRiskInp?.value) || Number(appState.real?.config?.risk_pct) || 1.0;
-
-  const realLev = parseFloat(document.getElementById('settingRealLeverage')?.value) || Number(appState.real?.config?.leverage) || 300.0;
-  const realRr = parseFloat(document.getElementById('realCalcRR')?.value) || Number(appState.real?.config?.rr_ratio) || 2.0;
-  const realSl = parseFloat(document.getElementById('realCalcSlPoints')?.value) || Number(appState.real?.config?.sl_pips) || 25.0;
-
-  if (!appState.real) appState.real = {};
-  if (!appState.real.config) appState.real.config = {};
-  appState.real.config.initial_balance = realBal;
-  appState.real.config.risk_pct = realRisk;
-  appState.real.config.leverage = realLev;
-  appState.real.config.rr_ratio = realRr;
-  appState.real.config.sl_pips = realSl;
-  appState.real.config.sl_default = realSl;
-  appState.real.config.asset = 'AUD/JPY';
-
-  if (!appState.real.summary) appState.real.summary = {};
-  if (!appState.real.trades || appState.real.trades.length === 0) {
-    appState.real.summary.initial_balance = realBal;
-    appState.real.summary.current_balance = realBal;
-  }
-
-  // 2. FONDEO: balance, risk, leverage, rr, sl
+  // 1. FONDEO: balance, risk, leverage, rr, sl
   const fondeoBalInp = document.getElementById('settingFondeoInitialBalance');
   const fondeoBal = parseFloat(fondeoBalInp?.value) || Number(appState.fondeo?.config?.initial_balance) || 50000.0;
 
@@ -11531,7 +11465,7 @@ function collectAllLiveDashboardData() {
     appState.fondeo.summary.current_balance = fondeoBal;
   }
 
-  // 3. BACKTEST: balance, risk, leverage, rr, sl
+  // 2. BACKTEST: balance, risk, leverage, rr, sl
   const btBalInp = document.getElementById('btSimpleInitialBalance');
   const btSettingBalInp = document.getElementById('settingBacktestInitialBalance');
   let btBal = 1000.0;
@@ -11568,16 +11502,14 @@ function collectAllLiveDashboardData() {
   return {
     configs: {
       fondeo: appState.fondeo.config,
-      real: appState.real.config,
       backtest: appState.backtest.config
     },
     trades: {
       fondeo: appState.fondeo.trades || [],
-      real: appState.real.trades || [],
       backtest: appState.backtest.trades || []
     },
     ui: {
-      activeTab: activeTab,
+      activeTab: activeTab === 'real' ? 'fondeo' : activeTab,
       isSoundAlertEnabled: (typeof isSoundAlertEnabled !== 'undefined') ? isSoundAlertEnabled : true
     }
   };
@@ -11645,7 +11577,7 @@ async function saveAllDashboardData(triggerSource = 'button') {
 
       syncAllAccountsUI();
 
-      showToast(`💾 ¡Todo Guardado! Aseguradas: Fondeo ($${formatMoney(payload.configs.fondeo.initial_balance)}), Real ($${formatMoney(payload.configs.real.initial_balance)}) y Backtest ($${formatMoney(payload.configs.backtest.initial_balance)})`, 'success', 3500);
+      showToast(`💾 ¡Todo Guardado! Aseguradas: Fondeo ($${formatMoney(payload.configs.fondeo.initial_balance)}) y Backtest ($${formatMoney(payload.configs.backtest.initial_balance)})`, 'success', 3500);
 
       if (btn) {
         btn.className = 'px-3.5 py-1.5 bg-emerald-600 text-white text-xs font-black rounded-lg shadow-lg shadow-emerald-500/40 transition flex items-center gap-1.5 cursor-pointer border border-emerald-300';
