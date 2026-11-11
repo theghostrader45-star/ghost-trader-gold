@@ -3012,24 +3012,17 @@ async function loadBacktestSimpleData() {
       const data = await resTrades.json();
       appState.backtest.summary = data.summary || {};
       appState.backtest.equityCurve = data.equity_curve || [];
-      const serverBtTrades = data.trades || [];
-      if (serverBtTrades.length > 0) {
-        appState.backtest.trades = serverBtTrades;
-        try { localStorage.setItem('cached_backtest_trades_v2', JSON.stringify(serverBtTrades)); } catch (e) {}
-      } else {
-        const cached = localStorage.getItem('cached_backtest_trades_v2');
-        if (cached) {
-          try {
-            const parsed = JSON.parse(cached);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              appState.backtest.trades = parsed;
-            } else {
-              appState.backtest.trades = [];
-            }
-          } catch (e) {
-            appState.backtest.trades = [];
-          }
-        } else {
+      const serverBtTrades = Array.isArray(data.trades) ? data.trades : [];
+      appState.backtest.trades = serverBtTrades;
+      try { localStorage.setItem('cached_backtest_trades_v2', JSON.stringify(serverBtTrades)); } catch (e) {}
+    } else {
+      // Offline fallback solo si falla la red con el servidor
+      const cached = localStorage.getItem('cached_backtest_trades_v2');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          appState.backtest.trades = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
           appState.backtest.trades = [];
         }
       }
@@ -3196,7 +3189,9 @@ window.setBacktestInterestMode = async function(mode, triggerRecalc = true) {
 // ----------------------------------------------------
 // GUARDADO DE BALANCE EN RENDER & ALMACENAMIENTO PERMANENTE
 // ----------------------------------------------------
+let isSavingBtBalance = false;
 window.saveBacktestInitialBalance = async function(source = 'button') {
+  if (isSavingBtBalance) return;
   const inpBal = document.getElementById('btSimpleInitialBalance');
   if (!inpBal) return;
   const val = parseFloat(inpBal.value);
@@ -3204,6 +3199,8 @@ window.saveBacktestInitialBalance = async function(source = 'button') {
     showToast('Por favor introduce un capital válido mayor a 0', 'warning');
     return;
   }
+
+  isSavingBtBalance = true;
 
   // 1. Actualizar estado reactivo
   if (!appState.backtest.config) appState.backtest.config = {};
@@ -3245,27 +3242,11 @@ window.saveBacktestInitialBalance = async function(source = 'button') {
 
   const rr = parseFloat(document.getElementById('btSimpleRR')?.value) || 3.0;
   const risk = parseFloat(document.getElementById('btSimpleRiskPct')?.value) || 1.0;
-  const intMode = appState.backtest.interestMode || localStorage.getItem('cached_backtest_interest_mode') || 'compound';
+  const intMode = appState.backtest?.interestMode || localStorage.getItem('cached_backtest_interest_mode') || 'compound';
 
   try {
-    // 5. Enviar POST a Render para persistir en disco del servidor
-    await fetch('/api/config', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mode: 'backtest',
-        initial_balance: val,
-        interest_mode: intMode,
-        backtest: {
-          initial_balance: val,
-          interest_mode: intMode,
-          rr_ratio: rr,
-          risk_pct: risk
-        }
-      })
-    });
-
-    const resRecalc = await fetch('/api/recalculate', {
+    // 5. Enviar POST a Render para persistir en disco del servidor Y recalcular
+    const resRecalc = await fetch('/api/recalculate?mode=backtest', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -3282,7 +3263,7 @@ window.saveBacktestInitialBalance = async function(source = 'button') {
       appState.backtest.summary = data.summary || {};
       appState.backtest.equityCurve = data.equity_curve || [];
       appState.backtest.trades = data.trades || [];
-      try { localStorage.removeItem('cached_backtest_trades_v2'); } catch (e) {}
+      try { localStorage.setItem('cached_backtest_trades_v2', JSON.stringify(appState.backtest.trades)); } catch (e) {}
       renderBacktestSimpleDashboard();
     } else {
       updateBacktestSimplePreviews();
@@ -3327,6 +3308,8 @@ window.saveBacktestInitialBalance = async function(source = 'button') {
     }
     showToast(`✓ Balance guardado en navegador: $${formatMoney(val)} USD`, 'info', 3000);
     updateBacktestSimplePreviews();
+  } finally {
+    isSavingBtBalance = false;
   }
 };
 
@@ -3459,10 +3442,21 @@ window.recalculateBacktestSimple = async function() {
   }
 };
 
+let isClearingBtTrades = false;
 window.clearBacktestSimpleTrades = async function() {
-  if (!confirm('¿Estás seguro de que deseas limpiar todas las operaciones del Backtesting Simple?')) return;
+  if (isClearingBtTrades) return;
+  const ok = confirm('¿Estás seguro de que deseas limpiar todas las operaciones del Backtesting Simple?');
+  if (!ok) return;
+
+  isClearingBtTrades = true;
+  const btnClear = document.getElementById('btnBtSimpleClear');
+  if (btnClear) {
+    btnClear.style.pointerEvents = 'none';
+    btnClear.classList.add('opacity-50');
+  }
+
   try {
-    const res = await fetch('/api/trades/clear', {
+    const res = await fetch('/api/trades/clear?mode=backtest', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: 'backtest' })
@@ -3471,8 +3465,11 @@ window.clearBacktestSimpleTrades = async function() {
       const data = await res.json();
       appState.backtest.summary = data.summary || {};
       appState.backtest.equityCurve = data.equity_curve || [];
-      appState.backtest.trades = data.trades || [];
-      try { localStorage.removeItem('cached_backtest_trades_v2'); } catch (e) {}
+      appState.backtest.trades = [];
+      try {
+        localStorage.removeItem('cached_backtest_trades_v2');
+        localStorage.setItem('cached_backtest_trades_v2', '[]');
+      } catch (e) {}
       renderBacktestSimpleDashboard();
       showToast('✓ Historial de Backtesting limpiado', 'info', 2500);
     } else {
@@ -3481,6 +3478,12 @@ window.clearBacktestSimpleTrades = async function() {
   } catch (e) {
     console.error('Error limpiando backtest:', e);
     showToast('❌ Error de conexión al limpiar', 'error');
+  } finally {
+    isClearingBtTrades = false;
+    if (btnClear) {
+      btnClear.style.pointerEvents = '';
+      btnClear.classList.remove('opacity-50');
+    }
   }
 };
 
@@ -3497,7 +3500,24 @@ window.setBacktestTableFilter = function(filter) {
 };
 
 // Helper global para registrar trade rápido en Backtesting (1-Click WIN / LOSS / BE)
+let isSubmittingBtTrade = false;
 window.submitQuickBtTrade = async function(status) {
+  if (isSubmittingBtTrade) return;
+  isSubmittingBtTrade = true;
+
+  const btnWin = document.getElementById('btnBtSimpleQuickWin');
+  const btnLoss = document.getElementById('btnBtSimpleQuickLoss');
+  const btnBe = document.getElementById('btnBtSimpleQuickBe');
+  const activeBtn = status === 'win' ? btnWin : (status === 'loss' ? btnLoss : btnBe);
+
+  // Bloqueo visual y físico inmediato para evitar dobles clics
+  [btnWin, btnLoss, btnBe].forEach(b => {
+    if (b) {
+      b.style.pointerEvents = 'none';
+      b.classList.add('opacity-60');
+    }
+  });
+
   const rr = parseFloat(document.getElementById('btSimpleRR')?.value) || 3.0;
   const risk = parseFloat(document.getElementById('btSimpleRiskPct')?.value) || 1.0;
   const intMode = appState.backtest?.interestMode || localStorage.getItem('cached_backtest_interest_mode') || 'compound';
@@ -3507,15 +3527,6 @@ window.submitQuickBtTrade = async function(status) {
   const asset = (typeof selectedBtSimpleAsset !== 'undefined' && selectedBtSimpleAsset) ? selectedBtSimpleAsset : 'USDCAD';
   const spec = (typeof getForexSpec === 'function') ? getForexSpec(asset) : { defaultSlPips: 25.0 };
   const slUnits = spec.defaultSlPips || 25.0;
-
-  const btnWin = document.getElementById('btnBtSimpleQuickWin');
-  const btnLoss = document.getElementById('btnBtSimpleQuickLoss');
-  const btnBe = document.getElementById('btnBtSimpleQuickBe');
-  const activeBtn = status === 'win' ? btnWin : (status === 'loss' ? btnLoss : btnBe);
-
-  if (activeBtn) {
-    activeBtn.classList.add('opacity-70', 'scale-[0.98]');
-  }
 
   try {
     const res = await fetch('/api/trades?mode=backtest', {
@@ -3542,7 +3553,7 @@ window.submitQuickBtTrade = async function(status) {
       const analytics = data.analytics || data;
       appState.backtest.summary = analytics.summary || {};
       appState.backtest.equityCurve = analytics.equity_curve || [];
-      appState.backtest.trades = analytics.trades || [];
+      appState.backtest.trades = Array.isArray(analytics.trades) ? analytics.trades : [];
       try { localStorage.setItem('cached_backtest_trades_v2', JSON.stringify(appState.backtest.trades)); } catch (e) {}
       renderBacktestSimpleDashboard();
       if (status === 'win') {
@@ -3560,9 +3571,13 @@ window.submitQuickBtTrade = async function(status) {
     console.error('Error enviando trade rápido backtest:', e);
     showToast(`❌ Error de conexión: ${e.message || 'Verifica tu red'}`, 'error', 4000);
   } finally {
-    if (activeBtn) {
-      activeBtn.classList.remove('opacity-70', 'scale-[0.98]');
-    }
+    isSubmittingBtTrade = false;
+    [btnWin, btnLoss, btnBe].forEach(b => {
+      if (b) {
+        b.style.pointerEvents = '';
+        b.classList.remove('opacity-60');
+      }
+    });
   }
 };
 
@@ -3973,42 +3988,6 @@ function setupBacktestSimpleView() {
     });
   }
 
-  // Botón Dedicado: Guardar Balance Inicial en Render & LocalStorage
-  const btnSaveBtBal = document.getElementById('btnBtSimpleSaveBalance');
-  if (btnSaveBtBal) {
-    btnSaveBtBal.addEventListener('click', (e) => {
-      e.preventDefault();
-      window.saveBacktestInitialBalance('button');
-    });
-  }
-
-  // Preset Chips: Capital Inicial (con auto-guardado en Render)
-  document.querySelectorAll('.btn-bt-chip-balance').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const val = parseFloat(btn.dataset.val);
-      window.setBacktestChipBalance(val);
-    });
-  });
-
-  // Preset Chips: R:R
-  document.querySelectorAll('.btn-bt-chip-rr').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const val = parseFloat(btn.dataset.val);
-      window.setBacktestChipRR(val);
-    });
-  });
-
-  // Preset Chips: % Riesgo
-  document.querySelectorAll('.btn-bt-chip-risk').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const val = parseFloat(btn.dataset.val);
-      window.setBacktestChipRisk(val);
-    });
-  });
-
   // Live input events for dynamic recalculation previews
   ['btSimpleInitialBalance', 'btSimpleRR', 'btSimpleRiskPct'].forEach(id => {
     const el = document.getElementById(id);
@@ -4045,38 +4024,9 @@ function setupBacktestSimpleView() {
     });
   }
 
-  // Toggle Segmentado: Interés Compuesto vs Interés Simple
-  const btnModeComp = document.getElementById('btnBtModeCompound');
-  if (btnModeComp) {
-    btnModeComp.addEventListener('click', (e) => {
-      e.preventDefault();
-      window.setBacktestInterestMode('compound');
-    });
-  }
-  const btnModeSimple = document.getElementById('btnBtModeSimple');
-  if (btnModeSimple) {
-    btnModeSimple.addEventListener('click', (e) => {
-      e.preventDefault();
-      window.setBacktestInterestMode('simple');
-    });
-  }
-
   // Inicializar estado visual del toggle de modo de interés
   const initMode = appState.backtest.interestMode || localStorage.getItem('cached_backtest_interest_mode') || 'compound';
   window.setBacktestInterestMode(initMode, false);
-
-  // Botón: Recalcular Todo
-  const btnRecalc = document.getElementById('btnBtSimpleRecalculate');
-  if (btnRecalc) {
-    btnRecalc.addEventListener('click', () => window.recalculateBacktestSimple());
-  }
-
-  const btnWin = document.getElementById('btnBtSimpleQuickWin');
-  if (btnWin) btnWin.addEventListener('click', () => window.submitQuickBtTrade('win'));
-  const btnLoss = document.getElementById('btnBtSimpleQuickLoss');
-  if (btnLoss) btnLoss.addEventListener('click', () => window.submitQuickBtTrade('loss'));
-  const btnBe = document.getElementById('btnBtSimpleQuickBe');
-  if (btnBe) btnBe.addEventListener('click', () => window.submitQuickBtTrade('be'));
 
   // Formulario Manual Detallado
   const btnAddManual = document.getElementById('btnBtSimpleAddManualTrade');
@@ -4161,21 +4111,6 @@ function setupBacktestSimpleView() {
       }
     });
   }
-
-  // Limpiar Backtest
-  const btnClear = document.getElementById('btnBtSimpleClear');
-  if (btnClear) {
-    btnClear.addEventListener('click', () => window.clearBacktestSimpleTrades());
-  }
-
-  // Filtros de tabla
-  document.querySelectorAll('.btn-bt-filter').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const filter = btn.dataset.filter;
-      window.setBacktestTableFilter(filter);
-    });
-  });
 
   // Exportar CSV
   const btnCsv = document.getElementById('btnBtSimpleExportCsv');

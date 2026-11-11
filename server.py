@@ -2118,7 +2118,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             return
 
         elif path == "/api/recalculate" or path == "/api/trades/recalculate":
-            mode = payload.get("mode") or query_mode or "fondeo"
+            mode = payload.get("mode") or query_mode or "backtest"
             config = get_config(mode)
             if "risk_pct" in payload:
                 config["risk_pct"] = float(payload["risk_pct"])
@@ -2143,7 +2143,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             return
 
         elif path == "/api/trades":
-            mode = payload.get("mode") or query_mode or "fondeo"
+            mode = payload.get("mode") or query_mode or "backtest"
             config = get_config(mode)
             if "interest_mode" in payload and payload["interest_mode"]:
                 config["interest_mode"] = str(payload["interest_mode"]).lower()
@@ -2435,7 +2435,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             return
 
         elif path == "/api/trades/clear":
-            mode = payload.get("mode") or query_mode or "fondeo"
+            mode = payload.get("mode") or query_mode or "backtest"
             save_trades([], mode)
             config = get_config(mode)
             ana = calculate_analytics([], config, mode=mode)
