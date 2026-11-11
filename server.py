@@ -918,8 +918,8 @@ def recalculate_trade_history(trades, config, mode="backtest"):
             eff_lev = leverage
 
         # Reference lot size based on symbol (points for Gold, pips for Forex)
-        if mode == "fondeo":
-            # Interés Simple sobre capital inicial ($50,000 USD)
+        interest_mode = str(config.get("interest_mode") or config.get("risk_mode") or "compound").lower()
+        if mode == "fondeo" or interest_mode == "simple":
             dollar_risk = initial_balance * (trade_risk / 100.0)
         else:
             dollar_risk = curr_bal * (trade_risk / 100.0)
@@ -999,7 +999,10 @@ def recalculate_trade_history(trades, config, mode="backtest"):
         else:
             trade_mode = t.get("mode") or mode
             if trade_mode == "backtest":
-                pnl = round(curr_bal * (ret_pct / 100.0), 2)
+                if interest_mode == "simple":
+                    pnl = round(initial_balance * (ret_pct / 100.0), 2)
+                else:
+                    pnl = round(curr_bal * (ret_pct / 100.0), 2)
             else:
                 raw_pnl = None
                 if "pnl" in t and t["pnl"] is not None and str(t["pnl"]).strip() != "":
@@ -1996,6 +1999,11 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                             cfg["initial_balance"] = float(sub["initial_balance"])
                         if "risk_pct" in sub and sub["risk_pct"] is not None:
                             cfg["risk_pct"] = float(sub["risk_pct"])
+                        if "rr_ratio" in sub and sub["rr_ratio"] is not None:
+                            cfg["rr_ratio"] = float(sub["rr_ratio"])
+                        if "interest_mode" in sub and sub["interest_mode"] is not None:
+                            cfg["interest_mode"] = str(sub["interest_mode"]).lower()
+                            cfg["risk_mode"] = cfg["interest_mode"]
                         if "leverage" in sub and sub["leverage"] is not None:
                             cfg["leverage"] = float(sub["leverage"])
                         
@@ -2118,6 +2126,9 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 config["rr_ratio"] = float(payload["rr_ratio"])
             if "initial_balance" in payload:
                 config["initial_balance"] = float(payload["initial_balance"])
+            if "interest_mode" in payload and payload["interest_mode"] is not None:
+                config["interest_mode"] = str(payload["interest_mode"]).lower()
+                config["risk_mode"] = config["interest_mode"]
             if "leverage" in payload and payload["leverage"] is not None:
                 config["leverage"] = float(payload["leverage"])
             save_config(config, mode)
@@ -2127,12 +2138,17 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             save_trades(recalculated, mode)
             analytics = calculate_analytics(recalculated, config, mode=mode)
             analytics["mode"] = mode
+            analytics["config"] = config
             self.send_json(analytics)
             return
 
         elif path == "/api/trades":
             mode = payload.get("mode") or query_mode or "fondeo"
             config = get_config(mode)
+            if "interest_mode" in payload and payload["interest_mode"]:
+                config["interest_mode"] = str(payload["interest_mode"]).lower()
+                config["risk_mode"] = config["interest_mode"]
+                save_config(config, mode)
             trades = get_trades(mode)
 
             analytics = calculate_analytics(trades, config, mode=mode)
@@ -2199,8 +2215,9 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 ret_pct = 0.0
                 
             init_bal = float(config.get("initial_balance", 50000.0 if mode == "fondeo" else 110.0))
-            if mode == "fondeo":
-                # Interés Simple sobre balance inicial ($50,000 USD)
+            interest_mode = str(payload.get("interest_mode") or config.get("interest_mode") or "compound").lower()
+            if mode == "fondeo" or interest_mode == "simple":
+                # Interés Simple sobre balance inicial
                 dollar_risk = round(init_bal * (trade_risk_pct / 100.0), 2)
             else:
                 dollar_risk = round(cur_bal * (trade_risk_pct / 100.0), 2)
@@ -2351,7 +2368,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                         except Exception:
                             pass
                 else:
-                    base_pnl_calc = init_bal if mode == "fondeo" else cur_bal
+                    base_pnl_calc = init_bal if (mode == "fondeo" or interest_mode == "simple") else cur_bal
                     if lot_size > 0 and loss_per_lot > 0:
                         dollar_risk = round(lot_size * loss_per_lot, 2)
                         if status == "win":
