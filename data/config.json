@@ -2,7 +2,7 @@
   "initial_balance": 1000.0,
   "risk_pct": 1.0,
   "leverage": 30.0,
-  "rr_ratio": 3.0,
+  "rr_ratio": 2.0,
   "contract_size": 100000,
   "min_lot": 0.01,
   "lot_step": 0.01,
@@ -13,5 +13,6 @@
   "sl_pips": 25,
   "sl_points": 25,
   "tp_pips": 75,
-  "tp_points": 75
+  "tp_points": 75,
+  "interest_mode": "compound"
 }

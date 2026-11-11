@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Ghost Trader Pro Terminal</title>
   
   <!-- Tailwind CSS Local Bundle -->
@@ -909,18 +912,18 @@
           <div class="flex items-center gap-2.5 flex-wrap">
             <!-- Segmented Control: Compuesto vs Simple -->
             <div class="inline-flex bg-gray-950 p-1 rounded-xl border border-gray-800 shadow-inner" id="btInterestModeToggle">
-              <button type="button" id="btnBtModeCompound" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-emerald-600 text-white shadow-md shadow-emerald-950/40" data-mode="compound">
+              <button type="button" id="btnBtModeCompound" onclick="window.setBacktestInterestMode('compound')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-emerald-600 text-white shadow-md shadow-emerald-950/40" data-mode="compound">
                 <i data-lucide="zap" class="w-3.5 h-3.5"></i>
                 <span>Interés Compuesto</span>
               </button>
-              <button type="button" id="btnBtModeSimple" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-white" data-mode="simple">
+              <button type="button" id="btnBtModeSimple" onclick="window.setBacktestInterestMode('simple')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-white" data-mode="simple">
                 <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
                 <span>Interés Simple</span>
               </button>
             </div>
 
             <!-- Botón Limpiar Historial -->
-            <button id="btnBtSimpleClear" class="px-3 py-1.5 bg-red-950/40 hover:bg-red-900/60 text-red-300 font-semibold text-xs rounded-xl border border-red-800/50 transition flex items-center gap-1.5 cursor-pointer" title="Reiniciar todo el historial de operaciones">
+            <button type="button" id="btnBtSimpleClear" onclick="window.clearBacktestSimpleTrades()" class="px-3 py-1.5 bg-red-950/40 hover:bg-red-900/60 text-red-300 font-semibold text-xs rounded-xl border border-red-800/50 transition flex items-center gap-1.5 cursor-pointer" title="Reiniciar todo el historial de operaciones">
               <i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-400"></i>
               <span>Limpiar</span>
             </button>
@@ -945,19 +948,19 @@
                 <span class="absolute left-3 top-2 text-gray-500 font-mono text-sm font-bold">$</span>
                 <input type="number" id="btSimpleInitialBalance" step="any" min="1" value="1000.00" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-7 pr-2.5 py-1.5 text-white font-mono font-bold text-sm focus:border-emerald-500 focus:outline-none transition" placeholder="1000.00">
               </div>
-              <button type="button" id="btnBtSimpleSaveBalance" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-black text-xs rounded-lg transition-all duration-150 flex items-center gap-1 shadow-md shadow-emerald-950/40 shrink-0 cursor-pointer border border-emerald-400/40 hover:scale-[1.02] active:scale-[0.98]" title="Guardar balance inicial en Render y memoria permanente">
+              <button type="button" id="btnBtSimpleSaveBalance" onclick="window.saveBacktestInitialBalance('button')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-black text-xs rounded-lg transition-all duration-150 flex items-center gap-1 shadow-md shadow-emerald-950/40 shrink-0 cursor-pointer border border-emerald-400/40 hover:scale-[1.02] active:scale-[0.98]" title="Guardar balance inicial en Render y memoria permanente">
                 <i data-lucide="save" class="w-3.5 h-3.5"></i>
                 <span id="btnBtSimpleSaveBalanceText">Guardar</span>
               </button>
             </div>
             <!-- Quick Chips Balance en cuadrícula de 6 columnas -->
             <div class="grid grid-cols-6 gap-1 pt-0.5">
-              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="500">$500</button>
-              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="1000">$1k</button>
-              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="5000">$5k</button>
-              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="10000">$10k</button>
-              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="50000">$50k</button>
-              <button type="button" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="100000">$100k</button>
+              <button type="button" onclick="window.setBacktestChipBalance(500)" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="500">$500</button>
+              <button type="button" onclick="window.setBacktestChipBalance(1000)" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="1000">$1k</button>
+              <button type="button" onclick="window.setBacktestChipBalance(5000)" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="5000">$5k</button>
+              <button type="button" onclick="window.setBacktestChipBalance(10000)" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="10000">$10k</button>
+              <button type="button" onclick="window.setBacktestChipBalance(50000)" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="50000">$50k</button>
+              <button type="button" onclick="window.setBacktestChipBalance(100000)" class="btn-bt-chip-balance py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="100000">$100k</button>
             </div>
           </div>
 
@@ -978,13 +981,13 @@
             </div>
             <!-- Quick Chips R:R en cuadrícula de 7 columnas -->
             <div class="grid grid-cols-7 gap-1 pt-0.5">
-              <button type="button" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="1.0">1:1</button>
-              <button type="button" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="1.5">1:1.5</button>
-              <button type="button" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="2.0">1:2</button>
-              <button type="button" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="2.5">1:2.5</button>
-              <button type="button" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="3.0">1:3</button>
-              <button type="button" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="4.0">1:4</button>
-              <button type="button" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="5.0">1:5</button>
+              <button type="button" onclick="window.setBacktestChipRR(1.0)" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="1.0">1:1</button>
+              <button type="button" onclick="window.setBacktestChipRR(1.5)" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="1.5">1:1.5</button>
+              <button type="button" onclick="window.setBacktestChipRR(2.0)" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="2.0">1:2</button>
+              <button type="button" onclick="window.setBacktestChipRR(2.5)" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="2.5">1:2.5</button>
+              <button type="button" onclick="window.setBacktestChipRR(3.0)" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="3.0">1:3</button>
+              <button type="button" onclick="window.setBacktestChipRR(4.0)" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="4.0">1:4</button>
+              <button type="button" onclick="window.setBacktestChipRR(5.0)" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="5.0">1:5</button>
             </div>
           </div>
 
@@ -1003,13 +1006,13 @@
             </div>
             <!-- Quick Chips Riesgo en cuadrícula de 7 columnas -->
             <div class="grid grid-cols-7 gap-1 pt-0.5">
-              <button type="button" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="0.25">.25%</button>
-              <button type="button" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="0.5">.5%</button>
-              <button type="button" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="1.0">1.0%</button>
-              <button type="button" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="1.5">1.5%</button>
-              <button type="button" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="2.0">2.0%</button>
-              <button type="button" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="3.0">3.0%</button>
-              <button type="button" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="5.0">5.0%</button>
+              <button type="button" onclick="window.setBacktestChipRisk(0.25)" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="0.25">.25%</button>
+              <button type="button" onclick="window.setBacktestChipRisk(0.5)" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="0.5">.5%</button>
+              <button type="button" onclick="window.setBacktestChipRisk(1.0)" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="1.0">1.0%</button>
+              <button type="button" onclick="window.setBacktestChipRisk(1.5)" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="1.5">1.5%</button>
+              <button type="button" onclick="window.setBacktestChipRisk(2.0)" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="2.0">2.0%</button>
+              <button type="button" onclick="window.setBacktestChipRisk(3.0)" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="3.0">3.0%</button>
+              <button type="button" onclick="window.setBacktestChipRisk(5.0)" class="btn-bt-chip-risk py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="5.0">5.0%</button>
             </div>
           </div>
         </div>
@@ -1023,7 +1026,7 @@
               <span id="btSimpleModeExplDesc" class="text-gray-400">El riesgo se calcula sobre el balance disponible antes de cada trade. Las ganancias aumentan automáticamente el monto ganado en los siguientes trades.</span>
             </span>
           </div>
-          <button id="btnBtSimpleRecalculate" class="px-3.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white font-bold text-xs rounded-xl border border-gray-700 transition flex items-center gap-1.5 cursor-pointer ml-auto shrink-0" title="Recalcular todo el historial">
+          <button type="button" id="btnBtSimpleRecalculate" onclick="window.recalculateBacktestSimple()" class="px-3.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white font-bold text-xs rounded-xl border border-gray-700 transition flex items-center gap-1.5 cursor-pointer ml-auto shrink-0" title="Recalcular todo el historial">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
             <span>Recalcular</span>
           </button>
@@ -1046,7 +1049,7 @@
         <!-- 2 BOTONES GRANDES PRINCIPALES (GANADA O PERDIDA) + BOTÓN DISCRETO BREAKEVEN -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <!-- 🟢 OPERACIÓN GANADA -->
-          <button id="btnBtSimpleQuickWin" class="group p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-emerald-900/50 to-teal-950/70 hover:from-emerald-900 hover:to-teal-900 border-2 border-emerald-500/60 hover:border-emerald-400 text-left transition-all duration-150 shadow-xl shadow-emerald-950/50 cursor-pointer flex items-center justify-between hover:scale-[1.01] active:scale-[0.99]">
+          <button type="button" id="btnBtSimpleQuickWin" onclick="window.submitQuickBtTrade('win')" class="group p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-emerald-900/50 to-teal-950/70 hover:from-emerald-900 hover:to-teal-900 border-2 border-emerald-500/60 hover:border-emerald-400 text-left transition-all duration-150 shadow-xl shadow-emerald-950/50 cursor-pointer flex items-center justify-between hover:scale-[1.01] active:scale-[0.99]">
             <div class="min-w-0 pr-3">
               <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-black text-sm shrink-0 border border-emerald-400/40">✓</div>
@@ -1062,7 +1065,7 @@
           </button>
 
           <!-- 🔴 OPERACIÓN PERDIDA -->
-          <button id="btnBtSimpleQuickLoss" class="group p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-rose-950/80 via-rose-900/50 to-red-950/70 hover:from-rose-900 hover:to-red-900 border-2 border-rose-500/60 hover:border-rose-400 text-left transition-all duration-150 shadow-xl shadow-rose-950/50 cursor-pointer flex items-center justify-between hover:scale-[1.01] active:scale-[0.99]">
+          <button type="button" id="btnBtSimpleQuickLoss" onclick="window.submitQuickBtTrade('loss')" class="group p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-rose-950/80 via-rose-900/50 to-red-950/70 hover:from-rose-900 hover:to-red-900 border-2 border-rose-500/60 hover:border-rose-400 text-left transition-all duration-150 shadow-xl shadow-rose-950/50 cursor-pointer flex items-center justify-between hover:scale-[1.01] active:scale-[0.99]">
             <div class="min-w-0 pr-3">
               <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center font-black text-sm shrink-0 border border-rose-400/40">✕</div>
@@ -1080,7 +1083,7 @@
 
         <!-- Fila auxiliar para Breakeven discreto -->
         <div class="flex justify-end pt-1">
-          <button id="btnBtSimpleQuickBe" class="px-3 py-1 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-gray-300 rounded-lg border border-gray-800 text-[11px] font-mono transition flex items-center gap-1.5 cursor-pointer" title="Registrar trade en empate exacto ($0)">
+          <button type="button" id="btnBtSimpleQuickBe" onclick="window.submitQuickBtTrade('be')" class="px-3 py-1 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-gray-300 rounded-lg border border-gray-800 text-[11px] font-mono transition flex items-center gap-1.5 cursor-pointer" title="Registrar trade en empate exacto ($0)">
             <i data-lucide="minus" class="w-3 h-3 text-gray-500"></i>
             <span>Breakeven ($0.00)</span>
           </button>
@@ -1192,9 +1195,9 @@
 
           <div class="flex items-center gap-2">
             <div class="flex bg-gray-950 p-1 rounded-xl border border-gray-800 text-xs">
-              <button type="button" class="btn-bt-filter px-2.5 py-1 rounded-lg font-semibold transition bg-emerald-600 text-white cursor-pointer" data-filter="all">Todos (<span id="btFilterCountAll">0</span>)</button>
-              <button type="button" class="btn-bt-filter px-2.5 py-1 rounded-lg font-semibold transition text-gray-400 hover:text-white cursor-pointer" data-filter="win">Wins (<span id="btFilterCountWins">0</span>)</button>
-              <button type="button" class="btn-bt-filter px-2.5 py-1 rounded-lg font-semibold transition text-gray-400 hover:text-white cursor-pointer" data-filter="loss">Losses (<span id="btFilterCountLosses">0</span>)</button>
+              <button type="button" onclick="window.setBacktestTableFilter('all')" class="btn-bt-filter px-2.5 py-1 rounded-lg font-semibold transition bg-emerald-600 text-white cursor-pointer" data-filter="all">Todos (<span id="btFilterCountAll">0</span>)</button>
+              <button type="button" onclick="window.setBacktestTableFilter('win')" class="btn-bt-filter px-2.5 py-1 rounded-lg font-semibold transition text-gray-400 hover:text-white cursor-pointer" data-filter="win">Wins (<span id="btFilterCountWins">0</span>)</button>
+              <button type="button" onclick="window.setBacktestTableFilter('loss')" class="btn-bt-filter px-2.5 py-1 rounded-lg font-semibold transition text-gray-400 hover:text-white cursor-pointer" data-filter="loss">Losses (<span id="btFilterCountLosses">0</span>)</button>
             </div>
           </div>
         </div>
@@ -2537,6 +2540,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261110_v53_simple_backtest_compound_simple"></script>
+<script src="app.js?v=20261110_v55_global_direct_handlers"></script>
 </body>
 </html>
