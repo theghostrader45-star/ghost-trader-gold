@@ -1888,7 +1888,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
 
         elif path == "/api/trades":
             query = parse_qs(parsed.query)
-            mode = query.get("mode", ["fondeo"])[0]
+            mode = query.get("mode", ["backtest"])[0]
             config = get_config(mode)
             trades = get_trades(mode)
             analytics = calculate_analytics(trades, config, mode=mode)
@@ -1899,7 +1899,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
         elif path == "/api/calculate-position" or path == "/api/calculate":
             query = parse_qs(parsed.query)
             try:
-                mode = query.get("mode", ["fondeo"])[0]
+                mode = query.get("mode", ["backtest"])[0]
                 config = get_config(mode)
                 balance = float(query.get("balance", [config.get("initial_balance", 50000.0)])[0])
                 risk_pct = float(query.get("risk_pct", [config.get("risk_pct", 0.5)])[0])

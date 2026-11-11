@@ -3442,19 +3442,44 @@ window.recalculateBacktestSimple = async function() {
   }
 };
 
-let isClearingBtTrades = false;
 window.clearBacktestSimpleTrades = async function() {
-  if (isClearingBtTrades) return;
-  const ok = confirm('¿Estás seguro de que deseas limpiar todas las operaciones del Backtesting Simple?');
-  if (!ok) return;
-
-  isClearingBtTrades = true;
   const btnClear = document.getElementById('btnBtSimpleClear');
   if (btnClear) {
-    btnClear.style.pointerEvents = 'none';
     btnClear.classList.add('opacity-50');
+    setTimeout(() => btnClear.classList.remove('opacity-50'), 400);
   }
 
+  // 1. Limpieza instantánea y optimista en memoria local
+  appState.backtest.trades = [];
+  appState.backtest.equityCurve = [];
+  const initBal = parseFloat(document.getElementById('btSimpleInitialBalance')?.value) || 1000.0;
+  appState.backtest.summary = {
+    initial_balance: initBal,
+    current_balance: initBal,
+    net_pnl: 0,
+    net_return_pct: 0,
+    total_trades: 0,
+    wins: 0,
+    losses: 0,
+    breakevens: 0,
+    win_rate: 0,
+    profit_factor: 0,
+    max_drawdown_pct: 0,
+    max_drawdown_amount: 0,
+    max_streak_win: 0,
+    max_streak_loss: 0
+  };
+
+  try {
+    localStorage.removeItem('cached_backtest_trades_v2');
+    localStorage.setItem('cached_backtest_trades_v2', '[]');
+  } catch (e) {}
+
+  // Actualizar UI inmediatamente sin ninguna demora ni diálogo bloqueante
+  renderBacktestSimpleDashboard();
+  showToast('✓ Historial de operaciones limpiado con éxito', 'info', 2500);
+
+  // 2. Persistir en el servidor en disco
   try {
     const res = await fetch('/api/trades/clear?mode=backtest', {
       method: 'POST',
@@ -3463,27 +3488,15 @@ window.clearBacktestSimpleTrades = async function() {
     });
     if (res.ok) {
       const data = await res.json();
-      appState.backtest.summary = data.summary || {};
-      appState.backtest.equityCurve = data.equity_curve || [];
-      appState.backtest.trades = [];
-      try {
-        localStorage.removeItem('cached_backtest_trades_v2');
-        localStorage.setItem('cached_backtest_trades_v2', '[]');
-      } catch (e) {}
-      renderBacktestSimpleDashboard();
-      showToast('✓ Historial de Backtesting limpiado', 'info', 2500);
-    } else {
-      showToast('❌ Error al limpiar operaciones', 'error');
+      if (data && data.summary) {
+        appState.backtest.summary = data.summary;
+        appState.backtest.equityCurve = data.equity_curve || [];
+        appState.backtest.trades = [];
+        renderBacktestSimpleDashboard();
+      }
     }
-  } catch (e) {
-    console.error('Error limpiando backtest:', e);
-    showToast('❌ Error de conexión al limpiar', 'error');
-  } finally {
-    isClearingBtTrades = false;
-    if (btnClear) {
-      btnClear.style.pointerEvents = '';
-      btnClear.classList.remove('opacity-50');
-    }
+  } catch (err) {
+    console.warn('Sync limpieza en servidor diferida:', err);
   }
 };
 
