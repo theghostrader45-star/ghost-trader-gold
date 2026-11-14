@@ -153,6 +153,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupCollapsibleSections();
   setupMacroGuideModalEvents();
   setupCalculatorView();
+  setupOrionRulesView();
 
   // Cargar configuración global y vistas principales con tolerancia total a fallos
   try { await loadConfig(); } catch (e) { console.warn('loadConfig fallback:', e); }
@@ -170,9 +171,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupBackupAndRestoreEvents();
   setupSaveAllButton();
 
-  // Restaurar pestaña activa tras carga asíncrona completa (Backtest, Noticias, Calculadora)
+  // Restaurar pestaña activa tras carga asíncrona completa (Backtest, Noticias, Calculadora, Orion)
   let savedTab = localStorage.getItem('activeTab_orion_v3');
-  if (!savedTab || !['backtest', 'news', 'calculator'].includes(savedTab)) {
+  if (!savedTab || !['backtest', 'news', 'calculator', 'orion'].includes(savedTab)) {
     savedTab = 'backtest';
   }
   if (typeof window.switchTabTo === 'function') {
@@ -266,19 +267,21 @@ function setupTabNavigation() {
   const btnBacktestSimple = document.getElementById('tabBtnBacktestSimple');
   const btnNews = document.getElementById('tabBtnNews');
   const btnCalculator = document.getElementById('tabBtnCalculator');
+  const btnOrionRules = document.getElementById('tabBtnOrionRules');
 
   const viewBacktestSimple = document.getElementById('viewBacktestSimple');
   const viewNews = document.getElementById('viewNews');
   const viewCalculator = document.getElementById('viewCalculator');
+  const viewOrionRules = document.getElementById('viewOrionRules');
 
   function switchTab(tab) {
-    if (tab === 'rules' || tab === 'fondeo' || tab === 'real') {
-      tab = 'backtest';
+    if (tab === 'rules' || tab === 'fondeo' || tab === 'orion' || tab === 'orionrules') {
+      tab = 'orion';
     }
     if (tab === 'premarket') {
       tab = 'news';
     }
-    if (!['backtest', 'news', 'calculator'].includes(tab)) {
+    if (!['backtest', 'news', 'calculator', 'orion'].includes(tab)) {
       tab = 'backtest';
     }
 
@@ -287,10 +290,10 @@ function setupTabNavigation() {
       localStorage.setItem('activeTab_orion_v3', tab);
     } catch (e) {}
 
-    const activeClasses = ['bg-emerald-600', 'bg-rose-600', 'bg-amber-500', 'text-white', 'text-black', 'shadow-lg', 'shadow-emerald-600/30', 'shadow-rose-600/30', 'shadow-amber-500/30', 'font-black', 'font-bold'];
+    const activeClasses = ['bg-emerald-600', 'bg-rose-600', 'bg-amber-500', 'bg-purple-600', 'text-white', 'text-black', 'shadow-lg', 'shadow-emerald-600/30', 'shadow-rose-600/30', 'shadow-amber-500/30', 'shadow-purple-600/30', 'font-black', 'font-bold'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnBacktestSimple, btnNews, btnCalculator].forEach(btn => {
+    [btnBacktestSimple, btnNews, btnCalculator, btnOrionRules].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
@@ -300,6 +303,7 @@ function setupTabNavigation() {
     if (viewBacktestSimple) viewBacktestSimple.classList.add('hidden');
     if (viewNews) viewNews.classList.add('hidden');
     if (viewCalculator) viewCalculator.classList.add('hidden');
+    if (viewOrionRules) viewOrionRules.classList.add('hidden');
 
     if (tab === 'backtest') {
       if (btnBacktestSimple) {
@@ -329,6 +333,15 @@ function setupTabNavigation() {
       if (typeof recalculateStandaloneCalculator === 'function') {
         recalculateStandaloneCalculator();
       }
+    } else if (tab === 'orion') {
+      if (btnOrionRules) {
+        btnOrionRules.classList.remove(...inactiveClasses);
+        btnOrionRules.classList.add('bg-purple-600', 'text-white', 'shadow-lg', 'shadow-purple-600/30', 'font-bold');
+      }
+      if (viewOrionRules) viewOrionRules.classList.remove('hidden');
+      if (typeof recalculateOrionUsdcad === 'function') {
+        recalculateOrionUsdcad();
+      }
     }
 
     initIcons();
@@ -340,9 +353,10 @@ function setupTabNavigation() {
   if (btnBacktestSimple) btnBacktestSimple.addEventListener('click', () => switchTab('backtest'));
   if (btnNews) btnNews.addEventListener('click', () => switchTab('news'));
   if (btnCalculator) btnCalculator.addEventListener('click', () => switchTab('calculator'));
+  if (btnOrionRules) btnOrionRules.addEventListener('click', () => switchTab('orion'));
 
   let savedTab = localStorage.getItem('activeTab_orion_v3');
-  if (!savedTab || !['backtest', 'news', 'calculator'].includes(savedTab)) {
+  if (!savedTab || !['backtest', 'news', 'calculator', 'orion'].includes(savedTab)) {
     savedTab = 'backtest';
   }
   switchTab(savedTab);
@@ -3940,6 +3954,302 @@ function setupCalculatorView() {
 
   updateCalculatorPairUI();
 }
+
+// ====================================================
+// ORION NOVA 50K RULES & USDCAD LOT CALCULATOR MODULE
+// ====================================================
+
+let activeOrionPhase = 'eval'; // 'eval' or 'funded'
+
+function setupOrionRulesView() {
+  const accountSizeSelect = document.getElementById('orionCalcAccountSize');
+  if (accountSizeSelect) {
+    accountSizeSelect.addEventListener('change', () => {
+      recalculateOrionUsdcad();
+    });
+  }
+
+  const phaseSelect = document.getElementById('orionCalcPhaseSelect');
+  if (phaseSelect) {
+    phaseSelect.addEventListener('change', (e) => {
+      setOrionActivePhase(e.target.value);
+    });
+  }
+
+  const riskInput = document.getElementById('orionCalcRiskInput');
+  if (riskInput) {
+    riskInput.addEventListener('input', () => {
+      recalculateOrionUsdcad();
+    });
+  }
+
+  const slInput = document.getElementById('orionCalcSlInput');
+  if (slInput) {
+    slInput.addEventListener('input', () => {
+      recalculateOrionUsdcad();
+    });
+  }
+
+  const priceInput = document.getElementById('orionCalcPriceInput');
+  if (priceInput) {
+    priceInput.addEventListener('input', () => {
+      recalculateOrionUsdcad();
+    });
+  }
+
+  recalculateOrionUsdcad();
+}
+
+window.setOrionActivePhase = function(phase) {
+  activeOrionPhase = phase === 'funded' ? 'funded' : 'eval';
+
+  const btnEval = document.getElementById('btnOrionPhaseEval');
+  const btnFunded = document.getElementById('btnOrionPhaseFunded');
+  const phaseSelect = document.getElementById('orionCalcPhaseSelect');
+
+  if (activeOrionPhase === 'eval') {
+    if (btnEval) {
+      btnEval.className = 'px-3 py-1.5 rounded text-xs transition flex items-center gap-1 cursor-pointer bg-purple-600 text-white shadow-md shadow-purple-950/40 font-black';
+    }
+    if (btnFunded) {
+      btnFunded.className = 'px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1 cursor-pointer text-gray-400 hover:text-white';
+    }
+  } else {
+    if (btnEval) {
+      btnEval.className = 'px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1 cursor-pointer text-gray-400 hover:text-white';
+    }
+    if (btnFunded) {
+      btnFunded.className = 'px-3 py-1.5 rounded text-xs transition flex items-center gap-1 cursor-pointer bg-purple-600 text-white shadow-md shadow-purple-950/40 font-black';
+    }
+  }
+
+  if (phaseSelect && phaseSelect.value !== activeOrionPhase) {
+    phaseSelect.value = activeOrionPhase;
+  }
+
+  // Actualizar Tarjetas de Métricas
+  const badgeTarget = document.getElementById('orionCardTargetBadge');
+  const valTarget = document.getElementById('orionCardTargetUsd');
+  const descTarget = document.getElementById('orionCardTargetDesc');
+
+  const badgeDaily = document.getElementById('orionCardDailyLossBadge');
+  const valDaily = document.getElementById('orionCardDailyLossUsd');
+  const descDaily = document.getElementById('orionCardDailyLossDesc');
+
+  const badgeDd = document.getElementById('orionCardMaxDdBadge');
+  const valDd = document.getElementById('orionCardMaxDdUsd');
+  const descDd = document.getElementById('orionCardMaxDdDesc');
+
+  const accountSize = parseFloat(document.getElementById('orionCalcAccountSize')?.value || 50000);
+
+  if (activeOrionPhase === 'eval') {
+    const targetUsd = accountSize * 0.04;
+    const dailyLossUsd = accountSize * 0.04;
+    const maxDdUsd = accountSize * 0.08;
+    if (badgeTarget) { badgeTarget.textContent = '4.0%'; badgeTarget.className = 'text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold'; }
+    if (valTarget) { valTarget.textContent = `+$${formatMoney(targetUsd)}`; valTarget.className = 'text-xl sm:text-2xl font-black font-mono text-emerald-400'; }
+    if (descTarget) descTarget.textContent = `Fase 1: Alcanza $${formatMoney(accountSize + targetUsd)} sin límite de tiempo`;
+
+    if (badgeDaily) { badgeDaily.textContent = '4.0%'; badgeDaily.className = 'text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono font-bold'; }
+    if (valDaily) { valDaily.textContent = `-$${formatMoney(dailyLossUsd)}`; valDaily.className = 'text-xl sm:text-2xl font-black font-mono text-amber-400'; }
+    if (descDaily) descDaily.textContent = `Fase 1: 4% diario ($${formatMoney(dailyLossUsd)}) · En Fase 2 baja a 3% ($${formatMoney(accountSize * 0.03)})`;
+
+    if (badgeDd) { badgeDd.textContent = '8.0%'; badgeDd.className = 'text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono font-bold'; }
+    if (valDd) { valDd.textContent = `-$${formatMoney(maxDdUsd)}`; valDd.className = 'text-xl sm:text-2xl font-black font-mono text-rose-400'; }
+    if (descDd) descDd.textContent = `Piso inicial: $${formatMoney(accountSize - maxDdUsd)} · Bloqueo fijo en $${formatMoney(accountSize)}`;
+  } else {
+    const dailyLossUsd = accountSize * 0.03;
+    const maxDdUsd = accountSize * 0.05;
+    if (badgeTarget) { badgeTarget.textContent = 'Sin Límite'; badgeTarget.className = 'text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono font-bold'; }
+    if (valTarget) { valTarget.textContent = 'Retiros 80-90%'; valTarget.className = 'text-xl sm:text-2xl font-black font-mono text-blue-400'; }
+    if (descTarget) descTarget.textContent = 'Fase 2: Retiros quincenales, sin prisa. Aplica regla 20% mejor día';
+
+    if (badgeDaily) { badgeDaily.textContent = '3.0%'; badgeDaily.className = 'text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono font-bold'; }
+    if (valDaily) { valDaily.textContent = `-$${formatMoney(dailyLossUsd)}`; valDaily.className = 'text-xl sm:text-2xl font-black font-mono text-amber-400'; }
+    if (descDaily) descDaily.textContent = `Fase 2: 3% diario estricto ($${formatMoney(dailyLossUsd)}) sobre balance al reset 00:00 UTC`;
+
+    if (badgeDd) { badgeDd.textContent = '5.0%'; badgeDd.className = 'text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono font-bold'; }
+    if (valDd) { valDd.textContent = `-$${formatMoney(maxDdUsd)}`; valDd.className = 'text-xl sm:text-2xl font-black font-mono text-rose-400'; }
+    if (descDd) descDd.textContent = `Piso inicial: $${formatMoney(accountSize - maxDdUsd)} · Trailing lock sobre equity flotante`;
+  }
+
+  recalculateOrionUsdcad();
+};
+
+window.setOrionCalcRisk = function(val) {
+  const input = document.getElementById('orionCalcRiskInput');
+  if (input) input.value = val;
+  document.querySelectorAll('.btn-orion-risk').forEach(b => {
+    const bVal = parseFloat(b.dataset.val);
+    if (Math.abs(bVal - val) < 0.01) {
+      b.className = 'btn-orion-risk py-1 rounded text-xs font-mono font-bold bg-purple-600 text-white border border-purple-500 transition text-center cursor-pointer shadow-sm';
+    } else {
+      b.className = 'btn-orion-risk py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
+    }
+  });
+  recalculateOrionUsdcad();
+};
+
+window.setOrionCalcSl = function(val) {
+  const input = document.getElementById('orionCalcSlInput');
+  if (input) input.value = val;
+  document.querySelectorAll('.btn-orion-sl').forEach(b => {
+    const bVal = parseFloat(b.dataset.val);
+    if (Math.abs(bVal - val) < 0.1) {
+      b.className = 'btn-orion-sl py-1 rounded text-xs font-mono font-bold bg-purple-600 text-white border border-purple-500 transition text-center cursor-pointer shadow-sm';
+    } else {
+      b.className = 'btn-orion-sl py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
+    }
+  });
+  recalculateOrionUsdcad();
+};
+
+window.setOrionCalcRr = function(val) {
+  const input = document.getElementById('orionCalcRrInput');
+  if (input) input.value = val;
+  document.querySelectorAll('.btn-orion-rr').forEach(b => {
+    const bVal = parseFloat(b.dataset.val);
+    if (Math.abs(bVal - val) < 0.1) {
+      b.className = 'btn-orion-rr py-1 rounded text-xs font-mono font-bold bg-emerald-600 text-white border border-emerald-500 transition text-center cursor-pointer shadow-sm';
+    } else {
+      b.className = 'btn-orion-rr py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
+    }
+  });
+  recalculateOrionUsdcad();
+};
+
+window.recalculateOrionUsdcad = function() {
+  const accountSize = parseFloat(document.getElementById('orionCalcAccountSize')?.value) || 50000;
+  const phase = document.getElementById('orionCalcPhaseSelect')?.value || activeOrionPhase || 'eval';
+  let riskPct = parseFloat(document.getElementById('orionCalcRiskInput')?.value);
+  if (isNaN(riskPct) || riskPct <= 0) riskPct = 0.50;
+  let slPips = parseFloat(document.getElementById('orionCalcSlInput')?.value);
+  if (isNaN(slPips) || slPips <= 0) slPips = 25.0;
+  let rr = parseFloat(document.getElementById('orionCalcRrInput')?.value);
+  if (isNaN(rr) || rr <= 0) rr = 3.0;
+  let usdcadPrice = parseFloat(document.getElementById('orionCalcPriceInput')?.value);
+  if (isNaN(usdcadPrice) || usdcadPrice <= 0) usdcadPrice = 1.3800;
+
+  // Actualizar indicadores numéricos en las etiquetas de entrada
+  const elRiskDisp = document.getElementById('orionCalcRiskPctDisplay');
+  const dollarRisk = accountSize * (riskPct / 100);
+  if (elRiskDisp) {
+    elRiskDisp.textContent = `${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)} USD)`;
+  }
+
+  const elSlDisp = document.getElementById('orionCalcSlDisplay');
+  if (elSlDisp) {
+    elSlDisp.textContent = `${slPips.toFixed(1)} pips (${(slPips * 10).toFixed(0)} points)`;
+  }
+
+  // FÓRMULA OFICIAL USDCAD:
+  // 1 lote estándar = 100,000 USD de base.
+  // 1 pip = 0.0001 CAD en la contra-divisa CAD.
+  // Pip Value por 1.0 lote en CAD = 100,000 * 0.0001 = 10.00 CAD.
+  // Pip Value en USD = 10.00 CAD / Cotización USDCAD.
+  const pipValPerLot = 10.0 / usdcadPrice;
+  const rawLot = dollarRisk / (slPips * pipValPerLot);
+  const lotSize = Math.max(0.01, Math.round(rawLot * 100) / 100);
+
+  const effectivePipValue = lotSize * pipValPerLot;
+  const effectiveDollarRisk = slPips * effectivePipValue;
+  const projectedRewardUsd = effectiveDollarRisk * rr;
+  const projectedRewardPct = (projectedRewardUsd / accountSize) * 100;
+  const marginUsed = (lotSize * 100000) / 30; // 1:30 apalancamiento Forex
+
+  // Actualizar Panel de Resultados
+  const elLot = document.getElementById('orionResultLot');
+  if (elLot) elLot.textContent = lotSize.toFixed(2);
+
+  const elContract = document.getElementById('orionResultContractDesc');
+  if (elContract) {
+    elContract.textContent = `Lotes Estándar (${(lotSize * 100000).toLocaleString('en-US', {maximumFractionDigits:0})} USD Contrato)`;
+  }
+
+  const elRiskUsd = document.getElementById('orionResultRiskUsd');
+  if (elRiskUsd) {
+    elRiskUsd.textContent = `-$${formatMoney(effectiveDollarRisk)} USD (-${((effectiveDollarRisk / accountSize) * 100).toFixed(2)}%)`;
+  }
+
+  const elRewardUsd = document.getElementById('orionResultRewardUsd');
+  if (elRewardUsd) {
+    elRewardUsd.textContent = `+$${formatMoney(projectedRewardUsd)} USD (+${projectedRewardPct.toFixed(2)}%)`;
+  }
+
+  const elPipVal = document.getElementById('orionResultPipValue');
+  if (elPipVal) {
+    elPipVal.textContent = `$${effectivePipValue.toFixed(2)} USD / pip ($${pipValPerLot.toFixed(2)} por 1.0 lote)`;
+  }
+
+  const elMargin = document.getElementById('orionResultMargin');
+  if (elMargin) {
+    elMargin.textContent = `$${formatMoney(marginUsed)} USD (Apalancamiento 1:30)`;
+  }
+
+  // Colchón contra Pérdida Diaria
+  const dailyLimitUsd = (phase === 'eval') ? accountSize * 0.04 : accountSize * 0.03;
+  const tradesToDailyLoss = Math.floor(dailyLimitUsd / Math.max(1, effectiveDollarRisk));
+  const elLossBuffer = document.getElementById('orionResultLossBuffer');
+  if (elLossBuffer) {
+    elLossBuffer.textContent = `${tradesToDailyLoss} pérdidas consecutivas en el día (Límite: $${formatMoney(dailyLimitUsd)})`;
+  }
+
+  // Progreso / Proyección al Target
+  const targetUsd = accountSize * 0.04;
+  const tradesToTarget = (targetUsd / Math.max(1, projectedRewardUsd)).toFixed(1);
+  const intTradesToTarget = Math.ceil(targetUsd / Math.max(1, projectedRewardUsd));
+
+  const elProgTitle = document.getElementById('orionResultProgressTitle');
+  const elTradesNeeded = document.getElementById('orionResultTradesNeeded');
+  const elProgFoot = document.getElementById('orionResultProgressFoot');
+
+  if (phase === 'eval') {
+    if (elProgTitle) elProgTitle.textContent = `Trades a 1:${rr} para pasar evaluación ($${formatMoney(targetUsd)}):`;
+    if (elTradesNeeded) elTradesNeeded.textContent = `Solo ${tradesToTarget} trades (${intTradesToTarget} wins)`;
+    if (elProgFoot) {
+      elProgFoot.textContent = `Al ganar ${intTradesToTarget} operaciones arriesgando $${formatMoney(effectiveDollarRisk)} a ratio 1:${rr} sumas $${formatMoney(intTradesToTarget * projectedRewardUsd)} USD y superas el target de $${formatMoney(targetUsd)}.`;
+    }
+  } else {
+    if (elProgTitle) elProgTitle.textContent = `Impacto a ratio 1:${rr} en cuenta Fondeada Real:`;
+    if (elTradesNeeded) elTradesNeeded.textContent = `+$${formatMoney(projectedRewardUsd)} por Win (+${projectedRewardPct.toFixed(1)}%)`;
+    if (elProgFoot) {
+      const bestDayLimit = accountSize * 0.20;
+      elProgFoot.textContent = `En Fase Fondeada cada win de $${formatMoney(projectedRewardUsd)} respeta holgadamente la regla de consistencia del 20% (máx $${formatMoney(bestDayLimit)} por día sobre utilidades).`;
+    }
+  }
+};
+
+window.applyOrionCalcParams = function() {
+  const risk = parseFloat(document.getElementById('orionCalcRiskInput')?.value) || 0.50;
+  const sl = parseFloat(document.getElementById('orionCalcSlInput')?.value) || 25.0;
+  const rr = parseFloat(document.getElementById('orionCalcRrInput')?.value) || 3.0;
+  const lotText = document.getElementById('orionResultLot')?.textContent || '1.38';
+
+  // Transferir al formulario de Backtesting Simple
+  const btRiskInp = document.getElementById('btSimpleRiskPct');
+  if (btRiskInp) btRiskInp.value = risk;
+  const btRrInp = document.getElementById('btSimpleRR');
+  if (btRrInp) btRrInp.value = rr;
+  const btSlInp = document.getElementById('btSimpleManualSlPoints');
+  if (btSlInp) btSlInp.value = sl;
+
+  // Seleccionar activo USDCAD
+  if (typeof window.selectBtAsset === 'function') {
+    window.selectBtAsset('USDCAD');
+  }
+  if (typeof updateBacktestSimplePreviews === 'function') {
+    updateBacktestSimplePreviews();
+  }
+
+  // Cambiar de pestaña al backtest
+  if (typeof window.switchTabTo === 'function') {
+    window.switchTabTo('backtest');
+  }
+
+  if (typeof showToast === 'function') {
+    showToast(`🚀 ¡Parámetros Orion Nova 50K transferidos al Backtesting! (USDCAD · Lote ${lotText} · Riesgo ${risk}% · 1:${rr} · SL ${sl}p)`, 'success', 4000);
+  }
+};
 
 function setupBacktestSimpleView() {
   selectedBtSimpleAsset = 'USDCAD';

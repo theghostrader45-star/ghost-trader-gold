@@ -93,27 +93,34 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- NAVIGATION TABS: 1. Backtesting / 2. Noticias / 3. Calculadora (USDCAD · AUDCAD · AUDJPY) -->
-    <nav class="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-3xl mx-auto">
+    <!-- NAVIGATION TABS: 1. Backtesting / 2. Noticias / 3. Calculadora / 4. Orion 50K Nova -->
+    <nav class="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-4xl mx-auto">
       <!-- Tab 1: Backtesting (Interés Compuesto) -->
-      <button id="tabBtnBacktestSimple" class="tab-button flex-1 min-w-[120px] sm:min-w-[140px] px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 whitespace-nowrap cursor-pointer">
+      <button id="tabBtnBacktestSimple" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 whitespace-nowrap cursor-pointer">
         <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-200 shrink-0"></i>
         <span class="truncate">1. Backtesting</span>
         <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-black/30 text-emerald-200 font-bold rounded-full">Compuesto</span>
       </button>
 
       <!-- Tab 2: Noticias de Alto Impacto -->
-      <button id="tabBtnNews" class="tab-button flex-1 min-w-[120px] sm:min-w-[140px] px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
+      <button id="tabBtnNews" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
         <i data-lucide="flame" class="w-4 h-4 text-rose-400 shrink-0"></i>
         <span class="truncate">2. Noticias</span>
         <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-rose-950 text-rose-300 border border-rose-800 font-bold rounded-full">±2m</span>
       </button>
 
       <!-- Tab 3: Calculadora de Posición & Riesgo -->
-      <button id="tabBtnCalculator" class="tab-button flex-1 min-w-[120px] sm:min-w-[140px] px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
+      <button id="tabBtnCalculator" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
         <i data-lucide="calculator" class="w-4 h-4 text-amber-400 shrink-0"></i>
         <span class="truncate">3. Calculadora</span>
         <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-amber-950 text-amber-300 border border-amber-800 font-bold rounded-full">Lote & Riesgo</span>
+      </button>
+
+      <!-- Tab 4: Orion 50K Nova ($7) & Reglas USDCAD -->
+      <button id="tabBtnOrionRules" class="tab-button flex-1 min-w-[110px] sm:min-w-[150px] px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
+        <i data-lucide="shield-check" class="w-4 h-4 text-purple-400 shrink-0"></i>
+        <span class="truncate">4. Orion 50K</span>
+        <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-purple-950 text-purple-300 border border-purple-800 font-bold rounded-full">$7 Nova · USDCAD</span>
       </button>
     </nav>
 
@@ -1225,6 +1232,552 @@
       </section>
 
     </div> <!-- FIN viewBacktestSimple -->
+
+    <!-- ================================================================= -->
+    <!-- TAB 4: GUÍA Y CALCULADORA ORION FUNDED NOVA 50K ($7 USD) & USDCAD -->
+    <!-- ================================================================= -->
+    <div id="viewOrionRules" class="hidden space-y-6">
+
+      <!-- BANNER PRINCIPAL DE LA CUENTA ORION NOVA 50K -->
+      <section class="bg-gradient-to-r from-purple-950/70 via-gray-900 to-indigo-950/60 border border-purple-800/40 rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden backdrop-blur-md">
+        <div class="absolute -right-10 -top-10 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-300 font-mono font-black text-xs border border-purple-500/40 flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-purple-400"></i>
+                ORION FUNDED · NOVA 50K
+              </span>
+              <span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-mono font-black text-xs border border-emerald-500/40 flex items-center gap-1.5">
+                <i data-lucide="zap" class="w-3.5 h-3.5 text-emerald-400"></i>
+                Pay After You Pass ($7 USD)
+              </span>
+              <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-gray-800 text-gray-300 border border-gray-700">
+                1-Paso Evaluación
+              </span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+              Reglas Estrictas de Operativa & Lote USDCAD (50K)
+            </h2>
+            <p class="text-xs sm:text-sm text-gray-300 leading-relaxed max-w-3xl">
+              Domina el desafío <span class="text-purple-300 font-bold">Orion Nova 50K</span> pagando solo <span class="text-emerald-400 font-bold">$7 USD</span> al inicio. Aprende las diferencias exactas entre la <strong class="text-white">Fase de Evaluación</strong> y la <strong class="text-white">Fase Fondeada</strong>, gestiona tu lotaje en <strong class="text-white">USDCAD</strong> al milímetro y ejecuta el plan matemático de alta asimetría para pasar en pocos trades.
+            </p>
+          </div>
+
+          <!-- Selector Rápido de Fase Activa para Visualización -->
+          <div class="flex flex-col sm:flex-row lg:flex-col gap-2 shrink-0 bg-gray-950/80 p-2 rounded-xl border border-gray-800">
+            <span class="text-[10px] text-gray-400 font-mono uppercase tracking-wider font-bold block text-center lg:text-left px-1">Fase Activa:</span>
+            <div class="inline-flex bg-gray-900 p-1 rounded-lg border border-gray-800" id="orionPhaseToggleGroup">
+              <button type="button" id="btnOrionPhaseEval" onclick="window.setOrionActivePhase('eval')" class="px-3 py-1.5 rounded text-xs font-black transition flex items-center gap-1 cursor-pointer bg-purple-600 text-white shadow-md shadow-purple-950/40">
+                <i data-lucide="target" class="w-3.5 h-3.5"></i>
+                <span>1. Evaluación ($7)</span>
+              </button>
+              <button type="button" id="btnOrionPhaseFunded" onclick="window.setOrionActivePhase('funded')" class="px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1 cursor-pointer text-gray-400 hover:text-white">
+                <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                <span>2. Fondeada (Real)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 TARJETAS DE MÉTRICAS CLAVE SEGÚN FASE -->
+      <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <!-- Tarjeta 1: Capital & Inscripción -->
+        <div class="bg-cardBg border border-cardBorder p-4 rounded-xl shadow-lg relative overflow-hidden">
+          <div class="flex items-center justify-between text-gray-400 text-xs mb-1">
+            <span class="font-bold flex items-center gap-1">
+              <i data-lucide="wallet" class="w-3.5 h-3.5 text-blue-400"></i> Capital de la Cuenta
+            </span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono font-bold">$7 Inicial</span>
+          </div>
+          <div class="text-xl sm:text-2xl font-black font-mono text-white">$50,000.00</div>
+          <p class="text-[11px] text-gray-400 mt-1">Inscripción: <strong class="text-emerald-400">$7 USD</strong> · Activación al pasar: <strong class="text-purple-300">~$350 USD</strong></p>
+        </div>
+
+        <!-- Tarjeta 2: Objetivo de Ganancia -->
+        <div class="bg-cardBg border border-cardBorder p-4 rounded-xl shadow-lg relative overflow-hidden">
+          <div class="flex items-center justify-between text-gray-400 text-xs mb-1">
+            <span class="font-bold flex items-center gap-1">
+              <i data-lucide="target" class="w-3.5 h-3.5 text-emerald-400"></i> Objetivo (Profit Target)
+            </span>
+            <span id="orionCardTargetBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold">4.0%</span>
+          </div>
+          <div class="text-xl sm:text-2xl font-black font-mono text-emerald-400" id="orionCardTargetUsd">+$2,000.00</div>
+          <p class="text-[11px] text-gray-400 mt-1" id="orionCardTargetDesc">Fase 1: Alcanza $52,000.00 sin límite de tiempo</p>
+        </div>
+
+        <!-- Tarjeta 3: Pérdida Máxima Diaria -->
+        <div class="bg-cardBg border border-cardBorder p-4 rounded-xl shadow-lg relative overflow-hidden">
+          <div class="flex items-center justify-between text-gray-400 text-xs mb-1">
+            <span class="font-bold flex items-center gap-1">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-400"></i> Pérdida Máx. Diaria
+            </span>
+            <span id="orionCardDailyLossBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono font-bold">4.0%</span>
+          </div>
+          <div class="text-xl sm:text-2xl font-black font-mono text-amber-400" id="orionCardDailyLossUsd">-$2,000.00</div>
+          <p class="text-[11px] text-gray-400 mt-1" id="orionCardDailyLossDesc">Fase 1: 4% diario ($2,000) · En Fase 2 baja a 3% ($1,500)</p>
+        </div>
+
+        <!-- Tarjeta 4: Drawdown Máximo Total (Trailing Lock) -->
+        <div class="bg-cardBg border border-cardBorder p-4 rounded-xl shadow-lg relative overflow-hidden">
+          <div class="flex items-center justify-between text-gray-400 text-xs mb-1">
+            <span class="font-bold flex items-center gap-1">
+              <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-rose-400"></i> Trailing Lock Total
+            </span>
+            <span id="orionCardMaxDdBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono font-bold">8.0%</span>
+          </div>
+          <div class="text-xl sm:text-2xl font-black font-mono text-rose-400" id="orionCardMaxDdUsd">-$4,000.00</div>
+          <p class="text-[11px] text-gray-400 mt-1" id="orionCardMaxDdDesc">Piso inicial: $46,000 · Bloqueo fijo en $50,000</p>
+        </div>
+      </section>
+
+      <!-- TABLA MATRIZ COMPARATIVA ESTRICTA: FASE 1 EVALUACIÓN VS FASE 2 FONDEADA -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-6 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <div class="p-2 bg-purple-500/10 text-purple-400 rounded-lg">
+              <i data-lucide="sliders" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-white">Matriz de Reglas Operativas: Evaluación vs Cuenta Fondeada</h3>
+              <p class="text-xs text-gray-400">Parámetros oficiales y restricciones que debes acatar para no reprobar ni perder retiros</p>
+            </div>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-gray-900 border border-gray-800 font-mono text-gray-300">
+            Orion Nova 50K
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-gray-950 text-gray-400 border-b border-gray-800 font-mono">
+                <th class="py-3 px-3.5 font-bold uppercase tracking-wider w-1/4">Regla / Parámetro</th>
+                <th class="py-3 px-3.5 font-bold uppercase tracking-wider text-purple-300 bg-purple-950/20 w-3/8 border-r border-gray-800">
+                  <span class="flex items-center gap-1.5">
+                    <i data-lucide="target" class="w-3.5 h-3.5"></i>
+                    Fase 1: Evaluación ($7 USD)
+                  </span>
+                </th>
+                <th class="py-3 px-3.5 font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/20 w-3/8">
+                  <span class="flex items-center gap-1.5">
+                    <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                    Fase 2: Cuenta Fondeada (Real)
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800/80 font-sans">
+              <!-- Fila 1: Profit Target -->
+              <tr class="hover:bg-gray-800/30 transition">
+                <td class="py-3 px-3.5 font-bold text-white flex items-center gap-1.5">
+                  <i data-lucide="crosshair" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+                  <span>Objetivo de Ganancia</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-emerald-300 font-bold bg-purple-950/10 border-r border-gray-800">
+                  4.0% (+$2,000.00 USD)
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal">Cuenta llega a $52,000.00</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-gray-300 bg-emerald-950/10">
+                  Sin objetivo de beneficio
+                  <span class="block text-[11px] font-sans text-emerald-400 font-normal">Operas para cobrar retiros (80% a 90% split)</span>
+                </td>
+              </tr>
+
+              <!-- Fila 2: Pérdida Máxima Diaria -->
+              <tr class="hover:bg-gray-800/30 transition">
+                <td class="py-3 px-3.5 font-bold text-white flex items-center gap-1.5">
+                  <i data-lucide="alert-octagon" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+                  <span>Pérdida Máxima Diaria</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-amber-300 font-bold bg-purple-950/10 border-r border-gray-800">
+                  4.0% (-$2,000.00 USD)
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal">Basado en balance inicial del día a 00:00 server</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-rose-300 font-bold bg-emerald-950/10">
+                  3.0% (-$1,500.00 USD) ⚠️
+                  <span class="block text-[11px] font-sans text-amber-400 font-normal">¡Más estricto! El margen diario se reduce en $500</span>
+                </td>
+              </tr>
+
+              <!-- Fila 3: Max Drawdown (Trailing Lock) -->
+              <tr class="hover:bg-gray-800/30 transition">
+                <td class="py-3 px-3.5 font-bold text-white flex items-center gap-1.5">
+                  <i data-lucide="lock" class="w-3.5 h-3.5 text-rose-400 shrink-0"></i>
+                  <span>Drawdown Total (Trailing Lock)</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-rose-300 font-bold bg-purple-950/10 border-r border-gray-800">
+                  8.0% (-$4,000.00 USD)
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal">Piso inicial: $46,000. Sigue pico hasta bloquearse en $50k</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-rose-300 font-bold bg-emerald-950/10">
+                  5.0% (-$2,500.00 USD) ⚠️
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal">Piso inicial: $47,500. Sigue <strong>Equidad Flotante</strong> hasta anclar en $50k</span>
+                </td>
+              </tr>
+
+              <!-- Fila 4: Regla de Consistencia (Best Day) -->
+              <tr class="hover:bg-gray-800/30 transition">
+                <td class="py-3 px-3.5 font-bold text-white flex items-center gap-1.5">
+                  <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-blue-400 shrink-0"></i>
+                  <span>Regla de Consistencia (Best Day)</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-gray-300 bg-purple-950/10 border-r border-gray-800">
+                  <span class="px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 font-bold">NO APLICA</span>
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal mt-0.5">Puedes pasar la prueba en 1 día si alcanzas los $2,000</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-amber-300 font-bold bg-emerald-950/10">
+                  <span class="px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 font-bold">REGLA DEL 20%</span> ⚠️
+                  <span class="block text-[11px] font-sans text-gray-300 font-normal mt-0.5">Ningún día puede superar el 20% del total de ganancias al solicitar retiro (requiere al menos 5 días rentables distribuidos)</span>
+                </td>
+              </tr>
+
+              <!-- Fila 5: Días Mínimos de Trading -->
+              <tr class="hover:bg-gray-800/30 transition">
+                <td class="py-3 px-3.5 font-bold text-white flex items-center gap-1.5">
+                  <i data-lucide="calendar" class="w-3.5 h-3.5 text-gray-400 shrink-0"></i>
+                  <span>Días Mínimos de Operación</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-emerald-400 font-bold bg-purple-950/10 border-r border-gray-800">
+                  0 Días Mínimos
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal">Pasa tan pronto alcances los $2,000</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-gray-300 bg-emerald-950/10">
+                  0 Días Mínimos
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal">Pero regulado indirectamente por la regla del 20%</span>
+                </td>
+              </tr>
+
+              <!-- Fila 6: Límite de Tiempo -->
+              <tr class="hover:bg-gray-800/30 transition">
+                <td class="py-3 px-3.5 font-bold text-white flex items-center gap-1.5">
+                  <i data-lucide="clock" class="w-3.5 h-3.5 text-gray-400 shrink-0"></i>
+                  <span>Límite de Tiempo</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-emerald-400 font-bold bg-purple-950/10 border-r border-gray-800">
+                  Ilimitado
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal">Tómate semanas o meses con cero presión</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-emerald-400 font-bold bg-emerald-950/10">
+                  Ilimitado
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal">Cuenta activa mientras no se violen los drawdowns</span>
+                </td>
+              </tr>
+
+              <!-- Fila 7: Noticias de Alto Impacto -->
+              <tr class="hover:bg-gray-800/30 transition">
+                <td class="py-3 px-3.5 font-bold text-white flex items-center gap-1.5">
+                  <i data-lucide="flame" class="w-3.5 h-3.5 text-rose-400 shrink-0"></i>
+                  <span>Noticias de Alto Impacto</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-rose-300 font-bold bg-purple-950/10 border-r border-gray-800">
+                  Restricción ±2 minutos
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal">Prohibido abrir/cerrar trades 2m antes y 2m después de noticias rojas</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-rose-300 font-bold bg-emerald-950/10">
+                  Restricción ±2 minutos
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal">Misma regla estricta. Las ganancias en ventana roja se anulan</span>
+                </td>
+              </tr>
+
+              <!-- Fila 8: Fin de Semana & Swaps -->
+              <tr class="hover:bg-gray-800/30 transition">
+                <td class="py-3 px-3.5 font-bold text-white flex items-center gap-1.5">
+                  <i data-lucide="moon" class="w-3.5 h-3.5 text-blue-400 shrink-0"></i>
+                  <span>Fin de Semana & Swaps</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-gray-300 bg-purple-950/10 border-r border-gray-800">
+                  Permitido mantener fin de semana
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal">Prohibido cazar gaps de apertura expresamente</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-gray-300 bg-emerald-950/10">
+                  Permitido mantener fin de semana
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal">Ojo con los swaps nocturnos: descuentan de la pérdida diaria</span>
+                </td>
+              </tr>
+
+              <!-- Fila 9: Apalancamiento Forex (USDCAD) -->
+              <tr class="hover:bg-gray-800/30 transition">
+                <td class="py-3 px-3.5 font-bold text-white flex items-center gap-1.5">
+                  <i data-lucide="gauge" class="w-3.5 h-3.5 text-purple-400 shrink-0"></i>
+                  <span>Apalancamiento USDCAD</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-purple-300 font-bold bg-purple-950/10 border-r border-gray-800">
+                  1:30 Estándar Forex
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal">Margen: ~$3,333 USD por cada 1.00 lote</span>
+                </td>
+                <td class="py-3 px-3.5 font-mono text-purple-300 font-bold bg-emerald-950/10">
+                  1:30 Estándar Forex
+                  <span class="block text-[11px] font-sans text-gray-400 font-normal">Margen: ~$3,333 USD por cada 1.00 lote</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- CALCULADORA DE LOTAJE EXACTO PARA USDCAD (50K ORION NOVA) -->
+      <section class="bg-gray-900/90 border border-purple-800/40 rounded-2xl p-4 sm:p-6 shadow-2xl backdrop-blur-md space-y-5">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <div class="p-2 bg-purple-500/10 text-purple-400 rounded-lg">
+              <i data-lucide="calculator" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                Calculadora de Lote y Riesgo para USDCAD (Cuenta 50K)
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono font-bold">🇺🇸🇨🇦 1 Pip ≈ $7.25 USD/Lote</span>
+              </h3>
+              <p class="text-xs text-gray-400">Ingresa tu Stop Loss exacto y calcula el tamaño de lote que jamás violará las reglas de Orion</p>
+            </div>
+          </div>
+          <button type="button" onclick="window.applyOrionCalcParams()" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>Sincronizar con Backtest</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- PANEL IZQUIERDO: CONTROLES INTERACTIVOS (7 COLS) -->
+          <div class="lg:col-span-7 space-y-4">
+            <!-- 1. Selección de Cuenta y Fase -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-gray-300 mb-1">Tamaño de Cuenta Orion</label>
+                <select id="orionCalcAccountSize" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono font-bold text-sm focus:border-purple-500 focus:outline-none transition">
+                  <option value="50000" selected>$50,000 USD (Orion Nova 50K)</option>
+                  <option value="25000">$25,000 USD (Orion Nova 25K)</option>
+                  <option value="10000">$10,000 USD (Orion Nova 10K)</option>
+                  <option value="5000">$5,000 USD (Orion Nova 5K)</option>
+                  <option value="100000">$100,000 USD (Orion Nova 100K)</option>
+                  <option value="200000">$200,000 USD (Orion Nova 200K)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-gray-300 mb-1">Fase Operativa</label>
+                <select id="orionCalcPhaseSelect" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono font-bold text-sm focus:border-purple-500 focus:outline-none transition">
+                  <option value="eval" selected>Fase 1: Evaluación 50K (Target 4% / Max DD 4%)</option>
+                  <option value="funded">Fase 2: Fondeada 50K (Max DD 3% / Regla 20%)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 2. Riesgo % por Operación -->
+            <div class="space-y-1.5 bg-gray-950/60 p-3.5 rounded-xl border border-gray-800">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+                  <i data-lucide="percent" class="w-3.5 h-3.5 text-amber-400"></i>
+                  <span>Riesgo por Operación</span>
+                </label>
+                <span class="text-xs font-mono font-black text-amber-400" id="orionCalcRiskPctDisplay">0.50% ($250.00 USD)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="number" id="orionCalcRiskInput" step="0.05" min="0.1" max="3.0" value="0.50" class="w-24 bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1 text-white font-mono font-bold text-sm focus:border-purple-500 focus:outline-none">
+                <div class="grid grid-cols-4 gap-1.5 flex-1">
+                  <button type="button" onclick="window.setOrionCalcRisk(0.25)" class="btn-orion-risk py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="0.25">0.25%</button>
+                  <button type="button" onclick="window.setOrionCalcRisk(0.50)" class="btn-orion-risk py-1 rounded text-xs font-mono font-bold bg-purple-600 text-white border border-purple-500 transition text-center cursor-pointer" data-val="0.50">0.50% ⭐</button>
+                  <button type="button" onclick="window.setOrionCalcRisk(0.75)" class="btn-orion-risk py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="0.75">0.75%</button>
+                  <button type="button" onclick="window.setOrionCalcRisk(1.00)" class="btn-orion-risk py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="1.00">1.00%</button>
+                </div>
+              </div>
+              <p class="text-[11px] text-gray-400 pt-0.5">💡 <span class="text-emerald-400 font-bold">0.50% ($250)</span> es el riesgo óptimo en Fase 1: te da 8 oportunidades completas antes del límite diario.</p>
+            </div>
+
+            <!-- 3. Stop Loss en Pips (USDCAD) -->
+            <div class="space-y-1.5 bg-gray-950/60 p-3.5 rounded-xl border border-gray-800">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+                  <i data-lucide="ruler" class="w-3.5 h-3.5 text-blue-400"></i>
+                  <span>Distancia de Stop Loss en Pips (USDCAD)</span>
+                </label>
+                <span class="text-xs font-mono font-black text-blue-400" id="orionCalcSlDisplay">25.0 Pips</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="number" id="orionCalcSlInput" step="0.5" min="5" max="100" value="25.0" class="w-24 bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1 text-white font-mono font-bold text-sm focus:border-purple-500 focus:outline-none">
+                <div class="grid grid-cols-5 gap-1 flex-1">
+                  <button type="button" onclick="window.setOrionCalcSl(15.0)" class="btn-orion-sl py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="15.0">15p</button>
+                  <button type="button" onclick="window.setOrionCalcSl(20.0)" class="btn-orion-sl py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="20.0">20p</button>
+                  <button type="button" onclick="window.setOrionCalcSl(25.0)" class="btn-orion-sl py-1 rounded text-xs font-mono font-bold bg-blue-600 text-white border border-blue-500 transition text-center cursor-pointer" data-val="25.0">25p ⭐</button>
+                  <button type="button" onclick="window.setOrionCalcSl(30.0)" class="btn-orion-sl py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="30.0">30p</button>
+                  <button type="button" onclick="window.setOrionCalcSl(35.0)" class="btn-orion-sl py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="35.0">35p</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Ratio R:R y Cotización USDCAD -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-gray-300 mb-1">Ratio Riesgo:Beneficio (R:R)</label>
+                <div class="grid grid-cols-4 gap-1">
+                  <button type="button" onclick="window.setOrionCalcRr(2.0)" class="btn-orion-rr py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="2.0">1:2</button>
+                  <button type="button" onclick="window.setOrionCalcRr(2.5)" class="btn-orion-rr py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="2.5">1:2.5</button>
+                  <button type="button" onclick="window.setOrionCalcRr(3.0)" class="btn-orion-rr py-1 rounded text-xs font-mono font-bold bg-emerald-600 text-white border border-emerald-500 transition text-center cursor-pointer" data-val="3.0">1:3 ⭐</button>
+                  <button type="button" onclick="window.setOrionCalcRr(4.0)" class="btn-orion-rr py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="4.0">1:4</button>
+                </div>
+                <input type="hidden" id="orionCalcRrInput" value="3.0">
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-gray-300 mb-1">Cotización USDCAD (Referencia)</label>
+                <div class="relative">
+                  <input type="number" id="orionCalcPriceInput" step="0.001" min="1.0" max="2.0" value="1.3800" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-1.5 text-white font-mono font-bold text-xs focus:border-purple-500 focus:outline-none transition">
+                  <span class="absolute right-3 top-2 text-[10px] text-gray-500 font-mono">CAD por USD</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANEL DERECHO: TARJETA DE RESULTADOS EN TIEMPO REAL (5 COLS) -->
+          <div class="lg:col-span-5 bg-gradient-to-b from-gray-950 to-gray-900 border-2 border-purple-500/50 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col justify-between space-y-4">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                <span class="text-xs uppercase font-mono font-bold text-purple-300 flex items-center gap-1.5">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-purple-400"></i>
+                  LOTE SUGERIDO EN USDCAD
+                </span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono font-bold">1:30 Lev</span>
+              </div>
+
+              <!-- LOTE GIGANTE -->
+              <div class="text-center py-2 bg-purple-950/30 rounded-xl border border-purple-800/40">
+                <div class="text-4xl sm:text-5xl font-black font-mono text-purple-300 tracking-tight" id="orionResultLot">1.38</div>
+                <div class="text-xs text-gray-300 font-semibold mt-1" id="orionResultContractDesc">Lotes Estándar (138,000 USD Contrato)</div>
+              </div>
+
+              <!-- Matriz de Métricas Monetarias -->
+              <div class="space-y-2 text-xs font-mono">
+                <div class="flex justify-between items-center py-1 border-b border-gray-800/60">
+                  <span class="text-gray-400 font-sans">Riesgo en Pérdida (-1R):</span>
+                  <span class="text-rose-400 font-bold" id="orionResultRiskUsd">-$250.00 USD (-0.50%)</span>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-gray-800/60">
+                  <span class="text-gray-400 font-sans">Ganancia Proyectada (+3R):</span>
+                  <span class="text-emerald-400 font-bold" id="orionResultRewardUsd">+$750.00 USD (+1.50%)</span>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-gray-800/60">
+                  <span class="text-gray-400 font-sans">Valor de 1 Pip con este Lote:</span>
+                  <span class="text-sky-300 font-bold" id="orionResultPipValue">$10.00 USD / pip</span>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-gray-800/60">
+                  <span class="text-gray-400 font-sans">Margen Requerido en MT5:</span>
+                  <span class="text-amber-300 font-bold" id="orionResultMargin">$4,600.00 USD</span>
+                </div>
+                <div class="flex justify-between items-center py-1">
+                  <span class="text-gray-400 font-sans">Colchón contra Pérdida Diaria:</span>
+                  <span class="text-white font-bold" id="orionResultLossBuffer">8 pérdidas consecutivas</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Progreso al Target de $2,000 -->
+            <div class="bg-gray-950 p-3 rounded-xl border border-gray-800 space-y-1.5">
+              <div class="flex justify-between text-[11px] font-sans">
+                <span class="text-gray-400" id="orionResultProgressTitle">Trades a 1:3 para pasar evaluación ($2,000):</span>
+                <span class="text-emerald-400 font-bold font-mono" id="orionResultTradesNeeded">Solo 2.7 trades (3 wins)</span>
+              </div>
+              <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                <div class="bg-gradient-to-r from-purple-500 to-emerald-400 h-full rounded-full w-3/4"></div>
+              </div>
+              <p class="text-[10px] text-gray-500 leading-tight" id="orionResultProgressFoot">Al ganar 3 operaciones arriesgando $250 a ratio 1:3 sumas $2,250 USD y superas el target de $2,000.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PLAN MAESTRO OPERATIVO PASO A PASO PARA PASAR LA PRUEBA CON $7 USD -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
+        <div class="border-b border-gray-800 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg">
+              <i data-lucide="compass" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-base sm:text-lg font-black text-white">
+                Estrategia Maestra: Cómo Pasar la Prueba de 1 Fase pagando solo $7 USD
+              </h3>
+              <p class="text-xs text-gray-400">Guía táctica paso a paso diseñada para el desafío Orion Nova 50K operando exclusivamente USDCAD</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Paso 1 -->
+          <div class="bg-gray-950/70 border border-gray-800 p-4 rounded-xl space-y-2 hover:border-purple-500/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono font-bold text-purple-400">PASO 1</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold">$7 USD</span>
+            </div>
+            <h4 class="font-bold text-white text-sm">Inscripción en Orion Nova ($7)</h4>
+            <p class="text-xs text-gray-300 leading-relaxed">
+              Selecciona en Orion Funded la cuenta <strong>Orion Nova 50K</strong> bajo el modelo <em>"Pay After You Pass"</em>. Solo pagas <strong>$7 USD</strong> de registro inicial. La tarifa de activación completa (~$350 USD) se abona <strong>únicamente después de aprobar la fase</strong>.
+            </p>
+          </div>
+
+          <!-- Paso 2 -->
+          <div class="bg-gray-950/70 border border-gray-800 p-4 rounded-xl space-y-2 hover:border-purple-500/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono font-bold text-purple-400">PASO 2</span>
+              <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono text-[10px] font-bold">R:R 1:2.5 – 1:3</span>
+            </div>
+            <h4 class="font-bold text-white text-sm">La Asimetría Matemática</h4>
+            <p class="text-xs text-gray-300 leading-relaxed">
+              El target de evaluación es de tan solo el <strong>4% ($2,000 USD)</strong>. Arriesgando el <strong>0.50% ($250 USD)</strong> por operación con ratio <strong>1:3</strong>, cada acierto te genera <strong>+$750 USD (+1.50%)</strong>. Con <strong>3 operaciones ganadoras netas</strong> pasas el desafío.
+            </p>
+          </div>
+
+          <!-- Paso 3 -->
+          <div class="bg-gray-950/70 border border-gray-800 p-4 rounded-xl space-y-2 hover:border-purple-500/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono font-bold text-purple-400">PASO 3</span>
+              <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold">07:00–11:00 NY</span>
+            </div>
+            <h4 class="font-bold text-white text-sm">Killzone Exclusiva en USDCAD</h4>
+            <p class="text-xs text-gray-300 leading-relaxed">
+              Opera única y exclusivamente en la <strong>Sesión de New York</strong> (de 07:00 a 11:00 hora de Nueva York). La superposición con Toronto brinda spreads de 0.6 a 0.9 pips y rupturas institucionales limpias sin ruido asiático.
+            </p>
+          </div>
+
+          <!-- Paso 4 -->
+          <div class="bg-gray-950/70 border border-gray-800 p-4 rounded-xl space-y-2 hover:border-purple-500/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono font-bold text-purple-400">PASO 4</span>
+              <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px] font-bold">Regla ±2 min</span>
+            </div>
+            <h4 class="font-bold text-white text-sm">Filtro de Noticias Rojas</h4>
+            <p class="text-xs text-gray-300 leading-relaxed">
+              Orion prohíbe abrir o cerrar operaciones <strong>2 minutos antes y 2 minutos después</strong> de noticias de alto impacto. Revisa la pestaña de <em>2. Noticias</em> de esta terminal: si hay NFP, IPC de EE.UU. o tasas del BoC, no abras trades en esa ventana.
+            </p>
+          </div>
+
+          <!-- Paso 5 -->
+          <div class="bg-gray-950/70 border border-gray-800 p-4 rounded-xl space-y-2 hover:border-purple-500/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono font-bold text-purple-400">PASO 5</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold">Máx 1 Trade/Día</span>
+            </div>
+            <h4 class="font-bold text-white text-sm">Regla "1 Trade y Fuera"</h4>
+            <p class="text-xs text-gray-300 leading-relaxed">
+              Si tu primer trade es ganador (+1.50%), <strong>apagas la plataforma</strong> inmediatamente. Si es perdedor (-0.50%), tomas a lo sumo 1 trade más. Jamás perderás más de 1.0% en un día, dejando un margen enorme frente al límite diario de 4.0%.
+            </p>
+          </div>
+
+          <!-- Paso 6 -->
+          <div class="bg-gray-950/70 border border-gray-800 p-4 rounded-xl space-y-2 hover:border-purple-500/40 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono font-bold text-purple-400">PASO 6</span>
+              <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono text-[10px] font-bold">Regla del 20%</span>
+            </div>
+            <h4 class="font-bold text-white text-sm">Paso a Fase Fondeada y Retiro</h4>
+            <p class="text-xs text-gray-300 leading-relaxed">
+              Al alcanzar $52,000, pagas la activación dentro de 30 días. En la fase fondeada, <strong>bajas el riesgo a 0.25% - 0.35% ($125-$175)</strong> y repartes tus ganancias en al menos <strong>5 días positivos</strong> para cumplir la regla del 20% y retirar el 80-90% limpio.
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </div> <!-- FIN viewOrionRules -->
 
     </main>
 

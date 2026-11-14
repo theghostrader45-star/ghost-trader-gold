@@ -1,5 +1,5 @@
 {
-  "initial_balance": 1000.0,
+  "initial_balance": 10000.0,
   "risk_pct": 1.0,
   "leverage": 30.0,
   "rr_ratio": 2.0,
