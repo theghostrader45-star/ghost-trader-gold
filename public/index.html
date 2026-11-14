@@ -1627,6 +1627,36 @@
                 </div>
               </div>
             </div>
+
+            <!-- 5. ESCUDO DE CONSISTENCIA ORION: META DE RETIRO & REGLA DEL 20% -->
+            <div class="space-y-2 bg-gradient-to-r from-emerald-950/40 via-gray-950 to-purple-950/40 p-3.5 rounded-xl border border-emerald-500/30">
+              <div class="flex items-center justify-between">
+                <label class="text-xs font-bold text-gray-200 flex items-center gap-1.5">
+                  <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                  <span>🛡️ Meta de Retiro & Límite 20% Consistencia</span>
+                </label>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold" id="orionMaxDayProfitBadge">Máx $700.00/día</span>
+              </div>
+              <p class="text-[11px] text-gray-400">
+                Para retirar en cuenta fondeada, <strong class="text-white">ningún día puede superar el 20%</strong> del retiro solicitado. Define tu meta para autocalcular el tope de lote seguro:
+              </p>
+              <div class="flex items-center gap-2">
+                <div class="relative w-32">
+                  <span class="absolute left-2.5 top-1.5 text-xs text-gray-500 font-mono font-bold">$</span>
+                  <input type="number" id="orionCalcPayoutTargetInput" step="100" min="500" max="25000" value="3500" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-6 pr-2.5 py-1 text-white font-mono font-bold text-xs focus:border-emerald-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-4 gap-1.5 flex-1">
+                  <button type="button" onclick="window.setOrionPayoutTarget(2000)" class="btn-orion-payout py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="2000">$2,000</button>
+                  <button type="button" onclick="window.setOrionPayoutTarget(2500)" class="btn-orion-payout py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="2500">$2,500</button>
+                  <button type="button" onclick="window.setOrionPayoutTarget(3500)" class="btn-orion-payout py-1 rounded text-xs font-mono font-bold bg-emerald-600 text-white border border-emerald-500 transition text-center cursor-pointer shadow-sm" data-val="3500">$3,500 ⭐</button>
+                  <button type="button" onclick="window.setOrionPayoutTarget(5000)" class="btn-orion-payout py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="5000">$5,000</button>
+                </div>
+              </div>
+              <div class="flex items-center justify-between text-[11px] pt-1 border-t border-gray-800/80">
+                <span class="text-gray-400">Tope de Riesgo a R:R 1:2.8:</span>
+                <span class="text-emerald-300 font-mono font-bold" id="orionMaxSafeRiskUsd">$250.00 USD (0.50% de 50K)</span>
+              </div>
+            </div>
           </div>
 
           <!-- PANEL DERECHO: TARJETA DE RESULTADOS EN TIEMPO REAL (5 COLS) -->
@@ -1657,6 +1687,10 @@
                   <span class="text-emerald-400 font-bold" id="orionResultRewardUsd">+$700.00 USD (+1.40%)</span>
                 </div>
                 <div class="flex justify-between items-center py-1 border-b border-gray-800/60">
+                  <span class="text-gray-400 font-sans">Impacto en Retiro (Regla 20%):</span>
+                  <span class="font-bold font-mono text-emerald-400" id="orionResultPayoutPct">20.0% (✓ Conforme ≤ 20%)</span>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-gray-800/60">
                   <span class="text-gray-400 font-sans">Valor de 1 Pip con este Lote:</span>
                   <span class="text-sky-300 font-bold" id="orionResultPipValue">$10.00 USD / pip</span>
                 </div>
@@ -1668,6 +1702,17 @@
                   <span class="text-gray-400 font-sans">Colchón contra Pérdida Diaria:</span>
                   <span class="text-white font-bold" id="orionResultLossBuffer">8 pérdidas consecutivas</span>
                 </div>
+              </div>
+
+              <!-- Banner Dinámico del Escudo de Consistencia 20% -->
+              <div id="orionConsistencyAlertBox" class="p-2.5 rounded-xl border flex items-center justify-between gap-2 bg-emerald-950/40 border-emerald-800/50 text-emerald-300 text-xs">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400 shrink-0" id="orionConsistencyIcon"></i>
+                  <span class="text-[11px] font-semibold leading-tight truncate" id="orionConsistencyAlertText">✓ Este trade respeta el 20% del retiro ($700/$3,500)</span>
+                </div>
+                <button type="button" id="btnOrionCapLot" onclick="window.capOrionLotToConsistency()" class="hidden px-2 py-1 rounded text-[10px] font-bold bg-amber-500 hover:bg-amber-400 text-black shrink-0 transition cursor-pointer shadow-sm">
+                  Ajustar a 20%
+                </button>
               </div>
             </div>
 

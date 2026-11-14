@@ -4005,8 +4005,56 @@ function setupOrionRulesView() {
     });
   }
 
+  const payoutInput = document.getElementById('orionCalcPayoutTargetInput');
+  if (payoutInput) {
+    payoutInput.addEventListener('input', () => {
+      recalculateOrionUsdcad();
+    });
+  }
+
   recalculateOrionUsdcad();
 }
+
+window.setOrionPayoutTarget = function(val) {
+  const inp = document.getElementById('orionCalcPayoutTargetInput');
+  if (inp) inp.value = val;
+  document.querySelectorAll('.btn-orion-payout').forEach(b => {
+    const bVal = parseFloat(b.dataset.val);
+    if (Math.abs(bVal - val) < 1) {
+      b.className = 'btn-orion-payout py-1 rounded text-xs font-mono font-bold bg-emerald-600 text-white border border-emerald-500 transition text-center cursor-pointer shadow-sm';
+    } else {
+      b.className = 'btn-orion-payout py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
+    }
+  });
+  recalculateOrionUsdcad();
+};
+
+window.capOrionLotToConsistency = function() {
+  const accountSize = parseFloat(document.getElementById('orionCalcAccountSize')?.value) || 50000;
+  const payoutTarget = parseFloat(document.getElementById('orionCalcPayoutTargetInput')?.value) || 3500;
+  const rr = parseFloat(document.getElementById('orionCalcRrInput')?.value) || 2.8;
+
+  // Ganancia máxima permitida en 1 trade/día = 20% de la meta de retiro
+  const maxAllowedWin = payoutTarget * 0.20;
+  // Riesgo máximo en USD que produce exactamente esa ganancia con R:R
+  const maxSafeDollarRisk = maxAllowedWin / rr;
+  // Porcentaje de riesgo correspondiente
+  const safeRiskPct = Math.round((maxSafeDollarRisk / accountSize) * 10000) / 100;
+
+  const riskInput = document.getElementById('orionCalcRiskInput');
+  if (riskInput) {
+    riskInput.value = safeRiskPct.toFixed(2);
+  }
+  if (typeof window.setOrionCalcRisk === 'function') {
+    window.setOrionCalcRisk(safeRiskPct);
+  } else {
+    recalculateOrionUsdcad();
+  }
+
+  if (typeof showToast === 'function') {
+    showToast(`🛡️ Lote y riesgo autocalibrados a ${safeRiskPct.toFixed(2)}% ($${formatMoney(maxSafeDollarRisk)}) para cumplir exactamente el 20% de retiro (+$${formatMoney(maxAllowedWin)} USD por Win).`, 'success', 4500);
+  }
+};
 
 window.setOrionActivePhase = function(phase) {
   activeOrionPhase = phase === 'funded' ? 'funded' : 'eval';
@@ -4192,6 +4240,50 @@ window.recalculateOrionUsdcad = function() {
   const elMargin = document.getElementById('orionResultMargin');
   if (elMargin) {
     elMargin.textContent = `$${formatMoney(marginUsed)} USD (Apalancamiento 1:30)`;
+  }
+
+  // Escudo de Consistencia 20% Orion (Regla de Retiros)
+  const payoutTarget = parseFloat(document.getElementById('orionCalcPayoutTargetInput')?.value) || 3500;
+  const maxAllowedWin = payoutTarget * 0.20;
+  const maxSafeDollarRisk = maxAllowedWin / rr;
+  const maxSafeRiskPct = (maxSafeDollarRisk / accountSize) * 100;
+  const impactPct = payoutTarget > 0 ? (projectedRewardUsd / payoutTarget) * 100 : 0;
+
+  const elMaxDayBadge = document.getElementById('orionMaxDayProfitBadge');
+  if (elMaxDayBadge) elMaxDayBadge.textContent = `Máx $${formatMoney(maxAllowedWin)}/día (20%)`;
+
+  const elMaxSafeRisk = document.getElementById('orionMaxSafeRiskUsd');
+  if (elMaxSafeRisk) elMaxSafeRisk.textContent = `$${formatMoney(maxSafeDollarRisk)} USD (${maxSafeRiskPct.toFixed(2)}% de ${formatMoney(accountSize)})`;
+
+  const elPayoutPct = document.getElementById('orionResultPayoutPct');
+  const elAlertBox = document.getElementById('orionConsistencyAlertBox');
+  const elAlertText = document.getElementById('orionConsistencyAlertText');
+  const btnCapLot = document.getElementById('btnOrionCapLot');
+
+  if (impactPct <= 20.05) {
+    if (elPayoutPct) {
+      elPayoutPct.textContent = `${impactPct.toFixed(1)}% (✓ Conforme ≤ 20%)`;
+      elPayoutPct.className = 'font-bold font-mono text-emerald-400';
+    }
+    if (elAlertBox) {
+      elAlertBox.className = 'p-2.5 rounded-xl border flex items-center justify-between gap-2 bg-emerald-950/40 border-emerald-800/50 text-emerald-300 text-xs';
+    }
+    if (elAlertText) {
+      elAlertText.textContent = `✓ Este trade respeta el 20% del retiro (+$${formatMoney(projectedRewardUsd)} / $${formatMoney(payoutTarget)})`;
+    }
+    if (btnCapLot) btnCapLot.classList.add('hidden');
+  } else {
+    if (elPayoutPct) {
+      elPayoutPct.textContent = `${impactPct.toFixed(1)}% (⚠️ Excede 20%)`;
+      elPayoutPct.className = 'font-bold font-mono text-rose-400';
+    }
+    if (elAlertBox) {
+      elAlertBox.className = 'p-2.5 rounded-xl border flex items-center justify-between gap-2 bg-rose-950/50 border-rose-800/60 text-rose-300 text-xs';
+    }
+    if (elAlertText) {
+      elAlertText.textContent = `⚠️ Ganancia de +$${formatMoney(projectedRewardUsd)} supera el 20% del retiro (Tope: $${formatMoney(maxAllowedWin)})`;
+    }
+    if (btnCapLot) btnCapLot.classList.remove('hidden');
   }
 
   // Colchón contra Pérdida Diaria
