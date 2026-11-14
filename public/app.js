@@ -3395,6 +3395,14 @@ window.setBacktestChipRR = function(val) {
   const inp = document.getElementById('btSimpleRR');
   if (inp && !isNaN(num)) {
     inp.value = num;
+    document.querySelectorAll('.btn-bt-chip-rr').forEach(b => {
+      const bVal = parseFloat(b.dataset.val);
+      if (Math.abs(bVal - num) < 0.05) {
+        b.className = 'btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-bold bg-blue-600 text-white border border-blue-500 transition text-center cursor-pointer shadow-sm';
+      } else {
+        b.className = 'btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
+      }
+    });
     if (typeof updateBacktestSimplePreviews === 'function') updateBacktestSimplePreviews();
   }
 };
@@ -4109,7 +4117,7 @@ window.setOrionCalcRr = function(val) {
   if (input) input.value = val;
   document.querySelectorAll('.btn-orion-rr').forEach(b => {
     const bVal = parseFloat(b.dataset.val);
-    if (Math.abs(bVal - val) < 0.1) {
+    if (Math.abs(bVal - val) < 0.05) {
       b.className = 'btn-orion-rr py-1 rounded text-xs font-mono font-bold bg-emerald-600 text-white border border-emerald-500 transition text-center cursor-pointer shadow-sm';
     } else {
       b.className = 'btn-orion-rr py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer';
@@ -4126,7 +4134,7 @@ window.recalculateOrionUsdcad = function() {
   let slPips = parseFloat(document.getElementById('orionCalcSlInput')?.value);
   if (isNaN(slPips) || slPips <= 0) slPips = 25.0;
   let rr = parseFloat(document.getElementById('orionCalcRrInput')?.value);
-  if (isNaN(rr) || rr <= 0) rr = 3.0;
+  if (isNaN(rr) || rr <= 0) rr = 2.8;
   let usdcadPrice = parseFloat(document.getElementById('orionCalcPriceInput')?.value);
   if (isNaN(usdcadPrice) || usdcadPrice <= 0) usdcadPrice = 1.3800;
 
@@ -4222,7 +4230,7 @@ window.recalculateOrionUsdcad = function() {
 window.applyOrionCalcParams = function() {
   const risk = parseFloat(document.getElementById('orionCalcRiskInput')?.value) || 0.50;
   const sl = parseFloat(document.getElementById('orionCalcSlInput')?.value) || 25.0;
-  const rr = parseFloat(document.getElementById('orionCalcRrInput')?.value) || 3.0;
+  const rr = parseFloat(document.getElementById('orionCalcRrInput')?.value) || 2.8;
   const lotText = document.getElementById('orionResultLot')?.textContent || '1.38';
 
   // Transferir al formulario de Backtesting Simple

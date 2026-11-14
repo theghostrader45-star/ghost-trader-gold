@@ -761,19 +761,19 @@
                   <i data-lucide="scale" class="w-3.5 h-3.5 text-blue-400"></i>
                   <span>4. Ratio R:R</span>
                 </label>
-                <span id="calcPreviewRrBadge" class="text-xs font-mono font-bold text-blue-300">1:3.0</span>
+                <span id="calcPreviewRrBadge" class="text-xs font-mono font-bold text-blue-300">1:2.8 ⭐</span>
               </div>
               <div class="relative">
                 <span class="absolute left-3 top-2 text-blue-400 font-mono font-bold text-sm">1:</span>
-                <input type="number" id="calcRatioRR" step="0.1" min="0.1" value="3.0" class="w-full bg-gray-900 border border-gray-700 focus:border-blue-500 rounded-lg pl-7 pr-3 py-1.5 text-blue-300 font-mono font-bold text-sm focus:outline-none">
+                <input type="number" id="calcRatioRR" step="0.1" min="0.1" value="2.8" class="w-full bg-gray-900 border border-gray-700 focus:border-blue-500 rounded-lg pl-7 pr-3 py-1.5 text-blue-300 font-mono font-bold text-sm focus:outline-none">
               </div>
               <div class="grid grid-cols-6 gap-1 pt-0.5">
                 <button type="button" class="btn-calc-chip-rr py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-val="1.5">1:1.5</button>
                 <button type="button" class="btn-calc-chip-rr py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-val="2.0">1:2</button>
                 <button type="button" class="btn-calc-chip-rr py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-val="2.5">1:2.5</button>
-                <button type="button" class="btn-calc-chip-rr py-1 rounded text-[9px] font-mono font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/50 transition cursor-pointer" data-val="3.0">1:3</button>
+                <button type="button" class="btn-calc-chip-rr py-1 rounded text-[9px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/50 transition cursor-pointer" data-val="2.8">1:2.8 ⭐</button>
+                <button type="button" class="btn-calc-chip-rr py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-val="3.0">1:3</button>
                 <button type="button" class="btn-calc-chip-rr py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-val="4.0">1:4</button>
-                <button type="button" class="btn-calc-chip-rr py-1 rounded text-[9px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition cursor-pointer" data-val="5.0">1:5</button>
               </div>
             </div>
 
@@ -979,12 +979,12 @@
                 <span class="truncate">2. Ratio R:R</span>
               </label>
               <span id="btSimpleBreakevenBadge" class="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-blue-950 text-blue-300 border border-blue-800 shrink-0">
-                BE: 25.0%
+                BE: 26.3%
               </span>
             </div>
             <div class="relative">
               <span class="absolute left-3 top-2 text-blue-400 font-mono text-sm font-bold">1:</span>
-              <input type="number" id="btSimpleRR" step="0.1" min="0.1" value="3.0" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-8 pr-3 py-1.5 text-blue-300 font-mono font-bold text-sm focus:border-blue-500 focus:outline-none transition">
+              <input type="number" id="btSimpleRR" step="0.1" min="0.1" value="2.8" class="w-full bg-gray-900 border border-gray-700 rounded-lg pl-8 pr-3 py-1.5 text-blue-300 font-mono font-bold text-sm focus:border-blue-500 focus:outline-none transition">
             </div>
             <!-- Quick Chips R:R en cuadrícula de 7 columnas -->
             <div class="grid grid-cols-7 gap-1 pt-0.5">
@@ -992,9 +992,9 @@
               <button type="button" onclick="window.setBacktestChipRR(1.5)" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="1.5">1:1.5</button>
               <button type="button" onclick="window.setBacktestChipRR(2.0)" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="2.0">1:2</button>
               <button type="button" onclick="window.setBacktestChipRR(2.5)" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="2.5">1:2.5</button>
+              <button type="button" onclick="window.setBacktestChipRR(2.8)" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-bold bg-blue-600 text-white border border-blue-500 transition text-center cursor-pointer shadow-sm" data-val="2.8">1:2.8 ⭐</button>
               <button type="button" onclick="window.setBacktestChipRR(3.0)" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="3.0">1:3</button>
               <button type="button" onclick="window.setBacktestChipRR(4.0)" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="4.0">1:4</button>
-              <button type="button" onclick="window.setBacktestChipRR(5.0)" class="btn-bt-chip-rr py-1 rounded text-[10px] font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="5.0">1:5</button>
             </div>
           </div>
 
@@ -1609,14 +1609,14 @@
             <!-- 4. Ratio R:R y Cotización USDCAD -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs font-bold text-gray-300 mb-1">Ratio Riesgo:Beneficio (R:R)</label>
+                <label class="block text-xs font-bold text-gray-300 mb-1">Ratio Riesgo:Beneficio (R:R Ideal)</label>
                 <div class="grid grid-cols-4 gap-1">
                   <button type="button" onclick="window.setOrionCalcRr(2.0)" class="btn-orion-rr py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="2.0">1:2</button>
                   <button type="button" onclick="window.setOrionCalcRr(2.5)" class="btn-orion-rr py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="2.5">1:2.5</button>
-                  <button type="button" onclick="window.setOrionCalcRr(3.0)" class="btn-orion-rr py-1 rounded text-xs font-mono font-bold bg-emerald-600 text-white border border-emerald-500 transition text-center cursor-pointer" data-val="3.0">1:3 ⭐</button>
-                  <button type="button" onclick="window.setOrionCalcRr(4.0)" class="btn-orion-rr py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="4.0">1:4</button>
+                  <button type="button" onclick="window.setOrionCalcRr(2.8)" class="btn-orion-rr py-1 rounded text-xs font-mono font-bold bg-emerald-600 text-white border border-emerald-500 transition text-center cursor-pointer shadow-sm" data-val="2.8">1:2.8 ⭐</button>
+                  <button type="button" onclick="window.setOrionCalcRr(3.0)" class="btn-orion-rr py-1 rounded text-xs font-mono font-semibold bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition text-center cursor-pointer" data-val="3.0">1:3</button>
                 </div>
-                <input type="hidden" id="orionCalcRrInput" value="3.0">
+                <input type="hidden" id="orionCalcRrInput" value="2.8">
               </div>
 
               <div>
@@ -1653,8 +1653,8 @@
                   <span class="text-rose-400 font-bold" id="orionResultRiskUsd">-$250.00 USD (-0.50%)</span>
                 </div>
                 <div class="flex justify-between items-center py-1 border-b border-gray-800/60">
-                  <span class="text-gray-400 font-sans">Ganancia Proyectada (+3R):</span>
-                  <span class="text-emerald-400 font-bold" id="orionResultRewardUsd">+$750.00 USD (+1.50%)</span>
+                  <span class="text-gray-400 font-sans">Ganancia Proyectada (+2.8R):</span>
+                  <span class="text-emerald-400 font-bold" id="orionResultRewardUsd">+$700.00 USD (+1.40%)</span>
                 </div>
                 <div class="flex justify-between items-center py-1 border-b border-gray-800/60">
                   <span class="text-gray-400 font-sans">Valor de 1 Pip con este Lote:</span>
@@ -1674,13 +1674,13 @@
             <!-- Progreso al Target de $2,000 -->
             <div class="bg-gray-950 p-3 rounded-xl border border-gray-800 space-y-1.5">
               <div class="flex justify-between text-[11px] font-sans">
-                <span class="text-gray-400" id="orionResultProgressTitle">Trades a 1:3 para pasar evaluación ($2,000):</span>
-                <span class="text-emerald-400 font-bold font-mono" id="orionResultTradesNeeded">Solo 2.7 trades (3 wins)</span>
+                <span class="text-gray-400" id="orionResultProgressTitle">Trades a 1:2.8 para pasar evaluación ($2,000):</span>
+                <span class="text-emerald-400 font-bold font-mono" id="orionResultTradesNeeded">Solo 2.9 trades (3 wins)</span>
               </div>
               <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
                 <div class="bg-gradient-to-r from-purple-500 to-emerald-400 h-full rounded-full w-3/4"></div>
               </div>
-              <p class="text-[10px] text-gray-500 leading-tight" id="orionResultProgressFoot">Al ganar 3 operaciones arriesgando $250 a ratio 1:3 sumas $2,250 USD y superas el target de $2,000.</p>
+              <p class="text-[10px] text-gray-500 leading-tight" id="orionResultProgressFoot">Al ganar 3 operaciones arriesgando $250 a ratio ideal 1:2.8 sumas $2,100 USD y superas el target de $2,000.</p>
             </div>
           </div>
         </div>
@@ -1719,11 +1719,11 @@
           <div class="bg-gray-950/70 border border-gray-800 p-4 rounded-xl space-y-2 hover:border-purple-500/40 transition">
             <div class="flex items-center justify-between">
               <span class="text-xs font-mono font-bold text-purple-400">PASO 2</span>
-              <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono text-[10px] font-bold">R:R 1:2.5 – 1:3</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold">R:R 1:2.8 (Ideal) ⭐</span>
             </div>
-            <h4 class="font-bold text-white text-sm">La Asimetría Matemática</h4>
+            <h4 class="font-bold text-white text-sm">La Asimetría Matemática con R:R 1:2.8</h4>
             <p class="text-xs text-gray-300 leading-relaxed">
-              El target de evaluación es de tan solo el <strong>4% ($2,000 USD)</strong>. Arriesgando el <strong>0.50% ($250 USD)</strong> por operación con ratio <strong>1:3</strong>, cada acierto te genera <strong>+$750 USD (+1.50%)</strong>. Con <strong>3 operaciones ganadoras netas</strong> pasas el desafío.
+              El target de evaluación es de tan solo el <strong>4% ($2,000 USD)</strong>. Arriesgando el <strong>0.50% ($250 USD)</strong> por operación con tu ratio ideal <strong>1:2.8</strong>, cada acierto te genera <strong>+$700 USD (+1.40%)</strong>. Con únicamente <strong>3 operaciones ganadoras netas (+$2,100 USD)</strong> superas el target de $2,000 con un colchón de $100 USD extra sin sobre-exponerte.
             </p>
           </div>
 
