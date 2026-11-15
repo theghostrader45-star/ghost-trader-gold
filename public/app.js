@@ -8240,8 +8240,8 @@ function updateMacroQuantIntelligence(data) {
   const adrDiag = document.getElementById("adrDiagnosticText");
 
   let consumedPts = 2650;
-  if (data.session_levels && data.session_levels.london_range_pts) {
-    const lPts = (data.session_levels.london_range_pts || 24) * 100;
+  if (data.session_levels && (data.session_levels.ny_range_pts || data.session_levels.premarket_range_pts || data.session_levels.london_range_pts)) {
+    const lPts = (data.session_levels.ny_range_pts || data.session_levels.premarket_range_pts || data.session_levels.london_range_pts || 24) * 100;
     consumedPts = Math.min(4500, Math.max(1800, Math.round(lPts * 1.1)));
   }
 
@@ -8254,7 +8254,7 @@ function updateMacroQuantIntelligence(data) {
   if (adrRemaining) adrRemaining.textContent = `${remPts.toLocaleString("en-US")} pts ($${(remPts/100).toFixed(2)})`;
   if (adrBar) adrBar.style.width = `${pctConsumed}%`;
   if (adrDiag) {
-    adrDiag.innerHTML = `🟢 <strong>Margen Óptimo:</strong> El oro aún tiene ~${remPts.toLocaleString("en-US")} puntos ($${(remPts/100).toFixed(2)}) de recorrido libre esperado en Nueva York. Espacio suficiente para buscar Take Profits de 1,500 a 2,500 pts sin riesgo de agotamiento.`;
+    adrDiag.innerHTML = `🟢 <strong>Margen Óptimo:</strong> El par USDCAD aún tiene ~${remPts.toLocaleString("en-US")} puntos de recorrido libre esperado en Nueva York. Espacio suficiente para buscar Take Profits con ratio 1:2.8 sin riesgo de agotamiento.`;
   }
 
   // Reflejar métricas en Tab 2 (Radar de Precisión)
@@ -8264,7 +8264,7 @@ function updateMacroQuantIntelligence(data) {
   if (precAdrRemaining) precAdrRemaining.textContent = `${remPts.toLocaleString("en-US")} pts ($${(remPts/100).toFixed(2)})`;
   if (precAdrBar) precAdrBar.style.width = `${pctConsumed}%`;
   if (precAdrDiag) {
-    precAdrDiag.innerHTML = `🟢 <strong>Margen Óptimo:</strong> El oro aún tiene ~${remPts.toLocaleString("en-US")} puntos ($${(remPts/100).toFixed(2)}) de recorrido libre esperado en Nueva York. Espacio suficiente para buscar TP1 y TP2 sin agotamiento.`;
+    precAdrDiag.innerHTML = `🟢 <strong>Margen Óptimo:</strong> El par USDCAD aún tiene ~${remPts.toLocaleString("en-US")} puntos de recorrido libre esperado en Nueva York. Espacio suficiente para buscar TP 1:2.8 sin agotamiento.`;
   }
 
   const precBiasBadge = document.getElementById("precBiasBadge");
@@ -8299,15 +8299,6 @@ function updateMacroQuantIntelligence(data) {
   }
 
   if (data.session_levels) {
-    const lh = document.getElementById("londonHighDisplay");
-    const ll = document.getElementById("londonLowDisplay");
-    const lr = document.getElementById("londonRangeDisplay");
-    if (lh && data.session_levels.london_high) lh.textContent = data.session_levels.london_high;
-    if (ll && data.session_levels.london_low) ll.textContent = data.session_levels.london_low;
-    if (lr && data.session_levels.london_range_pts) {
-      lr.textContent = `${data.session_levels.london_range_pts.toLocaleString("en-US")} pts ($${(data.session_levels.london_range_pts/100).toFixed(2)})`;
-    }
-
     const pdh = document.getElementById("pdhDisplay");
     const pdl = document.getElementById("pdlDisplay");
     const piv = document.getElementById("dailyPivotDisplay");
@@ -8323,16 +8314,6 @@ function updateMacroQuantIntelligence(data) {
 
   if (data.technical_m5) {
     const t5 = data.technical_m5;
-    
-    // London Breakout
-    if (t5.london_breakout) {
-      const lbBadge = document.getElementById("londonStatusBadge");
-      const lbDetail = document.getElementById("londonBreakoutDetail");
-      const jsStatus = document.getElementById("judasSwingStatus");
-      if (lbBadge && t5.london_breakout.badge) lbBadge.textContent = t5.london_breakout.badge;
-      if (lbDetail && t5.london_breakout.description) lbDetail.textContent = t5.london_breakout.description;
-      if (jsStatus && t5.london_breakout.judas_swing) jsStatus.textContent = t5.london_breakout.judas_swing;
-    }
 
     // Heikin Ashi M5
     if (t5.heikin_ashi) {
@@ -8616,47 +8597,7 @@ function renderM5ScanResults(scan) {
     }
   }
 
-  // 4. Tarjeta de Ruptura de Londres
-  const lbBadge = document.getElementById("londonStatusBadge");
-  const lbDetail = document.getElementById("londonBreakoutDetail");
-  const jsStatus = document.getElementById("judasSwingStatus");
-  const lhDisp = document.getElementById("londonHighDisplay");
-  const llDisp = document.getElementById("londonLowDisplay");
-  const lrDisp = document.getElementById("londonRangeDisplay");
 
-  if (scan.london_session) {
-    const ls = scan.london_session;
-    if (lhDisp) lhDisp.textContent = `$${ls.london_high.toFixed(2)}`;
-    if (llDisp) llDisp.textContent = `$${ls.london_low.toFixed(2)}`;
-    if (lrDisp) lrDisp.textContent = `${ls.london_range_pts.toLocaleString()} pts ($${(ls.london_range_pts / 100).toFixed(2)})`;
-    if (lbBadge && ls.status_badge) {
-      lbBadge.textContent = ls.status_badge;
-      lbBadge.className = ls.status_badge.includes("ROJO") || ls.status_badge.includes("BAJISTA")
-        ? "text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-bold"
-        : (ls.status_badge.includes("ALCISTA")
-            ? "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold"
-            : "text-[10px] font-mono px-2 py-0.5 rounded bg-yellow-950 text-yellow-300 border border-yellow-800 font-bold");
-    }
-    if (lbDetail && ls.status_detail) lbDetail.textContent = ls.status_detail;
-    if (jsStatus && ls.judas_swing) jsStatus.textContent = ls.judas_swing;
-  } else if (lbBadge) {
-    if (scan.detected_state === "in_range") {
-      lbBadge.textContent = "🟡 EN RANGO";
-      lbBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-yellow-950 text-yellow-300 border border-yellow-800 font-bold";
-      if (lbDetail) lbDetail.textContent = `El precio comprime dentro del rango de M5 ($${scan.m5_range.range_low.toFixed(2)} – $${scan.m5_range.range_high.toFixed(2)}).`;
-      if (jsStatus) jsStatus.textContent = "Monitoreando extremos por posibles barridos de manipulación";
-    } else if (scan.detected_state === "breakout_down") {
-      lbBadge.textContent = "🔴 RUPTURA BAJISTA";
-      lbBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-bold";
-      if (lbDetail) lbDetail.textContent = `Ruptura bajista confirmada bajo $${scan.m5_range.range_low.toFixed(2)} con desplazamiento.`;
-      if (jsStatus) jsStatus.textContent = "No detectado (Ruptura limpia sostenida a favor de la macro)";
-    } else {
-      lbBadge.textContent = "🟢 RUPTURA ALCISTA";
-      lbBadge.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold";
-      if (lbDetail) lbDetail.textContent = `Ruptura alcista sobre el techo de M5 ($${scan.m5_range.range_high.toFixed(2)}).`;
-      if (jsStatus) jsStatus.textContent = "Atención: posible barrido de liquidez alcista contra la macro";
-    }
-  }
 
   // 5. Desviómetro NY Anchored VWAP (Z-Score)
   if (scan.session_vwap) {
@@ -8813,9 +8754,9 @@ function renderM5ScanResults(scan) {
     if (p7Title) p7Title.textContent = scan.squeeze_momentum.sqz_on ? "RESORTE COMPRIMIDO" : "EXPANSIÓN ACTIVA";
     if (p7Desc) p7Desc.textContent = `Linreg ${scan.squeeze_momentum.linreg_val > 0 ? '+' : ''}${scan.squeeze_momentum.linreg_val} pts.`;
   } else if (scan.detected_state === "breakout_down") {
-    if (p4Badge) { p4Badge.textContent = "🔴 RUPTURA LL"; p4Badge.className = "text-red-400 font-bold"; }
+    if (p4Badge) { p4Badge.textContent = "🔴 RUPTURA SSL"; p4Badge.className = "text-red-400 font-bold"; }
     if (p4Title) p4Title.textContent = "MSS DESPLAZAMIENTO";
-    if (p4Desc) p4Desc.textContent = `Bajo London Low ($${scan.m5_range.range_low.toFixed(2)}).`;
+    if (p4Desc) p4Desc.textContent = `Bajo Mínimo Pre-NY ($${scan.m5_range.range_low.toFixed(2)}).`;
 
     if (p5Badge) { p5Badge.textContent = "🔴 BAJO VWAP"; p5Badge.className = "text-red-400 font-bold"; }
     if (p5Title) p5Title.textContent = "CONTROL VENDEDOR";
@@ -9035,9 +8976,8 @@ function calculateOptimalTradingWindow(weekday, year, month, day, weeklyNews) {
 
 // -------------------------------------------------------------
 // Cálculo de Sesiones y Cuenta Regresiva de Apertura
-// Horarios Oficiales Ghost Pro:
-// Londres:  02:00 – 05:00 NY
-// New York: 07:00 – 11:00 NY
+// Horario Oficial Exclusivo Ghost Pro:
+// Sesión New York: 07:00 – 11:00 NY (Killzone USDCAD)
 // En horario Local y New York
 // -------------------------------------------------------------
 function getSessionCountdownDetails(now, startH, startM, endH, endM) {
@@ -9154,27 +9094,19 @@ function getNySessionStatus(now) {
   const min = parseInt(getPart("minute"), 10) || 0;
   const sec = parseInt(getPart("second"), 10) || 0;
 
-  // Sesión Londres: 02:00 – 05:00 NY
-  const londonStatus = getSessionCountdownDetails(now, 2, 0, 5, 0);
-
-  // Sesión New York: 07:00 – 11:00 NY
+  // Sesión Exclusiva New York (Killzone USDCAD): 07:00 – 11:00 NY
   const nyStatus = getSessionCountdownDetails(now, 7, 0, 11, 0);
 
-  const isInSession = londonStatus.isOpen || nyStatus.isOpen;
-  const activeSessionName = londonStatus.isOpen ? "Sesión Londres (02:00 – 05:00 NY)" : (nyStatus.isOpen ? "Sesión New York (07:00 – 11:00 NY)" : null);
+  const isInSession = nyStatus.isOpen;
+  const activeSessionName = nyStatus.isOpen ? "Sesión New York (07:00 – 11:00 NY)" : null;
 
   let countdownText = "";
-  let countdownFormatted = "";
+  let countdownFormatted = nyStatus.timeFormatted;
 
   if (isInSession) {
-    const activeObj = londonStatus.isOpen ? londonStatus : nyStatus;
-    countdownFormatted = activeObj.timeFormatted;
-    countdownText = `⏳ Restan: ${countdownFormatted} de sesión`;
+    countdownText = `⏳ Restan: ${countdownFormatted} de sesión NY`;
   } else {
-    const nextSession = londonStatus.remainingSecs <= nyStatus.remainingSecs ? londonStatus : nyStatus;
-    const nextName = londonStatus.remainingSecs <= nyStatus.remainingSecs ? "Londres" : "New York";
-    countdownFormatted = nextSession.timeFormatted;
-    countdownText = `⏳ ${nextName} abre en: ${countdownFormatted}`;
+    countdownText = `⏳ New York abre en: ${countdownFormatted}`;
   }
 
   const optimalInfo = calculateOptimalTradingWindow(weekday, year, month, day, weeklyNewsState);
@@ -9182,7 +9114,6 @@ function getNySessionStatus(now) {
   lastCalculatedSessionStatus = {
     isInSession,
     activeSessionName,
-    londonStatus,
     nyStatus,
     countdownText,
     countdownFormatted,
@@ -9522,7 +9453,7 @@ async function triggerPremarketScan() {
   const steps = [
     { id: "scanStep1", name: "1. Noticias Macro (12h)", pct: "18%" },
     { id: "scanStep2", name: "2. Calendario UTC-5 & Bloqueo", pct: "36%" },
-    { id: "scanStep3", name: "3. Cierre Anterior & Sesión de Londres", pct: "54%" },
+    { id: "scanStep3", name: "3. Cierre Anterior & Rango Pre-Mercado NY", pct: "54%" },
     { id: "scanStep4", name: "4. Mapa Técnico & ADR 14", pct: "72%" },
     { id: "scanStep5", name: "5. Plan de Sesión New York", pct: "90%" },
     { id: "scanStep6", name: "6. Riesgos & Regla de Oro", pct: "100%" }
@@ -9624,16 +9555,16 @@ Gestión: Orion Nova 50K (0.50% / $250 - Máx 1.00%) · Bloqueo ±15 min noticia
 • 10:00 AM (UTC-5 NY) | USD | Confianza Univ. Michigan | MEDIO | Exp: 70.8 | Prev: 70.5 | ⚠️ Pausa táctica 09:45 – 10:15 AM
 • 01:00 PM (UTC-5 NY) | USD | Subasta Tesoro 10 Años (US10Y) | BAJO | Prev: 4.35% | Fuera de Killzone principal
 
-3. CIERRE ANTERIOR & SESIÓN DE LONDRES:
+3. CIERRE ANTERIOR & RANGO PRE-MERCADO NY:
 • Cierre Ayer: $2,725.80 (-0.65% / -$17.80 USD) | Rango: $29.70 (2,970 pts) | Posición: Parte Baja (35%)
 • Máximo (PDH): $2,748.20 | Mínimo (PDL): $2,718.50
-• Sesión de Londres: Barrió liquidez previa hasta $2,731.50 y fue absorbido con ventas institucionales hacia $2,724.00.
+• Rango Pre-Mercado NY: Absorción de liquidez institucional previa mapeada hacia la apertura americana.
 • Veredicto: Movimiento de CONTINUACIÓN BAJISTA respecto a los últimos días tras rechazo en $2,750+.
 
 4. MAPA TÉCNICO DE XAU/USD:
 • Tendencias: 1H Bajista Estructural | 15m Bajista con Consolidación pre-NFP (Bandera bajista)
 • Niveles clave: PDH $2,748.20 | PDL $2,718.50 | Daily Open $2,725.50 | NY Open $2,724.00
-• Resistencias: $2,732.00–$2,735.50 (FVG M15/Londres - ALTA) | $2,742.00–$2,748.20 (OB H1/PDH - EXTREMA)
+• Resistencias: $2,732.00–$2,735.50 (FVG M15/NY - ALTA) | $2,742.00–$2,748.20 (OB H1/PDH - EXTREMA)
 • Soportes: $2,718.00–$2,720.00 (PDL - MEDIA) | $2,705.00–$2,710.00 (Demanda H1 - ALTA)
 • Volatilidad ATR (14): $34.50 (3,450 pts) | Consumido: $13.20 (38.2%) | Remanente NY: $21.30 (61.8%)
 • Estado: Equilibrium intradiario ($2,724.00), zona Premium de Oferta respecto al soporte de $2,718.50.
@@ -9646,7 +9577,7 @@ Gestión: Orion Nova 50K (0.50% / $250 - Máx 1.00%) · Bloqueo ±15 min noticia
 
 6. RIESGOS, CORRELACIONES & REGLA DE ORO:
 • Correlaciones Activas: DXY (104.20, inv. -0.88), US10Y Yield (+4.38%, inv.), VIX (16.20, calma), WTI Crude ($71.50, neutral).
-• Horas Ilíquidas: 06:00 – 07:00 AM UTC-5 NY (London Lunch), 11:00 – 11:30 AM UTC-5 NY (London Fix).
+• Horas Ilíquidas: 11:00 – 11:30 AM UTC-5 NY (Cierre del volumen bancario principal en NY).
 • ¿Qué me haría quedarme fuera hoy?: "Si tras las noticias de las 08:30 AM (UTC-5 NY) el spread de Oro supera los 40 puntos después de las 08:45 AM (UTC-5 NY), o si una vela M15 cierra con cuerpo por encima de $2,738.00, anulo el sesgo y cierro la plataforma sin operar."`;
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -9722,34 +9653,7 @@ function startMarketClock() {
       barLocalClock.textContent = `${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })} Local (${tzName})`;
     }
 
-    // Barra Universal - Londres (02:00 – 05:00 NY)
-    if (session.londonStatus) {
-      const barLondonBadge = document.getElementById("barLondonBadge");
-      const barLondonCountdown = document.getElementById("barLondonCountdown");
-      const barLondonCountdownLabel = document.getElementById("barLondonCountdownLabel");
-      const barLondonLocalWindow = document.getElementById("barLondonLocalWindow");
-      const barLondonBox = document.getElementById("barLondonBox");
-
-      if (barLondonBadge) {
-        barLondonBadge.textContent = session.londonStatus.label;
-        barLondonBadge.className = `text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${session.londonStatus.badgeClass}`;
-      }
-      if (barLondonCountdown) {
-        barLondonCountdown.textContent = session.londonStatus.timeFormatted;
-        barLondonCountdown.className = `text-xs sm:text-sm font-mono font-black ${session.londonStatus.isOpen ? 'text-emerald-400 animate-pulse' : 'text-amber-300'}`;
-      }
-      if (barLondonCountdownLabel) {
-        barLondonCountdownLabel.textContent = session.londonStatus.isOpen ? "Cierra en" : "Falta apertura";
-      }
-      if (barLondonLocalWindow) {
-        barLondonLocalWindow.textContent = session.londonStatus.localWindow;
-      }
-      if (barLondonBox) {
-        barLondonBox.className = `bg-cardBg/90 border rounded-xl p-3 flex items-center justify-between gap-3 shadow-md transition-all ${session.londonStatus.isOpen ? 'border-emerald-500/60 bg-emerald-950/20' : 'border-cardBorder'}`;
-      }
-    }
-
-    // Barra Universal - New York (07:00 – 11:00 NY)
+    // Barra Universal - Sesión Exclusiva New York (07:00 – 11:00 NY · Killzone USDCAD)
     if (session.nyStatus) {
       const barNyBadge = document.getElementById("barNyBadge");
       const barNyCountdown = document.getElementById("barNyCountdown");
@@ -9763,7 +9667,7 @@ function startMarketClock() {
       }
       if (barNyCountdown) {
         barNyCountdown.textContent = session.nyStatus.timeFormatted;
-        barNyCountdown.className = `text-xs sm:text-sm font-mono font-black ${session.nyStatus.isOpen ? 'text-emerald-400 animate-pulse' : 'text-sky-300'}`;
+        barNyCountdown.className = `text-sm sm:text-base font-mono font-black ${session.nyStatus.isOpen ? 'text-emerald-400 animate-pulse' : 'text-sky-300'}`;
       }
       if (barNyCountdownLabel) {
         barNyCountdownLabel.textContent = session.nyStatus.isOpen ? "Cierra en" : "Falta apertura";
@@ -9772,45 +9676,11 @@ function startMarketClock() {
         barNyLocalWindow.textContent = session.nyStatus.localWindow;
       }
       if (barNyBox) {
-        barNyBox.className = `bg-cardBg/90 border rounded-xl p-3 flex items-center justify-between gap-3 shadow-md transition-all ${session.nyStatus.isOpen ? 'border-emerald-500/60 bg-emerald-950/20' : 'border-cardBorder'}`;
+        barNyBox.className = `bg-cardBg/90 border rounded-xl p-3 flex items-center justify-between gap-3 shadow-md transition-all flex-1 ${session.nyStatus.isOpen ? 'border-emerald-500/60 bg-emerald-950/20' : 'border-cardBorder'}`;
       }
     }
 
-    // 3. Tarjetas en Pestaña 3: Noticias
-    // Tarjeta Londres (02:00 – 05:00 NY)
-    if (session.londonStatus) {
-      const newsLondonBadge = document.getElementById("newsLondonBadge");
-      const newsLondonCountdown = document.getElementById("newsLondonCountdown");
-      const newsLondonLocalSub = document.getElementById("newsLondonLocalSub");
-      const newsLondonSub = document.getElementById("newsLondonSub");
-      const newsLondonIconBox = document.getElementById("newsLondonIconBox");
-      const newsLondonCard = document.getElementById("newsLondonCard");
-
-      if (newsLondonBadge) {
-        newsLondonBadge.textContent = session.londonStatus.label;
-        newsLondonBadge.className = `text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${session.londonStatus.badgeClass}`;
-      }
-      if (newsLondonCountdown) {
-        newsLondonCountdown.textContent = session.londonStatus.timeFormatted;
-        newsLondonCountdown.className = `text-xl font-mono font-black ${session.londonStatus.isOpen ? 'text-emerald-400' : 'text-amber-300'}`;
-      }
-      if (newsLondonLocalSub) {
-        newsLondonLocalSub.textContent = session.londonStatus.localWindow;
-      }
-      if (newsLondonSub) {
-        newsLondonSub.textContent = session.londonStatus.isOpen
-          ? "🟢 Ventana Apertura Londres en Curso · Ghost Pro"
-          : (session.londonStatus.state === "closed_today" ? "Sesión de hoy completada · Próxima sesión mañana" : "Apertura institucional europea · Ghost Pro");
-      }
-      if (newsLondonIconBox) {
-        newsLondonIconBox.className = `p-3 rounded-xl border shrink-0 ${session.londonStatus.isOpen ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`;
-      }
-      if (newsLondonCard) {
-        newsLondonCard.className = `bg-cardBg border rounded-2xl p-4 shadow-xl flex items-center justify-between transition-all ${session.londonStatus.isOpen ? 'border-emerald-500/50 shadow-emerald-500/10' : 'border-cardBorder'}`;
-      }
-    }
-
-    // Tarjeta New York (07:00 – 11:00 NY)
+    // 3. Tarjeta New York en Pestaña 2: Noticias (Killzone USDCAD)
     if (session.nyStatus) {
       const newsNyBadge = document.getElementById("newsNyBadge");
       const newsNyCountdown = document.getElementById("newsNyCountdown");
@@ -9882,7 +9752,7 @@ function startMarketClock() {
         guardCountdown.textContent = session.countdownText;
       }
       if (guardHeadline) {
-        guardHeadline.innerHTML = `Ventana institucional activa (${session.activeSessionName || 'Londres/NY'}). Spreads mínimos y volumen bancario óptimo. Ejecuta únicamente confluencia con el sesgo diario y gatillo M5.`;
+        guardHeadline.innerHTML = `Ventana institucional activa: <strong>${session.activeSessionName || 'Sesión New York'}</strong>. Spreads mínimos (0.6 - 0.9p) y volumen bancario óptimo en USDCAD. Ejecuta únicamente confluencia con el sesgo diario y gatillo M5.`;
       }
     } else {
       if (guardBanner) {
@@ -9894,13 +9764,13 @@ function startMarketClock() {
       }
       if (guardBadge) {
         guardBadge.className = "px-3 py-1 rounded-lg bg-rose-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse";
-        guardBadge.innerHTML = '<i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i><span>NO OPERAR · FUERA DE SESIÓN</span>';
+        guardBadge.innerHTML = '<i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i><span>NO OPERAR · FUERA DE SESIÓN NY</span>';
       }
       if (guardCountdown) {
         guardCountdown.textContent = session.countdownText;
       }
       if (guardHeadline) {
-        guardHeadline.innerHTML = `El mercado se encuentra fuera de las sesiones operativas de Ghost Pro: <strong>Londres (02:00 – 05:00 NY)</strong> y <strong>New York (07:00 – 11:00 NY)</strong>. Fuera de estos horarios el volumen cae y los spreads se ensanchan. <strong>Disciplina: No regales tu dinero operando fuera de sesión.</strong>`;
+        guardHeadline.innerHTML = `El mercado se encuentra fuera de la sesión operativa autorizada: <strong>New York (07:00 – 11:00 NY)</strong>. Fuera de este horario el volumen en USDCAD desciende y los spreads se ensanchan. <strong>Disciplina: No regales tu dinero operando fuera de sesión.</strong>`;
       }
     }
 
@@ -9922,14 +9792,14 @@ function startMarketClock() {
         }
         if (precBadge) {
           precBadge.className = "px-3 py-1 rounded-lg bg-emerald-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse";
-          precBadge.innerHTML = `<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>SESIÓN ACTIVA · ${session.activeSessionName || 'GHOST PRO'}</span>`;
+          precBadge.innerHTML = `<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>SESIÓN ACTIVA · ${session.activeSessionName || 'NEW YORK'}</span>`;
         }
         if (precCountdown) {
           precCountdown.textContent = session.countdownText;
           precCountdown.className = "text-xs font-mono font-bold text-emerald-300";
         }
         if (precHeadline) {
-          precHeadline.innerHTML = `Ventana operativa Ghost Pro activa (${session.activeSessionName || 'Londres/NY'}). Spreads mínimos y volumen bancario óptimo. <strong>Operativa autorizada con confluencia del Gatillo M5.</strong>`;
+          precHeadline.innerHTML = `Ventana operativa activa: <strong>${session.activeSessionName || 'Sesión New York'}</strong>. Spreads mínimos y volumen bancario óptimo en USDCAD. <strong>Operativa autorizada con confluencia del Gatillo M5.</strong>`;
         }
       } else {
         if (precBanner) {
@@ -9941,14 +9811,14 @@ function startMarketClock() {
         }
         if (precBadge) {
           precBadge.className = "px-3 py-1 rounded-lg bg-rose-600 text-white font-black text-xs uppercase tracking-wider font-mono shadow-md flex items-center gap-1.5 animate-pulse";
-          precBadge.innerHTML = '<i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i><span>NO OPERAR · MERCADO FUERA DE SESIÓN</span>';
+          precBadge.innerHTML = '<i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i><span>NO OPERAR · MERCADO FUERA DE SESIÓN NY</span>';
         }
         if (precCountdown) {
           precCountdown.textContent = session.countdownText;
           precCountdown.className = "text-xs font-mono font-bold text-rose-300";
         }
         if (precHeadline) {
-          precHeadline.innerHTML = `Mercado fuera de las ventanas operativas autorizadas: <strong>Londres (02:00 – 05:00 NY)</strong> y <strong>New York (07:00 – 11:00 NY)</strong>. Spreads ensanchados y bajo volumen institucional.`;
+          precHeadline.innerHTML = `Mercado fuera de la ventana operativa autorizada: <strong>New York (07:00 – 11:00 NY)</strong>. Spreads ensanchados y bajo volumen institucional en USDCAD.`;
         }
       }
     }

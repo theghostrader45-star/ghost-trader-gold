@@ -124,7 +124,7 @@
       </button>
     </nav>
 
-    <!-- BARRA UNIVERSAL: SESIONES OPERATIVAS GHOST PRO (LONDRES & NEW YORK) -->
+    <!-- BARRA UNIVERSAL: SESIÓN OPERATIVA EXCLUSIVA NEW YORK (KILLZONE USDCAD) -->
     <section class="bg-gray-900/90 border border-gray-800 rounded-2xl p-3 sm:p-4 shadow-xl backdrop-blur-md">
       <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 sm:gap-4">
         
@@ -142,54 +142,35 @@
           </div>
         </div>
 
-        <!-- Tarjetas Grid: Londres y New York -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
-          <!-- Sesión Londres -->
-          <div class="bg-cardBg/90 border border-cardBorder rounded-xl p-3 flex items-center justify-between gap-3 shadow-md" id="barLondonBox">
-            <div class="space-y-0.5 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-black text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <span>🇬🇧</span> Londres
-                </span>
-                <span id="barLondonBadge" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border bg-amber-500/20 text-amber-300 border-amber-500/40">
-                  ⏳ Pendiente
-                </span>
-              </div>
-              <div class="text-[11px] text-gray-300 font-mono">
-                <span class="text-amber-300 font-bold">02:00 – 05:00 NY</span>
-                <span class="text-gray-500">·</span>
-                <span id="barLondonLocalWindow" class="text-gray-300 font-semibold">--:-- Local</span>
-              </div>
+        <!-- Tarjeta Única: Sesión New York (USDCAD Killzone) -->
+        <div class="bg-cardBg/90 border border-cardBorder rounded-xl p-3 flex items-center justify-between gap-3 shadow-md flex-1" id="barNyBox">
+          <div class="space-y-0.5 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-black text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
+                <span>🇺🇸🇨🇦</span> Killzone Exclusiva New York · USDCAD
+              </span>
+              <span id="barNyBadge" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border bg-amber-500/20 text-amber-300 border-amber-500/40">
+                ⏳ Pendiente
+              </span>
+              <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                Superposición Toronto / NY
+              </span>
             </div>
-            <div class="text-right shrink-0">
-              <span class="text-[9px] uppercase tracking-wider text-gray-400 block font-bold" id="barLondonCountdownLabel">Falta apertura</span>
-              <span class="text-xs sm:text-sm font-mono font-black text-amber-300" id="barLondonCountdown">--h --m --s</span>
+            <div class="text-[11px] text-gray-300 font-mono">
+              <span class="text-sky-300 font-bold">07:00 – 11:00 NY</span>
+              <span class="text-gray-500">·</span>
+              <span id="barNyLocalWindow" class="text-gray-300 font-semibold">--:-- Local</span>
+              <span class="text-gray-500 hidden sm:inline">· Spreads mínimos (0.6 - 0.9 pips)</span>
             </div>
           </div>
-
-          <!-- Sesión New York -->
-          <div class="bg-cardBg/90 border border-cardBorder rounded-xl p-3 flex items-center justify-between gap-3 shadow-md" id="barNyBox">
-            <div class="space-y-0.5 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-black text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <span>🇺🇸</span> New York
-                </span>
-                <span id="barNyBadge" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border bg-amber-500/20 text-amber-300 border-amber-500/40">
-                  ⏳ Pendiente
-                </span>
-              </div>
-              <div class="text-[11px] text-gray-300 font-mono">
-                <span class="text-sky-300 font-bold">07:00 – 11:00 NY</span>
-                <span class="text-gray-500">·</span>
-                <span id="barNyLocalWindow" class="text-gray-300 font-semibold">--:-- Local</span>
-              </div>
-            </div>
-            <div class="text-right shrink-0">
-              <span class="text-[9px] uppercase tracking-wider text-gray-400 block font-bold" id="barNyCountdownLabel">Falta apertura</span>
-              <span class="text-xs sm:text-sm font-mono font-black text-sky-300" id="barNyCountdown">--h --m --s</span>
-            </div>
+          <div class="text-right shrink-0">
+            <span class="text-[9px] uppercase tracking-wider text-gray-400 block font-bold" id="barNyCountdownLabel">Falta apertura</span>
+            <span class="text-sm sm:text-base font-mono font-black text-sky-300" id="barNyCountdown">--h --m --s</span>
           </div>
         </div>
+
+      </div>
+    </section>
 
       </div>
     </section>
@@ -218,7 +199,7 @@
               </span>
             </div>
             <p class="text-xs text-gray-400 mt-0.5">
-              Control riguroso de eventos macroeconómicos enfocado en sesiones de <span class="text-amber-300 font-semibold">Londres y New York</span> (RBA, BoJ, NFP, CPI, Fed) con filtro Ghost Pro y dilatación de spreads
+              Control riguroso de eventos macroeconómicos enfocado exclusivamente en la <span class="text-sky-300 font-semibold">Sesión de New York (07:00 – 11:00 NY)</span> para la operativa en USDCAD con filtro de riesgo Orion y dilatación de spreads
             </p>
           </div>
         </div>
@@ -235,8 +216,8 @@
         </div>
       </section>
 
-      <!-- RELOJ DE MERCADO, SESIONES LONDRES / NY Y SEMÁFORO DE NOTICIAS -->
-      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- RELOJ DE MERCADO, SESIÓN EXCLUSIVA NEW YORK Y SEMÁFORO DE NOTICIAS -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Reloj New York & Local -->
         <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex items-center justify-between">
           <div>
@@ -250,36 +231,18 @@
           </div>
         </div>
 
-        <!-- Sesión Londres (02:00 - 05:00 NY) -->
-        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex items-center justify-between" id="newsLondonCard">
-          <div class="space-y-1 min-w-0">
-            <div class="flex items-center gap-2">
-              <span class="text-[11px] text-gray-400 uppercase font-bold tracking-wider">🇬🇧 Londres</span>
-              <span id="newsLondonBadge" class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border bg-amber-500/20 text-amber-300 border-amber-500/40">⏳ Abre en</span>
-            </div>
-            <div class="text-xl font-mono font-black text-amber-300" id="newsLondonCountdown">--h --m --s</div>
-            <div class="text-[11px] text-gray-300 font-mono" id="newsLondonHoursText">
-              <span class="text-amber-300 font-bold">02:00 – 05:00 NY</span> · <span id="newsLondonLocalSub" class="text-gray-300">--:-- Local</span>
-            </div>
-            <span class="text-[10px] text-gray-400 block truncate" id="newsLondonSub">Ventana Apertura Europea · Ghost Pro</span>
-          </div>
-          <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20 shrink-0" id="newsLondonIconBox">
-            <i data-lucide="activity" class="w-6 h-6"></i>
-          </div>
-        </div>
-
-        <!-- Sesión New York (07:00 - 11:00 NY) -->
+        <!-- Sesión New York (07:00 - 11:00 NY) · Killzone Institucional USDCAD -->
         <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex items-center justify-between" id="newsNyCard">
           <div class="space-y-1 min-w-0">
             <div class="flex items-center gap-2">
-              <span class="text-[11px] text-gray-400 uppercase font-bold tracking-wider">🇺🇸 New York</span>
+              <span class="text-[11px] text-gray-400 uppercase font-bold tracking-wider">🇺🇸🇨🇦 Killzone New York (USDCAD)</span>
               <span id="newsNyBadge" class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border bg-sky-500/20 text-sky-300 border-sky-500/40">⏳ Abre en</span>
             </div>
             <div class="text-xl font-mono font-black text-sky-300" id="newsNyCountdown">--h --m --s</div>
             <div class="text-[11px] text-gray-300 font-mono" id="newsNyHoursText">
               <span class="text-sky-300 font-bold">07:00 – 11:00 NY</span> · <span id="newsNyLocalSub" class="text-gray-300">--:-- Local</span>
             </div>
-            <span class="text-[10px] text-gray-400 block truncate" id="newsNySub">Ventana Dorada de Máxima Liquidez</span>
+            <span class="text-[10px] text-gray-400 block truncate" id="newsNySub">Superposición Toronto / NY · Spreads mínimos</span>
           </div>
           <div class="p-3 bg-sky-500/10 text-sky-400 rounded-xl border border-sky-500/20 shrink-0" id="newsNyIconBox">
             <i data-lucide="zap" class="w-6 h-6"></i>
@@ -2216,16 +2179,16 @@
               </div>
 
               <div class="p-3.5 bg-gray-900 border border-gray-800 rounded-xl space-y-1.5">
-                <div class="font-bold text-amber-400 text-xs">2. Spreads Mínimos y Liquidez Profunda</div>
+                <div class="font-bold text-amber-400 text-xs">2. Spreads Mínimos y Liquidez Profunda en USDCAD</div>
                 <p class="text-[11px] text-gray-400 leading-relaxed">
-                  Durante el solapamiento Londres/New York, los proveedores de liquidez ofrecen los spreads más ajustados (10-15 puntos en Oro), garantizando ejecuciones precisas sin deslizamiento.
+                  Durante la sesión de New York (Killzone 07:00 – 11:00 NY), la superposición con el mercado de Toronto brinda spreads mínimos de 0.6 a 0.9 pips en USDCAD, garantizando ejecuciones precisas sin deslizamiento.
                 </p>
               </div>
 
               <div class="p-3.5 bg-gray-900 border border-gray-800 rounded-xl space-y-1.5">
                 <div class="font-bold text-blue-400 text-xs">3. Inyección de Volumen Institucional Activo</div>
                 <p class="text-[11px] text-gray-400 leading-relaxed">
-                  Los grandes bancos de Wall Street y Londres inyectan más del <strong>70% del volumen transaccional mundial</strong>, generando tendencias directas y confluencia clara con la estructura M5.
+                  Los grandes bancos de Wall Street y el Banco de Canadá (BoC) inyectan el <strong>mayor volumen transaccional diario en USDCAD</strong>, generando tendencias directas y confluencia clara con la estructura M5.
                 </p>
               </div>
             </div>
@@ -2235,19 +2198,19 @@
               <div class="font-bold text-emerald-300 text-xs flex items-center justify-between">
                 <span class="flex items-center gap-1.5">
                   <i data-lucide="sun" class="w-4 h-4 text-emerald-400"></i>
-                  Estructura Horaria de New York (08:00 AM a 11:30 AM NY — Hora de Colombia / UTC-5)
+                  Killzone Exclusiva de New York (07:00 AM a 11:00 AM NY — Hora de Colombia / UTC-5)
                 </span>
                 <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
-                  70% del Volumen Mundial
+                  Sesión Oficial USDCAD
                 </span>
               </div>
               <p class="text-[11px] text-gray-300 leading-relaxed">
-                Es la única ventana horaria donde se solapan el mercado de Londres y New York. Aquí se produce el mayor volumen transaccional diario:
+                Es la ventana horaria oficial para operar USDCAD por volumen y sincronización con las noticias de EE.UU. y Canadá:
               </p>
               <ul class="list-disc pl-4 space-y-1 text-[11px] text-gray-300">
-                <li><strong>08:00 – 08:30 AM (El Judas Swing):</strong> Apertura del pit estadounidense y datos económicos matutinos. Se producen barridos de liquidez hacia máximos/mínimos previos para cazar retail stops. Esperar confirmación.</li>
-                <li><strong>08:45 – 11:00 AM (Expansión Tendencial Real):</strong> El dinero inteligente inyecta su posición direccional real. Es la fase perfecta para gatillar en la <strong>2da onda de retroceso (M5)</strong> y capturar expansiones con R:R 1:2 y 1:3+.</li>
-                <li><strong>11:30 AM en adelante:</strong> Cierra Londres (London Fixing). El volumen institucional desciende y el mercado entra en consolidación. <strong>Regla: Cero nuevas operaciones después de las 11:30 AM</strong>.</li>
+                <li><strong>07:00 – 08:30 AM:</strong> Apertura de la sesión americana y reportes de empleo/IPC. Se producen barridos de liquidez hacia máximos/mínimos previos. Esperar confirmación.</li>
+                <li><strong>08:45 – 10:30 AM (Expansión Tendencial Real):</strong> El dinero institucional toma dirección clara. Es la fase perfecta para gatillar en la <strong>2da onda de retroceso (M5)</strong> y capturar expansiones con el ratio ideal 1:2.8.</li>
+                <li><strong>11:00 AM en adelante:</strong> Desciende el volumen institucional y el mercado entra en consolidación. <strong>Regla: Cero nuevas operaciones después de las 11:00 AM</strong>.</li>
               </ul>
             </div>
           </div>

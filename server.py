@@ -224,7 +224,7 @@ def execute_premarket_scan():
         "checklist": [
             "1. Noticias Macro (12h): Superávit laboral en EE.UU., tono Hawkish de la Fed y soporte físico PBoC analizados.",
             "2. Calendario Económico (UTC-5 NY): Ventana crítica NFP (08:15 a 08:45 AM NY) confirmada con regla estricta de NO OPERAR.",
-            "3. Cierre Anterior & Sesión de Londres: Cierre en parte baja del rango ($2,725.80) y absorción de liquidez en Londres ($2,731.50) mapeados.",
+            "3. Cierre Anterior & Rango Pre-Mercado NY: Cierre previo y niveles clave mapeados para la Killzone New York de USDCAD.",
             "4. Mapa Técnico M15/H1: Tendencia bajista activa, niveles PDH/PDL y consumo de ADR 14 (38.2%) calculados.",
             "5. Plan de Sesión NY: Venta en retroceso a FVG M15 ($2,731.50 – $2,733.50) con SL $2,736.50 y TP $2,718.50 (R:R 1:3.0 a 1:4.2).",
             "6. Riesgos & Regla de Oro: Correlaciones DXY/US10Y/VIX y gatillo de inactivación por dilatación de spreads validados."
@@ -271,6 +271,9 @@ def generate_synthetic_historical_bias(date_str):
             "macro_summary": "Sin operativa institucional activa. Las mesas de dinero de bancos y fondos de cobertura reanudan operaciones el domingo a las 18:00 NY.",
             "catalyst": "Cierre Semanal de Mercados",
             "session_levels": {
+                "premarket_high": "2,745.00",
+                "premarket_low": "2,735.00",
+                "premarket_range_pts": 1000,
                 "london_high": "2,745.00",
                 "london_low": "2,735.00",
                 "london_range_pts": 1000,
@@ -314,23 +317,23 @@ def generate_synthetic_historical_bias(date_str):
         catalyst = "Fortaleza del DXY & Rendimientos del Tesoro"
         res_str = f"{round(lh+5, 1):,} – {round(lh+15, 1):,}"
         sup_str = f"{round(ll-15, 1):,} – {round(ll-25, 1):,}"
-        outcome = f"Ruptura bajista del London Low ({ll:,.2f}) a las 08:45 NY tras absorber las noticias de EE.UU. Entrada con Stop Estructural M5 de 42 pts. Expansión limpia a la baja alcanzando TP (+115 pts TV) con ratio 1:2.7."
+        outcome = f"Ruptura bajista del Rango Pre-Mercado NY ({ll:,.2f}) a las 08:45 NY tras absorber las noticias de EE.UU./Canadá. Entrada con Stop Estructural M5. Expansión limpia a la baja alcanzando TP con ratio 1:2.8."
     elif bias == "BULLISH":
         bias_title = "🟢 SESGO INSTITUCIONAL: ALCISTA (Buy-Only)"
-        headline = f"Demanda de refugio e interés comprador en soportes impulsan al oro el {date_str}."
+        headline = f"Demanda de refugio e interés comprador en soportes impulsan al par el {date_str}."
         macro_summary = f"Debilidad del Dólar e incertidumbre macroeconómica favorecieron compras institucionales en la apertura americana."
         catalyst = "Retroceso del DXY & Compras de Bancos Centrales"
         res_str = f"{round(lh+20, 1):,} – {round(lh+30, 1):,}"
         sup_str = f"{round(ll-5, 1):,} – {round(ll-12, 1):,}"
-        outcome = f"Ruptura alcista del London High ({lh:,.2f}) a las 08:35 NY. Vela envolvente M5 tras dato de IPC. Stop Loss de 38 pts. Expansión explosiva alcanzando TP (+110 pts TV) con ratio 1:2.9."
+        outcome = f"Ruptura alcista del Rango Pre-Mercado NY ({lh:,.2f}) a las 08:35 NY. Vela envolvente M5 tras dato de IPC. Stop Loss controlado. Expansión alcanzando TP con ratio 1:2.8."
     else:
         bias_title = "🟡 SESGO INSTITUCIONAL: NEUTRAL / RANGO (Cautela)"
         headline = f"Mercado en equilibrio y consolidación técnica previa a noticias en {date_str}."
-        macro_summary = f"Bajo volumen y ausencia de catalizadores de peso mantuvieron al oro oscilando dentro de rangos acotados."
+        macro_summary = f"Bajo volumen y ausencia de catalizadores de peso mantuvieron al par oscilando dentro de rangos acotados."
         catalyst = "Consolidación Previa a Reportes Clave"
         res_str = f"{round(lh+8, 1):,} – {round(lh+15, 1):,}"
         sup_str = f"{round(ll-8, 1):,} – {round(ll-15, 1):,}"
-        outcome = f"Sesión lateral sin rompimiento limpio del Rango de Londres. El precio rebotó entre los extremos; la orden se cerró en Breakeven sin pérdidas."
+        outcome = f"Sesión lateral sin rompimiento limpio del Rango Pre-Mercado NY. El precio rebotó entre los extremos; la orden se cerró en Breakeven sin pérdidas."
 
     merged = dict(get_gold_bias())
     merged.update({
@@ -344,6 +347,9 @@ def generate_synthetic_historical_bias(date_str):
         "macro_summary": macro_summary,
         "catalyst": catalyst,
         "session_levels": {
+            "premarket_high": f"{lh:,.2f}",
+            "premarket_low": f"{ll:,.2f}",
+            "premarket_range_pts": l_range_pts,
             "london_high": f"{lh:,.2f}",
             "london_low": f"{ll:,.2f}",
             "london_range_pts": l_range_pts,
@@ -496,22 +502,22 @@ def scan_m5_gold_market():
         pct_pos = round(((current_price - range_low) / range_width) * 100.0, 1)
         pct_pos = max(0.0, min(100.0, pct_pos))
 
-    # 2. London Session Levels (48 candles = 4 hours)
+    # 2. Pre-Mercado NY Session Levels (48 candles = 4 hours)
     london_high = round(max(c["high"] for c in candles), 2)
     london_low = round(min(c["low"] for c in candles), 2)
     london_range_pts = int(round((london_high - london_low) * 100))
 
     if current_price < london_low:
         london_status_badge = "🔴 RUPTURA BAJISTA"
-        london_status_detail = f"Ruptura bajista de London Low confirmada bajo ${london_low:,.2f} con vela sólida."
+        london_status_detail = f"Ruptura bajista de Mínimo Pre-NY confirmada bajo ${london_low:,.2f} con vela sólida."
         judas_swing_text = "No detectado (Ruptura sostenida a favor de la macro)"
     elif current_price > london_high:
         london_status_badge = "🟢 RUPTURA ALCISTA"
-        london_status_detail = f"Ruptura sobre London High (${london_high:,.2f}). Atención a retroceso."
+        london_status_detail = f"Ruptura sobre Máximo Pre-NY (${london_high:,.2f}). Atención a retroceso."
         judas_swing_text = "Atención: posible barrido de liquidez alcista contra la macro"
     else:
-        london_status_badge = "🟡 EN RANGO LONDRES"
-        london_status_detail = f"El precio comprime dentro del rango de Londres (${london_low:,.2f} – ${london_high:,.2f})."
+        london_status_badge = "🟡 EN RANGO PRE-NY"
+        london_status_detail = f"El precio comprime dentro del rango previo a NY (${london_low:,.2f} – ${london_high:,.2f})."
         judas_swing_text = "Monitoreando extremos por posibles barridos de manipulación (Judas Swing)"
 
     # 3. Compute Heikin Ashi on M5
@@ -694,6 +700,14 @@ def scan_m5_gold_market():
             "support_label": f"Soporte ${range_low:,.2f}",
             "eq_label": f"Equilibrio / VWAP ${range_eq:,.2f}",
             "resistance_label": f"Resistencia ${range_high:,.2f}"
+        },
+        "premarket_ny": {
+            "high": london_high,
+            "low": london_low,
+            "range_pts": london_range_pts,
+            "status_badge": london_status_badge,
+            "status_detail": london_status_detail,
+            "judas_swing": judas_swing_text
         },
         "london_session": {
             "london_high": london_high,
@@ -1653,7 +1667,7 @@ def generate_sample_trades(config):
             "pnl": pnl,
             "rr": 1.0,
             "strategy": random.choice(strategies),
-            "notes": f"Setup sesión Londres/NY ({res.upper()})"
+            "notes": f"Setup sesión New York USDCAD ({res.upper()})"
         })
         
     return sample_trades
