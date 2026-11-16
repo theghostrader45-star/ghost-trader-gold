@@ -119,6 +119,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupMacroGuideModalEvents();
   setupCalculatorView();
   setupOrionRulesView();
+  try { setupUsdcadAnalysisView(); } catch (e) { console.warn('setupUsdcadAnalysisView error:', e); }
 
   // Cargar configuración global y vistas principales con tolerancia total a fallos
   try { await loadConfig(); } catch (e) { console.warn('loadConfig fallback:', e); }
@@ -136,9 +137,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupBackupAndRestoreEvents();
   setupSaveAllButton();
 
-  // Restaurar pestaña activa tras carga asíncrona completa (Backtest, Noticias, Calculadora, Orion)
+  // Restaurar pestaña activa tras carga asíncrona completa (Backtest, Noticias, Calculadora, Orion, Análisis)
   let savedTab = localStorage.getItem('activeTab_orion_v3');
-  if (!savedTab || !['backtest', 'news', 'calculator', 'orion'].includes(savedTab)) {
+  if (!savedTab || !['backtest', 'news', 'calculator', 'orion', 'analysis'].includes(savedTab)) {
     savedTab = 'backtest';
   }
   if (typeof window.switchTabTo === 'function') {
@@ -233,11 +234,13 @@ function setupTabNavigation() {
   const btnNews = document.getElementById('tabBtnNews');
   const btnCalculator = document.getElementById('tabBtnCalculator');
   const btnOrionRules = document.getElementById('tabBtnOrionRules');
+  const btnAnalysisUsdcad = document.getElementById('tabBtnAnalysisUsdcad');
 
   const viewBacktestSimple = document.getElementById('viewBacktestSimple');
   const viewNews = document.getElementById('viewNews');
   const viewCalculator = document.getElementById('viewCalculator');
   const viewOrionRules = document.getElementById('viewOrionRules');
+  const viewAnalysisUsdcad = document.getElementById('viewAnalysisUsdcad');
 
   function switchTab(tab) {
     if (tab === 'rules' || tab === 'fondeo' || tab === 'orion' || tab === 'orionrules') {
@@ -246,7 +249,10 @@ function setupTabNavigation() {
     if (tab === 'premarket') {
       tab = 'news';
     }
-    if (!['backtest', 'news', 'calculator', 'orion'].includes(tab)) {
+    if (tab === 'usdcad' || tab === 'analysis' || tab === 'scanner') {
+      tab = 'analysis';
+    }
+    if (!['backtest', 'news', 'calculator', 'orion', 'analysis'].includes(tab)) {
       tab = 'backtest';
     }
 
@@ -255,10 +261,10 @@ function setupTabNavigation() {
       localStorage.setItem('activeTab_orion_v3', tab);
     } catch (e) {}
 
-    const activeClasses = ['bg-emerald-600', 'bg-rose-600', 'bg-amber-500', 'bg-purple-600', 'text-white', 'text-black', 'shadow-lg', 'shadow-emerald-600/30', 'shadow-rose-600/30', 'shadow-amber-500/30', 'shadow-purple-600/30', 'font-black', 'font-bold'];
+    const activeClasses = ['bg-emerald-600', 'bg-rose-600', 'bg-amber-500', 'bg-purple-600', 'bg-sky-600', 'text-white', 'text-black', 'shadow-lg', 'shadow-emerald-600/30', 'shadow-rose-600/30', 'shadow-amber-500/30', 'shadow-purple-600/30', 'shadow-sky-600/30', 'font-black', 'font-bold'];
     const inactiveClasses = ['text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60', 'font-semibold'];
 
-    [btnBacktestSimple, btnNews, btnCalculator, btnOrionRules].forEach(btn => {
+    [btnBacktestSimple, btnNews, btnCalculator, btnOrionRules, btnAnalysisUsdcad].forEach(btn => {
       if (btn) {
         btn.classList.remove(...activeClasses);
         btn.classList.add(...inactiveClasses);
@@ -269,6 +275,7 @@ function setupTabNavigation() {
     if (viewNews) viewNews.classList.add('hidden');
     if (viewCalculator) viewCalculator.classList.add('hidden');
     if (viewOrionRules) viewOrionRules.classList.add('hidden');
+    if (viewAnalysisUsdcad) viewAnalysisUsdcad.classList.add('hidden');
 
     if (tab === 'backtest') {
       if (btnBacktestSimple) {
@@ -307,6 +314,15 @@ function setupTabNavigation() {
       if (typeof recalculateOrionUsdcad === 'function') {
         recalculateOrionUsdcad();
       }
+    } else if (tab === 'analysis') {
+      if (btnAnalysisUsdcad) {
+        btnAnalysisUsdcad.classList.remove(...inactiveClasses);
+        btnAnalysisUsdcad.classList.add('bg-sky-600', 'text-white', 'shadow-lg', 'shadow-sky-600/30', 'font-bold');
+      }
+      if (viewAnalysisUsdcad) viewAnalysisUsdcad.classList.remove('hidden');
+      if (typeof loadAndRenderUsdcadAnalysis === 'function') {
+        loadAndRenderUsdcadAnalysis();
+      }
     }
 
     initIcons();
@@ -319,9 +335,10 @@ function setupTabNavigation() {
   if (btnNews) btnNews.addEventListener('click', () => switchTab('news'));
   if (btnCalculator) btnCalculator.addEventListener('click', () => switchTab('calculator'));
   if (btnOrionRules) btnOrionRules.addEventListener('click', () => switchTab('orion'));
+  if (btnAnalysisUsdcad) btnAnalysisUsdcad.addEventListener('click', () => switchTab('analysis'));
 
   let savedTab = localStorage.getItem('activeTab_orion_v3');
-  if (!savedTab || !['backtest', 'news', 'calculator', 'orion'].includes(savedTab)) {
+  if (!savedTab || !['backtest', 'news', 'calculator', 'orion', 'analysis'].includes(savedTab)) {
     savedTab = 'backtest';
   }
   switchTab(savedTab);
@@ -11715,9 +11732,10 @@ function setActiveUsdJpyRate(rate) {
   }
 }
 
-function getAudJpyPipValueUsd() {
+function getUsdcadPipValueUsd() {
   return 7.22; // 1 pip USDCAD = 10 CAD / 1.3850 ~= $7.22 USD
 }
+const getAudJpyPipValueUsd = getUsdcadPipValueUsd;
 
 function syncUsdJpyRateUI() {
   const pipVal = 7.22;
@@ -12670,4 +12688,302 @@ function setupSaveAllButton() {
       saveAllDashboardData('shortcut');
     }
   });
+}
+
+// ====================================================
+// VISTA 5: ANÁLISIS USDCAD PRE-SESIÓN NY & SESGO M5 (FUERZA %)
+// ====================================================
+let cachedUsdcadAnalysisData = null;
+
+function setupUsdcadAnalysisView() {
+  const btnScan = document.getElementById('btnRunUsdcadScan');
+  if (btnScan) {
+    btnScan.addEventListener('click', (e) => {
+      e.preventDefault();
+      triggerUsdcadScan();
+    });
+  }
+}
+
+async function loadAndRenderUsdcadAnalysis(forceFetch = false) {
+  if (cachedUsdcadAnalysisData && !forceFetch) {
+    renderUsdcadAnalysis(cachedUsdcadAnalysisData);
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/usdcad-analysis');
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.drivers) {
+        cachedUsdcadAnalysisData = data;
+        renderUsdcadAnalysis(data);
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn('Error al cargar /api/usdcad-analysis, usando escaneo de respaldo:', err);
+  }
+
+  // Si no hay datos, disparar escaneo inicial
+  await triggerUsdcadScan();
+}
+
+async function triggerUsdcadScan() {
+  const btn = document.getElementById('btnRunUsdcadScan');
+  const icon = document.getElementById('usdcadScanBtnIcon');
+  const text = document.getElementById('usdcadScanBtnText');
+
+  if (btn) btn.disabled = true;
+  if (icon) icon.classList.add('animate-spin');
+  if (text) text.textContent = 'Escaneando Mercados en Vivo...';
+
+  try {
+    const res = await fetch('/api/usdcad-analysis/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      cachedUsdcadAnalysisData = data;
+      renderUsdcadAnalysis(data);
+      if (typeof showToast === 'function') {
+        showToast('🚀 Escaneo Pre-Sesión NY de USDCAD completado con éxito.', 'success');
+      }
+    } else {
+      throw new Error(`Status ${res.status}`);
+    }
+  } catch (err) {
+    console.error('Error al ejecutar scanner USDCAD:', err);
+    if (typeof showToast === 'function') {
+      showToast('⚠️ No se pudo conectar al scanner en vivo, mostrando datos almacenados.', 'warning');
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+    if (icon) icon.classList.remove('animate-spin');
+    if (text) text.textContent = 'Escanear Pre-Sesión NY (En Vivo)';
+    initIcons();
+  }
+}
+
+function renderUsdcadAnalysis(data) {
+  if (!data) return;
+
+  // 1. Fase de la sesión
+  const phaseBadge = document.getElementById('usdcadSessionPhaseBadge');
+  if (phaseBadge) {
+    phaseBadge.textContent = data.session_phase || 'KILLZONE NY (07:00 – 11:00 NY)';
+    const color = data.phase_color || 'emerald';
+    phaseBadge.className = `px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
+      color === 'emerald' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' :
+      color === 'amber' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' :
+      color === 'blue' ? 'bg-blue-500/20 text-blue-300 border-blue-500/40' :
+      'bg-gray-800 text-gray-300 border-gray-700'
+    }`;
+  }
+
+  // 2. Timestamp de escaneo
+  const timeBadge = document.getElementById('usdcadScanTimeBadge');
+  if (timeBadge) {
+    timeBadge.textContent = `Último Escaneo: ${data.scanned_at_ny || '--:--'} (${data.scanned_date || 'Hoy'})`;
+  }
+
+  // 3. Sesgo del Día Hero Box
+  const isBullish = data.overall_bias === 'BULLISH';
+  const isBearish = data.overall_bias === 'BEARISH';
+  
+  const heroText = document.getElementById('usdcadBiasHeroText');
+  if (heroText) {
+    heroText.textContent = data.bias_label || (isBullish ? 'SESGO ALCISTA (COMPRAS EN M5)' : isBearish ? 'SESGO BAJISTA (VENTAS EN M5)' : 'SESGO NEUTRAL');
+    heroText.className = `text-xl sm:text-2xl font-black tracking-tight ${isBullish ? 'text-emerald-400' : isBearish ? 'text-rose-400' : 'text-amber-400'}`;
+  }
+
+  const convictionBadge = document.getElementById('usdcadConvictionBadge');
+  if (convictionBadge) {
+    convictionBadge.textContent = data.conviction || 'ALTA CONFLUENCIA';
+    convictionBadge.className = `px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${isBullish ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : isBearish ? 'bg-rose-500/10 text-rose-400 border-rose-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'}`;
+  }
+
+  const heroIconBox = document.getElementById('usdcadBiasHeroIconBox');
+  const heroIcon = document.getElementById('usdcadBiasHeroIcon');
+  if (heroIconBox && heroIcon) {
+    heroIconBox.className = `w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 ${
+      isBullish ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' :
+      isBearish ? 'bg-rose-500/20 border-rose-500/40 text-rose-400' :
+      'bg-amber-500/20 border-amber-500/40 text-amber-400'
+    }`;
+    heroIcon.setAttribute('data-lucide', isBullish ? 'trending-up' : isBearish ? 'trending-down' : 'minus');
+  }
+
+  const spotPrice = document.getElementById('usdcadSpotPrice');
+  if (spotPrice && data.spot_reference) {
+    spotPrice.textContent = Number(data.spot_reference).toFixed(4);
+  }
+
+  // 4. Medidor Cuantitativo de Fuerza %
+  const bullishPct = Number(data.strength_bullish_pct != null ? data.strength_bullish_pct : 82.5).toFixed(1);
+  const bearishPct = Number(data.strength_bearish_pct != null ? data.strength_bearish_pct : 17.5).toFixed(1);
+
+  const bullishLabel = document.getElementById('usdcadBullishPctLabel');
+  if (bullishLabel) bullishLabel.textContent = `Alcista: ${bullishPct}%`;
+
+  const bearishLabel = document.getElementById('usdcadBearishPctLabel');
+  if (bearishLabel) bearishLabel.textContent = `Bajista: ${bearishPct}%`;
+
+  const strengthPercentText = document.getElementById('usdcadStrengthPercentText');
+  if (strengthPercentText) {
+    if (isBullish) {
+      strengthPercentText.textContent = `${bullishPct}% Fuerza Alcista Institucional`;
+      strengthPercentText.className = 'text-lg font-mono font-black text-emerald-400';
+    } else if (isBearish) {
+      strengthPercentText.textContent = `${bearishPct}% Fuerza Bajista Institucional`;
+      strengthPercentText.className = 'text-lg font-mono font-black text-rose-400';
+    } else {
+      strengthPercentText.textContent = '50.0% Fuerza Neutral / Rango';
+      strengthPercentText.className = 'text-lg font-mono font-black text-amber-400';
+    }
+  }
+
+  const barBullish = document.getElementById('usdcadStrengthBarBullish');
+  if (barBullish) {
+    barBullish.style.width = `${bullishPct}%`;
+    barBullish.innerHTML = `<span class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-black text-black">${bullishPct}%</span>`;
+  }
+
+  const barBearish = document.getElementById('usdcadStrengthBarBearish');
+  if (barBearish) {
+    barBearish.style.width = `${bearishPct}%`;
+    barBearish.innerHTML = `<span class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-black text-white">${bearishPct}%</span>`;
+  }
+
+  // Conteo de drivers alcistas
+  const drivers = data.drivers || [];
+  const bullishCount = drivers.filter(d => d.bias_direction === 'BULLISH').length;
+  const countBadge = document.getElementById('usdcadBullishDriversCount');
+  if (countBadge) {
+    countBadge.textContent = `${bullishCount} / ${drivers.length}`;
+  }
+
+  // 5. Protocolo de Ejecución M5
+  const m5 = data.m5_plan || {};
+  const elM5Action = document.getElementById('usdcadM5Action');
+  if (elM5Action) {
+    elM5Action.textContent = m5.action || 'BUSCAR COMPRAS (BUY) EN RETESTEO M5';
+    elM5Action.className = `text-sm font-bold ${isBullish ? 'text-emerald-400' : isBearish ? 'text-rose-400' : 'text-amber-400'}`;
+  }
+
+  const elM5Poi = document.getElementById('usdcadM5Poi');
+  if (elM5Poi && m5.entry_zone) elM5Poi.textContent = m5.entry_zone;
+
+  const elM5Inv = document.getElementById('usdcadM5Invalidation');
+  if (elM5Inv && m5.invalidation) elM5Inv.textContent = m5.invalidation;
+
+  const elM5Sl = document.getElementById('usdcadM5Sl');
+  if (elM5Sl) elM5Sl.textContent = `${m5.sl_pips || 22.0} pips (${m5.sl_price || '1.38600'})`;
+
+  const elM5Tp = document.getElementById('usdcadM5Tp');
+  if (elM5Tp) elM5Tp.textContent = `${m5.tp_pips || 61.6} pips (${m5.tp_price || '1.39416'})`;
+
+  const elRuleConf = document.getElementById('usdcadRuleConfirmation');
+  if (elRuleConf && m5.confirmation_rule) elRuleConf.textContent = m5.confirmation_rule;
+
+  const elRuleSpread = document.getElementById('usdcadRuleSpread');
+  if (elRuleSpread && m5.spread_rule) elRuleSpread.textContent = m5.spread_rule;
+
+  const elRuleNews = document.getElementById('usdcadRuleNews');
+  if (elRuleNews && m5.news_rule) elRuleNews.textContent = m5.news_rule;
+
+  // 6. Matriz de los 6 Drivers
+  const driversGrid = document.getElementById('usdcadDriversGrid');
+  if (driversGrid && drivers.length > 0) {
+    driversGrid.innerHTML = drivers.map(d => {
+      const isDrvBullish = d.bias_direction === 'BULLISH';
+      const isDrvBearish = d.bias_direction === 'BEARISH';
+      const drvColor = isDrvBullish ? 'emerald' : isDrvBearish ? 'rose' : 'amber';
+
+      return `
+        <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex flex-col justify-between space-y-3">
+          <div>
+            <div class="flex items-center justify-between border-b border-gray-800 pb-2.5">
+              <div class="flex items-center gap-2">
+                <div class="p-2 rounded-xl bg-gray-950 border border-gray-800 text-${drvColor}-400 shrink-0">
+                  <i data-lucide="${d.icon || 'activity'}" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white leading-tight">${d.name}</h4>
+                  <span class="text-[10px] text-gray-500 font-mono">Peso: ${d.weight_pct}% del algoritmo</span>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-${drvColor}-500/10 text-${drvColor}-400 border border-${drvColor}-500/30 shrink-0">
+                ${isDrvBullish ? 'ALCISTA' : isDrvBearish ? 'BAJISTA' : 'NEUTRAL'}
+              </span>
+            </div>
+
+            <div class="mt-3 flex items-baseline justify-between">
+              <span class="text-base font-mono font-black text-white">${d.value}</span>
+              <span class="text-xs font-mono font-bold ${d.change && d.change.startsWith('+') ? 'text-emerald-400' : 'text-rose-400'}">${d.change || ''}</span>
+            </div>
+
+            <!-- Score Bar -->
+            <div class="mt-2 space-y-1">
+              <div class="flex justify-between text-[10px] font-mono text-gray-400">
+                <span>Fuerza Institucional:</span>
+                <span class="font-bold text-${drvColor}-300">${d.strength_score}%</span>
+              </div>
+              <div class="w-full bg-gray-950 rounded-full h-1.5 overflow-hidden border border-gray-800">
+                <div class="h-full bg-gradient-to-r from-${drvColor}-600 to-${drvColor}-400 rounded-full" style="width: ${d.strength_score}%;"></div>
+              </div>
+            </div>
+
+            <p class="text-[11px] text-gray-300 leading-relaxed mt-2.5 bg-gray-950/50 p-2 rounded-lg border border-gray-850">
+              ${d.summary}
+            </p>
+          </div>
+
+          <div class="pt-2 border-t border-gray-800/80 text-[10px] text-sky-300 font-mono flex items-start gap-1.5">
+            <span class="font-bold shrink-0">Impacto USDCAD:</span>
+            <span class="text-gray-300">${d.impact_usdcad}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // 7. Niveles Clave & ADR
+  const levels = data.key_levels || {};
+  const elPdh = document.getElementById('usdcadLevelPdh');
+  if (elPdh && levels.pdh) elPdh.textContent = levels.pdh.split(' ')[0];
+
+  const elPdl = document.getElementById('usdcadLevelPdl');
+  if (elPdl && levels.pdl) elPdl.textContent = levels.pdl.split(' ')[0];
+
+  const elAsia = document.getElementById('usdcadLevelAsia');
+  if (elAsia && levels.asia_high) elAsia.textContent = `${levels.asia_high} / ${levels.asia_low}`;
+
+  const elLondon = document.getElementById('usdcadLevelLondon');
+  if (elLondon && levels.london_high) elLondon.textContent = `${levels.london_high} / ${levels.london_low}`;
+
+  const elVwap = document.getElementById('usdcadLevelVwap');
+  if (elVwap && levels.session_vwap) elVwap.textContent = `${levels.session_vwap} (Soporte Dinámico M5)`;
+
+  // ADR
+  const adrTotal = levels.adr_daily_pips || 65.0;
+  const adrConsumed = levels.adr_consumed_pips || 27.0;
+  const adrPct = levels.adr_consumed_pct || 41.5;
+  const adrRemaining = levels.adr_remaining_pips || 38.0;
+
+  const elAdrTotal = document.getElementById('usdcadAdrTotalLabel');
+  if (elAdrTotal) elAdrTotal.textContent = `ADR: ${adrTotal} pips`;
+
+  const elAdrConsumed = document.getElementById('usdcadAdrConsumedLabel');
+  if (elAdrConsumed) elAdrConsumed.textContent = `${adrConsumed} pips (${adrPct}%)`;
+
+  const elAdrBar = document.getElementById('usdcadAdrBar');
+  if (elAdrBar) elAdrBar.style.width = `${adrPct}%`;
+
+  const elAdrRemaining = document.getElementById('usdcadAdrRemainingLabel');
+  if (elAdrRemaining) elAdrRemaining.textContent = `${adrRemaining} pips disponibles`;
+
+  initIcons();
 }

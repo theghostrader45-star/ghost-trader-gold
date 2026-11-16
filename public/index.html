@@ -93,34 +93,41 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- NAVIGATION TABS: 1. Backtesting / 2. Noticias / 3. Calculadora / 4. Orion 50K Nova -->
-    <nav class="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-4xl mx-auto">
+    <!-- NAVIGATION TABS: 1. Backtesting / 2. Noticias / 3. Calculadora / 4. Orion 50K Nova / 5. Análisis USDCAD -->
+    <nav class="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-5xl mx-auto">
       <!-- Tab 1: Backtesting (Interés Compuesto) -->
-      <button id="tabBtnBacktestSimple" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 whitespace-nowrap cursor-pointer">
+      <button id="tabBtnBacktestSimple" class="tab-button flex-1 min-w-[105px] sm:min-w-[125px] px-2.5 sm:px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 whitespace-nowrap cursor-pointer">
         <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-200 shrink-0"></i>
         <span class="truncate">1. Backtesting</span>
         <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-black/30 text-emerald-200 font-bold rounded-full">Compuesto</span>
       </button>
 
       <!-- Tab 2: Noticias de Alto Impacto -->
-      <button id="tabBtnNews" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
+      <button id="tabBtnNews" class="tab-button flex-1 min-w-[105px] sm:min-w-[125px] px-2.5 sm:px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
         <i data-lucide="flame" class="w-4 h-4 text-rose-400 shrink-0"></i>
         <span class="truncate">2. Noticias</span>
         <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-rose-950 text-rose-300 border border-rose-800 font-bold rounded-full">±2m</span>
       </button>
 
       <!-- Tab 3: Calculadora de Posición & Riesgo -->
-      <button id="tabBtnCalculator" class="tab-button flex-1 min-w-[110px] sm:min-w-[130px] px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
+      <button id="tabBtnCalculator" class="tab-button flex-1 min-w-[105px] sm:min-w-[125px] px-2.5 sm:px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
         <i data-lucide="calculator" class="w-4 h-4 text-amber-400 shrink-0"></i>
         <span class="truncate">3. Calculadora</span>
         <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-amber-950 text-amber-300 border border-amber-800 font-bold rounded-full">Lote & Riesgo</span>
       </button>
 
       <!-- Tab 4: Orion 50K Nova ($7) & Reglas USDCAD -->
-      <button id="tabBtnOrionRules" class="tab-button flex-1 min-w-[110px] sm:min-w-[150px] px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
+      <button id="tabBtnOrionRules" class="tab-button flex-1 min-w-[105px] sm:min-w-[135px] px-2.5 sm:px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
         <i data-lucide="shield-check" class="w-4 h-4 text-purple-400 shrink-0"></i>
         <span class="truncate">4. Orion 50K</span>
-        <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-purple-950 text-purple-300 border border-purple-800 font-bold rounded-full">$7 Nova · USDCAD</span>
+        <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-purple-950 text-purple-300 border border-purple-800 font-bold rounded-full">$7 Nova</span>
+      </button>
+
+      <!-- Tab 5: Análisis USDCAD & Pre-Sesión NY -->
+      <button id="tabBtnAnalysisUsdcad" class="tab-button flex-1 min-w-[105px] sm:min-w-[145px] px-2.5 sm:px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
+        <i data-lucide="compass" class="w-4 h-4 text-sky-400 shrink-0"></i>
+        <span class="truncate">5. Análisis USDCAD</span>
+        <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-sky-950 text-sky-300 border border-sky-800 font-bold rounded-full">Sesgo M5 & Fuerza %</span>
       </button>
     </nav>
 
@@ -1760,6 +1767,351 @@
       </section>
 
     </div> <!-- FIN viewOrionRules -->
+
+    <!-- ============================================================== -->
+    <!-- VIEW 5: ANÁLISIS USDCAD PRE-SESIÓN NY & SESGO M5 (FUERZA %)    -->
+    <!-- ESCANEO MULTIDIMENSIONAL DE DRIVERS MACRO, PETRÓLEO, DXY & M5   -->
+    <!-- ============================================================== -->
+    <div id="viewAnalysisUsdcad" class="hidden space-y-6">
+
+      <!-- BANNER SUPERIOR: SCANNER PRE-SESIÓN NY EN VIVO -->
+      <section class="bg-gradient-to-r from-sky-950/60 via-gray-900 to-blue-950/40 border-2 border-sky-500/40 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white font-black shadow-lg shadow-sky-500/20 shrink-0">
+            <i data-lucide="compass" class="w-7 h-7 stroke-[2.5]"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wide">Scanner Pre-Sesión NY & Sesgo M5 USDCAD</h2>
+              <span id="usdcadSessionPhaseBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                ⏳ PRE-MERCADO NY (06:00 – 07:00 NY)
+              </span>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+                🇺🇸🇨🇦 EXCLUSIVO USDCAD
+              </span>
+            </div>
+            <p class="text-xs text-gray-400 mt-0.5">
+              Escaneo multidimensional institucional de drivers macro (DXY, Petróleo WTI, Bonos 10A, BoC vs Fed) y liquidez intradía enfocado en velas de <span class="text-sky-300 font-semibold">5 Minutos (M5)</span> para la <span class="text-sky-300 font-semibold">Sesión de New York (07:00 – 11:00 NY)</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <span id="usdcadScanTimeBadge" class="text-[11px] font-mono text-gray-400 bg-gray-950/80 px-3 py-1.5 rounded-xl border border-gray-800">
+            Último Escaneo: --:-- NY
+          </span>
+          <button id="btnRunUsdcadScan" type="button" class="px-4 py-2 bg-gradient-to-r from-sky-600 via-blue-600 to-sky-600 hover:from-sky-500 hover:to-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/30 transition flex items-center gap-2 border border-sky-400/40 cursor-pointer">
+            <i data-lucide="refresh-cw" id="usdcadScanBtnIcon" class="w-4 h-4"></i>
+            <span id="usdcadScanBtnText">Escanear Pre-Sesión NY (En Vivo)</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- HERO SESGO DEL DÍA & MEDIDOR DE FUERZA % (REQUERIMIENTO PRINCIPAL) -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        <!-- Tarjeta Principal del Sesgo (Col 1-5) -->
+        <div class="lg:col-span-5 bg-cardBg border border-cardBorder rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+              <span class="text-xs uppercase font-bold tracking-wider text-gray-400 flex items-center gap-1.5">
+                <i data-lucide="target" class="w-4 h-4 text-sky-400"></i>
+                Sesgo Direccional del Día (M5)
+              </span>
+              <span id="usdcadConvictionBadge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                MUY ALTA CONFLUENCIA
+              </span>
+            </div>
+
+            <!-- Gran lectura del Sesgo -->
+            <div class="mt-4 flex items-center gap-3">
+              <div id="usdcadBiasHeroIconBox" class="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0">
+                <i data-lucide="trending-up" id="usdcadBiasHeroIcon" class="w-8 h-8"></i>
+              </div>
+              <div>
+                <h3 id="usdcadBiasHeroText" class="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight">
+                  SESGO ALCISTA (COMPRAS EN M5)
+                </h3>
+                <div class="flex items-center gap-2 text-xs font-mono text-gray-300 mt-1">
+                  <span>Precio Spot Ref:</span>
+                  <span id="usdcadSpotPrice" class="font-bold text-white text-sm">1.38840</span>
+                  <span class="text-gray-500">|</span>
+                  <span class="text-sky-300">Velas 5m (Killzone NY)</span>
+                </div>
+              </div>
+            </div>
+
+            <p id="usdcadBiasSummary" class="text-xs text-gray-300 leading-relaxed mt-4 bg-gray-950/60 p-3 rounded-xl border border-gray-800">
+              Alta confluencia alcista institucional generada por debilidad del crudo WTI (-1.15%), fortaleza del DXY (+0.32%) y expansión del carry trade US10Y frente a bonos canadienses (+114 bps). Se priorizan compras en retrocesos a zonas de descuento M5.
+            </p>
+          </div>
+
+          <div class="pt-3 border-t border-gray-800/80 flex items-center justify-between text-[11px] font-mono">
+            <span class="text-gray-400">Activo Auditado:</span>
+            <span class="font-bold text-white">USDCAD (USD/CAD) · Forex Estándar</span>
+          </div>
+        </div>
+
+        <!-- Medidor Cuantitativo de Fuerza % (Col 6-12) -->
+        <div class="lg:col-span-7 bg-cardBg border border-cardBorder rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
+              <div class="flex items-center gap-2">
+                <i data-lucide="gauge" class="w-5 h-5 text-sky-400"></i>
+                <h4 class="text-sm font-bold text-white uppercase tracking-wider">Fuerza Institucional Ponderada (%)</h4>
+              </div>
+              <div class="flex items-center gap-3 text-xs font-mono font-bold">
+                <span class="text-emerald-400 flex items-center gap-1">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>
+                  <span id="usdcadBullishPctLabel">Alcista: 82.5%</span>
+                </span>
+                <span class="text-rose-400 flex items-center gap-1">
+                  <span class="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block"></span>
+                  <span id="usdcadBearishPctLabel">Bajista: 17.5%</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Gran medidor visual con porcentaje central -->
+            <div class="mt-4 space-y-2">
+              <div class="flex items-baseline justify-between">
+                <span class="text-xs text-gray-400">Intensidad del Flujo Institucional:</span>
+                <span id="usdcadStrengthPercentText" class="text-lg font-mono font-black text-emerald-400">
+                  82.5% Fuerza Alcista
+                </span>
+              </div>
+
+              <!-- Barra dual con gradiente y transiciones suaves -->
+              <div class="w-full h-5 bg-gray-950 rounded-full overflow-hidden flex border border-gray-800 p-0.5">
+                <div id="usdcadStrengthBarBullish" class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-l-full transition-all duration-700 relative group" style="width: 82.5%;">
+                  <span class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-black text-black">82.5%</span>
+                </div>
+                <div id="usdcadStrengthBarBearish" class="h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-r-full transition-all duration-700 relative group" style="width: 17.5%;">
+                  <span class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-black text-white">17.5%</span>
+                </div>
+              </div>
+              <div class="flex justify-between text-[10px] font-mono text-gray-500 px-1">
+                <span>0% Extremo Bajista</span>
+                <span>50% Neutral / Rango</span>
+                <span>100% Extremo Alcista</span>
+              </div>
+            </div>
+
+            <!-- Indicadores Clave de Confluencia -->
+            <div class="grid grid-cols-3 gap-2.5 mt-4 pt-3 border-t border-gray-800 text-center">
+              <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800/80">
+                <span class="text-[10px] text-gray-400 uppercase font-semibold block">Drivers Alcistas</span>
+                <span id="usdcadBullishDriversCount" class="text-base font-mono font-black text-emerald-400">6 / 6</span>
+                <span class="text-[9px] text-gray-500 block">Confluencia total</span>
+              </div>
+              <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800/80">
+                <span class="text-[10px] text-gray-400 uppercase font-semibold block">Driver Primario</span>
+                <span class="text-xs font-mono font-bold text-amber-300">Petróleo WTI (CL)</span>
+                <span class="text-[9px] text-gray-500 block">Correlación Inversa</span>
+              </div>
+              <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800/80">
+                <span class="text-[10px] text-gray-400 uppercase font-semibold block">Filtro de Riesgo</span>
+                <span class="text-xs font-mono font-bold text-sky-300">Zona M5 Segura</span>
+                <span class="text-[9px] text-gray-500 block">Sin Noticias ±2m</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-[11px] text-gray-400 flex items-center justify-between pt-1">
+            <span>Algoritmo Ponderado:</span>
+            <span class="font-mono text-sky-400 font-semibold">Macro (70%) + Liquidez & Order Flow M5 (30%)</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- PROTOCOLO DE EJECUCIÓN M5 ORION FUNDED (R:R 1:2.8) -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 bg-purple-500/15 text-purple-400 rounded-xl border border-purple-500/30">
+              <i data-lucide="shield-check" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-white">Protocolo de Operativa en 5 Minutos (M5) · Reglas Orion Funded 50K</h3>
+              <p class="text-xs text-gray-400">Plan táctico intradía adaptado a la relación Riesgo/Beneficio ideal 1:2.8 y límites de retiro</p>
+            </div>
+          </div>
+          <span class="px-3 py-1 rounded-xl text-xs font-mono font-bold bg-purple-950 text-purple-300 border border-purple-800">
+            R:R 1:2.8 Exclusivo USDCAD
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <!-- Acción M5 -->
+          <div class="bg-gray-950/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
+            <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Acción en M5</span>
+            <div id="usdcadM5Action" class="text-sm font-bold text-emerald-400">BUSCAR COMPRAS (BUY)</div>
+            <span class="text-[10px] text-gray-500 block">En retroceso a descuento</span>
+          </div>
+
+          <!-- Zona de Entrada (POI) -->
+          <div class="bg-gray-950/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
+            <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Zona Entrada (POI)</span>
+            <div id="usdcadM5Poi" class="text-sm font-mono font-bold text-amber-300">1.38780 – 1.38830</div>
+            <span class="text-[10px] text-gray-500 block">Bullish OB + FVG M5</span>
+          </div>
+
+          <!-- Nivel de Invalidación -->
+          <div class="bg-gray-950/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
+            <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Invalidación M5</span>
+            <div id="usdcadM5Invalidation" class="text-sm font-mono font-bold text-rose-400">1.38600</div>
+            <span class="text-[10px] text-gray-500 block">Cierre M5 bajo London Low</span>
+          </div>
+
+          <!-- Stop Loss Recomendado -->
+          <div class="bg-gray-950/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
+            <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Stop Loss Estricto</span>
+            <div id="usdcadM5Sl" class="text-sm font-mono font-bold text-rose-300">22.0 pips (1.38600)</div>
+            <span class="text-[10px] text-gray-500 block">Calculado en pestaña 4</span>
+          </div>
+
+          <!-- Take Profit Ideal 1:2.8 -->
+          <div class="bg-gray-950/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
+            <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Take Profit (R:R 1:2.8)</span>
+            <div id="usdcadM5Tp" class="text-sm font-mono font-bold text-emerald-300">61.6 pips (1.39416)</div>
+            <span class="text-[10px] text-gray-500 block">Proyección 2.8x del riesgo</span>
+          </div>
+        </div>
+
+        <!-- 4 Reglas Estrictas de Ejecución -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 text-xs">
+          <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-800 space-y-1">
+            <span class="font-bold text-sky-400 flex items-center gap-1">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+              1. Gatillo de Confirmación M5:
+            </span>
+            <p class="text-gray-300 text-[11px] leading-relaxed" id="usdcadRuleConfirmation">
+              Esperar barrida previa o retesteo del FVG con vela de gatillo M5 cerrada antes de pulsar orden.
+            </p>
+          </div>
+          <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-800 space-y-1">
+            <span class="font-bold text-amber-400 flex items-center gap-1">
+              <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+              2. Control de Spreads NY:
+            </span>
+            <p class="text-gray-300 text-[11px] leading-relaxed" id="usdcadRuleSpread">
+              Spreads normales en Killzone NY: 0.6 a 0.9 pips. No operar si spread supera 1.5 pips.
+            </p>
+          </div>
+          <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-800 space-y-1">
+            <span class="font-bold text-rose-400 flex items-center gap-1">
+              <i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i>
+              3. Regla ±2 Min Noticias:
+            </span>
+            <p class="text-gray-300 text-[11px] leading-relaxed" id="usdcadRuleNews">
+              Prohibido ingresar 2 min antes o después de noticias de alto impacto (USD/CAD) por regla Orion.
+            </p>
+          </div>
+          <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-800 space-y-1">
+            <span class="font-bold text-purple-400 flex items-center gap-1">
+              <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+              4. Regla 20% de Retiro:
+            </span>
+            <p class="text-gray-300 text-[11px] leading-relaxed">
+              En cuenta fondeada, ningún trade puede superar el 20% del monto total de retiro generado.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6 DRIVERS INSTITUCIONALES ESCANEADOS EN DETALLE -->
+      <section class="space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+          <div class="flex items-center gap-2">
+            <i data-lucide="layers" class="w-5 h-5 text-sky-400"></i>
+            <h3 class="text-base font-bold text-white uppercase tracking-wider">Desglose de los 6 Drivers Institucionales Escaneados</h3>
+          </div>
+          <span class="text-xs text-gray-400 font-mono">100% Ponderación Fundamental & Técnica</span>
+        </div>
+
+        <div id="usdcadDriversGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Tarjetas dinámicas de los 6 drivers se renderizan desde JavaScript -->
+        </div>
+      </section>
+
+      <!-- NIVELES DE LIQUIDEZ CLAVE & CONSUMO ADR DIARIO (65 PIPS) -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        <!-- Niveles de Liquidez de Referencia (Col 1-7) -->
+        <div class="lg:col-span-7 bg-cardBg border border-cardBorder rounded-2xl p-5 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="crosshair" class="w-5 h-5 text-amber-400"></i>
+              <h4 class="text-sm font-bold text-white uppercase tracking-wider">Niveles Institucionales de Sesión (M5)</h4>
+            </div>
+            <span class="text-xs font-mono text-gray-400">Pre-Mercado NY</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
+            <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800">
+              <span class="text-[10px] text-gray-500 uppercase block">PDH (Día Previo)</span>
+              <span id="usdcadLevelPdh" class="text-white font-bold text-sm">1.39450</span>
+              <span class="text-[9px] text-emerald-400 block">Objetivo TP 2</span>
+            </div>
+            <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800">
+              <span class="text-[10px] text-gray-500 uppercase block">PDL (Día Previo)</span>
+              <span id="usdcadLevelPdl" class="text-white font-bold text-sm">1.38420</span>
+              <span class="text-[9px] text-gray-400 block">Soporte Mayor</span>
+            </div>
+            <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800">
+              <span class="text-[10px] text-gray-500 uppercase block">Asia High / Low</span>
+              <span id="usdcadLevelAsia" class="text-white font-bold text-xs">1.3908 / 1.3872</span>
+              <span class="text-[9px] text-amber-400 block">Rango Nocturno</span>
+            </div>
+            <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800">
+              <span class="text-[10px] text-gray-500 uppercase block">London High / Low</span>
+              <span id="usdcadLevelLondon" class="text-white font-bold text-xs">1.3915 / 1.3868</span>
+              <span class="text-[9px] text-sky-400 block">Liquidez Externa</span>
+            </div>
+          </div>
+
+          <div class="bg-gray-950/60 p-3 rounded-xl border border-gray-800 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2">
+              <i data-lucide="activity" class="w-4 h-4 text-sky-400"></i>
+              <span class="text-gray-300">Session VWAP Institucional:</span>
+            </div>
+            <span id="usdcadLevelVwap" class="font-mono font-bold text-sky-300 text-sm">1.38790 (Soporte Dinámico M5)</span>
+          </div>
+        </div>
+
+        <!-- Consumo del Rango Diario Promedio (ADR) (Col 8-12) -->
+        <div class="lg:col-span-5 bg-cardBg border border-cardBorder rounded-2xl p-5 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="bar-chart-2" class="w-5 h-5 text-emerald-400"></i>
+              <h4 class="text-sm font-bold text-white uppercase tracking-wider">Consumo del ADR Diario (USDCAD)</h4>
+            </div>
+            <span class="text-xs font-mono text-emerald-400 font-bold" id="usdcadAdrTotalLabel">ADR: 65 pips</span>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs font-mono">
+              <span class="text-gray-400">Pips Consumidos (Asia + London):</span>
+              <span id="usdcadAdrConsumedLabel" class="font-bold text-amber-400">27.0 pips (41.5%)</span>
+            </div>
+            <div class="w-full bg-gray-950 rounded-full h-3.5 overflow-hidden border border-gray-800 p-0.5">
+              <div id="usdcadAdrBar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-700" style="width: 41.5%;"></div>
+            </div>
+            <div class="flex justify-between text-[11px] font-mono text-gray-400">
+              <span>Recorrido Killzone NY Restante:</span>
+              <span id="usdcadAdrRemainingLabel" class="font-bold text-emerald-300">38.0 pips disponibles</span>
+            </div>
+          </div>
+
+          <div class="bg-gray-950/60 p-3 rounded-xl border border-gray-800 text-[11px] text-gray-300 leading-relaxed">
+            💡 <strong>Espacio Estadístico para Operar:</strong> Con solo el 41.5% del ADR consumido, la Killzone de New York tiene <strong>38 pips de margen de expansión</strong>, suficiente para capturar el TP institucional de 61.6 pips en caso de tendencia intradía.
+          </div>
+        </div>
+
+      </section>
+
+    </div> <!-- FIN viewAnalysisUsdcad -->
 
     </main>
 
