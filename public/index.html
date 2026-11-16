@@ -37,7 +37,7 @@
   <script src="vendor/lucide.min.js"></script>
   <!-- Chart.js Local Bundle -->
   <script src="vendor/chart.min.js"></script>
-  <link rel="stylesheet" href="styles.css?v=20261110_v50_backtest_news_calculator_usdcad_audcad_audjpy">
+  <link rel="stylesheet" href="styles.css?v=20261116_v51_usdcad_exclusive">
   <script>
     if (localStorage.getItem('streamer_privacy_mode') === 'true') {
       document.documentElement.classList.add('streamer-mode-active');
@@ -195,7 +195,7 @@
                 VENTANA CRÍTICA ±2 MIN (FONDEADO)
               </span>
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
-                USDCAD · AUDCAD · AUDJPY (USD · CAD · JPY · AUD)
+                🇺🇸🇨🇦 EXCLUSIVO USDCAD (USD · CAD)
               </span>
             </div>
             <p class="text-xs text-gray-400 mt-0.5">
@@ -531,7 +531,7 @@
     
     <!-- ============================================================== -->
     <!-- VIEW 3: CALCULADORA PROFESIONAL DE POSICIÓN, LOTE Y RIESGO     -->
-    <!-- ENFOCADA EN: USDCAD, AUDCAD y AUDJPY (FOREX 100K STANDARD)     -->
+    <!-- ENFOCADA EXCLUSIVAMENTE EN: USDCAD (FOREX 100K STANDARD)       -->
     <!-- ============================================================== -->
     <div id="viewCalculator" class="hidden space-y-6">
 
@@ -548,11 +548,11 @@
                 100K STANDARD LOTS
               </span>
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
-                USDCAD · AUDCAD · AUDJPY
+                🇺🇸🇨🇦 EXCLUSIVO USDCAD
               </span>
             </div>
             <p class="text-xs text-gray-400 mt-0.5">
-              Cálculo matemático institucional de lotaje exacto, presupuesto en $ USD, beneficio proyectado y margen requerido en broker.
+              Cálculo matemático institucional de lotaje exacto, presupuesto en $ USD, beneficio proyectado y margen requerido en broker para USDCAD.
             </p>
           </div>
         </div>
@@ -563,48 +563,19 @@
         </button>
       </section>
 
-      <!-- SELECTOR DE PAR ACTIVO EN CALCULADORA (CARDS INTERACTIVAS) -->
-      <section class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <!-- Par 1: USDCAD -->
-        <button type="button" class="btn-calc-pair-card p-3.5 rounded-xl border-2 transition text-left cursor-pointer bg-blue-950/40 border-blue-500 text-white shadow-lg" data-pair="USDCAD">
+      <!-- PAR ACTIVO EN CALCULADORA: EXCLUSIVO USDCAD -->
+      <section class="grid grid-cols-1 gap-3">
+        <!-- Par Único: USDCAD -->
+        <button type="button" class="btn-calc-pair-card p-4 rounded-xl border-2 transition text-left cursor-default bg-blue-950/40 border-blue-500 text-white shadow-lg" data-pair="USDCAD">
           <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
-              <span class="text-base">🇺🇸🇨🇦</span> USDCAD
+            <span class="text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2">
+              <span class="text-base sm:text-lg">🇺🇸🇨🇦</span> PAR EXCLUSIVO DE OPERATIVA: USDCAD
             </span>
-            <span class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">1p = 0.0001</span>
+            <span class="text-[9px] sm:text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">1 pip = 0.0001 · 5 Dec</span>
           </div>
-          <div class="text-[11px] text-gray-400 font-mono">
-            Valor Pip: <strong class="text-blue-300">~$7.22 USD</strong> / lote
+          <div class="text-[11px] sm:text-xs text-gray-300 font-mono mt-0.5">
+            Valor Pip: <strong class="text-blue-300 font-bold">~$7.22 USD</strong> / lote estándar · Contrato $100,000 USD · Sesión New York (07:00 – 11:00 NY)
           </div>
-          <div class="text-[10px] text-gray-500 mt-1">USD/CAD · Contrato $100k USD · 5 dec</div>
-        </button>
-
-        <!-- Par 2: AUDCAD -->
-        <button type="button" class="btn-calc-pair-card p-3.5 rounded-xl border border-gray-800 hover:border-emerald-500/50 transition text-left cursor-pointer bg-gray-900/60 text-gray-300 hover:text-white" data-pair="AUDCAD">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
-              <span class="text-base">🇦🇺🇨🇦</span> AUDCAD
-            </span>
-            <span class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">1p = 0.0001</span>
-          </div>
-          <div class="text-[11px] text-gray-400 font-mono">
-            Valor Pip: <strong class="text-emerald-300">~$7.22 USD</strong> / lote
-          </div>
-          <div class="text-[10px] text-gray-500 mt-1">AUD/CAD · Contrato 100k AUD · 5 dec</div>
-        </button>
-
-        <!-- Par 3: AUDJPY -->
-        <button type="button" class="btn-calc-pair-card p-3.5 rounded-xl border border-gray-800 hover:border-amber-500/50 transition text-left cursor-pointer bg-gray-900/60 text-gray-300 hover:text-white" data-pair="AUDJPY">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
-              <span class="text-base">🇦🇺🇯🇵</span> AUDJPY
-            </span>
-            <span class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">1p = 0.01</span>
-          </div>
-          <div class="text-[11px] text-gray-400 font-mono">
-            Valor Pip: <strong class="text-amber-300">~$6.50 USD</strong> / lote
-          </div>
-          <div class="text-[10px] text-gray-500 mt-1">AUD/JPY · Contrato 100k AUD · 3 dec</div>
         </button>
       </section>
 
@@ -1837,18 +1808,18 @@
           </div>
         </div>
         <div>
-          <label class="block text-gray-400 mb-1">Stop Loss en Pips (AUD/JPY)</label>
+          <label class="block text-gray-400 mb-1">Stop Loss en Pips (USDCAD)</label>
           <input type="number" id="editTradeTvPoints" min="1" step="any" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-white font-mono font-bold text-base" placeholder="ej. 25">
         </div>
         <div>
           <label class="block text-gray-400 mb-1">Ratio R:R</label>
-          <input type="number" id="editTradeRR" min="0.01" step="any" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-blue-400 font-mono font-bold" placeholder="2.99">
+          <input type="number" id="editTradeRR" min="0.01" step="any" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-blue-400 font-mono font-bold" placeholder="2.8">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-gray-400 mb-1">Símbolo / Activo</label>
-            <select id="editTradeAsset" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-orange-300 font-bold">
-              <option value="AUD/JPY" selected>🟠 AUD/JPY (Forex)</option>
+            <select id="editTradeAsset" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-blue-300 font-bold">
+              <option value="USDCAD" selected>🇺🇸🇨🇦 USDCAD (Forex)</option>
             </select>
           </div>
           <div>
@@ -1927,14 +1898,14 @@
       <!-- CONFIGURACIÓN GLOBAL -->
       <div class="space-y-4 text-xs">
         
-        <!-- SECCIÓN: BACKTESTING & CALCULADORA (USDCAD, AUDCAD, AUDJPY) -->
+        <!-- SECCIÓN: BACKTESTING & CALCULADORA (USDCAD) -->
         <div class="p-3.5 bg-emerald-950/20 border border-emerald-500/40 rounded-xl space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <i data-lucide="sliders" class="w-4 h-4 text-emerald-400"></i>
               <h4 class="font-bold text-emerald-300 uppercase tracking-wide text-xs">Configuración Global de Backtesting & Calculadora</h4>
             </div>
-            <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold border border-emerald-500/40">USDCAD · AUDCAD · AUDJPY</span>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold border border-emerald-500/40">🇺🇸🇨🇦 EXCLUSIVO USDCAD</span>
           </div>
               <i data-lucide="calculator" class="w-4 h-4 text-blue-400"></i>
               <h4 class="font-bold text-emerald-300 uppercase tracking-wide text-xs">Configuración Global de Backtesting & Calculadora</h4>
@@ -2685,7 +2656,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-sm sm:text-base font-bold text-white">Informe Técnico de Backtesting</h3>
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">AUD/JPY</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">USDCAD</span>
             </div>
             <p class="text-[11px] text-gray-400">Auditoría cuantitativa de rendimiento, curvas de capital y desglose de operaciones</p>
           </div>
@@ -2722,10 +2693,10 @@
             <div class="flex flex-col sm:items-end text-xs space-y-1">
               <div class="flex items-center gap-2">
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">AUDIT PRO VERIFIED</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/30">AUD/JPY</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">USDCAD</span>
               </div>
               <div class="text-[11px] text-gray-400">Fecha de Emisión: <strong class="text-gray-200" id="repMetaDate">-</strong></div>
-              <div class="text-[11px] text-gray-400">Terminal ID: <strong class="text-gray-300 font-mono">GTP-AUDJPY-2026</strong></div>
+              <div class="text-[11px] text-gray-400">Terminal ID: <strong class="text-gray-300 font-mono">GTP-USDCAD-2026</strong></div>
             </div>
           </div>
 
@@ -2733,7 +2704,7 @@
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 text-xs">
             <div class="report-kpi-box bg-gray-950/60 p-2.5 rounded-xl border border-gray-800/80">
               <span class="text-[10px] text-gray-400 font-semibold block uppercase">Activo Auditado</span>
-              <span class="font-bold text-white text-sm">AUD/JPY (Yen Cross)</span>
+              <span class="font-bold text-white text-sm">USDCAD (USD/CAD)</span>
             </div>
             <div class="report-kpi-box bg-gray-950/60 p-2.5 rounded-xl border border-gray-800/80">
               <span class="text-[10px] text-gray-400 font-semibold block uppercase">Modelo de Capital</span>
@@ -2848,7 +2819,7 @@
             <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 flex flex-col justify-between">
               <span class="text-gray-400 font-semibold text-[11px] block">Ratio R:R Objetivo</span>
               <span class="text-lg font-black text-blue-400 font-mono mt-1" id="repTargetRr">1:3.0</span>
-              <span class="text-[10px] text-gray-500">Parámetro base AUD/JPY</span>
+              <span class="text-[10px] text-gray-500">Parámetro base USDCAD</span>
             </div>
           </div>
         </div>
@@ -2962,7 +2933,7 @@
 
         <!-- PIE DE PÁGINA DEL INFORME -->
         <div class="pt-4 border-t border-gray-800/80 text-center text-[10px] text-gray-500 space-y-1">
-          <p>Ghost Trader Pro Terminal · Sistema Cuantitativo y de Gestión de Riesgo para AUD/JPY</p>
+          <p>Ghost Trader Pro Terminal · Sistema Cuantitativo y de Gestión de Riesgo para USDCAD</p>
           <p class="text-gray-600">Este informe ha sido generado automáticamente por el motor de cálculo compuesto. Rendimientos pasados no garantizan rendimientos futuros.</p>
         </div>
 
@@ -2986,7 +2957,7 @@
               <span>Simulador de Rachas Monte Carlo</span>
               <span class="text-[9px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono font-bold border border-purple-500/40">1,000 CORRIDAS</span>
             </h3>
-            <p class="text-[11px] text-gray-400">Distribución de rachas consecutivas, percentiles de drawdown y psicología probabilística para AUD/JPY.</p>
+            <p class="text-[11px] text-gray-400">Distribución de rachas consecutivas, percentiles de drawdown y psicología probabilística para USDCAD.</p>
           </div>
         </div>
         <button id="btnCloseMonteCarlo" class="text-gray-400 hover:text-white transition p-1 cursor-pointer" title="Cerrar ventana">

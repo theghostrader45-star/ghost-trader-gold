@@ -217,7 +217,7 @@ table tbody tr:hover {
   }
 
   /* ============================================================== */
-  /* SOPORTE DE IMPRESIÓN / PDF: INFORME DE BACKTESTING AUD/JPY      */
+  /* SOPORTE DE IMPRESIÓN / PDF: INFORME DE BACKTESTING USDCAD       */
   /* ============================================================== */
   body.printing-backtest-report {
     background-color: #ffffff !important;

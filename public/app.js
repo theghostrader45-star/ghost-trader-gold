@@ -1,6 +1,6 @@
 /**
  * Pro Terminal — Backtesting Institucional, Noticias de Alto Impacto & Calculadora Profesional
- * Pares Forex calibrados: USDCAD (5 dec) · AUDCAD (5 dec) · AUDJPY (3 dec)
+ * Operativa Exclusiva: USDCAD (5 dec · NY Session 07:00 – 11:00 NY · Orion Funded 50K)
  */
 
 // Forex Pair Specifications
@@ -18,46 +18,11 @@ const FOREX_SPECS = {
     baseRateUsd: 1.0,
     defaultSlPips: 25.0,
     color: 'blue',
-    description: 'USD/CAD · Contrato $100k USD · 5 dec'
-  },
-  AUDCAD: {
-    symbol: 'AUDCAD',
-    displayName: 'AUDCAD',
-    flag: '🇦🇺🇨🇦',
-    base: 'AUD',
-    quote: 'CAD',
-    contractSize: 100000,
-    decimals: 5,
-    pipSize: 0.0001,
-    pipValueUsd: 7.22,
-    baseRateUsd: 0.655,
-    defaultSlPips: 25.0,
-    color: 'emerald',
-    description: 'AUD/CAD · Contrato 100k AUD · 5 dec'
-  },
-  AUDJPY: {
-    symbol: 'AUDJPY',
-    displayName: 'AUDJPY',
-    flag: '🇦🇺🇯🇵',
-    base: 'AUD',
-    quote: 'JPY',
-    contractSize: 100000,
-    decimals: 3,
-    pipSize: 0.01,
-    pipValueUsd: 6.50,
-    baseRateUsd: 0.655,
-    defaultSlPips: 25.0,
-    color: 'amber',
-    description: 'AUD/JPY · Contrato 100k AUD · 3 dec'
+    description: 'USD/CAD · Contrato $100k USD · 5 dec · Sesión NY'
   }
 };
 
 function normalizeForexAsset(asset) {
-  if (!asset) return 'USDCAD';
-  const clean = String(asset).replace(/[^a-zA-Z]/g, '').toUpperCase();
-  if (clean.includes('USDCAD')) return 'USDCAD';
-  if (clean.includes('AUDCAD')) return 'AUDCAD';
-  if (clean.includes('AUDJPY')) return 'AUDJPY';
   return 'USDCAD';
 }
 
@@ -555,15 +520,7 @@ function renderFondeoDashboard() {
 }
 
 function getAssetBadge(asset) {
-  const norm = normalizeForexAsset(asset);
-  if (norm === 'USDCAD') {
-    return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/40 whitespace-nowrap">🇺🇸🇨🇦 USDCAD</span>';
-  } else if (norm === 'AUDCAD') {
-    return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 whitespace-nowrap">🇦🇺🇨🇦 AUDCAD</span>';
-  } else if (norm === 'AUDJPY') {
-    return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 whitespace-nowrap">🇦🇺🇯🇵 AUDJPY</span>';
-  }
-  return `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-gray-700/50 text-gray-300 border border-gray-600 whitespace-nowrap">${asset || 'USDCAD'}</span>`;
+  return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/40 whitespace-nowrap">🇺🇸🇨🇦 USDCAD</span>';
 }
 
 function anyStringIncludes(str, arr) {
@@ -847,7 +804,7 @@ function setupFondeoCalculator() {
     // Interés Simple: cálculo basado en capital inicial fijo ($50,000 USD)
     const baseCapital = Number(appState.fondeo?.config?.initial_balance) || 50000.0;
     const curBalance = summary.current_balance !== undefined ? summary.current_balance : 50000.0;
-    const asset = assetSelect ? assetSelect.value : 'AUD/JPY';
+    const asset = 'USDCAD';
 
     const slInputVal = parseFloat(slInput ? slInput.value : 25.0) || 25.0;
     const riskType = riskSelect ? riskSelect.value : '0.5';
@@ -865,17 +822,17 @@ function setupFondeoCalculator() {
       dollarRisk = baseCapital * (riskPct / 100.0);
     }
 
-    // Cálculo exclusivo para AUD/JPY (Forex Cross):
-    // 1 pip = 0.01 JPY = ~$6.50 USD por lote estándar (100,000 AUD)
-    const slPriceDist = slInputVal * 0.01;
-    const lossPerLot = slInputVal * 6.50;
+    // Cálculo exclusivo para USDCAD (Forex 100k Standard):
+    // 1 pip = 0.0001 CAD = ~$7.22 USD por lote estándar (100,000 USD)
+    const slPriceDist = slInputVal * 0.0001;
+    const lossPerLot = slInputVal * 7.22;
     let lot = lossPerLot > 0 ? dollarRisk / lossPerLot : 0.01;
     lot = Math.max(0.01, Math.round(lot * 100) / 100);
 
-    // Apalancamiento 1:30 para AUD/JPY en Orion Nova 50K
-    // Contrato 100,000 AUD * 0.6550 USD / 30 = ~$2,183.33 USD por lote
-    const margin = (100000.0 * 0.6550 * lot) / 30.0;
-    const pipVal = 6.50 * lot; // ~$6.50 por pip en 1.00 lote
+    // Apalancamiento 1:30 para USDCAD en Orion Nova 50K
+    // Contrato 100,000 USD / 30 = ~$3,333.33 USD por lote
+    const margin = (100000.0 * lot) / 30.0;
+    const pipVal = 7.22 * lot;
 
     const reward = dollarRisk * selectedFondeoRr;
     const marginPct = curBalance > 0 ? (margin / curBalance) * 100 : 0;
@@ -901,14 +858,14 @@ function setupFondeoCalculator() {
     if (banner && bannerText) {
       if (dollarRisk > dailyHeadroom) {
         banner.className = 'p-3 rounded-xl border flex items-start gap-2 bg-red-950/40 border-red-800/80 text-red-300';
-        bannerText.innerHTML = `⚠️ <b>¡ALERTA DE RIESGO EN AUD/JPY!</b> Esta operación arriesga <b>$${formatMoney(dollarRisk)}</b>, superando tu colchón diario disponible de <b>$${formatMoney(dailyHeadroom)}</b>. Podrías violar la regla de pérdida diaria del 4% ($2,000)!`;
+        bannerText.innerHTML = `⚠️ <b>¡ALERTA DE RIESGO EN USDCAD!</b> Esta operación arriesga <b>$${formatMoney(dollarRisk)}</b>, superando tu colchón diario disponible de <b>$${formatMoney(dailyHeadroom)}</b>. Podrías violar la regla de pérdida diaria del 4% ($2,000)!`;
       } else if (margin > curBalance * 0.40) {
         banner.className = 'p-3 rounded-xl border flex items-start gap-2 bg-amber-950/40 border-amber-800/80 text-amber-300';
-        bannerText.innerHTML = `⚠️ <b>PRECAUCIÓN DE MARGEN (1:30):</b> Este lote en AUD/JPY retiene <b>$${formatMoney(margin)} (${marginPct.toFixed(1)}%)</b>. Mantén suficiente margen libre para soportar fluctuaciones.`;
+        bannerText.innerHTML = `⚠️ <b>PRECAUCIÓN DE MARGEN (1:30):</b> Este lote en USDCAD retiene <b>$${formatMoney(margin)} (${marginPct.toFixed(1)}%)</b>. Mantén suficiente margen libre para soportar fluctuaciones.`;
       } else {
         const lossesUntilBreach = Math.floor(dailyHeadroom / dollarRisk);
         banner.className = 'p-3 rounded-xl border flex items-start gap-2 bg-emerald-950/40 border-emerald-800/80 text-emerald-300';
-        bannerText.innerHTML = `🛡️ <b>Operación Segura en AUD/JPY:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b> con SL de <b>${slInputVal} pips</b> ($${slPriceDist.toFixed(2)} JPY). Soportas <b>${lossesUntilBreach} pérdidas seguidas</b> hoy sin violar el 4% diario ($2,000). Margen retenido: <b>$${formatMoney(margin)} (${marginPct.toFixed(1)}%)</b>.`;
+        bannerText.innerHTML = `🛡️ <b>Operación Segura en USDCAD:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b> con SL de <b>${slInputVal} pips</b> ($${slPriceDist.toFixed(4)} CAD). Soportas <b>${lossesUntilBreach} pérdidas seguidas</b> hoy sin violar el 4% diario ($2,000). Margen retenido: <b>$${formatMoney(margin)} (${marginPct.toFixed(1)}%)</b>.`;
       }
     }
   }
@@ -918,7 +875,7 @@ function setupFondeoCalculator() {
   if (riskSelect) riskSelect.addEventListener('change', calculateFondeoMetrics);
   if (manualRiskInput) manualRiskInput.addEventListener('input', calculateFondeoMetrics);
 
-  // Quick preset buttons for AUD/JPY SL pips (15, 20, 25, 30, 35, 40)
+  // Quick preset buttons for USDCAD SL pips (15, 20, 25, 30, 35, 40)
   document.querySelectorAll('.btn-sl-gold-preset').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -945,8 +902,8 @@ function setupFondeoCalculator() {
 
   if (btnApply) {
     btnApply.addEventListener('click', () => {
-      const asset = assetSelect ? assetSelect.value : 'AUD/JPY';
-      const lot = document.getElementById('fondeoCalcLot') ? document.getElementById('fondeoCalcLot').textContent : '1.54';
+      const asset = 'USDCAD';
+      const lot = document.getElementById('fondeoCalcLot') ? document.getElementById('fondeoCalcLot').textContent : '1.38';
       const sl = slInput ? slInput.value : '25';
 
       const formAsset = document.getElementById('fondeoFormAsset');
@@ -968,9 +925,9 @@ function setupFondeoCalculator() {
 }
 
 function calculateTradePrices({
-  asset = 'AUD/JPY',
+  asset = 'USDCAD',
   direction = 'BUY',
-  lot = 1.54,
+  lot = 1.38,
   entry = null,
   sl = null,
   tp = null,
@@ -980,19 +937,18 @@ function calculateTradePrices({
 }) {
   const isGold = anyStringIncludes(asset, ['XAU', 'GOLD', 'ORO']);
   const dir = (direction || 'BUY').toUpperCase();
-  let mult = 650.0;
-  let pointMult = 1000.0;
-  let pipMult = 100.0;
+  let mult = 72200.0;
+  let pointMult = 100000.0;
+  let pipMult = 10000.0;
   if (isGold) {
     mult = 100.0;
     pointMult = 100.0;
     pipMult = 10.0;
   } else {
-    // AUD/JPY (Default): 1 pip = 0.01 JPY = ~$6.50 / pip por lote
-    const pipVal = (typeof getAudJpyPipValueUsd === 'function') ? getAudJpyPipValueUsd() : 6.50;
-    mult = pipVal * 100.0;
-    pointMult = 1000.0;
-    pipMult = 100.0;
+    // USDCAD (Default): 1 pip = 0.0001 CAD = ~$7.22 / pip por lote estándar
+    mult = 72200.0;
+    pointMult = 100000.0;
+    pipMult = 10000.0;
   }
 
   let slDist = null;
@@ -1155,22 +1111,22 @@ function setupFondeoTradeForm() {
     const tp = parseFloat(tpEl?.value);
     const exit = parseFloat(exitEl?.value);
     const dir = dirEl?.value || 'BUY';
-    const asset = assetEl?.value || 'AUD/JPY';
-    const isGold = anyStringIncludes(asset, ['XAU', 'GOLD', 'ORO']);
+    const asset = 'USDCAD';
+    const isGold = false;
 
-    // Adaptar etiquetas y badges para AUD/JPY
+    // Adaptar etiquetas y badges para USDCAD
     const levBadge = document.getElementById('fondeoAssetLevBadge');
     const slLabel = document.getElementById('fondeoSlPointsLabel');
     const slSuffix = document.getElementById('fondeoSlPointsSuffix');
     const dynamicFormula = document.getElementById('fondeoDynamicFormulaText');
 
     const fLev = Number(appState.fondeo?.config?.leverage) || 30.0;
-    if (levBadge) levBadge.textContent = `1:${Math.round(fLev)} AUD/JPY`;
-    if (slLabel) slLabel.textContent = 'Stop Loss en Pips (AUD/JPY)';
+    if (levBadge) levBadge.textContent = `1:${Math.round(fLev)} USDCAD`;
+    if (slLabel) slLabel.textContent = 'Stop Loss en Pips (USDCAD)';
     if (slSuffix) slSuffix.textContent = 'PIPS';
 
-    // AUD/JPY: 1 pip = 0.01 JPY = ~$6.50 USD/lote calibrado
-    const pipValUsd = (typeof getAudJpyPipValueUsd === 'function') ? getAudJpyPipValueUsd() : 6.50;
+    // USDCAD: 1 pip = 0.0001 CAD = ~$7.22 USD/lote calibrado
+    const pipValUsd = 7.22;
     const slPointsEl = document.getElementById('fondeoFormSlPoints');
     let slValCustom = parseFloat(slPointsEl?.value) || 25;
 
@@ -1198,9 +1154,9 @@ function setupFondeoTradeForm() {
       if (slPointsEl) slPointsEl.value = slValCustom;
     }
 
-    const rrVal = autoCalculatedRr || parseFloat(rrEl?.value) || 3.0;
+    const rrVal = autoCalculatedRr || parseFloat(rrEl?.value) || 2.8;
 
-    const slDollarDist = slValCustom * 0.01; // en JPY (ej. 25 pips = 0.25)
+    const slDollarDist = slValCustom * 0.0001; // en CAD (ej. 25 pips = 0.00250)
     const tpDollarDist = slDollarDist * rrVal;
     const lossPerLot = slValCustom * pipValUsd;
     const slDistEl = document.getElementById('fondeoSlDollarDist');
@@ -1210,7 +1166,7 @@ function setupFondeoTradeForm() {
 
     // Si Entrada fue ingresada pero SL o TP están vacíos, autocompletar sugeridos
     if (!isNaN(entry) && entry > 0) {
-      const dec = 3; // AUD/JPY usa 3 decimales
+      const dec = 5; // USDCAD usa 5 decimales
       if (slEl && (!slEl.value || slEl.value.trim() === '')) {
         const autoSl = dir === 'BUY' ? roundNum(entry - slDollarDist, dec) : roundNum(entry + slDollarDist, dec);
         slEl.value = autoSl.toFixed(dec);
@@ -1243,8 +1199,8 @@ function setupFondeoTradeForm() {
     // El lote operado es el ingresado manualmente por el usuario
     const lot = parseFloat(lotEl?.value) || autoLot;
 
-    // Cálculo de Margen con el Lote Manual (AUD/JPY apalancamiento 1:30 en Orion Nova)
-    const marginToUse = roundNum((100000.0 * 0.6550 * lot) / fLev, 2);
+    // Cálculo de Margen con el Lote Manual (USDCAD apalancamiento 1:30 en Orion Nova)
+    const marginToUse = roundNum((100000.0 * 1.0 * lot) / fLev, 2);
     const marginPct = (marginToUse / curBal) * 100.0;
 
     // Riesgo y Beneficio exactos con el Lote Manual
@@ -1265,7 +1221,7 @@ function setupFondeoTradeForm() {
         safetyText.innerHTML = `⚠️ <b>Riesgo Elevado:</b> Arriesgas <b>$${formatMoney(actualTradeDollarRisk)}</b> con ${lot.toFixed(2)} lotes, consumiendo más del 50% de tu colchón diario ($${formatMoney(dailyHeadroom)}). Soportas solo <strong>${lossesAllowed} pérdidas</strong> hoy.`;
         if (safetyBanner) safetyBanner.className = 'text-[11px] p-2 rounded-lg bg-rose-950/40 border border-rose-800/60 text-rose-300 flex items-center gap-1.5';
       } else {
-        const symbolBadgeText = `AUD/JPY (${slValCustom} pips)`;
+        const symbolBadgeText = `USDCAD (${slValCustom} pips)`;
         safetyText.innerHTML = `🛡️ <b>Riesgo Óptimo en ${symbolBadgeText}:</b> Arriesgas <b>${actualTradeRiskPct.toFixed(2)}% ($${formatMoney(actualTradeDollarRisk)})</b> con ${lot.toFixed(2)} lotes manuales. Soportas <strong>${lossesAllowed} pérdidas seguidas</strong> hoy sin violar el 4% diario ($${formatMoney(fondeoDailyLimitUsd)}).`;
         if (safetyBanner) safetyBanner.className = 'text-[11px] p-2 rounded-lg bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 flex items-center gap-1.5';
       }
@@ -1415,7 +1371,7 @@ function setupFondeoTradeForm() {
     updateFondeoCalculation();
   }
 
-  // Renderizador dinámico de chips de Stop Loss para AUD/JPY
+  // Renderizador dinámico de chips de Stop Loss para USDCAD
   function renderFondeoSlChips() {
     const chipsContainer = document.getElementById('fondeoSlChipsContainer');
     if (!chipsContainer) return;
@@ -1460,7 +1416,7 @@ function setupFondeoTradeForm() {
         tpEl.value = '';
       }
       if (entryEl) {
-        entryEl.placeholder = 'ej. 100.500';
+        entryEl.placeholder = 'ej. 1.38500';
       }
       renderFondeoSlChips();
       updateFondeoCalculation();
@@ -1647,7 +1603,7 @@ function setupFondeoTradeForm() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const asset = document.getElementById('fondeoFormAsset')?.value || 'AUD/JPY';
+    const asset = document.getElementById('fondeoFormAsset')?.value || 'USDCAD';
     const direction = document.getElementById('fondeoFormDirection')?.value || 'BUY';
     const lot = parseFloat(lotEl?.value) || 1.54;
     const slPips = parseFloat(slPipsEl?.value) || 25.0;
@@ -1866,7 +1822,7 @@ function syncFondeoUI() {
   if (maxLossBadge) maxLossBadge.textContent = `-$${formatMoney(maxDdUsd)} (Trailing-Lock)`;
 
   const levBadge = document.getElementById('badgeFondeoLeverage');
-  if (levBadge) levBadge.textContent = `1:${Math.round(fLev)} AUD/JPY`;
+  if (levBadge) levBadge.textContent = `1:${Math.round(fLev)} USDCAD`;
 
   // Card 1: Balance & Meta
   const curBalEl = document.getElementById('fondeoCurrentBalance');
@@ -1925,12 +1881,12 @@ function syncFondeoUI() {
   if (freeMarginEl) freeMarginEl.textContent = `$${formatMoney(curBal)}`;
 
   const cardLev = document.getElementById('badgeFondeoCardLev');
-  if (cardLev) cardLev.textContent = `Apal. 1:${Math.round(fLev)} AUD/JPY`;
+  if (cardLev) cardLev.textContent = `Apal. 1:${Math.round(fLev)} USDCAD`;
 
-  const margin1Lot = Math.round((100000.0 * 0.6550) / fLev);
+  const margin1Lot = Math.round((100000.0 * 1.0) / fLev);
   const cardMarginExp = document.getElementById('fondeoCardMarginExplanation');
   if (cardMarginExp) {
-    cardMarginExp.innerHTML = `1 lote AUD/JPY requiere <strong>~$${formatMoney(margin1Lot)} USD</strong> de margen (1:${Math.round(fLev)}). Margen protegido para control estricto.`;
+    cardMarginExp.innerHTML = `1 lote USDCAD requiere <strong>~$${formatMoney(margin1Lot)} USD</strong> de margen (1:${Math.round(fLev)}). Margen protegido para control estricto.`;
   }
 
   // Formulario de Fondeo: Badges y Select de Riesgo
@@ -1944,7 +1900,7 @@ function syncFondeoUI() {
   if (formLevBadge) formLevBadge.textContent = `1:${Math.round(fLev)}`;
 
   const assetLevBadge = document.getElementById('fondeoAssetLevBadge');
-  if (assetLevBadge) assetLevBadge.textContent = `1:${Math.round(fLev)} AUD/JPY`;
+  if (assetLevBadge) assetLevBadge.textContent = `1:${Math.round(fLev)} USDCAD`;
 
   // Selector Dinámico de Riesgo % Fondeo
   const selRisk = document.getElementById('fondeoFormRiskPct');
@@ -2676,10 +2632,9 @@ function recalculateRealJournalPreview() {
 
   const slBadge = document.getElementById('realTradeSlPtsBadge');
   const tpBadge = document.getElementById('realTradeTpPtsBadge');
-  const assetEl = document.getElementById('realTradeAsset');
-  const asset = assetEl?.value || 'AUD/JPY';
-  const isGold = anyStringIncludes(asset, ['XAU', 'GOLD', 'ORO']);
-  const pipValUsd = isGold ? 1.0 : ((typeof getAudJpyPipValueUsd === 'function') ? getAudJpyPipValueUsd() : 6.50);
+  const asset = 'USDCAD';
+  const isGold = false;
+  const pipValUsd = 7.22;
   const leverage = parseFloat(appState.config?.leverage) || 300.0;
 
   let slPips = 25.0;
@@ -3618,12 +3573,12 @@ window.submitQuickBtTrade = async function(status) {
 
 // ====================================================
 // CALCULADORA PROFESIONAL DE LOTE & GESTIÓN DE RIESGO
-// Pares Forex: USDCAD · AUDCAD · AUDJPY (100k Standard Contracts)
+// Par Forex Exclusivo: USDCAD (100k Standard Contracts)
 // ====================================================
-let activeCalcPair = localStorage.getItem('calc_active_pair') || 'USDCAD';
+let activeCalcPair = 'USDCAD';
 
 function recalculateStandaloneCalculator() {
-  const spec = getForexSpec(activeCalcPair);
+  const spec = getForexSpec('USDCAD');
   const balInput = document.getElementById('calcAccountBalance');
   const riskInput = document.getElementById('calcRiskPercent');
   const slInput = document.getElementById('calcSlPips');
@@ -3709,23 +3664,12 @@ function recalculateStandaloneCalculator() {
 }
 
 function updateCalculatorPairUI() {
-  const spec = getForexSpec(activeCalcPair);
+  activeCalcPair = 'USDCAD';
+  const spec = getForexSpec('USDCAD');
 
-  // Cards de pares
+  // Par Único: USDCAD
   document.querySelectorAll('.btn-calc-pair-card').forEach(btn => {
-    const p = btn.dataset.pair || 'USDCAD';
-    const isSel = (p === activeCalcPair);
-    if (isSel) {
-      if (p === 'USDCAD') {
-        btn.className = 'btn-calc-pair-card p-3.5 rounded-xl border-2 transition text-left cursor-pointer bg-blue-950/50 border-blue-500 text-white shadow-lg shadow-blue-500/20';
-      } else if (p === 'AUDCAD') {
-        btn.className = 'btn-calc-pair-card p-3.5 rounded-xl border-2 transition text-left cursor-pointer bg-emerald-950/50 border-emerald-500 text-white shadow-lg shadow-emerald-500/20';
-      } else {
-        btn.className = 'btn-calc-pair-card p-3.5 rounded-xl border-2 transition text-left cursor-pointer bg-amber-950/50 border-amber-500 text-white shadow-lg shadow-amber-500/20';
-      }
-    } else {
-      btn.className = 'btn-calc-pair-card p-3.5 rounded-xl border border-gray-800 hover:border-gray-700 transition text-left cursor-pointer bg-gray-900/60 text-gray-400 hover:text-white';
-    }
+    btn.className = 'btn-calc-pair-card p-4 rounded-xl border-2 transition text-left cursor-default bg-blue-950/50 border-blue-500 text-white shadow-lg shadow-blue-500/20';
   });
 
   // Badge en el formulario
@@ -4603,7 +4547,7 @@ function setupBacktestSimpleView() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             mode: 'backtest',
-            asset: 'AUD/JPY',
+            asset: 'USDCAD',
             num_trades: nTrades,
             win_rate: winRate,
             initial_balance: initBal,
@@ -5279,9 +5223,9 @@ function openBacktestReportModal() {
 
   if (verdictText) {
     if (netPnl > 0 && winRate >= beWinrate) {
-      verdictText.innerHTML = `La auditoría sobre la serie de <strong>${total} operaciones</strong> en AUD/JPY valida una ventaja estadística sólida y consistente. Con un Win Rate del <strong>${winRate.toFixed(1)}%</strong> frente a un breakeven de <strong>${beWinrate.toFixed(1)}%</strong>, la esperanza matemática por operación se establece en <strong>+$${formatMoney(expectancy)} USD</strong>. El control del riesgo arrojó un Drawdown máximo de <strong>${maxDd.toFixed(1)}%</strong> (-$${formatMoney(maxDdUsd)}), demostrando disciplina en el tamaño de posición y viabilidad técnica para evaluación de fondeo o gestión de capital real con apalancamiento 1:${leverage}.`;
+      verdictText.innerHTML = `La auditoría sobre la serie de <strong>${total} operaciones</strong> en USDCAD valida una ventaja estadística sólida y consistente. Con un Win Rate del <strong>${winRate.toFixed(1)}%</strong> frente a un breakeven de <strong>${beWinrate.toFixed(1)}%</strong>, la esperanza matemática por operación se establece en <strong>+$${formatMoney(expectancy)} USD</strong>. El control del riesgo arrojó un Drawdown máximo de <strong>${maxDd.toFixed(1)}%</strong> (-$${formatMoney(maxDdUsd)}), demostrando disciplina en el tamaño de posición y viabilidad técnica para evaluación de fondeo o gestión de capital real con apalancamiento 1:${leverage}.`;
     } else {
-      verdictText.innerHTML = `La muestra analizada de <strong>${total} operaciones</strong> en AUD/JPY registra un PnL de <strong>$${formatMoney(netPnl)} USD</strong> y una efectividad del <strong>${winRate.toFixed(1)}%</strong>. Se aconseja revisar los criterios de confirmación o ajustar el ratio beneficio/riesgo antes de desplegar esta serie en pruebas de fondeo o capital real.`;
+      verdictText.innerHTML = `La muestra analizada de <strong>${total} operaciones</strong> en USDCAD registra un PnL de <strong>$${formatMoney(netPnl)} USD</strong> y una efectividad del <strong>${winRate.toFixed(1)}%</strong>. Se aconseja revisar los criterios de confirmación o ajustar el ratio beneficio/riesgo antes de desplegar esta serie en pruebas de fondeo o capital real.`;
     }
   }
 
@@ -5312,7 +5256,7 @@ function openBacktestReportModal() {
         <tr class="hover:bg-gray-800/30">
           <td class="py-2 px-2.5 text-gray-500">${idx + 1}</td>
           <td class="py-2 px-2.5 text-gray-400 text-[10px] whitespace-nowrap">${t.date || '-'}</td>
-          <td class="py-2 px-2.5 font-bold text-orange-400">AUD/JPY</td>
+          <td class="py-2 px-2.5 font-bold text-blue-400">USDCAD</td>
           <td class="py-2 px-2.5">${dirText}</td>
           <td class="py-2 px-2.5 text-blue-300 font-bold">1:${tradeRr.toFixed(1)}</td>
           <td class="py-2 px-2.5 text-amber-300">${riskBudget} <span class="text-gray-400 text-[10px]">(${riskPctVal})</span></td>
@@ -5662,10 +5606,10 @@ function renderRealTradesTable() {
 }
 
 // ====================================================
-// BITÁCORA REAL TICKMILL — CALCULADORA AUD/JPY & 1-CLICK
+// BITÁCORA REAL TICKMILL — CALCULADORA USDCAD & 1-CLICK
 // ====================================================
 
-let selectedRealAsset = 'AUD/JPY';
+let selectedRealAsset = 'USDCAD';
 
 function recalculateRealQuickLot() {
   const balInp = document.getElementById('realCalcBalance');
@@ -5689,13 +5633,13 @@ function recalculateRealQuickLot() {
 
   const riskPct = parseFloat(riskInp?.value) || 1.0;
   const slPts = parseFloat(slInp?.value) || 25;
-  const rr = parseFloat(rrInp?.value) || 2.0;
+  const rr = parseFloat(rrInp?.value) || 2.8;
 
   const dollarRisk = bal * (riskPct / 100.0);
 
-  // Pérdida por lote para AUD/JPY (Forex Cross):
-  // 1 pip = 0.01 JPY = 1,000 JPY. Calibrado dinámicamente con tasa USD/JPY
-  const pipValUsd = (typeof getAudJpyPipValueUsd === 'function') ? getAudJpyPipValueUsd() : 6.50;
+  // Pérdida por lote para USDCAD (Forex 100k Standard):
+  // 1 pip = 0.0001 CAD = ~$7.22 USD por lote
+  const pipValUsd = 7.22;
   const lossPerLot = slPts * pipValUsd;
   const pointValue = pipValUsd;
   const pointUnit = 'pip';
@@ -5711,9 +5655,9 @@ function recalculateRealQuickLot() {
   const actualRewardPct = bal > 0 ? (actualRewardUsd / bal) * 100.0 : 0.0;
   const tpPts = Math.round(slPts * rr);
 
-  // Margen en TradingView (Apalancamiento dinámico para AUD/JPY: 100,000 AUD * 0.6550 USD / Leverage)
+  // Margen en USDCAD (Contrato 100,000 USD / Leverage)
   const rLev = Number(appState.real?.config?.leverage) || 300.0;
-  const marginRequired = roundNum((100000.0 * 0.6550 * recommendedLot) / rLev, 2);
+  const marginRequired = roundNum((100000.0 * recommendedLot) / rLev, 2);
   const currentPtVal = roundNum(recommendedLot * pointValue, 2);
   const units = Math.round(recommendedLot * 100000);
 
@@ -5755,17 +5699,16 @@ function recalculateRealQuickLot() {
   if (heroPtValEl) heroPtValEl.textContent = `$${currentPtVal.toFixed(2)} / ${pointUnit}`;
 
   const heroPtValTitle = document.getElementById('realHeroPtValTitle');
-  if (heroPtValTitle) heroPtValTitle.textContent = 'VALOR POR PIP AUD/JPY';
+  if (heroPtValTitle) heroPtValTitle.textContent = 'VALOR POR PIP USDCAD';
 
   const heroPtValSub = document.getElementById('realHeroPtValSub');
   if (heroPtValSub) {
-    const activeRate = (typeof getActiveUsdJpyRate === 'function') ? getActiveUsdJpyRate() : 153.80;
-    heroPtValSub.textContent = `100k AUD · $${pipValUsd.toFixed(2)}/pip (Tasa ${activeRate.toFixed(2)})`;
+    heroPtValSub.textContent = `100k USD · ~$${pipValUsd.toFixed(2)}/pip (Contrato Estándar Forex)`;
   }
 
   const formulaExpEl = document.getElementById('realFormulaExplanation');
   if (formulaExpEl) {
-    formulaExpEl.innerHTML = `Fórmula TradingView AUD/JPY: <code>${formulaText} = <b>${recommendedLot.toFixed(2)} lotes (${units.toLocaleString()} unidades)</b></code>`;
+    formulaExpEl.innerHTML = `Fórmula TradingView USDCAD: <code>${formulaText} = <b>${recommendedLot.toFixed(2)} lotes (${units.toLocaleString()} unidades)</b></code>`;
   }
 
   const riskBadge = document.getElementById('realCalcRiskUsdBadge');
@@ -5806,13 +5749,13 @@ function recalculateRealQuickLot() {
 function setupRealJournalView() {
   function updateRealAssetUI() {
     document.querySelectorAll('.btn-real-asset').forEach(btn => {
-      btn.className = 'btn-real-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-orange-500/20 text-orange-300 border border-orange-500/50 shadow-sm shadow-orange-500/20';
+      btn.className = 'btn-real-asset px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-blue-500/20 text-blue-300 border border-blue-500/50 shadow-sm shadow-blue-500/20';
     });
 
     // Etiquetas y sufijos de Stop Loss
     const slLabel = document.getElementById('realCalcSlLabel');
     const slSuffix = document.getElementById('realCalcSlSuffix');
-    if (slLabel) slLabel.textContent = '3. Stop Loss en Pips (AUD/JPY)';
+    if (slLabel) slLabel.textContent = '3. Stop Loss en Pips (USDCAD)';
     if (slSuffix) slSuffix.textContent = 'pips';
 
     // Chips dinámicos para SL
@@ -5845,7 +5788,7 @@ function setupRealJournalView() {
 
     // Sincronizar select en formulario manual
     const tradeAssetSelect = document.getElementById('realTradeAsset');
-    if (tradeAssetSelect) tradeAssetSelect.value = 'AUD/JPY';
+    if (tradeAssetSelect) tradeAssetSelect.value = 'USDCAD';
 
     recalculateRealQuickLot();
   }
@@ -5854,7 +5797,7 @@ function setupRealJournalView() {
   document.querySelectorAll('.btn-real-asset').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      selectedRealAsset = 'AUD/JPY';
+      selectedRealAsset = 'USDCAD';
       const slInp = document.getElementById('realCalcSlPoints');
       if (slInp) {
         slInp.value = Number(appState.real?.config?.sl_pips) || 25;
@@ -5995,7 +5938,7 @@ function setupRealJournalView() {
     });
   }
 
-  // Helper para Registrar Trade Rápido 1-Click en Bitácora Real (AUD/JPY)
+  // Helper para Registrar Trade Rápido 1-Click en Bitácora Real (USDCAD)
   async function submitQuickRealTrade(status) {
     const calc = recalculateRealQuickLot();
     const now = new Date();
@@ -6021,7 +5964,7 @@ function setupRealJournalView() {
 
     const payload = {
       mode: 'real',
-      asset: 'AUD/JPY',
+      asset: 'USDCAD',
       status: status,
       direction: status === 'loss' ? 'SELL' : 'BUY',
       rr: calc.rr,
@@ -6038,9 +5981,9 @@ function setupRealJournalView() {
       commission: comm,
       date: dateStr,
       session: 'New York',
-      strategy: `Price Action AUD/JPY (TradingView)`,
+      strategy: `Price Action USDCAD (TradingView)`,
       emotion: 'Plan Seguido',
-      notes: `TradingView AUD/JPY (${status.toUpperCase()} ${status === 'win' ? '+' + calc.rr + 'R' : (status === 'loss' ? '-1R' : 'BE')})`
+      notes: `TradingView USDCAD (${status.toUpperCase()} ${status === 'win' ? '+' + calc.rr + 'R' : (status === 'loss' ? '-1R' : 'BE')})`
     };
 
     try {
@@ -7139,9 +7082,9 @@ async function handleAddRealTrade(e) {
   const date = inputDate || defaultDate;
   const session = document.getElementById('realTradeSession')?.value || 'New York';
   const direction = document.getElementById('realTradeDirection')?.value || 'BUY';
-  const asset = document.getElementById('realTradeAsset')?.value || 'AUD/JPY';
-  const isGold = anyStringIncludes(asset, ['XAU', 'GOLD', 'ORO']);
-  const pipValUsd = isGold ? 1.0 : ((typeof getAudJpyPipValueUsd === 'function') ? getAudJpyPipValueUsd() : 6.50);
+  const asset = 'USDCAD';
+  const isGold = false;
+  const pipValUsd = 7.22;
   const leverage = parseFloat(appState.config?.leverage) || 300.0;
 
   const entry = parseFloat(document.getElementById('realTradeEntry')?.value);
@@ -7388,7 +7331,7 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
   document.getElementById('editTradeId').value = trade.id;
   document.getElementById('editTradeMode').value = mode;
   const assetSelect = document.getElementById('editTradeAsset');
-  if (assetSelect) assetSelect.value = trade.asset || 'AUD/JPY';
+  if (assetSelect) assetSelect.value = trade.asset || 'USDCAD';
 
   const dateEl = document.getElementById('editTradeDate');
   if (dateEl) dateEl.value = trade.date || '';
@@ -7426,10 +7369,10 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
 
   // Setup live dynamic preview calculation on modal inputs
   const recalculateModalPnlPreview = () => {
-    const curAsset = document.getElementById('editTradeAsset')?.value || trade.asset || 'AUD/JPY';
+    const curAsset = document.getElementById('editTradeAsset')?.value || trade.asset || 'USDCAD';
     const isGold = anyStringIncludes(curAsset, ['XAU', 'GOLD', 'ORO']);
-    let mult = 650.0;
-    let lossPerLot = 25 * 6.50;
+    let mult = 72200.0;
+    let lossPerLot = 25 * 7.22;
 
     const curStatus = document.getElementById('editTradeStatus').value;
     const curRR = parseFloat(String(document.getElementById('editTradeRR').value).replace(',', '.')) || 1.0;
@@ -7444,8 +7387,8 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
       mult = 100.0;
       lossPerLot = curPts * 1.0;
     } else {
-      mult = 650.0;
-      lossPerLot = curPts * 6.50;
+      mult = 72200.0;
+      lossPerLot = curPts * 7.22;
     }
 
     const curEntry = parseFloat(String(document.getElementById('editTradeEntry')?.value || '').replace(',', '.'));
@@ -7543,7 +7486,7 @@ async function handleSaveEditedTrade() {
   const mode = document.getElementById('editTradeMode').value || 'backtest';
   if (!id) return;
 
-  const asset = document.getElementById('editTradeAsset')?.value || 'AUD/JPY';
+  const asset = document.getElementById('editTradeAsset')?.value || 'USDCAD';
   const rawInput = document.getElementById('editTradeTvPoints').value;
   const { points, price } = parseTradingViewInput(rawInput);
   const tradeRR = roundNum(parseFloat(String(document.getElementById('editTradeRR').value).replace(',', '.')), 2) || 1.0;
@@ -11714,7 +11657,7 @@ function renderDualSignals(data) {
 }
 
 // ==============================================================
-// 6 MEJORAS INTEGRALES AUD/JPY (v3.4)
+// 6 MEJORAS INTEGRALES USDCAD (v3.5)
 // ==============================================================
 
 // -------------------------------------------------------------
@@ -11759,7 +11702,7 @@ function getActiveUsdJpyRate() {
   if (!isNaN(saved) && saved >= 50 && saved <= 300) {
     return saved;
   }
-  return 153.80; // Tasa de referencia oficial AUD/JPY
+  return 153.80; // Tasa de referencia oficial
 }
 
 function setActiveUsdJpyRate(rate) {
@@ -11773,22 +11716,20 @@ function setActiveUsdJpyRate(rate) {
 }
 
 function getAudJpyPipValueUsd() {
-  const rate = getActiveUsdJpyRate();
-  return 1000.0 / rate; // 100,000 AUD * 0.01 JPY = 1,000 JPY / USDJPY
+  return 7.22; // 1 pip USDCAD = 10 CAD / 1.3850 ~= $7.22 USD
 }
 
 function syncUsdJpyRateUI() {
-  const rate = getActiveUsdJpyRate();
-  const pipVal = getAudJpyPipValueUsd();
+  const pipVal = 7.22;
 
   const rateInp = document.getElementById('realUsdJpyRateInput');
   if (rateInp && document.activeElement !== rateInp) {
-    rateInp.value = rate.toFixed(2);
+    rateInp.value = '1.3850';
   }
 
   const badge = document.getElementById('realPipValUsdBadge');
   if (badge) {
-    badge.textContent = `$${pipVal.toFixed(2)}/pip`;
+    badge.textContent = `~$${pipVal.toFixed(2)}/pip`;
   }
 
   const chips = document.querySelectorAll('.btnUsdJpyChip');
@@ -11925,7 +11866,7 @@ function updateAllNewsShieldBanners(status) {
             <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase">
               🛡️ MERCADO OPERABLE (SIN RESTRICCIONES)
             </span>
-            <span class="text-[11px] text-gray-400 font-mono">Regla Prop Firm: Cero órdenes ±2 min en noticias críticas (AUD, JPY, USD)</span>
+            <span class="text-[11px] text-gray-400 font-mono">Regla Prop Firm: Cero órdenes ±2 min en noticias críticas (USD, CAD)</span>
           </div>
           <p class="text-[11px] text-gray-400 mt-0.5 truncate">
             No hay noticias de alto impacto en ventana inmediata. Tu operativa cumple plenamente el reglamento de Orion Nova y brokers.
@@ -12562,7 +12503,7 @@ function collectAllLiveDashboardData() {
   appState.fondeo.config.rr_ratio = fondeoRr;
   appState.fondeo.config.sl_pips = fondeoSl;
   appState.fondeo.config.sl_default = fondeoSl;
-  appState.fondeo.config.asset = 'AUD/JPY';
+  appState.fondeo.config.asset = 'USDCAD';
 
   if (!appState.fondeo.trades || appState.fondeo.trades.length === 0) {
     if (!appState.fondeo.summary) appState.fondeo.summary = {};

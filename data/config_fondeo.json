@@ -13,14 +13,14 @@
   "best_day_rule_pct": 20.0,
   "currency": "USD",
   "risk_pct": 0.5,
-  "rr_ratio": 3.0,
-  "asset": "AUD/JPY",
-  "asset_name": "AUD/JPY (Forex Cross)",
+  "rr_ratio": 2.8,
+  "asset": "USDCAD",
+  "asset_name": "USDCAD (USD/CAD)",
   "contract_size": 100000,
   "sl_default": 25.0,
   "sl_pips": 25.0,
   "sl_points": 250,
-  "tp_points": 750,
-  "sl_distance_usd": 0.25,
-  "tp_distance_usd": 0.75
+  "tp_points": 700,
+  "sl_distance_usd": 0.0025,
+  "tp_distance_usd": 0.0070
 }

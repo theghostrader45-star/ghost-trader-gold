@@ -61,8 +61,8 @@ DEFAULT_CONFIG = {
     "lot_step": 0.01,
     "risk_mode": "percent",     # 'percent' pure compounding
     "currency": "USD",
-    "asset": "AUD/JPY",
-    "asset_name": "AUD/JPY (Forex Cross)",
+    "asset": "USDCAD",
+    "asset_name": "USDCAD (USD/CAD)",
     "sl_pips": 25.0
 }
 
@@ -81,24 +81,24 @@ DEFAULT_FONDEO_CONFIG = {
     "best_day_rule_pct": 20.0,
     "currency": "USD",
     "risk_pct": 0.5,
-    "rr_ratio": 3.0,
-    "asset": "AUD/JPY",
-    "asset_name": "AUD/JPY (Forex Cross)",
+    "rr_ratio": 2.8,
+    "asset": "USDCAD",
+    "asset_name": "USDCAD (USD/CAD)",
     "contract_size": 100000,
     "sl_default": 25.0,
     "sl_pips": 25.0
 }
 
 DEFAULT_REAL_CONFIG = {
-    "account_type": "Cuenta Real Personal (TradingView AUD/JPY)",
+    "account_type": "Cuenta Real Personal (TradingView USDCAD)",
     "broker": "TradingView",
     "initial_balance": 107.83,
     "risk_pct": 1.0,
     "leverage": 300.0,
-    "rr_ratio": 2.0,
+    "rr_ratio": 2.8,
     "currency": "USD",
-    "asset": "AUD/JPY",
-    "asset_name": "AUD/JPY (Forex Cross)",
+    "asset": "USDCAD",
+    "asset_name": "USDCAD (USD/CAD)",
     "contract_size": 100000,
     "sl_default": 25.0,
     "sl_pips": 25.0
@@ -1441,7 +1441,7 @@ def calculate_analytics(trades, config, mode="backtest"):
         "trades": processed_trades
     }
 
-def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="AUD/JPY", rr=2.0, leverage=30.0, mode="fondeo"):
+def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="USDCAD", rr=2.8, leverage=30.0, mode="fondeo"):
     if balance <= 0 or sl_pips <= 0 or risk_pct <= 0:
         return None
     dollar_risk = round(balance * (risk_pct / 100.0), 2)
@@ -1478,18 +1478,18 @@ def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="AUD/JPY
         actual_dollar_risk = round(suggested_lot * loss_per_lot, 2)
         pip_value_trade = round(suggested_lot * 1.0, 2)  # $1.00/point on 1.00 lot
     else:
-        # Forex Cross AUD/JPY (Default): 1 standard lot = 100,000 AUD
-        # 1 pip = 0.01 JPY = 1,000 JPY per lot -> in USD = 1,000 / ~153.80 ~= 6.50 USD
-        pip_val_per_lot = 6.50
+        # Forex USDCAD (Default): 1 standard lot = 100,000 USD
+        # 1 pip = 0.0001 CAD; 10 CAD / 1.3850 ~= 7.22 USD / pip por lote estándar
+        pip_val_per_lot = 7.22
         calc_sl_pips = raw_val
         sl_points = round(raw_val * 10.0, 1)
-        sl_price_dist = round(raw_val * 0.01, 3)
+        sl_price_dist = round(raw_val * 0.0001, 5)
         loss_per_lot = raw_val * pip_val_per_lot
         raw_lot = dollar_risk / loss_per_lot if loss_per_lot > 0 else 0.01
         contract_size = 100000
         effective_leverage = 30.0 if mode == "fondeo" else leverage
         suggested_lot = max(0.01, round(raw_lot, 2))
-        entry_ref_price = 0.6550  # AUDUSD rate for margin in USD
+        entry_ref_price = 1.0  # Base currency is USD ($100,000 USD)
         margin_used = round((contract_size * entry_ref_price * suggested_lot) / effective_leverage, 2)
         actual_dollar_risk = round(suggested_lot * loss_per_lot, 2)
         pip_value_trade = round(suggested_lot * pip_val_per_lot, 2)
@@ -1501,6 +1501,7 @@ def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="AUD/JPY
     tp_targets = {
         "rr_1_5": {"rr": 1.5, "profit_usd": round(dollar_risk * 1.5, 2), "pips": round(calc_sl_pips * 1.5, 1)},
         "rr_2_0": {"rr": 2.0, "profit_usd": round(dollar_risk * 2.0, 2), "pips": round(calc_sl_pips * 2.0, 1)},
+        "rr_2_8": {"rr": 2.8, "profit_usd": round(dollar_risk * 2.8, 2), "pips": round(calc_sl_pips * 2.8, 1)},
         "rr_3_0": {"rr": 3.0, "profit_usd": round(dollar_risk * 3.0, 2), "pips": round(calc_sl_pips * 3.0, 1)},
     }
 
@@ -1509,11 +1510,11 @@ def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="AUD/JPY
         if is_gold and effective_leverage > 30.0:
             safety_warnings.append("⚠️ Regla Orion Funded: El apalancamiento máximo en Metales (XAU/USD) es 1:30.")
         if dollar_risk > 1000.0:
-            safety_warnings.append(f"⚠️ Riesgo alto (${dollar_risk:,.2f}): Consume más del 50% de tu colchón diario de $2,000. Recomendado en AUD/JPY: 0.5% ($250) o 0.25% ($125).")
+            safety_warnings.append(f"⚠️ Riesgo alto (${dollar_risk:,.2f}): Consume más del 50% de tu colchón diario de $2,000. Recomendado en USDCAD: 0.5% ($250) o 0.25% ($125).")
         if dollar_risk >= 2000.0:
             safety_warnings.append(f"🚨 ALERTA CRÍTICA: Un solo Stop Loss a ${dollar_risk:,.2f} quema la cuenta por regla de pérdida diaria del 4% ($2,000).")
         if margin_used > balance * 0.40:
-            safety_warnings.append(f"⚠️ Margen elevado (${margin_used:,.2f}): A 1:30 de apalancamiento en AUD/JPY, este lote retiene más del 40% de tu balance.")
+            safety_warnings.append(f"⚠️ Margen elevado (${margin_used:,.2f}): A 1:30 de apalancamiento en USDCAD, este lote retiene más del 40% de tu balance.")
     elif mode == "real":
         if margin_used > balance * 0.5:
             safety_warnings.append(f"⚠️ Margen requerido (${margin_used:,.2f}) consume más del 50% de tu cuenta pequeña.")
@@ -1543,8 +1544,8 @@ def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="AUD/JPY
         "safety_warnings": safety_warnings
     }
 
-def calculate_position_size(balance, risk_pct, sl_points, rr=1.0, leverage=30):
-    return calculate_position_size_universal(balance, risk_pct, sl_points, "AUD/JPY", rr, leverage)
+def calculate_position_size(balance, risk_pct, sl_points, rr=2.8, leverage=30):
+    return calculate_position_size_universal(balance, risk_pct, sl_points, "USDCAD", rr, leverage)
 
 def calculate_lot_and_margin(balance, risk_pct, sl_distance, entry_price, leverage, contract_size=100):
     """
@@ -1922,7 +1923,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 balance = float(query.get("balance", [config.get("initial_balance", 50000.0)])[0])
                 risk_pct = float(query.get("risk_pct", [config.get("risk_pct", 0.5)])[0])
                 sl_pips = float(query.get("sl_pips", query.get("sl_points", query.get("sl_distance", [10.0])))[0])
-                asset = query.get("asset", [config.get("asset", "AUD/JPY")])[0]
+                asset = query.get("asset", [config.get("asset", "USDCAD")])[0]
                 rr = float(query.get("rr", query.get("rr_ratio", [config.get("rr_ratio", 3.0)]))[0])
                 leverage = float(query.get("leverage", [config.get("leverage", 100.0)])[0])
                 res = calculate_position_size_universal(balance, risk_pct, sl_pips, asset, rr, leverage, mode)
@@ -1941,9 +1942,9 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
         elif path == "/api/backup" or path == "/api/backup/download":
             now_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             backup_data = {
-                "version": "3.4",
+                "version": "3.5",
                 "system": "Orion Nova & TradingView Dashboard",
-                "asset": "AUD/JPY",
+                "asset": "USDCAD",
                 "exported_at": datetime.now(timezone.utc).isoformat(),
                 "configs": {
                     "fondeo": get_config("fondeo"),
@@ -2096,7 +2097,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
 
         elif path == "/api/webhook/tradingview" or path == "/api/webhook":
             action = str(payload.get("action", payload.get("side", ""))).upper().strip()
-            ticker = str(payload.get("ticker", payload.get("symbol", "AUDJPY"))).upper()
+            ticker = str(payload.get("ticker", payload.get("symbol", "USDCAD"))).upper()
             try:
                 price = float(payload.get("price", payload.get("close", 102.50)))
             except Exception:
@@ -2208,7 +2209,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 return
 
             direction = payload.get("direction", "BUY").upper()
-            asset = payload.get("asset", config.get("asset", "AUD/JPY"))
+            asset = payload.get("asset", config.get("asset", "USDCAD"))
             asset_str = str(asset).upper()
             is_gold = any(x in asset_str for x in ["XAU", "GOLD", "ORO"])
 
@@ -2222,7 +2223,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
 
             raw_risk = payload.get("risk_pct") or payload.get("risk_pct_custom") or config.get("risk_pct", 0.5 if mode == "fondeo" else 1.0)
             trade_risk_pct = round(float(str(raw_risk).replace(",", ".")), 2)
-            trade_rr = round(float(str(payload.get("rr") or config.get("rr_ratio", 3.0)).replace(",", ".")), 2)
+            trade_rr = round(float(str(payload.get("rr") or config.get("rr_ratio", 2.8)).replace(",", ".")), 2)
             status = payload.get("status", "win").lower()
             
             if status == "win":
@@ -2261,15 +2262,15 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 gold_lev = min(leverage, 30.0) if mode == "fondeo" else leverage
                 calc_margin = round((2720.0 * 100.0 * suggested_lot) / gold_lev, 2)
             else:
-                # AUD/JPY (Default)
+                # USDCAD (Default)
                 sl_pips = raw_sl
                 sl_points = round(raw_sl * 10.0, 1)
-                sl_price_dist = round(raw_sl * 0.01, 3)
-                loss_per_lot = raw_sl * 6.50
+                sl_price_dist = round(raw_sl * 0.0001, 5)
+                loss_per_lot = raw_sl * 7.22
                 raw_lot = dollar_risk / loss_per_lot if loss_per_lot > 0 else 0.01
                 suggested_lot = max(0.01, round(raw_lot, 2))
                 eff_lev = 30.0 if mode == "fondeo" else leverage
-                calc_margin = round((100000 * 0.6550 * suggested_lot) / eff_lev, 2)
+                calc_margin = round((100000 * 1.0 * suggested_lot) / eff_lev, 2)
 
             manual_lot_raw = payload.get("manual_lot") or payload.get("lot_size")
             manual_lot = float(str(manual_lot_raw).replace(",", ".")) if manual_lot_raw else 0.0
@@ -2493,8 +2494,8 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
 
             initial_balance = float(config.get("initial_balance", 1000.0))
             risk_pct = float(config.get("risk_pct", 1.0))
-            rr_ratio = float(config.get("rr_ratio", 3.0))
-            asset = payload.get("asset", "AUD/JPY")
+            rr_ratio = float(config.get("rr_ratio", 2.8))
+            asset = payload.get("asset", "USDCAD")
 
             import random
             from datetime import timedelta
@@ -2718,7 +2719,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 auto_snapshot = {
                     "version": "3.5",
                     "system": "Orion Nova & TradingView Dashboard",
-                    "asset": "AUD/JPY",
+                    "asset": "USDCAD",
                     "saved_at": now_iso,
                     "configs": updated_configs,
                     "trades": {
