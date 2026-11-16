@@ -293,114 +293,83 @@
               Durante la fase de evaluación, se permite operar noticias, pero está <strong>prohibido el gap trading sistemático y el gambling de noticias</strong> (apostar con todo el margen segundos antes del dato con la intención de pasar o quemar la prueba).
             </p>
             <p class="text-[11px] text-gray-400">
-              • <em>Recomendación: esperar el cierre de la vela de 5 minutos tras el dato para no sufrir por spreads inflados en AUD/JPY tras el dato.</em>
+              • <em>Recomendación: esperar el cierre de la vela de 5 minutos tras el dato para no sufrir por spreads inflados en USDCAD tras la publicación del dato.</em>
             </p>
           </div>
         </div>
       </section>
 
-      <!-- CALENDARIO DE NOTICIAS DE ALTO IMPACTO (AUD/JPY · AUD · JPY · USD) -->
+      <!-- CALENDARIO DE NOTICIAS DE ALTO IMPACTO (USDCAD · USD · CAD) -->
       <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 shadow-xl space-y-4">
         <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
           <div class="flex items-center gap-2.5">
-            <div class="p-2 bg-orange-500/15 text-orange-400 rounded-xl border border-orange-500/30">
+            <div class="p-2 bg-blue-500/15 text-blue-400 rounded-xl border border-blue-500/30">
               <i data-lucide="calendar" class="w-5 h-5"></i>
             </div>
             <div>
-              <h3 class="text-base font-bold text-white">Calendario Económico Semanal de Alto Impacto para AUD/JPY</h3>
-              <p class="text-xs text-gray-400">Eventos de Australia, Japón y EE.UU. que mueven la liquidez y activan la ventana de riesgo de Orion Funded</p>
+              <h3 class="text-base font-bold text-white">Calendario Económico Semanal de Alto Impacto para USDCAD</h3>
+              <p class="text-xs text-gray-400">Eventos macroeconómicos de EE.UU. y Canadá que impactan directamente a USDCAD y activan la regla ±2 min de Orion Funded</p>
             </div>
           </div>
-          <span class="px-2.5 py-1 rounded-xl text-xs font-mono font-bold bg-orange-950 text-orange-300 border border-orange-800">
-            🇦🇺 AUD · 🇯🇵 JPY · 🇺🇸 USD
+          <span class="px-2.5 py-1 rounded-xl text-xs font-mono font-bold bg-blue-950 text-blue-300 border border-blue-800">
+            🇺🇸 USD · 🇨🇦 CAD (USDCAD Exclusivo)
           </span>
         </div>
 
         <div id="newsEventsTableContainer" class="space-y-3">
           <!-- Tarjetas de Eventos de la Semana -->
           
-          <!-- Evento 1: Decisión Tipos RBA (AUD) -->
-          <div class="bg-gray-950/80 border border-emerald-800/80 rounded-xl p-4 space-y-2">
+          <!-- Evento 1: Decisión Tipos BoC (CAD) -->
+          <div class="bg-gray-950/80 border border-red-800/80 rounded-xl p-4 space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-600 text-white">CRÍTICO</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-emerald-950 text-emerald-300 border border-emerald-700">🇦🇺 AUD</span>
-                <span class="font-bold text-white text-sm">RBA — Decisión de Tipos de Interés & Declaración de Política Monetaria</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-950 text-red-300 border border-red-700">🇨🇦 CAD</span>
+                <span class="font-bold text-white text-sm">BoC — Decisión de Tipos del Banco de Canadá & Informe de Política Monetaria</span>
               </div>
-              <div class="text-xs font-mono font-bold text-emerald-300 bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-800/60">
-                Martes 11:30 PM NY
+              <div class="text-xs font-mono font-bold text-red-300 bg-red-950/60 px-2.5 py-1 rounded-lg border border-red-800/60">
+                Miércoles 09:45 AM NY
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
               <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Volatilidad Típica AUD/JPY</span>
-                <strong class="text-amber-300 font-mono">40 a 70 pips (Impulso Direccional)</strong>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Volatilidad Típica USDCAD</span>
+                <strong class="text-amber-300 font-mono">50 a 100 pips (Máximo Impacto)</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Dilatación de Spreads</span>
-                <strong class="text-rose-300 font-mono">De 0.8 pips sube a 2.5–4.0 pips</strong>
+                <strong class="text-rose-300 font-mono">De 0.7 pips sube a 2.5–3.8 pips</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
-                <strong class="text-white font-mono">⛔ Bloqueo 11:28 a 11:32 PM NY</strong>
+                <strong class="text-white font-mono">⛔ Bloqueo 09:43 a 09:47 AM NY</strong>
               </div>
             </div>
             <p class="text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 mt-1">
-              <strong>Impacto Institucional:</strong> Catalizador supremo para el Dólar Australiano. Sorpresas restrictivas (Hawkish) desatan subidas aceleradas por diferencial de tasas (+4.35% vs +0.25%); recortes o tono moderado hunden el cruce frente al Yen.
+              <strong>Impacto Institucional:</strong> El mayor catalizador fundamental para USDCAD. El anuncio de tipos y la rueda de prensa del Gobernador Macklem mueven el diferencial de rendimientos entre la Fed y el BoC. Un BoC dovish dispara compras masivas en USDCAD; un BoC hawkish fortalece al Loonie.
             </p>
           </div>
 
-          <!-- Evento 2: BoJ Decisión de Tipos & Rueda de Ueda (JPY) -->
-          <div class="bg-gray-950/80 border border-rose-800/80 rounded-xl p-4 space-y-2">
+          <!-- Evento 2: NFP Viernes EE.UU. (USD) -->
+          <div class="bg-gray-950/80 border border-blue-800/80 rounded-xl p-4 space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-600 text-white">CRÍTICO</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-950 text-red-300 border border-red-700">🇯🇵 JPY</span>
-                <span class="font-bold text-white text-sm">BoJ — Decisión de Tipos del Banco de Japón & Rueda de Prensa de Ueda</span>
-              </div>
-              <div class="text-xs font-mono font-bold text-rose-300 bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-800/60">
-                Jueves 11:00 PM NY
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
-              <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Volatilidad Típica AUD/JPY</span>
-                <strong class="text-amber-300 font-mono">80 a 140 pips (Desmonte de Carry Trade)</strong>
-              </div>
-              <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Riesgo de Liquidación</span>
-                <strong class="text-rose-400 font-mono">Máximo riesgo por volatilidad en JPY</strong>
-              </div>
-              <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
-                <strong class="text-white font-mono">⛔ Bloqueo Total durante discurso de Ueda</strong>
-              </div>
-            </div>
-            <p class="text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 mt-1">
-              <strong>Impacto Institucional:</strong> La reunión del BoJ define el coste de fondeo global. Cualquier endurecimiento monetario desmantela posiciones apalancadas de Carry Trade, provocando caídas violentas e inmediatas en AUD/JPY.
-            </p>
-          </div>
-
-          <!-- Evento 3: NFP Viernes EE.UU. (USD) -->
-          <div class="bg-gray-950/80 border border-purple-800/60 rounded-xl p-4 space-y-2">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-purple-600 text-white">CRÍTICO</span>
                 <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-blue-950 text-blue-300 border border-blue-700">🇺🇸 USD</span>
                 <span class="font-bold text-white text-sm">NFP — Nóminas No Agrícolas de EE.UU. & Tasa de Desempleo</span>
               </div>
-              <div class="text-xs font-mono font-bold text-purple-300 bg-purple-950/60 px-2.5 py-1 rounded-lg border border-purple-800/60">
+              <div class="text-xs font-mono font-bold text-blue-300 bg-blue-950/60 px-2.5 py-1 rounded-lg border border-blue-800/60">
                 Viernes 08:30 AM NY
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
               <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Comportamiento en AUD/JPY</span>
-                <strong class="text-amber-300 font-mono">60 a 110 pips (Shock Risk-On / Risk-Off)</strong>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Comportamiento en USDCAD</span>
+                <strong class="text-amber-300 font-mono">50 a 90 pips (Shock Macro)</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Dilatación de Spreads</span>
-                <strong class="text-rose-400 font-mono">De 0.9 pips sube a 3.0–5.0 pips</strong>
+                <strong class="text-rose-400 font-mono">De 0.6 pips sube a 2.5–4.0 pips</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
@@ -408,62 +377,96 @@
               </div>
             </div>
             <p class="text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 mt-1">
-              <strong>Impacto Institucional:</strong> Un informe laboral fuerte activa apetito por el riesgo mundial y compras en AUD/JPY. Cifras débiles desatan aversión al riesgo y compras de refugio seguro en Yen. Esperar a las 08:45 NY para entrar.
+              <strong>Impacto Institucional:</strong> El indicador de empleo más relevante del mundo. Una lectura sólida en EE.UU. eleva rendimientos de los bonos del Tesoro y aprecia fuertemente al Dólar frente al Dólar Canadiense. Esperar a las 08:45 NY para ingresar trades.
             </p>
           </div>
 
-          <!-- Evento 4: Informe de Empleo de Australia (AUD) -->
+          <!-- Evento 3: Informe Laboral de Canadá (CAD) -->
+          <div class="bg-gray-950/80 border border-red-800/60 rounded-xl p-4 space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-600 text-white">CRÍTICO</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-950 text-red-300 border border-red-700">🇨🇦 CAD</span>
+                <span class="font-bold text-white text-sm">Informe Laboral de Canadá — Cambio en el Empleo & Tasa de Desempleo</span>
+              </div>
+              <div class="text-xs font-mono font-bold text-red-300 bg-red-950/60 px-2.5 py-1 rounded-lg border border-red-800/60">
+                Viernes 08:30 AM NY
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
+              <div>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Efecto en USDCAD</span>
+                <strong class="text-amber-300 font-mono">Doble Choque con NFP (Volatilidad Máxima)</strong>
+              </div>
+              <div>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Dilatación de Spreads</span>
+                <strong class="text-rose-400 font-mono">De 0.7 pips sube a 3.0–4.5 pips</strong>
+              </div>
+              <div>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
+                <strong class="text-white font-mono">⛔ Bloqueo 08:28 a 08:32 AM NY</strong>
+              </div>
+            </div>
+            <p class="text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 mt-1">
+              <strong>Impacto Institucional:</strong> Publicado de manera simultánea con el NFP de EE.UU. a las 08:30 AM NY. Creación neta de empleo fuerte en Canadá fortalece al Loonie (bajista USDCAD). Discrepancia cruzada entre EE.UU. y Canadá genera los mayores desplazamientos del mes.
+            </p>
+          </div>
+
+          <!-- Evento 4: IPC Inflación de Canadá (CAD) -->
           <div class="bg-gray-950/80 border border-emerald-800/60 rounded-xl p-4 space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-emerald-600 text-white">ALTO IMPACTO</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-emerald-950 text-emerald-300 border border-emerald-700">🇦🇺 AUD</span>
-                <span class="font-bold text-white text-sm">Informe de Empleo de Australia — Creación de Empleo & Desempleo</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-600 text-white">CRÍTICO</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-950 text-red-300 border border-red-700">🇨🇦 CAD</span>
+                <span class="font-bold text-white text-sm">IPC de Canadá — Inflación Subyacente del BoC & IPC General</span>
               </div>
-              <div class="text-xs font-mono font-bold text-emerald-300 bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-800/60">
-                Jueves 07:30 PM NY
+              <div class="text-xs font-mono font-bold text-red-300 bg-red-950/60 px-2.5 py-1 rounded-lg border border-red-800/60">
+                Martes 08:30 AM NY
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Recorrido Típico</span>
-                <strong class="text-amber-300 font-mono">35 a 65 pips en velas M5</strong>
+                <strong class="text-amber-300 font-mono">40 a 70 pips en velas M5</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Ensanchamiento Spread</span>
-                <strong class="text-blue-300 font-mono">Apertura de horquilla hasta 2.5 pips</strong>
+                <strong class="text-blue-300 font-mono">Apertura de horquilla hasta 2.2 pips</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
-                <strong class="text-white font-mono">⛔ Bloqueo 07:28 a 07:32 PM NY</strong>
+                <strong class="text-white font-mono">⛔ Bloqueo 08:28 a 08:32 AM NY</strong>
               </div>
             </div>
+            <p class="text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 mt-1">
+              <strong>Impacto Institucional:</strong> El indicador de precios fundamental que determina los próximos movimientos de política monetaria del Banco de Canadá. Sorpresas inflacionarias fortalecen al CAD haciendo caer al USDCAD con fuerza.
+            </p>
           </div>
 
-          <!-- Evento 5: Inflación Japón & CPI EE.UU. (JPY / USD) -->
+          <!-- Evento 5: Inventarios Petróleo Crudo EIA (USD / CAD) -->
           <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-900 text-amber-200">INFLACIÓN CRUZADA</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-gray-900 text-gray-300 border border-gray-700">🇯🇵 JPY · 🇺🇸 USD</span>
-                <span class="font-bold text-white text-sm">Inflación Japón (Core CPI) & CPI de EE.UU.</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-900 text-amber-200">CORRELACIÓN PETRÓLEO</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-blue-950 text-blue-300 border border-blue-700">🇺🇸 USD · 🇨🇦 CAD</span>
+                <span class="font-bold text-white text-sm">Inventarios Semanales de Petróleo Crudo EIA (EE.UU.)</span>
               </div>
               <div class="text-xs font-mono font-bold text-amber-300 bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-800/60">
-                Miércoles 07:50 PM & Jueves 08:30 AM NY
+                Miércoles 10:30 AM NY
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Efecto en Cruce</span>
-                <strong class="text-white font-mono">Presión simultánea en tasas</strong>
+                <strong class="text-white font-mono">Sensibilidad directa vía Crudo WTI</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Sensibilidad de Mercado</span>
-                <strong class="text-amber-300 font-mono">Inflación Japón >2.0% empuja al BoJ</strong>
+                <strong class="text-amber-300 font-mono">Petróleo sube $\to$ CAD se aprecia (USDCAD baja)</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
-                <strong class="text-white font-mono">⛔ Bloqueo ±2 min en cuenta fondeada</strong>
+                <strong class="text-white font-mono">⚠️ Monitorear 10:28 a 10:32 AM NY</strong>
               </div>
             </div>
           </div>
@@ -477,7 +480,7 @@
             <i data-lucide="layers" class="w-5 h-5"></i>
           </div>
           <div>
-            <h3 class="text-base font-bold text-white">Protocolo Institucional de 3 Fases para Operar Noticias en AUD/JPY</h3>
+            <h3 class="text-base font-bold text-white">Protocolo Institucional de 3 Fases para Operar Noticias en USDCAD</h3>
             <p class="text-xs text-gray-400">Cómo operan los fondos para absorber la liquidez sin quemar cuentas</p>
           </div>
         </div>

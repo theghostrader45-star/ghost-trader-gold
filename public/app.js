@@ -9170,44 +9170,59 @@ function evaluateDynamicNewsShield() {
   const nyDateStr = `${getP("year")}-${getP("month")}-${getP("day")}`;
   const currentTotalMin = parseInt(getP("hour"), 10) * 60 + parseInt(getP("minute"), 10);
 
-  // 1. Obtener eventos de hoy desde weeklyNewsState o fallback oficial
+  // 1. Obtener eventos de hoy desde weeklyNewsState (exclusivos para USDCAD: USD y CAD)
   let todayEvents = [];
   if (weeklyNewsState && Array.isArray(weeklyNewsState.days)) {
-    const todayObj = weeklyNewsState.days.find(d => d.date === nyDateStr);
+    const dayOfWeek = now.getDay();
+    let todayObj = weeklyNewsState.days.find(d => d.date === nyDateStr);
+    if (!todayObj && dayOfWeek >= 1 && dayOfWeek <= 5) {
+      todayObj = weeklyNewsState.days.find(d => {
+        const dDate = new Date(d.date + "T12:00:00Z");
+        return dDate.getUTCDay() === dayOfWeek;
+      });
+    }
     if (todayObj && Array.isArray(todayObj.events)) {
-      todayEvents = todayObj.events;
+      todayEvents = todayObj.events.filter(e => e.currency === "USD" || e.currency === "CAD");
     }
   }
 
-  // Fallback con el calendario exacto de la semana si aún no cargó el JSON
+  // Fallback con eventos de alto impacto para USDCAD (USD & CAD) según día de semana
   if (todayEvents.length === 0) {
-    if (nyDateStr === "2026-11-02") {
+    const dayOfWeek = now.getDay();
+    if (dayOfWeek === 1) { // Lunes
       todayEvents = [
-        { time: "10:00 AM NY", title: "ISM PMI Manufacturero de EE.UU.", impact: "HIGH" },
-        { time: "10:00 AM NY", title: "Precios Pagados en Manufactura ISM", impact: "MEDIUM" }
+        { time: "09:45 AM NY", currency: "USD", title: "PMI Manufacturero S&P Global (EE.UU.)", impact: "MEDIUM" },
+        { time: "10:00 AM NY", currency: "USD", title: "ISM PMI Manufacturero de EE.UU.", impact: "HIGH" }
       ];
-    } else if (nyDateStr === "2026-11-03") {
+    } else if (dayOfWeek === 2) { // Martes
       todayEvents = [
-        { time: "10:00 AM NY", title: "Encuesta de Ofertas de Empleo JOLTS", impact: "HIGH" },
-        { time: "01:30 PM NY", title: "Discurso Miembros Fed", impact: "MEDIUM" }
+        { time: "08:30 AM NY", currency: "CAD", title: "IPC de Canadá (Inflación BoC)", impact: "CRITICAL" },
+        { time: "10:00 AM NY", currency: "USD", title: "Encuesta de Ofertas de Empleo JOLTS", impact: "HIGH" }
       ];
-    } else if (nyDateStr === "2026-11-04") {
+    } else if (dayOfWeek === 3) { // Miércoles
       todayEvents = [
-        { time: "08:15 AM NY", title: "Informe de Empleo No Agrícola ADP", impact: "HIGH" },
-        { time: "10:00 AM NY", title: "ISM PMI del Sector Servicios", impact: "HIGH" }
+        { time: "08:15 AM NY", currency: "USD", title: "Informe de Empleo No Agrícola ADP", impact: "HIGH" },
+        { time: "09:45 AM NY", currency: "CAD", title: "Decisión de Tipos BoC (Banco de Canadá)", impact: "CRITICAL" },
+        { time: "10:00 AM NY", currency: "USD", title: "ISM PMI del Sector Servicios", impact: "HIGH" },
+        { time: "10:30 AM NY", currency: "USD", title: "Inventarios de Petróleo Crudo EIA", impact: "HIGH" }
       ];
-    } else if (nyDateStr === "2026-11-05") {
+    } else if (dayOfWeek === 4) { // Jueves
       todayEvents = [
-        { time: "08:30 AM NY", title: "Nuevas Peticiones de Subsidio por Desempleo", impact: "HIGH" },
-        { time: "08:30 AM NY", title: "Balanza Comercial EE.UU.", impact: "MEDIUM" }
+        { time: "08:30 AM NY", currency: "USD", title: "Jobless Claims (Peticiones Desempleo EE.UU.)", impact: "HIGH" },
+        { time: "08:30 AM NY", currency: "CAD", title: "Balanza Comercial de Canadá", impact: "MEDIUM" },
+        { time: "10:00 AM NY", currency: "CAD", title: "Ivey PMI de Canadá", impact: "HIGH" }
       ];
-    } else if (nyDateStr === "2026-11-06") {
+    } else if (dayOfWeek === 5) { // Viernes
       todayEvents = [
-        { time: "08:30 AM NY", title: "NFP (Nóminas No Agrícolas de EE.UU.)", impact: "CRITICAL" },
-        { time: "08:30 AM NY", title: "Tasa de Desempleo de EE.UU.", impact: "HIGH" }
+        { time: "08:30 AM NY", currency: "USD", title: "NFP (Nóminas No Agrícolas de EE.UU.)", impact: "CRITICAL" },
+        { time: "08:30 AM NY", currency: "CAD", title: "Informe Laboral de Canadá (Empleo & Desempleo)", impact: "CRITICAL" },
+        { time: "10:00 AM NY", currency: "USD", title: "Confianza del Consumidor Univ. Michigan", impact: "HIGH" }
       ];
     }
   }
+
+  // Filtrar estrictamente noticias que afecten a USDCAD (USD y CAD)
+  todayEvents = todayEvents.filter(e => !e.currency || e.currency === "USD" || e.currency === "CAD");
 
   let activeBlock = null;
   let activeWarning = null;
@@ -10621,110 +10636,86 @@ async function loadWeeklyNews() {
   // Fallback si no hay conexión al backend
   if (!weeklyNewsState || !weeklyNewsState.days) {
     weeklyNewsState = {
-      week_label: "Semana Operativa AUD/JPY · Macro Australia, Japón & EE.UU.",
-      week_start: "2026-11-02",
-      week_end: "2026-11-06",
-      timezone: "America/New_York (UTC-4)",
+      week_label: "Semana Operativa USDCAD · Macro EE.UU. & Canadá (Killzone New York)",
+      week_start: "2026-11-16",
+      week_end: "2026-11-20",
+      timezone: "America/New_York (UTC-5)",
       days: [
         {
-          date: "2026-11-02",
+          date: "2026-11-16",
           day_name: "Lunes",
           day_short: "LUN",
           impact_level: "HIGH",
           badge_text: "🔴 ISM MANUFACTURERO (EE.UU.)",
           events: [
             {
-              id: "news_20261102_01",
-              time: "06:50 PM NY",
-              currency: "JPY",
-              title: "Gasto de los Hogares y Cuenta Corriente de Japón",
+              id: "news_usdcad_mon_01",
+              time: "09:45 AM NY",
+              currency: "USD",
+              title: "PMI Manufacturero de S&P Global (EE.UU.)",
               impact: "MEDIUM",
-              forecast: "-0.5% a/a",
-              previous: "-1.9% a/a",
-              actual: "+0.2% a/a",
-              impact_audjpy: "Medición clave del consumo interno nipón. Si el gasto repunta con fuerza, aumentan las probabilidades de subida de tipos del BoJ, apreciando al JPY y presionando a la baja el par AUD/JPY (-20 a -35 pips).",
-              rule_action: "Monitorear spreads en sesión asiática temprana. No ingresar órdenes si el spread supera 2.0 pips."
+              forecast: "50.5",
+              previous: "49.8",
+              actual: "50.8",
+              impact_usdcad: "Lectura preliminar de la actividad fabril estadounidense. Cifras por encima de 50 indican expansión del sector manufacturero, fortaleciendo al Dólar frente al Dólar Canadiense.",
+              rule_action: "Monitorear spreads en la apertura de New York. Spreads normales en USDCAD (0.6 - 0.9 pips)."
             },
             {
-              id: "news_20261102_02",
+              id: "news_usdcad_mon_02",
               time: "10:00 AM NY",
               currency: "USD",
               title: "ISM PMI Manufacturero de EE.UU.",
               impact: "HIGH",
               forecast: "49.5",
-              previous: "47.2",
-              actual: "48.6",
-              impact_audjpy: "Barómetro del crecimiento industrial mundial. Lecturas sólidas (>50) activan apetito por el riesgo (Risk-On), impulsando al Dólar Australiano frente al Yen. Lecturas débiles provocan aversión al riesgo y compras de refugio en Yen.",
-              rule_action: "⚠️ Pausa Táctica: Cero entradas de 09:58 a 10:02 AM NY en cuenta fondeada. Esperar vela M5 cerrada."
+              previous: "48.6",
+              actual: "--",
+              impact_usdcad: "Indicador líder de salud industrial en EE.UU. Lecturas superiores al consenso fortalecen al USD impulsando compras en USDCAD (+25 a +45 pips).",
+              rule_action: "⚠️ Pausa Táctica Orion Funded: Cero órdenes de 09:58 a 10:02 AM NY en cuenta fondeada. Esperar vela M5 cerrada."
             }
           ]
         },
         {
-          date: "2026-11-03",
+          date: "2026-11-17",
           day_name: "Martes",
           day_short: "MAR",
           impact_level: "CRITICAL",
-          badge_text: "💥 DECISIÓN TIPOS RBA (AUSTRALIA)",
+          badge_text: "💥 IPC DE CANADÁ & JOLTS EE.UU.",
           events: [
             {
-              id: "news_20261103_01",
-              time: "11:30 PM NY",
-              currency: "AUD",
-              title: "Decisión de Tipos de Interés del RBA & Declaración de Política Monetaria",
+              id: "news_usdcad_tue_01",
+              time: "08:30 AM NY",
+              currency: "CAD",
+              title: "IPC de Canadá (Índice de Precios al Consumidor / Inflación BoC)",
               impact: "CRITICAL",
-              forecast: "4.35%",
-              previous: "4.35%",
+              forecast: "+2.4% a/a",
+              previous: "+2.5% a/a",
               actual: "--",
-              impact_audjpy: "El catalizador más potente para el Dólar Australiano. Si la gobernadora Michele Bullock mantiene sesgo restrictivo (Hawkish) debido a la inflación persistente, AUD/JPY reacciona con subidas violentas de 40 a 70 pips. Un recorte o tono Dovish desencadena ventas masivas.",
-              rule_action: "⛔ Bloqueo Estricto Orion Funded: Prohibido abrir, cerrar o modificar órdenes ±2 minutos antes y después del anuncio."
+              impact_usdcad: "El dato de inflación rector para el Banco de Canadá (BoC). Un IPC canadiense caliente reduce expectativas de recortes de tipos del BoC, fortaleciendo agresivamente al CAD y desplomando a USDCAD (-40 a -70 pips).",
+              rule_action: "⛔ Bloqueo Estricto Orion Funded: Prohibido abrir, cerrar o modificar órdenes de 08:28 a 08:32 AM NY."
             },
             {
-              id: "news_20261103_02",
+              id: "news_usdcad_tue_02",
               time: "10:00 AM NY",
               currency: "USD",
               title: "Encuesta de Ofertas de Empleo JOLTS de EE.UU.",
               impact: "HIGH",
-              forecast: "7.98M",
+              forecast: "7.90M",
               previous: "8.04M",
               actual: "--",
-              impact_audjpy: "Impacta el sentimiento global y el rendimiento de los bonos del Tesoro (US10Y). Un enfriamiento laboral severo eleva el riesgo de recesión e induce aversión al riesgo, debilitando al par AUD/JPY.",
-              rule_action: "⚠️ Pausa Táctica 09:58 a 10:05 NY. Posible latigazo de 20 a 35 pips en el cruce."
+              impact_usdcad: "Medición clave de vacantes laborales de la Fed. Si las vacantes superan los 8M, ratifica la resiliencia económica de EE.UU. e impulsa al USD frente al CAD (+20 a +35 pips).",
+              rule_action: "⚠️ Pausa Táctica 09:58 a 10:02 AM NY. Respetar regla estricta de noticias de cuenta fondeada."
             }
           ]
         },
         {
-          date: "2026-11-04",
+          date: "2026-11-18",
           day_name: "Miércoles",
           day_short: "MIÉ",
           impact_level: "CRITICAL",
-          badge_text: "🔥 IPC AUSTRALIA + INFLACIÓN JAPÓN",
+          badge_text: "🔥 DECISIÓN TIPOS BOC & INVENTARIOS PETRÓLEO",
           events: [
             {
-              id: "news_20261104_01",
-              time: "07:30 PM NY",
-              currency: "AUD",
-              title: "Índice de Precios al Consumidor (CPI / IPC Trimestral de Australia)",
-              impact: "CRITICAL",
-              forecast: "+0.8% t/t",
-              previous: "+1.0% t/t",
-              actual: "--",
-              impact_audjpy: "Dato rector de la política del RBA. Una inflación por encima de lo previsto ensancha el diferencial de rendimientos de Australia (+4.35%) frente a Japón (+0.25%), atrayendo capitales masivos hacia AUD/JPY con movimientos de 50 a 80 pips.",
-              rule_action: "⛔ Bloqueo Estricto: Esperar 10 minutos tras la publicación para que el spread en Tickmill se normalice."
-            },
-            {
-              id: "news_20261104_02",
-              time: "07:50 PM NY",
-              currency: "JPY",
-              title: "Inflación Subyacente de Japón (Core CPI)",
-              impact: "HIGH",
-              forecast: "+2.2% a/a",
-              previous: "+2.4% a/a",
-              actual: "--",
-              impact_audjpy: "Principal indicador adelantado de la inflación en Japón. Cifras superiores al 2.0% consolidan el plan de subida de tipos del Banco de Japón, desatando compras de JPY y caídas bruscas en AUD/JPY (-30 a -50 pips).",
-              rule_action: "Seguimiento simultáneo con el IPC australiano. Precaución por choque cruzado de divisas."
-            },
-            {
-              id: "news_20261104_03",
+              id: "news_usdcad_wed_01",
               time: "08:15 AM NY",
               currency: "USD",
               title: "Informe de Empleo No Agrícola ADP de EE.UU.",
@@ -10732,11 +10723,23 @@ async function loadWeeklyNews() {
               forecast: "145K",
               previous: "143K",
               actual: "--",
-              impact_audjpy: "Anticipo de NFP. Mueve la liquidez en la apertura de New York con impacto directo en el apetito por riesgo internacional.",
-              rule_action: "⚠️ Bloqueo de órdenes de 08:13 a 08:17 AM NY."
+              impact_usdcad: "Anticipo de empleo privado antes del NFP. Un número sólido fortalece la demanda del USD en la apertura previa a la Killzone.",
+              rule_action: "⚠️ Pausa Táctica: Cero entradas de 08:13 a 08:17 AM NY."
             },
             {
-              id: "news_20261104_04",
+              id: "news_usdcad_wed_02",
+              time: "09:45 AM NY",
+              currency: "CAD",
+              title: "Decisión de Tipos de Interés del Banco de Canadá (BoC) & Declaración de Política Monetaria",
+              impact: "CRITICAL",
+              forecast: "3.75%",
+              previous: "4.25%",
+              actual: "--",
+              impact_usdcad: "El catalizador institucional de mayor impacto para USDCAD. Anuncio de tipos y rueda de prensa del Gobernador Macklem mueven entre 50 y 100 pips. Tono dovish dispara compras en USDCAD; tono hawkish fortalece al CAD.",
+              rule_action: "⛔ BLOQUEO TOTAL ORION FUNDED: Prohibido operar de 09:43 a 09:47 AM NY. Esperar 15 minutos tras el comunicado."
+            },
+            {
+              id: "news_usdcad_wed_03",
               time: "10:00 AM NY",
               currency: "USD",
               title: "ISM PMI del Sector Servicios de EE.UU.",
@@ -10744,86 +10747,110 @@ async function loadWeeklyNews() {
               forecast: "53.8",
               previous: "54.9",
               actual: "--",
-              impact_audjpy: "El sector servicios representa más del 70% de la economía de EE.UU. Un ISM de servicios expansivo favorece el Risk-On global (alcista AUD/JPY).",
-              rule_action: "⚠️ Alerta Killzone: No tener órdenes pendientes abiertas a las 09:59 NY."
+              impact_usdcad: "El sector servicios representa más del 70% del PIB de EE.UU. Expansión (>53) apoya la fortaleza del Dólar frente al Loonie.",
+              rule_action: "⚠️ Pausa Táctica: No tener órdenes pendientes abiertas a las 09:59 NY."
+            },
+            {
+              id: "news_usdcad_wed_04",
+              time: "10:30 AM NY",
+              currency: "USD",
+              title: "Inventarios Semanales de Petróleo Crudo de la EIA",
+              impact: "HIGH",
+              forecast: "-1.8M",
+              previous: "+2.1M",
+              actual: "--",
+              impact_usdcad: "Alta correlación con el CAD (Canadá principal exportador de crudo a EE.UU.). Caídas de inventarios disparan el WTI y aprecian al CAD (USDCAD cae).",
+              rule_action: "⚠️ Monitorear ventana 10:28 a 10:32 AM NY. Posible desplazamiento rápido de 20 a 35 pips en USDCAD."
             }
           ]
         },
         {
-          date: "2026-11-05",
+          date: "2026-11-19",
           day_name: "Jueves",
           day_short: "JUE",
-          impact_level: "CRITICAL",
-          badge_text: "🔴 EMPLEO AUSTRALIA & DECISIÓN BOJ",
+          impact_level: "HIGH",
+          badge_text: "🔴 JOBLESS CLAIMS EE.UU. & IVEY PMI CANADÁ",
           events: [
             {
-              id: "news_20261105_01",
-              time: "07:30 PM NY",
-              currency: "AUD",
-              title: "Informe de Empleo de Australia (Cambio en el Empleo & Tasa de Desempleo)",
-              impact: "CRITICAL",
-              forecast: "+25.0K / 4.1%",
-              previous: "+64.1K / 4.1%",
-              actual: "--",
-              impact_audjpy: "Uno de los datos más explosivos para el cruce. Una sorpresa positiva en el mercado laboral australiano propulsa a AUD/JPY entre 35 y 65 pips de manera instantánea.",
-              rule_action: "⛔ Regla Orion: Cero aperturas en la ventana de ±2 minutos. Esperar vela de 5 minutos cerrada."
-            },
-            {
-              id: "news_20261105_02",
-              time: "11:00 PM NY",
-              currency: "JPY",
-              title: "Decisión de Tipos de Interés del Banco de Japón (BoJ) & Rueda de Prensa de Ueda",
-              impact: "CRITICAL",
-              forecast: "0.25%",
-              previous: "0.25%",
-              actual: "--",
-              impact_audjpy: "El evento de mayor repercusión sistémica para el Yen. Cualquier señal de ajuste cuantitativo o alza de tipos provoca liquidación masiva de Carry Trade, hundiendo al par AUD/JPY con latigazos de 80 a 140 pips y ensanchamiento de spreads.",
-              rule_action: "⛔ PROHIBICIÓN TOTAL: Cero operaciones durante la rueda de prensa del Gobernador Kazuo Ueda."
-            },
-            {
-              id: "news_20261105_03",
+              id: "news_usdcad_thu_01",
               time: "08:30 AM NY",
               currency: "USD",
-              title: "Nuevas Peticiones de Subsidio por Desempleo de EE.UU. (Jobless Claims)",
+              title: "Nuevas Peticiones de Subsidio por Desempleo (Jobless Claims EE.UU.)",
               impact: "HIGH",
-              forecast: "221K",
+              forecast: "220K",
               previous: "218K",
               actual: "--",
-              impact_audjpy: "Monitorea la estabilidad laboral de EE.UU. Si las peticiones se disparan (>240K), debilita el sentimiento de mercado y activa aversión al riesgo hacia el Yen como refugio.",
-              rule_action: "⛔ Bloqueo en Fondeado: 08:28 a 08:32 AM NY."
+              impact_usdcad: "Termómetro semanal laboral en EE.UU. Peticiones bajas (<220K) impulsan al Dólar frente al Dólar Canadiense (+15 a +30 pips).",
+              rule_action: "⛔ Bloqueo en Fondeado Orion: 08:28 a 08:32 AM NY."
+            },
+            {
+              id: "news_usdcad_thu_02",
+              time: "08:30 AM NY",
+              currency: "CAD",
+              title: "Balanza Comercial de Mercancías de Canadá",
+              impact: "MEDIUM",
+              forecast: "-0.9B",
+              previous: "-1.1B",
+              actual: "--",
+              impact_usdcad: "Flujo comercial exterior de Canadá. Coincide a las 08:30 AM con Jobless Claims generando volatilidad bilateral.",
+              rule_action: "Coincide a las 08:30 AM con Jobless Claims. Precaución por choque simultáneo de datos."
+            },
+            {
+              id: "news_usdcad_thu_03",
+              time: "10:00 AM NY",
+              currency: "CAD",
+              title: "Índice de Gerentes de Compras Ivey PMI de Canadá",
+              impact: "HIGH",
+              forecast: "53.5",
+              previous: "52.0",
+              actual: "--",
+              impact_usdcad: "Barómetro líder de la economía canadiense. Lecturas superiores a 54 fortalecen al CAD y presionan a USDCAD a la baja.",
+              rule_action: "⚠️ Pausa Táctica Orion: 09:58 a 10:02 AM NY."
             }
           ]
         },
         {
-          date: "2026-11-06",
+          date: "2026-11-20",
           day_name: "Viernes",
           day_short: "VIE",
           impact_level: "CRITICAL",
-          badge_text: "💥 NFP VIERNES (MÁXIMO RISK-ON / RISK-OFF)",
+          badge_text: "💥 SUPER VIERNES LABORAL: NFP EE.UU. + EMPLEO CANADÁ",
           events: [
             {
-              id: "news_20261106_01",
+              id: "news_usdcad_fri_01",
               time: "08:30 AM NY",
               currency: "USD",
               title: "NFP (Nóminas No Agrícolas de EE.UU.) & Tasa de Desempleo",
               impact: "CRITICAL",
-              forecast: "180K / 4.1%",
+              forecast: "175K / 4.1%",
               previous: "254K / 4.1%",
               actual: "--",
-              impact_audjpy: "El evento macro más influyente del mes a nivel global. Un NFP muy robusto eleva los rendimientos de los bonos globales y activa el modo 'Risk-On', impulsando compras en AUD/JPY. Un colapso laboral desata pánico en bolsas ('Risk-Off') y catapulta al Yen como activo de refugio seguro, haciendo caer a AUD/JPY de 60 a 110 pips en minutos.",
-              rule_action: "⛔ BLOQUEO ESTRICTO ORION FUNDED: 08:28 a 08:32 AM NY. No apostar al dato; esperar 15 min (08:45 NY) para que los spreads se estabilicen antes de ejecutar."
+              impact_usdcad: "El catalizador macroeconómico más influyente. Publicado simultáneamente con el empleo de Canadá generando el mayor choque de volatilidad del mes en USDCAD (+60 a +110 pips).",
+              rule_action: "⛔ BLOQUEO ESTRICTO ORION FUNDED: 08:28 a 08:32 AM NY. Prohibido ejecutar; esperar a las 08:45 NY para estabilización de spreads."
             },
             {
-              id: "news_20261106_02",
-              time: "07:30 PM NY",
-              currency: "AUD",
-              title: "Balanza Comercial y Ventas Minoristas de Australia",
-              impact: "HIGH",
-              forecast: "+5.8B / +0.4%",
-              previous: "+5.6B / +0.7%",
+              id: "news_usdcad_fri_02",
+              time: "08:30 AM NY",
+              currency: "CAD",
+              title: "Informe Laboral de Canadá (Cambio en el Empleo & Desempleo)",
+              impact: "CRITICAL",
+              forecast: "+25.0K / 6.5%",
+              previous: "+46.7K / 6.5%",
               actual: "--",
-              impact_audjpy: "Mide el pulso exportador australiano de minerales y energía hacia Asia. Si las exportaciones superan el consenso, aporta soporte fundamental al Dólar Australiano frente al Yen.",
-              rule_action: "Operar únicamente si el spread de Tickmill se mantiene inferior a 1.5 pips."
+              impact_usdcad: "Doble choque de nóminas a las 08:30 AM NY. Empleo canadiense superior al consenso fortalece al CAD reduciendo el avance de USDCAD.",
+              rule_action: "⛔ BLOQUEO ESTRICTO: Doble choque laboral de 08:28 a 08:32 AM NY. Esperar vela M5 cerrada antes de operar."
+            },
+            {
+              id: "news_usdcad_fri_03",
+              time: "10:00 AM NY",
+              currency: "USD",
+              title: "Índice de Confianza del Consumidor de la Universidad de Michigan",
+              impact: "HIGH",
+              forecast: "71.0",
+              previous: "70.5",
+              actual: "--",
+              impact_usdcad: "Sentimiento y expectativas de inflación en EE.UU. Cierre de semana con volatilidad final en la Killzone de New York.",
+              rule_action: "⚠️ Pausa Táctica 09:58 a 10:02 AM NY."
             }
           ]
         }
@@ -10861,7 +10888,7 @@ function renderWeeklyNews() {
   let html = "";
 
   filteredDays.forEach(day => {
-    let events = day.events || [];
+    let events = (day.events || []).filter(e => !e.currency || e.currency === "USD" || e.currency === "CAD");
     if (filterHighImpactOnly) {
       events = events.filter(e => e.impact === "HIGH" || e.impact === "CRITICAL");
     }
@@ -10885,9 +10912,9 @@ function renderWeeklyNews() {
             <div>
               <div class="text-sm font-black text-white flex items-center gap-2">
                 <span>${day.day_name}, ${day.date}</span>
-                <span class="text-[10px] text-gray-400 font-mono font-normal">· New York (UTC-4)</span>
+                <span class="text-[10px] text-gray-400 font-mono font-normal">· New York (UTC-5)</span>
               </div>
-              <div class="text-[11px] text-gray-400">Eventos Macro Australia, Japón & EE.UU. con impacto directo en AUD/JPY</div>
+              <div class="text-[11px] text-gray-400">Eventos Macro EE.UU. & Canadá con impacto directo en USDCAD (Killzone NY)</div>
             </div>
           </div>
           <span class="text-[10px] font-mono font-bold px-3 py-1 rounded-lg border ${dayHeaderClass} flex items-center gap-1.5 shadow-sm">
@@ -10907,13 +10934,11 @@ function renderWeeklyNews() {
                   ? `<span class="px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 font-mono text-[10px] font-bold">🔴 ALTO IMPACTO</span>`
                   : `<span class="px-2 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-800 font-mono text-[10px] font-bold">🟡 MEDIO IMPACTO</span>`);
 
-            const currBadge = ev.currency === 'AUD'
-              ? '<span class="px-2 py-1 rounded-lg bg-emerald-950/80 border border-emerald-800 font-mono text-[10px] text-emerald-300 font-bold">🇦🇺 AUD</span>'
-              : (ev.currency === 'JPY'
-                  ? '<span class="px-2 py-1 rounded-lg bg-red-950/80 border border-red-800 font-mono text-[10px] text-red-300 font-bold">🇯🇵 JPY</span>'
-                  : (ev.currency === 'USD'
-                      ? '<span class="px-2 py-1 rounded-lg bg-blue-950/80 border border-blue-800 font-mono text-[10px] text-blue-300 font-bold">🇺🇸 USD</span>'
-                      : `<span class="px-2 py-1 rounded-lg bg-gray-900 border border-gray-700 font-mono text-[10px] text-gray-300 font-bold">${ev.currency}</span>`));
+            const currBadge = ev.currency === 'CAD'
+              ? '<span class="px-2 py-1 rounded-lg bg-red-950/80 border border-red-700 font-mono text-[10px] text-red-300 font-bold">🇨🇦 CAD</span>'
+              : (ev.currency === 'USD'
+                  ? '<span class="px-2 py-1 rounded-lg bg-blue-950/80 border border-blue-700 font-mono text-[10px] text-blue-300 font-bold">🇺🇸 USD</span>'
+                  : `<span class="px-2 py-1 rounded-lg bg-gray-900 border border-gray-700 font-mono text-[10px] text-gray-300 font-bold">${ev.currency}</span>`);
 
             return `
               <div class="p-4 rounded-xl bg-gray-900/80 border ${isCritical ? 'border-red-500/40 shadow-lg shadow-red-950/20' : 'border-gray-800/90 hover:border-gray-700'} space-y-3 transition">
@@ -10930,7 +10955,7 @@ function renderWeeklyNews() {
 
                 <div>
                   <h4 class="text-xs sm:text-sm font-bold text-white leading-snug">${ev.title}</h4>
-                  <p class="text-[11px] text-gray-300 mt-1.5 leading-relaxed">${ev.impact_audjpy || ev.impact_gold || ''}</p>
+                  <p class="text-[11px] text-gray-300 mt-1.5 leading-relaxed">${ev.impact_usdcad || ev.impact_desc || ev.impact_gold || ''}</p>
                 </div>
 
                 <!-- Consensus Metrics: Forecast / Prev / Actual -->
@@ -10952,7 +10977,7 @@ function renderWeeklyNews() {
                 <!-- Protective Action / Protocol -->
                 <div class="p-2.5 rounded-lg ${isCritical ? 'bg-red-950/40 border border-red-500/40 text-red-300' : 'bg-yellow-950/30 border border-yellow-500/30 text-yellow-300'} text-[11px] font-medium leading-relaxed flex items-start gap-2">
                   <i data-lucide="shield-alert" class="w-4 h-4 mt-0.5 shrink-0 ${isCritical ? 'text-red-400' : 'text-yellow-400'}"></i>
-                  <span><strong class="text-white">Regla Operativa AUD/JPY:</strong> ${ev.rule_action || 'Esperar digestión de spreads en M5.'}</span>
+                  <span><strong class="text-white">Regla Operativa USDCAD (Orion):</strong> ${ev.rule_action || 'Esperar vela M5 cerrada tras el dato.'}</span>
                 </div>
               </div>
             `;
@@ -11870,7 +11895,7 @@ function updateAllNewsShieldBanners(status) {
             <span class="text-xs text-amber-300 font-mono font-bold">${curr} · ${ev.time || ''}</span>
           </div>
           <p class="text-xs text-gray-200 mt-0.5 leading-snug">
-            <strong>${ev.title || 'Evento Macro'}:</strong> Alto impacto en AUD/JPY. Finaliza o protege operaciones antes de entrar en la ventana de restricción de ±2 minutos.
+            <strong>${ev.title || 'Evento Macro'}:</strong> Alto impacto en USDCAD. Finaliza o protege operaciones antes de entrar en la ventana de restricción de ±2 minutos.
           </p>
         </div>
       </div>

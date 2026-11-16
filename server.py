@@ -222,8 +222,8 @@ def execute_premarket_scan():
         "ny_time": ny_str,
         "timezone_base": "UTC-5 (New York / Eastern Time)",
         "checklist": [
-            "1. Noticias Macro (12h): Superávit laboral en EE.UU., tono Hawkish de la Fed y soporte físico PBoC analizados.",
-            "2. Calendario Económico (UTC-5 NY): Ventana crítica NFP (08:15 a 08:45 AM NY) confirmada con regla estricta de NO OPERAR.",
+            "1. Noticias Macro (12h): Calendario macroeconómico enfocado exclusivamente en USD y CAD analizado.",
+            "2. Calendario Económico (UTC-5 NY): Ventanas de noticias de alto impacto ±2 min validadas con regla estricta Orion Funded.",
             "3. Cierre Anterior & Rango Pre-Mercado NY: Cierre previo y niveles clave mapeados para la Killzone New York de USDCAD.",
             "4. Mapa Técnico M15/H1: Tendencia bajista activa, niveles PDH/PDL y consumo de ADR 14 (38.2%) calculados.",
             "5. Plan de Sesión NY: Venta en retroceso a FVG M15 ($2,731.50 – $2,733.50) con SL $2,736.50 y TP $2,718.50 (R:R 1:3.0 a 1:4.2).",
@@ -1837,6 +1837,9 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             scanner_results = []
             for day in news.get("days", []):
                 for ev in day.get("events", []):
+                    curr = ev.get("currency", "")
+                    if curr not in ("USD", "CAD"):
+                        continue
                     if ev.get("impact") in ("HIGH", "CRITICAL"):
                         act = ev.get("actual")
                         fct = ev.get("forecast")
@@ -1854,13 +1857,14 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                                 f_clean = float(str(fct).replace("%", "").replace("K", "").replace("M", "").strip())
                                 diff = round(a_clean - f_clean, 2)
                                 
-                                is_macro_driver = any(k in ev.get("title", "").upper() for k in ["NFP", "EMPLEO", "PMI", "CPI", "IPC", "PIB", "GDP"])
-                                if diff > 0:
-                                    gold_reaction = "BEARISH" if is_macro_driver else "BULLISH"
-                                elif diff < 0:
-                                    gold_reaction = "BULLISH" if is_macro_driver else "BEARISH"
+                                is_macro_driver = any(k in ev.get("title", "").upper() for k in ["NFP", "EMPLEO", "PMI", "CPI", "IPC", "PIB", "GDP", "BOC", "FED", "PETROLEO", "OIL"])
+                                if curr == "USD":
+                                    usdcad_reaction = "BULLISH" if diff > 0 else ("BEARISH" if diff < 0 else "NEUTRAL")
+                                elif curr == "CAD":
+                                    usdcad_reaction = "BEARISH" if diff > 0 else ("BULLISH" if diff < 0 else "NEUTRAL")
                                 else:
-                                    gold_reaction = "NEUTRAL"
+                                    usdcad_reaction = "NEUTRAL"
+                                gold_reaction = usdcad_reaction
                                     
                                 deviation = f"{diff:+} vs Previsión"
                                 aligns = (gold_reaction == bias_dir)
