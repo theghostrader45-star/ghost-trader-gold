@@ -1436,9 +1436,9 @@ function setupFondeoTradeForm() {
       
       const entryVal = parseFloat(entryEl?.value);
       const dirVal = dirEl?.value || 'BUY';
-      const dec = 3;
-      const slDelta = targetSlPips * 0.01; // en JPY (ej. 25 pips = 0.25)
-      const tpDelta = targetTpPips * 0.01; // en JPY
+      const dec = 5;
+      const slDelta = targetSlPips * 0.0001; // en CAD (ej. 25 pips = 0.00250)
+      const tpDelta = targetTpPips * 0.0001; // en CAD
       if (!isNaN(entryVal) && entryVal > 0) {
         const fixedSl = dirVal === 'BUY' ? roundNum(entryVal - slDelta, dec) : roundNum(entryVal + slDelta, dec);
         const fixedTp = dirVal === 'BUY' ? roundNum(entryVal + tpDelta, dec) : roundNum(entryVal - tpDelta, dec);
@@ -11695,7 +11695,7 @@ function fallbackCopyText(text, label) {
 }
 
 // -------------------------------------------------------------
-// 2. Calibrador Dinámico de Tasa USD/JPY en Vivo ($/pip)
+// 2. Calibrador Institucional de Tasa y Pip USDCAD ($7.22/pip)
 // -------------------------------------------------------------
 function getActiveUsdJpyRate() {
   const saved = parseFloat(localStorage.getItem('calibrator_usdjpy_rate'));

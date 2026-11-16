@@ -1,7 +1,7 @@
 {
   "version": "3.5",
   "system": "Orion Nova & TradingView Dashboard",
-  "asset": "AUD/JPY",
+  "asset": "USDCAD",
   "saved_at": "2026-11-08T18:00:46.428998+00:00",
   "configs": {
     "fondeo": {
@@ -20,8 +20,8 @@
       "currency": "USD",
       "risk_pct": 0.5,
       "rr_ratio": 3.0,
-      "asset": "AUD/JPY",
-      "asset_name": "AUD/JPY (Forex Cross)",
+      "asset": "USDCAD",
+      "asset_name": "USDCAD (USD/CAD)",
       "contract_size": 100000,
       "sl_default": 25.0,
       "sl_pips": 25.0,
@@ -31,15 +31,15 @@
       "tp_distance_usd": 0.75
     },
     "real": {
-      "account_type": "Cuenta Real Personal (TradingView AUD/JPY)",
+      "account_type": "Cuenta Real Personal (TradingView USDCAD)",
       "broker": "TradingView",
       "initial_balance": 107.83,
       "risk_pct": 1.0,
       "leverage": 300.0,
       "rr_ratio": 2.0,
       "currency": "USD",
-      "asset": "AUD/JPY",
-      "asset_name": "AUD/JPY (Forex Cross)",
+      "asset": "USDCAD",
+      "asset_name": "USDCAD (USD/CAD)",
       "contract_size": 100000,
       "sl_default": 25.0,
       "sl_pips": 25.0
@@ -54,8 +54,8 @@
       "lot_step": 0.01,
       "risk_mode": "compound",
       "currency": "USD",
-      "asset": "AUD/JPY",
-      "asset_name": "AUD/JPY (Forex Cross)",
+      "asset": "USDCAD",
+      "asset_name": "USDCAD (USD/CAD)",
       "sl_pips": 25,
       "sl_points": 25,
       "tp_pips": 75,
@@ -69,7 +69,7 @@
       {
         "id": "9cf02b61-f05d-467b-a48a-ac3894a63851",
         "date": "2026-11-03 04:03",
-        "asset": "AUD/JPY",
+        "asset": "USDCAD",
         "direction": "BUY",
         "sl_points": 25,
         "tp_points": 75,
@@ -108,7 +108,7 @@
       {
         "id": "5076372a-898b-460d-9b63-f6b419903a16",
         "date": "2026-11-04 05:03",
-        "asset": "AUD/JPY",
+        "asset": "USDCAD",
         "direction": "SELL",
         "sl_points": 25,
         "tp_points": 75,
@@ -147,7 +147,7 @@
       {
         "id": "4790d6ed-e836-4f74-b0b2-9bfeb55ac2d6",
         "date": "2026-11-02 02:03",
-        "asset": "AUD/JPY",
+        "asset": "USDCAD",
         "direction": "SELL",
         "sl_points": 25,
         "tp_points": 75,
@@ -186,7 +186,7 @@
       {
         "id": "4b22d45c-a1c2-476b-93ba-4f1fb2637b73",
         "date": "2026-11-03 23:03",
-        "asset": "AUD/JPY",
+        "asset": "USDCAD",
         "direction": "SELL",
         "sl_points": 25,
         "tp_points": 75,
@@ -225,7 +225,7 @@
       {
         "id": "d8f46954-6aa0-4470-9159-289189a2c7a6",
         "date": "2026-11-02 13:03",
-        "asset": "AUD/JPY",
+        "asset": "USDCAD",
         "direction": "SELL",
         "sl_points": 25,
         "tp_points": 75,
@@ -264,7 +264,7 @@
       {
         "id": "7b1a4cfc-40d3-48d5-b00b-e55f5868be55",
         "date": "2026-11-04 16:03",
-        "asset": "AUD/JPY",
+        "asset": "USDCAD",
         "direction": "SELL",
         "sl_points": 25,
         "tp_points": 75,
@@ -303,7 +303,7 @@
       {
         "id": "2f92c2b0-b7a6-415b-a530-ac1ace805799",
         "date": "2026-11-03 16:03",
-        "asset": "AUD/JPY",
+        "asset": "USDCAD",
         "direction": "SELL",
         "sl_points": 25,
         "tp_points": 75,
@@ -342,7 +342,7 @@
       {
         "id": "1f4289dd-8f85-46f9-86f1-e3b122ed3094",
         "date": "2026-11-05 03:03",
-        "asset": "AUD/JPY",
+        "asset": "USDCAD",
         "direction": "BUY",
         "sl_points": 25,
         "tp_points": 75,
@@ -381,7 +381,7 @@
       {
         "id": "aac579f8-6e61-4832-a784-c0796e63fa44",
         "date": "2026-11-03 21:03",
-        "asset": "AUD/JPY",
+        "asset": "USDCAD",
         "direction": "SELL",
         "sl_points": 25,
         "tp_points": 75,
@@ -420,7 +420,7 @@
       {
         "id": "70ff53c2-14f6-40ba-a1ac-b74c6b12969c",
         "date": "2026-11-04 13:03",
-        "asset": "AUD/JPY",
+        "asset": "USDCAD",
         "direction": "SELL",
         "sl_points": 25,
         "tp_points": 75,

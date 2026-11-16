@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
 Generador Maestro de Bitácoras de Trading en Excel Profesional (Fondeo & Real)
-Calibrado para USDCAD, AUDCAD y AUDJPY.
+Calibrado exclusivamente para USDCAD (Forex 100k Standard Lots · Sesión New York).
 
 TOTALMENTE DINÁMICO & REACTIVO:
 - Modificar 'Capital Inicial' en Dashboard -> Actualiza toda la cadena de balances y KPIs.
-- Modificar 'Par' (USDCAD, AUDCAD, AUDJPY) -> Actualiza Pip Size, Valor Pip y Lote automáticamente.
+- Par exclusivo USDCAD -> Pip Size 0.0001, Valor Pip ~$7.22 USD y Lote calculado institucionalmente.
 - Modificar 'Precio Entrada' o 'Stop Loss' -> Calcula automáticamente Pips de SL exactos.
 - Modificar 'Take Profit' -> Calcula automáticamente el Ratio R:R exacto.
 - Modificar 'Riesgo %' -> Recalcula el presupuesto en $ USD y el lotaje institucional.
@@ -28,8 +28,6 @@ FONT_FAMILY = "Segoe UI"
 PARAM_HEADERS = ["Par", "Banderas", "Pip Size", "Valor Pip / Lote", "Contrato Estándar", "Margen Base ($ USD)"]
 FOREX_SPECS_DATA = [
     ("USDCAD", "🇺🇸🇨🇦", 0.0001, 7.22, 100000, 100000.0),
-    ("AUDCAD", "🇦🇺🇨🇦", 0.0001, 7.22, 100000, 65500.0),
-    ("AUDJPY", "🇦🇺🇯🇵", 0.01, 6.50, 100000, 65500.0),
 ]
 
 # Fills
@@ -265,9 +263,7 @@ def create_fondeo_workbook():
         cell.border = BORDER_THIN
 
     pairs_data = [
-        ("USDCAD", "🇺🇸🇨🇦", 20),
-        ("AUDCAD", "🇦🇺🇨🇦", 21),
-        ("AUDJPY", "🇦🇺🇯🇵", 22)
+        ("USDCAD", "🇺🇸🇨🇦", 20)
     ]
 
     for p, flag, r_idx in pairs_data:
@@ -332,16 +328,16 @@ def create_fondeo_workbook():
 
     # 10 operaciones de muestra iniciales
     sample_fondeo = [
-        (1, "2026-11-03 09:30", "USDCAD", "BUY", "Nueva York", 1.38500, 1.38250, 1.39250, 0.50, "WIN", "Ruptura NY + FVG M5", "SÍ", "Confluencia H1 limpia"),
-        (2, "2026-11-03 14:15", "AUDJPY", "SELL", "Nueva York", 153.800, 154.050, 153.050, 0.50, "WIN", "Order Block M15 + Reject", "SÍ", "Rechazo de resistencia clave"),
-        (3, "2026-11-04 04:00", "AUDCAD", "BUY", "Londres", 0.90800, 0.90550, 0.91550, 0.50, "LOSS", "Ruptura de Rango Londres", "SÍ", "Falso quiebre en pre-apertura"),
-        (4, "2026-11-04 09:45", "USDCAD", "SELL", "Nueva York", 1.39100, 1.39350, 1.38350, 0.50, "WIN", "Liquidity Sweep Asian High", "SÍ", "Toma de liquidez previa"),
-        (5, "2026-11-04 15:30", "AUDJPY", "BUY", "Nueva York", 153.200, 153.450, 153.200, 0.50, "BE", "Breakeven tras +1.5R", "SÍ", "Retroceso agresivo a entrada"),
-        (6, "2026-11-05 03:30", "AUDCAD", "SELL", "Londres", 0.90400, 0.90650, 0.89650, 0.50, "WIN", "Pullback VWAP + Trend M15", "SÍ", "Seguimiento tendencial"),
-        (7, "2026-11-05 10:15", "USDCAD", "BUY", "Nueva York", 1.38800, 1.38550, 1.39550, 0.50, "LOSS", "Intento Fallido Apertura", "SÍ", "Poco volumen en la sesión"),
-        (8, "2026-11-05 13:45", "AUDJPY", "SELL", "Nueva York", 154.100, 154.350, 153.350, 0.50, "WIN", "Rechazo Resistencia D1", "SÍ", "Vela envolvente bajista"),
-        (9, "2026-11-06 09:00", "USDCAD", "SELL", "Nueva York", 1.39400, 1.39650, 1.38650, 0.50, "WIN", "Post-Noticias Sin Desliz", "SÍ", "Entrada limpia 2 min después"),
-        (10, "2026-11-06 14:00", "AUDCAD", "BUY", "Nueva York", 0.90100, 0.90350, 0.90100, 0.50, "BE", "Protección a Breakeven", "SÍ", "Cierre de viernes seguro"),
+        (1, "2026-11-03 09:30", "USDCAD", "BUY", "Nueva York", 1.38500, 1.38250, 1.39200, 0.50, "WIN", "Ruptura NY + FVG M5", "SÍ", "Confluencia H1 limpia"),
+        (2, "2026-11-03 10:15", "USDCAD", "SELL", "Nueva York", 1.39200, 1.39450, 1.38500, 0.50, "WIN", "Order Block M15 + Reject", "SÍ", "Rechazo de resistencia clave"),
+        (3, "2026-11-04 08:30", "USDCAD", "BUY", "Nueva York", 1.38600, 1.38350, 1.39300, 0.50, "LOSS", "Ruptura de Rango NY", "SÍ", "Falso quiebre en pre-apertura"),
+        (4, "2026-11-04 09:45", "USDCAD", "SELL", "Nueva York", 1.39100, 1.39350, 1.38400, 0.50, "WIN", "Liquidity Sweep Asian High", "SÍ", "Toma de liquidez previa"),
+        (5, "2026-11-04 10:30", "USDCAD", "BUY", "Nueva York", 1.38700, 1.38450, 1.38700, 0.50, "BE", "Breakeven tras +1.5R", "SÍ", "Retroceso agresivo a entrada"),
+        (6, "2026-11-05 08:45", "USDCAD", "SELL", "Nueva York", 1.39000, 1.39250, 1.38300, 0.50, "WIN", "Pullback VWAP + Trend M15", "SÍ", "Seguimiento tendencial"),
+        (7, "2026-11-05 10:15", "USDCAD", "BUY", "Nueva York", 1.38800, 1.38550, 1.39500, 0.50, "LOSS", "Intento Fallido Apertura", "SÍ", "Poco volumen en la sesión"),
+        (8, "2026-11-05 11:00", "USDCAD", "SELL", "Nueva York", 1.39400, 1.39650, 1.38700, 0.50, "WIN", "Rechazo Resistencia D1", "SÍ", "Vela envolvente bajista"),
+        (9, "2026-11-06 09:00", "USDCAD", "SELL", "Nueva York", 1.39400, 1.39650, 1.38700, 0.50, "WIN", "Post-Noticias Sin Desliz", "SÍ", "Entrada limpia 2 min después"),
+        (10, "2026-11-06 10:30", "USDCAD", "BUY", "Nueva York", 1.38900, 1.38650, 1.38900, 0.50, "BE", "Protección a Breakeven", "SÍ", "Cierre de viernes seguro"),
     ]
 
     # Pre-cargar filas 6 a 60 con fórmulas reactivas
@@ -357,11 +353,11 @@ def create_fondeo_workbook():
             ws_log.cell(row=r, column=6, value=s[4]).alignment = Alignment(horizontal="center")
             
             c_e = ws_log.cell(row=r, column=7, value=s[5])
-            c_e.number_format = '0.00000' if 'JPY' not in s[2] else '0.000'
+            c_e.number_format = '0.00000'
             c_sl = ws_log.cell(row=r, column=8, value=s[6])
-            c_sl.number_format = '0.00000' if 'JPY' not in s[2] else '0.000'
+            c_sl.number_format = '0.00000'
             c_tp = ws_log.cell(row=r, column=9, value=s[7])
-            c_tp.number_format = '0.00000' if 'JPY' not in s[2] else '0.000'
+            c_tp.number_format = '0.00000'
             
             ws_log.cell(row=r, column=11, value=s[8]).number_format = FMT_PCT
             
@@ -434,7 +430,7 @@ def create_fondeo_workbook():
                 ws_log.cell(row=r, column=c).font = FONT_BODY
 
     # Validaciones en Bitácora Fondeo
-    dv_pairs = DataValidation(type="list", formula1='"USDCAD,AUDCAD,AUDJPY"', allow_blank=True)
+    dv_pairs = DataValidation(type="list", formula1='"USDCAD"', allow_blank=True)
     ws_log.add_data_validation(dv_pairs)
     dv_pairs.add("D6:D60")
 
@@ -442,7 +438,7 @@ def create_fondeo_workbook():
     ws_log.add_data_validation(dv_dir)
     dv_dir.add("E6:E60")
 
-    dv_sess = DataValidation(type="list", formula1='"Nueva York,Londres,Asia"', allow_blank=True)
+    dv_sess = DataValidation(type="list", formula1='"Nueva York"', allow_blank=True)
     ws_log.add_data_validation(dv_sess)
     dv_sess.add("F6:F60")
 
@@ -500,7 +496,7 @@ def create_fondeo_workbook():
     auto_fit_columns(ws_dash)
     auto_fit_columns(ws_param)
 
-    fondeo_path = os.path.join(OUTPUT_DIR, "Bitacora_Fondeo_Pro_USDCAD_AUDCAD_AUDJPY.xlsx")
+    fondeo_path = os.path.join(OUTPUT_DIR, "Bitacora_Fondeo_Pro_USDCAD.xlsx")
     wb.save(fondeo_path)
     print(f"✅ Bitácora Fondeo guardada en: {fondeo_path}")
 
@@ -526,7 +522,7 @@ def create_real_workbook():
     header_cell.fill = FILL_NAVY_HEADER
     header_cell.alignment = Alignment(horizontal="left", vertical="center")
 
-    ws_dash["B4"] = "Gestión reactiva de capital real: Crecimiento compuesto, registro de retiros y drawdown | USDCAD · AUDCAD · AUDJPY"
+    ws_dash["B4"] = "Gestión reactiva de capital real: Crecimiento compuesto, registro de retiros y drawdown | USDCAD Exclusivo"
     ws_dash["B4"].font = FONT_SUBTITLE
 
     # KPI CARDS ROW 1 (Fila 6 - 8)
@@ -680,9 +676,7 @@ def create_real_workbook():
         cell.border = BORDER_THIN
 
     pairs_data = [
-        ("USDCAD", "🇺🇸🇨🇦", 20),
-        ("AUDCAD", "🇦🇺🇨🇦", 21),
-        ("AUDJPY", "🇦🇺🇯🇵", 22)
+        ("USDCAD", "🇺🇸🇨🇦", 20)
     ]
 
     for p, flag, r_idx in pairs_data:
@@ -747,16 +741,16 @@ def create_real_workbook():
 
     # 10 operaciones de muestra en cuenta real (1% riesgo con interés compuesto)
     sample_real = [
-        (1, "2026-11-03 09:30", "USDCAD", "BUY", "Nueva York", 1.38500, 1.38250, 1.39250, 1.00, "WIN", "Ruptura NY + FVG M5", "SÍ", "Paciencia y confirmación"),
-        (2, "2026-11-03 14:15", "AUDJPY", "SELL", "Nueva York", 153.800, 154.050, 153.050, 1.00, "WIN", "Order Block M15 + Reject", "SÍ", "Gestión tranquila"),
-        (3, "2026-11-04 04:00", "AUDCAD", "BUY", "Londres", 0.90800, 0.90550, 0.91550, 1.00, "LOSS", "Ruptura de Rango Londres", "SÍ", "Pérdida asumida sin revenge"),
-        (4, "2026-11-04 09:45", "USDCAD", "SELL", "Nueva York", 1.39100, 1.39350, 1.38350, 1.00, "WIN", "Liquidity Sweep Asian High", "SÍ", "Excelente entrada en retroceso"),
-        (5, "2026-11-04 15:30", "AUDJPY", "BUY", "Nueva York", 153.200, 153.450, 153.200, 1.00, "BE", "Breakeven tras +1.5R", "SÍ", "Protegido a tiempo"),
-        (6, "2026-11-05 03:30", "AUDCAD", "SELL", "Londres", 0.90400, 0.90650, 0.89650, 1.00, "WIN", "Pullback VWAP + Trend M15", "SÍ", "Plan seguido al 100%"),
-        (7, "2026-11-05 10:15", "USDCAD", "BUY", "Nueva York", 1.38800, 1.38550, 1.39550, 1.00, "LOSS", "Intento Fallido Apertura", "SÍ", "Control emocional total"),
-        (8, "2026-11-05 13:45", "AUDJPY", "SELL", "Nueva York", 154.100, 154.350, 153.350, 1.00, "WIN", "Rechazo Resistencia D1", "SÍ", "Gran trade a favor de tendencia"),
-        (9, "2026-11-06 09:00", "USDCAD", "SELL", "Nueva York", 1.39400, 1.39650, 1.38650, 1.00, "WIN", "Post-Noticias Sin Desliz", "SÍ", "Esperé a que el spread baje"),
-        (10, "2026-11-06 14:00", "AUDCAD", "BUY", "Nueva York", 0.90100, 0.90350, 0.90100, 1.00, "BE", "Protección a Breakeven", "SÍ", "Cierre semanal positivo"),
+        (1, "2026-11-03 09:30", "USDCAD", "BUY", "Nueva York", 1.38500, 1.38250, 1.39200, 1.00, "WIN", "Ruptura NY + FVG M5", "SÍ", "Paciencia y confirmación"),
+        (2, "2026-11-03 10:15", "USDCAD", "SELL", "Nueva York", 1.39200, 1.39450, 1.38500, 1.00, "WIN", "Order Block M15 + Reject", "SÍ", "Gestión tranquila"),
+        (3, "2026-11-04 08:30", "USDCAD", "BUY", "Nueva York", 1.38600, 1.38350, 1.39300, 1.00, "LOSS", "Ruptura de Rango NY", "SÍ", "Pérdida asumida sin revenge"),
+        (4, "2026-11-04 09:45", "USDCAD", "SELL", "Nueva York", 1.39100, 1.39350, 1.38400, 1.00, "WIN", "Liquidity Sweep Asian High", "SÍ", "Excelente entrada en retroceso"),
+        (5, "2026-11-04 10:30", "USDCAD", "BUY", "Nueva York", 1.38700, 1.38450, 1.38700, 1.00, "BE", "Breakeven tras +1.5R", "SÍ", "Protegido a tiempo"),
+        (6, "2026-11-05 08:45", "USDCAD", "SELL", "Nueva York", 1.39000, 1.39250, 1.38300, 1.00, "WIN", "Pullback VWAP + Trend M15", "SÍ", "Plan seguido al 100%"),
+        (7, "2026-11-05 10:15", "USDCAD", "BUY", "Nueva York", 1.38800, 1.38550, 1.39500, 1.00, "LOSS", "Intento Fallido Apertura", "SÍ", "Control emocional total"),
+        (8, "2026-11-05 11:00", "USDCAD", "SELL", "Nueva York", 1.39400, 1.39650, 1.38700, 1.00, "WIN", "Rechazo Resistencia D1", "SÍ", "Gran trade a favor de tendencia"),
+        (9, "2026-11-06 09:00", "USDCAD", "SELL", "Nueva York", 1.39400, 1.39650, 1.38700, 1.00, "WIN", "Post-Noticias Sin Desliz", "SÍ", "Esperé a que el spread baje"),
+        (10, "2026-11-06 10:30", "USDCAD", "BUY", "Nueva York", 1.38900, 1.38650, 1.38900, 1.00, "BE", "Protección a Breakeven", "SÍ", "Cierre semanal positivo"),
     ]
 
     for r in range(6, 61):
@@ -771,11 +765,11 @@ def create_real_workbook():
             ws_log.cell(row=r, column=6, value=s[4]).alignment = Alignment(horizontal="center")
 
             c_e = ws_log.cell(row=r, column=7, value=s[5])
-            c_e.number_format = '0.00000' if 'JPY' not in s[2] else '0.000'
+            c_e.number_format = '0.00000'
             c_sl = ws_log.cell(row=r, column=8, value=s[6])
-            c_sl.number_format = '0.00000' if 'JPY' not in s[2] else '0.000'
+            c_sl.number_format = '0.00000'
             c_tp = ws_log.cell(row=r, column=9, value=s[7])
-            c_tp.number_format = '0.00000' if 'JPY' not in s[2] else '0.000'
+            c_tp.number_format = '0.00000'
 
             ws_log.cell(row=r, column=11, value=s[8]).number_format = FMT_PCT
 
@@ -846,7 +840,7 @@ def create_real_workbook():
                 ws_log.cell(row=r, column=c).font = FONT_BODY
 
     # Validaciones en Bitácora Real
-    dv_pairs_r = DataValidation(type="list", formula1='"USDCAD,AUDCAD,AUDJPY"', allow_blank=True)
+    dv_pairs_r = DataValidation(type="list", formula1='"USDCAD"', allow_blank=True)
     ws_log.add_data_validation(dv_pairs_r)
     dv_pairs_r.add("D6:D60")
 
@@ -854,7 +848,7 @@ def create_real_workbook():
     ws_log.add_data_validation(dv_dir_r)
     dv_dir_r.add("E6:E60")
 
-    dv_sess_r = DataValidation(type="list", formula1='"Nueva York,Londres,Asia"', allow_blank=True)
+    dv_sess_r = DataValidation(type="list", formula1='"Nueva York"', allow_blank=True)
     ws_log.add_data_validation(dv_sess_r)
     dv_sess_r.add("F6:F60")
 
@@ -978,7 +972,7 @@ def create_real_workbook():
     auto_fit_columns(ws_ret)
     auto_fit_columns(ws_param_r)
 
-    real_path = os.path.join(OUTPUT_DIR, "Bitacora_Real_Pro_USDCAD_AUDCAD_AUDJPY.xlsx")
+    real_path = os.path.join(OUTPUT_DIR, "Bitacora_Real_Pro_USDCAD.xlsx")
     wb.save(real_path)
     print(f"✅ Bitácora Real guardada en: {real_path}")
 

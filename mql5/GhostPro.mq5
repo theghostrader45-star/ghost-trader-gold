@@ -6,7 +6,7 @@
 #property copyright   "Ghost Trader - Ghost Pro Framework"
 #property link        "https://www.tradingview.com"
 #property version     "3.10"
-#property description "Expert Advisor de Scalping Institucional Multi-Par (AUDJPY, AUDCAD, USDCAD)"
+#property description "Expert Advisor de Scalping Institucional Exclusivo USDCAD (Sesión New York)"
 #property description "Detección Automática de Setup, Sincronización de Sesiones y Cálculo Universal de Lotaje"
 #property description "Dashboard Tabla Cuadrícula 100% Idéntico a TradingView (Sin Desfases Mac/Win)"
 
@@ -34,9 +34,8 @@ enum ENUM_PRELOAD_MODE
 
 enum ENUM_SESSION_SELECT
   {
-   SESS_LONDON_AND_NY = 0, // Londres + Nueva York (Recomendado AUDJPY 5m)
-   SESS_ONLY_NY       = 1, // Solo Nueva York (Recomendado USDCAD 3m)
-   SESS_ONLY_LONDON   = 2  // Solo Londres (Recomendado AUDCAD 3m)
+   SESS_ONLY_NY       = 0, // Solo Nueva York (USDCAD Exclusivo 07:00 - 11:00 NY)
+   SESS_LONDON_AND_NY = 1  // Completa
   };
 
 enum ENUM_TRIGGER_MODE
@@ -227,13 +226,7 @@ void CreateLabel(string name, int x, int y, string text, color col, string font,
 //+------------------------------------------------------------------+
 ENUM_SESSION_SELECT GetEffectiveSession()
 {
-   if(InpPresetMode == PRESET_AUTO_DETECT)
-   {
-      if(StringFind(_Symbol, "AUDJPY") >= 0) return SESS_LONDON_AND_NY;
-      if(StringFind(_Symbol, "AUDCAD") >= 0) return SESS_ONLY_LONDON;
-      if(StringFind(_Symbol, "USDCAD") >= 0) return SESS_ONLY_NY;
-   }
-   return InpSessionMode;
+   return SESS_ONLY_NY;
 }
 
 //+------------------------------------------------------------------+
@@ -954,7 +947,7 @@ double GetAverageSLPips(double defaultPips)
 
 double CalculatePreloadedLot(double curAtr, double &targetPipsOut)
 {
-   double pipSize = (StringFind(_Symbol, "JPY") >= 0) ? 0.01 : 0.0001;
+   double pipSize = 0.0001; // USDCAD 1 pip = 0.0001 CAD
    double defaultSLDist = curAtr * (0.65 + InpSLAtrMult);
    double defaultSLPips = MathMax(InpMinSLPips, defaultSLDist / pipSize);
 
@@ -1044,7 +1037,7 @@ bool RunHistoricalScanAndRender()
 
    ArrayResize(g_slHistory, 0);
 
-   double pipSize = (StringFind(_Symbol, "JPY") >= 0) ? 0.01 : 0.0001;
+   double pipSize = 0.0001; // USDCAD 1 pip = 0.0001 CAD
    long lastSessionKey = -1;
 
    ENUM_SESSION_SELECT effSess = GetEffectiveSession();
@@ -1234,7 +1227,7 @@ void DrawTradeBoxes(bool isBuy, datetime tStart, datetime tEnd, double entry, do
    if(tEnd <= tStart)
       tEnd = tStart + PeriodSeconds(_Period);
 
-   double pipSize = (StringFind(_Symbol, "JPY") >= 0) ? 0.01 : 0.0001;
+   double pipSize = 0.0001; // USDCAD 1 pip = 0.0001 CAD
    double arrowOffset = pips * 0.25 * pipSize;
    if(arrowOffset <= 0) arrowOffset = pipSize * 2;
 
@@ -1431,7 +1424,7 @@ void ExecuteBuyTrade(const HA_Candle &bar, double atr, double ehmaCur, double eh
    double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    double spread = ask - bid;
-   double pipSize = (StringFind(_Symbol, "JPY") >= 0) ? 0.01 : 0.0001;
+   double pipSize = 0.0001; // USDCAD 1 pip = 0.0001 CAD
 
    if(InpMaxSpreadPips > 0 && (spread / pipSize) > InpMaxSpreadPips)
    {
@@ -1488,7 +1481,7 @@ void ExecuteSellTrade(const HA_Candle &bar, double atr, double ehmaCur, double e
    double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    double spread = ask - bid;
-   double pipSize = (StringFind(_Symbol, "JPY") >= 0) ? 0.01 : 0.0001;
+   double pipSize = 0.0001; // USDCAD 1 pip = 0.0001 CAD
 
    if(InpMaxSpreadPips > 0 && (spread / pipSize) > InpMaxSpreadPips)
    {
@@ -1647,7 +1640,7 @@ void RenderDashboard()
    MqlRates currentRate[2];
    if(CopyRates(_Symbol, _Period, 0, 2, currentRate) >= 2)
    {
-      double pipSize = (StringFind(_Symbol, "JPY") >= 0) ? 0.01 : 0.0001;
+      double pipSize = 0.0001; // USDCAD 1 pip = 0.0001 CAD
       double bar0Range = MathAbs(currentRate[0].close - currentRate[0].open);
       if(bar0Range > (currentAtr * 0.4) && !HasOpenPosition() && IsTradeSessionActiveTime(TimeCurrent()))
       {
@@ -1677,59 +1670,33 @@ void RenderDashboard()
    CreateRect("GP_D_HLINE_0", startX, topY + headerH, tableW, 1, gridLine, gridLine);
    CreateRect("GP_D_VLINE", startX + col1W, topY + headerH, 1, numRows * rowH, gridLine, gridLine);
 
-   // Validación inteligente de Setup según par y temporalidad
-   bool isAudJpy = (StringFind(_Symbol, "AUDJPY") >= 0);
-   bool isAudCad = (StringFind(_Symbol, "AUDCAD") >= 0);
+   // Validación de Setup exclusivo para USDCAD en Sesión New York
    bool isUsdCad = (StringFind(_Symbol, "USDCAD") >= 0);
    ENUM_SESSION_SELECT effSess = GetEffectiveSession();
 
    string setupStatusText = "Personalizado";
    color  setupStatusColor = colCyan;
 
-   if(isAudJpy)
+   if(isUsdCad)
    {
-      bool tfOk   = (curTfMin == 5);
-      bool sessOk = (effSess == SESS_LONDON_AND_NY);
-      if(tfOk && sessOk)
-      {
-         setupStatusText  = InpUseIcons ? "✅ ÓPTIMO (5m · LND+NY)" : "OPTIMO (5m - LND+NY)";
-         setupStatusColor = colTeal;
-      }
-      else if(!tfOk)
-      {
-         setupStatusText  = StringFormat("AJUSTAR A 5m (es M%d)", curTfMin);
-         setupStatusColor = C'255,165,0';
-      }
-      else
-      {
-         setupStatusText  = "SESION: LND+NY";
-         setupStatusColor = C'255,165,0';
-      }
-   }
-   else if(isAudCad)
-   {
-      bool tfOk   = (curTfMin == 3);
-      bool sessOk = (effSess == SESS_ONLY_LONDON);
-      if(tfOk && sessOk)
-      {
-         setupStatusText  = InpUseIcons ? "✅ ÓPTIMO (3m · LONDRES)" : "OPTIMO (3m - LONDRES)";
-         setupStatusColor = colTeal;
-      }
-      else if(!tfOk)
-      {
-         setupStatusText  = StringFormat("AJUSTAR A 3m (es M%d)", curTfMin);
-         setupStatusColor = C'255,165,0';
-      }
-      else
-      {
-         setupStatusText  = "SESION: LONDRES";
-         setupStatusColor = C'255,165,0';
-      }
-   }
-   else if(isUsdCad)
-   {
-      bool tfOk   = (curTfMin == 3);
+      bool tfOk   = (curTfMin == 3 || curTfMin == 5);
       bool sessOk = (effSess == SESS_ONLY_NY);
+      if(tfOk && sessOk)
+      {
+         setupStatusText  = InpUseIcons ? "✅ ÓPTIMO (NY SESSION · USDCAD)" : "OPTIMO (NY SESSION · USDCAD)";
+         setupStatusColor = colTeal;
+      }
+      else if(!tfOk)
+      {
+         setupStatusText  = StringFormat("AJUSTAR A 3m/5m (es M%d)", curTfMin);
+         setupStatusColor = C'255,165,0';
+      }
+      else
+      {
+         setupStatusText  = "SESION: SOLO NUEVA YORK";
+         setupStatusColor = C'255,165,0';
+      }
+   }
       if(tfOk && sessOk)
       {
          setupStatusText  = InpUseIcons ? "✅ ÓPTIMO (3m · NUEVA YORK)" : "OPTIMO (3m - NUEVA YORK)";

@@ -887,9 +887,9 @@ def recalculate_trade_history(trades, config, mode="backtest"):
         else:
             ret_pct = 0.0
             
-        # Asset determination and pip/point scaling (USDCAD, AUDCAD, AUDJPY)
-        raw_asset = t.get("asset", "USDCAD")
-        asset_clean = str(raw_asset).upper().replace("/", "").replace(" ", "").replace("-", "")
+        # Operativa Institucional Exclusiva: USDCAD (Forex 100k Standard Lots)
+        raw_asset = "USDCAD"
+        asset_clean = "USDCAD"
         direction = str(t.get("direction", "BUY")).upper()
 
         sl_pips_val = t.get("sl_pips") or t.get("pips") or (tv_points / 10.0 if tv_points > 50 else tv_points)
@@ -898,38 +898,14 @@ def recalculate_trade_history(trades, config, mode="backtest"):
         except Exception:
             sl_pips_float = 25.0
 
-        if "CAD" in asset_clean:
-            # USDCAD o AUDCAD: 1 pip = 0.0001 CAD; 10 CAD / 1.3850 USDCAD ~= $7.22 USD / pip por lote estándar
-            mult = 72200.0 # 0.0001 diff * 72200 = 7.22 USD por lote
-            pt_mult = 100000.0
-            pip_mult = 10000.0
-            pip_val_usd = 7.22
-            loss_per_lot = sl_pips_float * pip_val_usd if sl_pips_float > 0 else (25.0 * 7.22)
-            if "USD" in asset_clean:
-                # USDCAD: base es USD ($100,000 USD)
-                margin_rate = 100000.0 * 1.0
-            else:
-                # AUDCAD: base es AUD ($100,000 AUD * 0.6550 USD)
-                margin_rate = 100000.0 * 0.6550
-            eff_lev = leverage
-        elif "JPY" in asset_clean:
-            # AUDJPY: 1 pip = 0.01 JPY; 1,000 JPY / 153.80 ~= $6.50 USD / pip por lote estándar
-            mult = 650.0 # 0.01 diff * 650 = 6.50 USD por lote
-            pt_mult = 1000.0
-            pip_mult = 100.0
-            pip_val_usd = 6.50
-            loss_per_lot = sl_pips_float * pip_val_usd if sl_pips_float > 0 else (25.0 * 6.50)
-            margin_rate = 100000.0 * 0.6550
-            eff_lev = leverage
-        else:
-            # Default a USDCAD
-            mult = 72200.0
-            pt_mult = 100000.0
-            pip_mult = 10000.0
-            pip_val_usd = 7.22
-            loss_per_lot = sl_pips_float * pip_val_usd if sl_pips_float > 0 else 180.50
-            margin_rate = 100000.0 * 1.0
-            eff_lev = leverage
+        # USDCAD: 1 pip = 0.0001 CAD; 10 CAD / 1.3850 ~= $7.22 USD / pip por lote estándar
+        mult = 72200.0 # 0.0001 diff * 72200 = 7.22 USD por lote
+        pt_mult = 100000.0
+        pip_mult = 10000.0
+        pip_val_usd = 7.22
+        loss_per_lot = sl_pips_float * pip_val_usd if sl_pips_float > 0 else (25.0 * 7.22)
+        margin_rate = 100000.0 * 1.0 # Base es USD ($100,000 USD por lote)
+        eff_lev = leverage
 
         # Reference lot size based on symbol (points for Gold, pips for Forex)
         interest_mode = str(config.get("interest_mode") or config.get("risk_mode") or "compound").lower()
