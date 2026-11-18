@@ -1,5 +1,5 @@
 {
-  "week_label": "Semana Operativa USDCAD · Macro EE.UU. & Canadá (Killzone New York)",
+  "week_label": "Semana Operativa XAU/USD · Macro EE.UU. & Dólar (Killzone New York Oro 08:00 – 11:30 ET)",
   "week_start": "2026-11-16",
   "week_end": "2026-11-20",
   "timezone": "America/New_York (UTC-5)",
@@ -9,10 +9,10 @@
       "day_name": "Lunes",
       "day_short": "LUN",
       "impact_level": "HIGH",
-      "badge_text": "🔴 ISM MANUFACTURERO (EE.UU.)",
+      "badge_text": "🔴 ISM MANUFACTURERO DE EE.UU.",
       "events": [
         {
-          "id": "news_usdcad_mon_01",
+          "id": "news_xau_mon_01",
           "time": "09:45 AM NY",
           "currency": "USD",
           "title": "PMI Manufacturero de S&P Global (EE.UU.)",
@@ -20,21 +20,21 @@
           "forecast": "50.5",
           "previous": "49.8",
           "actual": "50.8",
-          "impact_usdcad": "Lectura preliminar de la actividad fabril estadounidense. Cifras por encima de 50 indican expansión del sector manufacturero, fortaleciendo al Dólar frente al Dólar Canadiense.",
-          "impact_gold": "Impacto moderado en la demanda de dólares en la primera hora de Wall Street.",
-          "rule_action": "Monitorear spreads en la apertura de New York. Spreads normales en USDCAD (0.6 - 0.9 pips)."
+          "impact_usd": "Lectura preliminar de la actividad fabril estadounidense. Cifras superiores a 50 indican expansión, fortaleciendo al Dólar.",
+          "impact_gold": "Presión bajista moderada sobre XAU/USD por demanda en billete verde en la primera hora de Wall Street.",
+          "rule_action": "Monitorear spreads en apertura de COMEX. Spreads normales en XAU/USD: 1.0 - 1.8 pips ($0.10 - $0.18)."
         },
         {
-          "id": "news_usdcad_mon_02",
+          "id": "news_xau_mon_02",
           "time": "10:00 AM NY",
           "currency": "USD",
           "title": "ISM PMI Manufacturero de EE.UU.",
           "impact": "HIGH",
           "forecast": "49.5",
           "previous": "48.6",
-          "actual": "--",
-          "impact_usdcad": "Indicador líder de salud industrial en EE.UU. Lecturas superiores al consenso fortalecen al USD impulsando compras en USDCAD (+25 a +45 pips). Lecturas contractivas (<48) presionan a USDCAD a la baja.",
-          "impact_gold": "Cae en plena Killzone de New York. Genera volatilidad en tasas y materias primas.",
+          "actual": "49.2",
+          "impact_usd": "Indicador líder de salud industrial en EE.UU. Si supera el consenso, fortalece al USD elevando rendimientos de bonos del Tesoro.",
+          "impact_gold": "Genera desplazamientos de $8 a $15 por onza en plena Killzone de NY. Lecturas contractivas (<49) disparan compras en XAU/USD.",
           "rule_action": "⚠️ Pausa Táctica Orion Funded: Cero órdenes de 09:58 a 10:02 AM NY en cuenta fondeada. Esperar vela M5 cerrada."
         }
       ]
@@ -43,34 +43,21 @@
       "date": "2026-11-17",
       "day_name": "Martes",
       "day_short": "MAR",
-      "impact_level": "CRITICAL",
-      "badge_text": "💥 IPC DE CANADÁ & JOLTS EE.UU.",
+      "impact_level": "HIGH",
+      "badge_text": "🔴 VENTAS MINORISTAS DE EE.UU. (RETAIL SALES)",
       "events": [
         {
-          "id": "news_usdcad_tue_01",
+          "id": "news_xau_tue_01",
           "time": "08:30 AM NY",
-          "currency": "CAD",
-          "title": "IPC de Canadá (Índice de Precios al Consumidor / Inflación BoC)",
-          "impact": "CRITICAL",
-          "forecast": "+2.4% a/a",
-          "previous": "+2.5% a/a",
-          "actual": "--",
-          "impact_usdcad": "El dato de inflación rector para el Banco de Canadá (BoC). Un IPC canadiense más caliente de lo esperado reduce expectativas de recortes de tipos del BoC, fortaleciendo agresivamente al CAD y desplomando a USDCAD (-40 a -70 pips). Un IPC frío desata compras en USDCAD.",
-          "impact_gold": "Impacto en expectativas de política monetaria en Norteamérica.",
-          "rule_action": "⛔ Bloqueo Estricto Orion Funded: Prohibido abrir, cerrar o modificar órdenes de 08:28 a 08:32 AM NY."
-        },
-        {
-          "id": "news_usdcad_tue_02",
-          "time": "10:00 AM NY",
           "currency": "USD",
-          "title": "Encuesta de Ofertas de Empleo JOLTS de EE.UU.",
+          "title": "Ventas Minoristas Subyacentes m/m (EE.UU.)",
           "impact": "HIGH",
-          "forecast": "7.90M",
-          "previous": "8.04M",
-          "actual": "--",
-          "impact_usdcad": "Medición clave de vacantes laborales de la Fed. Si las vacantes superan los 8M, ratifica la resiliencia económica de EE.UU. e impulsa al USD frente al CAD (+20 a +35 pips).",
-          "impact_gold": "Termómetro vital de la Fed para el empleo en EE.UU.",
-          "rule_action": "⚠️ Pausa Táctica 09:58 a 10:02 AM NY. Respetar regla estricta de noticias de cuenta fondeada."
+          "forecast": "+0.3%",
+          "previous": "+0.5%",
+          "actual": "+0.4%",
+          "impact_usd": "Mide el 70% de la economía de EE.UU. impulsada por el consumo. Ventas fuertes alejan recortes de tasas de la Fed en el CME FedWatch.",
+          "impact_gold": "Reacción violenta en XAU/USD coincidiendo con el Pre-Mercado / apertura de COMEX a las 08:30 AM NY (movimientos de $12 a $20).",
+          "rule_action": "⚠️ Ventana Crítica Orion: Prohibido abrir o modificar trades de 08:28 a 08:32 AM NY. Esperar mitigación en velas de 5 minutos."
         }
       ]
     },
@@ -78,60 +65,34 @@
       "date": "2026-11-18",
       "day_name": "Miércoles",
       "day_short": "MIÉ",
-      "impact_level": "CRITICAL",
-      "badge_text": "🔥 DECISIÓN TIPOS BOC & INVENTARIOS PETRÓLEO",
+      "impact_level": "EXTREME",
+      "badge_text": "🔴 DECISIÓN DE TIPOS DE INTERÉS FOMC / FED & POWELL",
       "events": [
         {
-          "id": "news_usdcad_wed_01",
-          "time": "08:15 AM NY",
+          "id": "news_xau_wed_01",
+          "time": "02:00 PM NY",
           "currency": "USD",
-          "title": "Informe de Empleo No Agrícola ADP de EE.UU.",
+          "title": "Decisión de Tasas de Interés de la Reserva Federal (FOMC)",
           "impact": "HIGH",
-          "forecast": "145K",
-          "previous": "143K",
+          "forecast": "3.75% – 4.00%",
+          "previous": "3.75%",
           "actual": "--",
-          "impact_usdcad": "Anticipo de empleo privado antes del NFP. Un número sólido fortalece la demanda del USD en la apertura previa a la Killzone.",
-          "impact_gold": "Anticipo de NFP. Mueve la liquidez en la apertura de New York.",
-          "rule_action": "⚠️ Pausa Táctica: Cero entradas de 08:13 a 08:17 AM NY."
+          "impact_usd": "El catalizador macroeconómico rey para el Dólar. Las probabilidades de la CME FedWatch Tool se ajustan inmediatamente.",
+          "impact_gold": "Desplazamientos de $25 a $50 por onza en XAU/USD. Dilatación severa de spreads en brokers.",
+          "rule_action": "🚨 ALERTA MÁXIMA ORION FUNDED: Bloqueo de 01:58 a 02:02 PM NY. No operar la noticia en cuenta fondeada."
         },
         {
-          "id": "news_usdcad_wed_02",
-          "time": "09:45 AM NY",
-          "currency": "CAD",
-          "title": "Decisión de Tipos de Interés del Banco de Canadá (BoC) & Declaración de Política Monetaria",
-          "impact": "CRITICAL",
-          "forecast": "3.75%",
-          "previous": "4.25%",
-          "actual": "--",
-          "impact_usdcad": "El catalizador institucional de mayor impacto para USDCAD. El anuncio de tipos y la rueda de prensa del Gobernador Tiff Macklem generan latigazos de 50 a 100 pips. Postura dovish (recorte agresivo) dispara compras en USDCAD; tono hawkish fortalece al Loonie.",
-          "impact_gold": "Marca el diferencial de tasas interbancarias de Norteamérica.",
-          "rule_action": "⛔ BLOQUEO TOTAL ORION FUNDED: Prohibido operar de 09:43 a 09:47 AM NY. Esperar 15 minutos de absorción tras el comunicado."
-        },
-        {
-          "id": "news_usdcad_wed_03",
-          "time": "10:00 AM NY",
+          "id": "news_xau_wed_02",
+          "time": "02:30 PM NY",
           "currency": "USD",
-          "title": "ISM PMI del Sector Servicios de EE.UU.",
+          "title": "Rueda de Prensa del Presidente de la Fed Jerome Powell",
           "impact": "HIGH",
-          "forecast": "53.8",
-          "previous": "54.9",
+          "forecast": "--",
+          "previous": "--",
           "actual": "--",
-          "impact_usdcad": "El sector servicios representa más del 70% del PIB de EE.UU. Datos en expansión (>53) apoyan la fortaleza del Dólar estadounidense frente al Dólar Canadiense.",
-          "impact_gold": "Genera movimiento en rendimientos del Tesoro y DXY.",
-          "rule_action": "⚠️ Pausa Táctica: No tener órdenes pendientes abiertas a las 09:59 NY."
-        },
-        {
-          "id": "news_usdcad_wed_04",
-          "time": "10:30 AM NY",
-          "currency": "USD",
-          "title": "Inventarios Semanales de Petróleo Crudo de la EIA",
-          "impact": "HIGH",
-          "forecast": "-1.8M",
-          "previous": "+2.1M",
-          "actual": "--",
-          "impact_usdcad": "Alta correlación con el CAD (Canadá es el principal exportador de crudo a EE.UU.). Una fuerte caída de inventarios dispara el crudo WTI y fortalece al CAD, empujando a USDCAD a la baja. Aumento de reservas debilita al CAD.",
-          "impact_gold": "Influye en expectativas de inflación energética.",
-          "rule_action": "⚠️ Monitorear ventana 10:28 a 10:32 AM NY. Posible desplazamiento rápido de 20 a 35 pips en USDCAD."
+          "impact_usd": "Cada declaración sobre inflación y mercado laboral sacude la curva de rendimientos de los bonos soberanos de EE.UU.",
+          "impact_gold": "Movimientos de doble barrida de liquidez (whipsaws) en máximos y mínimos diarios de XAU/USD.",
+          "rule_action": "Recomendación institucional: Esperar cierre de sesión o estabilidad tras las 03:00 PM NY."
         }
       ]
     },
@@ -140,46 +101,33 @@
       "day_name": "Jueves",
       "day_short": "JUE",
       "impact_level": "HIGH",
-      "badge_text": "🔴 JOBLESS CLAIMS EE.UU. & IVEY PMI CANADÁ",
+      "badge_text": "🔴 PETICIONES SEMANALES DE SUBSIDIO POR DESEMPLEO & PPI",
       "events": [
         {
-          "id": "news_usdcad_thu_01",
+          "id": "news_xau_thu_01",
           "time": "08:30 AM NY",
           "currency": "USD",
-          "title": "Nuevas Peticiones de Subsidio por Desempleo (Jobless Claims EE.UU.)",
+          "title": "Nuevas Peticiones de Subsidio por Desempleo (EE.UU.)",
           "impact": "HIGH",
-          "forecast": "220K",
-          "previous": "218K",
+          "forecast": "218K",
+          "previous": "221K",
           "actual": "--",
-          "impact_usdcad": "Termómetro semanal del mercado laboral estadounidense. Peticiones menores al consenso fortalecen al USD frente al CAD (+15 a +30 pips); aumentos (>235K) debilitan al USD.",
-          "impact_gold": "Monitorea la estabilidad laboral semanal de EE.UU.",
-          "rule_action": "⛔ Bloqueo en Fondeado Orion: 08:28 a 08:32 AM NY."
+          "impact_usd": "Termómetro semanal del empleo en EE.UU. Un aumento de peticiones debilita al Dólar.",
+          "impact_gold": "Peticiones por encima de 230K provocan impulsos alcistas directos en el Oro por caída de rendimientos.",
+          "rule_action": "⚠️ Regla de 2 Minutos: Sin órdenes de 08:28 a 08:32 AM NY."
         },
         {
-          "id": "news_usdcad_thu_02",
+          "id": "news_xau_thu_02",
           "time": "08:30 AM NY",
-          "currency": "CAD",
-          "title": "Balanza Comercial de Mercancías de Canadá",
-          "impact": "MEDIUM",
-          "forecast": "-0.9B",
-          "previous": "-1.1B",
-          "actual": "--",
-          "impact_usdcad": "Mide el saldo entre importaciones y exportaciones de Canadá. Un superávit o déficit menor refleja mayor entrada neta de divisas hacia el CAD.",
-          "impact_gold": "Flujos comerciales bilaterales EE.UU. - Canadá.",
-          "rule_action": "Coincide a las 08:30 AM con Jobless Claims. Precaución por choque simultáneo de datos Norteamérica."
-        },
-        {
-          "id": "news_usdcad_thu_03",
-          "time": "10:00 AM NY",
-          "currency": "CAD",
-          "title": "Índice de Gerentes de Compras Ivey PMI de Canadá",
+          "currency": "USD",
+          "title": "Índice de Precios al Productor (PPI) de EE.UU.",
           "impact": "HIGH",
-          "forecast": "53.5",
-          "previous": "52.0",
+          "forecast": "+0.2%",
+          "previous": "+0.1%",
           "actual": "--",
-          "impact_usdcad": "Barómetro líder de la economía canadiense. Lecturas superiores a 54 indican sólida expansión, fortaleciendo al CAD y presionando a la baja el par USDCAD.",
-          "impact_gold": "Sentimiento económico en América del Norte.",
-          "rule_action": "⚠️ Pausa Táctica Orion: 09:58 a 10:02 AM NY."
+          "impact_usd": "Presión inflacionaria mayorista que anticipa el IPC futuro.",
+          "impact_gold": "Inflación al productor moderada alivia el DXY y permite expansión alcista en XAU/USD.",
+          "rule_action": "Filtrar entrada en M5 esperando confirmación post-publicación."
         }
       ]
     },
@@ -187,47 +135,34 @@
       "date": "2026-11-20",
       "day_name": "Viernes",
       "day_short": "VIE",
-      "impact_level": "CRITICAL",
-      "badge_text": "💥 SUPER VIERNES LABORAL: NFP EE.UU. + EMPLEO CANADÁ",
+      "impact_level": "HIGH",
+      "badge_text": "🔴 NÓMINAS NO AGRÍCOLAS (NFP) & TASA DE DESEMPLEO",
       "events": [
         {
-          "id": "news_usdcad_fri_01",
+          "id": "news_xau_fri_01",
           "time": "08:30 AM NY",
           "currency": "USD",
-          "title": "NFP (Nóminas No Agrícolas de EE.UU.) & Tasa de Desempleo",
-          "impact": "CRITICAL",
-          "forecast": "175K / 4.1%",
-          "previous": "254K / 4.1%",
-          "actual": "--",
-          "impact_usdcad": "El catalizador macroeconómico más influyente a nivel global. Publicado simultáneamente a las 08:30 AM con los datos laborales de Canadá. Una sorpresa positiva en EE.UU. combinada con debilidad en Canadá detona subidas explosivas en USDCAD (+60 a +110 pips).",
-          "impact_gold": "El evento macro más influyente del mes a nivel global.",
-          "rule_action": "⛔ BLOQUEO ESTRICTO ORION FUNDED: 08:28 a 08:32 AM NY. Prohibido ejecutar en la apertura del dato; esperar 15 minutos (08:45 NY) para estabilización de spreads."
-        },
-        {
-          "id": "news_usdcad_fri_02",
-          "time": "08:30 AM NY",
-          "currency": "CAD",
-          "title": "Informe Laboral de Canadá (Cambio Neto en el Empleo & Desempleo)",
-          "impact": "CRITICAL",
-          "forecast": "+25.0K / 6.5%",
-          "previous": "+46.7K / 6.5%",
-          "actual": "--",
-          "impact_usdcad": "Publicado exactamente al mismo tiempo que el NFP de EE.UU. Creación neta de empleo por encima de lo esperado en Canadá impulsa compras institucionales de CAD, contrayendo el par USDCAD de manera inmediata.",
-          "impact_gold": "Liquidez cruzada de divisas de materias primas.",
-          "rule_action": "⛔ BLOQUEO ESTRICTO: Doble choque laboral de 08:28 a 08:32 AM NY. Esperar vela M5 cerrada antes de operar."
-        },
-        {
-          "id": "news_usdcad_fri_03",
-          "time": "10:00 AM NY",
-          "currency": "USD",
-          "title": "Índice de Confianza del Consumidor de la Universidad de Michigan",
+          "title": "Nóminas No Agrícolas (NFP) de EE.UU.",
           "impact": "HIGH",
-          "forecast": "71.0",
-          "previous": "70.5",
+          "forecast": "175K",
+          "previous": "165K",
           "actual": "--",
-          "impact_usdcad": "Sentimiento del consumidor y expectativas de inflación a 1 y 5 años. Cierra la semana con volatilidad final en la Killzone de New York.",
-          "impact_gold": "Expectativas de inflación y consumo minorista estadounidense.",
-          "rule_action": "⚠️ Pausa Táctica 09:58 a 10:02 AM NY."
+          "impact_usd": "El dato de empleo más influyente del mundo para la Reserva Federal y el Índice Dólar (DXY).",
+          "impact_gold": "El Oro es el activo más reactivo al NFP: expansiones de $30 a $60 por onza en minutos. Volatilidad extrema.",
+          "rule_action": "🚨 PROHIBIDO OPERAR: Bloqueo estricto Orion Funded de 08:28 a 08:32 AM NY. Operar solo tras mitigación a las 09:00 AM NY."
+        },
+        {
+          "id": "news_xau_fri_02",
+          "time": "08:30 AM NY",
+          "currency": "USD",
+          "title": "Tasa de Desempleo de EE.UU.",
+          "impact": "HIGH",
+          "forecast": "4.1%",
+          "previous": "4.1%",
+          "actual": "--",
+          "impact_usd": "Un repunte al 4.2%+ incrementa las apuestas de recortes en el CME FedWatch y tira abajo al Dólar.",
+          "impact_gold": "Desencadena rallies alcistas inmediatos en el oro físico y futuros COMEX.",
+          "rule_action": "Confirmar absorción en POI M5 tras calmar el spread inicial."
         }
       ]
     }

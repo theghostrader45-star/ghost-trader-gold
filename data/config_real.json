@@ -1,14 +1,16 @@
 {
-  "account_type": "Cuenta Real Personal (TradingView USDCAD)",
-  "broker": "TradingView",
-  "initial_balance": 107.83,
+  "account_type": "Cuenta Real Personal (XAU/USD TradingView)",
+  "broker": "TradingView / MetaTrader 5",
+  "initial_balance": 1000.0,
   "risk_pct": 1.0,
-  "leverage": 300.0,
+  "leverage": 100.0,
   "rr_ratio": 2.8,
   "currency": "USD",
-  "asset": "USDCAD",
-  "asset_name": "USDCAD (USD/CAD)",
-  "contract_size": 100000,
+  "asset": "XAUUSD",
+  "asset_name": "XAU/USD (Oro Spot / Dólar)",
+  "contract_size": 100,
   "sl_default": 25.0,
-  "sl_pips": 25.0
+  "sl_pips": 25.0,
+  "sl_points": 250,
+  "tp_points": 700
 }

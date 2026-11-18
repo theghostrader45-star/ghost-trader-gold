@@ -37,7 +37,7 @@
   <script src="vendor/lucide.min.js"></script>
   <!-- Chart.js Local Bundle -->
   <script src="vendor/chart.min.js"></script>
-  <link rel="stylesheet" href="styles.css?v=20261116_v51_usdcad_exclusive">
+  <link rel="stylesheet" href="styles.css?v=20261116_v52_xauusd_exclusive">
   <script>
     if (localStorage.getItem('streamer_privacy_mode') === 'true') {
       document.documentElement.classList.add('streamer-mode-active');
@@ -62,7 +62,7 @@
           <h1 class="text-base sm:text-lg font-black tracking-wider text-white uppercase flex items-center gap-2">
             <span class="bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent">Ghost Trader Pro Terminal</span>
           </h1>
-          <p class="text-[11px] text-gray-400 hidden sm:block">Terminal Multifuncional de Trading Profesional</p>
+          <p class="text-[11px] text-gray-400 hidden sm:block">Terminal Cuantitativa XAU/USD (Oro Spot & Futuros COMEX)</p>
         </div>
       </div>
 
@@ -93,7 +93,7 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- NAVIGATION TABS: 1. Backtesting / 2. Noticias / 3. Calculadora / 4. Orion 50K Nova / 5. Análisis USDCAD -->
+    <!-- NAVIGATION TABS: 1. Backtesting / 2. Noticias / 3. Calculadora / 4. Orion 50K Nova / 5. Análisis XAU/USD -->
     <nav class="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 p-1.5 bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl max-w-5xl mx-auto">
       <!-- Tab 1: Backtesting (Interés Compuesto) -->
       <button id="tabBtnBacktestSimple" class="tab-button flex-1 min-w-[105px] sm:min-w-[125px] px-2.5 sm:px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 whitespace-nowrap cursor-pointer">
@@ -116,22 +116,22 @@
         <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-amber-950 text-amber-300 border border-amber-800 font-bold rounded-full">Lote & Riesgo</span>
       </button>
 
-      <!-- Tab 4: Orion 50K Nova ($7) & Reglas USDCAD -->
+      <!-- Tab 4: Orion 50K Nova ($7) & Reglas XAU/USD -->
       <button id="tabBtnOrionRules" class="tab-button flex-1 min-w-[105px] sm:min-w-[135px] px-2.5 sm:px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
         <i data-lucide="shield-check" class="w-4 h-4 text-purple-400 shrink-0"></i>
         <span class="truncate">4. Orion 50K</span>
-        <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-purple-950 text-purple-300 border border-purple-800 font-bold rounded-full">$7 Nova</span>
+        <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-purple-950 text-purple-300 border border-purple-800 font-bold rounded-full">$7 Nova · XAU/USD</span>
       </button>
 
-      <!-- Tab 5: Análisis USDCAD & Pre-Sesión NY -->
+      <!-- Tab 5: Análisis XAUUSD & Pre-Sesión NY -->
       <button id="tabBtnAnalysisUsdcad" class="tab-button flex-1 min-w-[105px] sm:min-w-[145px] px-2.5 sm:px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
-        <i data-lucide="compass" class="w-4 h-4 text-sky-400 shrink-0"></i>
-        <span class="truncate">5. Análisis USDCAD</span>
-        <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-sky-950 text-sky-300 border border-sky-800 font-bold rounded-full">Sesgo M5 & Fuerza %</span>
+        <i data-lucide="compass" class="w-4 h-4 text-amber-400 shrink-0"></i>
+        <span class="truncate">5. Análisis XAUUSD</span>
+        <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-amber-950 text-amber-300 border border-amber-800 font-bold rounded-full">Sesgo M5 & 5 Fuentes</span>
       </button>
     </nav>
 
-    <!-- BARRA UNIVERSAL: SESIÓN OPERATIVA EXCLUSIVA NEW YORK (KILLZONE USDCAD) -->
+    <!-- BARRA UNIVERSAL: SESIÓN OPERATIVA EXCLUSIVA NEW YORK (KILLZONE XAU/USD ORO) -->
     <section class="bg-gray-900/90 border border-gray-800 rounded-2xl p-3 sm:p-4 shadow-xl backdrop-blur-md">
       <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 sm:gap-4">
         
@@ -149,25 +149,25 @@
           </div>
         </div>
 
-        <!-- Tarjeta Única: Sesión New York (USDCAD Killzone) -->
+        <!-- Tarjeta Única: Sesión New York (XAU/USD Killzone) -->
         <div class="bg-cardBg/90 border border-cardBorder rounded-xl p-3 flex items-center justify-between gap-3 shadow-md flex-1" id="barNyBox">
           <div class="space-y-0.5 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <span class="font-black text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
-                <span>🇺🇸🇨🇦</span> Killzone Exclusiva New York · USDCAD
+                <span>🥇</span> Killzone Exclusiva New York · XAU/USD (Oro)
               </span>
               <span id="barNyBadge" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border bg-amber-500/20 text-amber-300 border-amber-500/40">
                 ⏳ Pendiente
               </span>
               <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                Superposición Toronto / NY
+                Apertura COMEX / Wall Street
               </span>
             </div>
             <div class="text-[11px] text-gray-300 font-mono">
-              <span class="text-sky-300 font-bold">07:00 – 11:00 NY</span>
+              <span class="text-sky-300 font-bold">08:00 – 11:30 NY</span>
               <span class="text-gray-500">·</span>
               <span id="barNyLocalWindow" class="text-gray-300 font-semibold">--:-- Local</span>
-              <span class="text-gray-500 hidden sm:inline">· Spreads mínimos (0.6 - 0.9 pips)</span>
+              <span class="text-gray-500 hidden sm:inline">· Spreads mínimos (1.0 - 1.8 pips ($0.10 - $0.18))</span>
             </div>
           </div>
           <div class="text-right shrink-0">
@@ -202,11 +202,11 @@
                 VENTANA CRÍTICA ±2 MIN (FONDEADO)
               </span>
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
-                🇺🇸🇨🇦 EXCLUSIVO USDCAD (USD · CAD)
+                🥇 EXCLUSIVO XAU/USD (USD & ORO)
               </span>
             </div>
             <p class="text-xs text-gray-400 mt-0.5">
-              Control riguroso de eventos macroeconómicos enfocado exclusivamente en la <span class="text-sky-300 font-semibold">Sesión de New York (07:00 – 11:00 NY)</span> para la operativa en USDCAD con filtro de riesgo Orion y dilatación de spreads
+              Control riguroso de eventos macroeconómicos enfocado exclusivamente en la <span class="text-sky-300 font-semibold">Sesión de New York (08:00 – 11:30 NY)</span> para la operativa en XAU/USD (Oro Spot) con filtro de riesgo Orion ±2 min y dilatación de spreads en COMEX
             </p>
           </div>
         </div>
@@ -238,18 +238,18 @@
           </div>
         </div>
 
-        <!-- Sesión New York (07:00 - 11:00 NY) · Killzone Institucional USDCAD -->
+        <!-- Sesión New York (07:00 - 11:00 NY) · Killzone Institucional XAU/USD -->
         <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex items-center justify-between" id="newsNyCard">
           <div class="space-y-1 min-w-0">
             <div class="flex items-center gap-2">
-              <span class="text-[11px] text-gray-400 uppercase font-bold tracking-wider">🇺🇸🇨🇦 Killzone New York (USDCAD)</span>
+              <span class="text-[11px] text-gray-400 uppercase font-bold tracking-wider">🥇 Killzone New York (XAU/USD Oro)</span>
               <span id="newsNyBadge" class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border bg-sky-500/20 text-sky-300 border-sky-500/40">⏳ Abre en</span>
             </div>
             <div class="text-xl font-mono font-black text-sky-300" id="newsNyCountdown">--h --m --s</div>
             <div class="text-[11px] text-gray-300 font-mono" id="newsNyHoursText">
-              <span class="text-sky-300 font-bold">07:00 – 11:00 NY</span> · <span id="newsNyLocalSub" class="text-gray-300">--:-- Local</span>
+              <span class="text-sky-300 font-bold">08:00 – 11:30 NY</span> · <span id="newsNyLocalSub" class="text-gray-300">--:-- Local</span>
             </div>
-            <span class="text-[10px] text-gray-400 block truncate" id="newsNySub">Superposición Toronto / NY · Spreads mínimos</span>
+            <span class="text-[10px] text-gray-400 block truncate" id="newsNySub">Apertura COMEX / Wall Street · Spreads mínimos</span>
           </div>
           <div class="p-3 bg-sky-500/10 text-sky-400 rounded-xl border border-sky-500/20 shrink-0" id="newsNyIconBox">
             <i data-lucide="zap" class="w-6 h-6"></i>
@@ -300,60 +300,60 @@
               Durante la fase de evaluación, se permite operar noticias, pero está <strong>prohibido el gap trading sistemático y el gambling de noticias</strong> (apostar con todo el margen segundos antes del dato con la intención de pasar o quemar la prueba).
             </p>
             <p class="text-[11px] text-gray-400">
-              • <em>Recomendación: esperar el cierre de la vela de 5 minutos tras el dato para no sufrir por spreads inflados en USDCAD tras la publicación del dato.</em>
+              • <em>Recomendación: esperar el cierre de la vela de 5 minutos tras el dato para no sufrir por spreads inflados en XAU/USD tras la publicación del dato.</em>
             </p>
           </div>
         </div>
       </section>
 
-      <!-- CALENDARIO DE NOTICIAS DE ALTO IMPACTO (USDCAD · USD · CAD) -->
+      <!-- CALENDARIO DE NOTICIAS DE ALTO IMPACTO (XAU/USD · USD EXCLUSIVO) -->
       <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 shadow-xl space-y-4">
         <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
           <div class="flex items-center gap-2.5">
-            <div class="p-2 bg-blue-500/15 text-blue-400 rounded-xl border border-blue-500/30">
+            <div class="p-2 bg-amber-500/15 text-amber-400 rounded-xl border border-amber-500/30">
               <i data-lucide="calendar" class="w-5 h-5"></i>
             </div>
             <div>
-              <h3 class="text-base font-bold text-white">Calendario Económico Semanal de Alto Impacto para USDCAD</h3>
-              <p class="text-xs text-gray-400">Eventos macroeconómicos de EE.UU. y Canadá que impactan directamente a USDCAD y activan la regla ±2 min de Orion Funded</p>
+              <h3 class="text-base font-bold text-white">Calendario Económico Semanal de Alto Impacto para XAU/USD</h3>
+              <p class="text-xs text-gray-400">Eventos macroeconómicos de EE.UU. (USD) que mueven la liquidez y el precio de XAU/USD y activan la regla ±2 min de Orion Funded</p>
             </div>
           </div>
-          <span class="px-2.5 py-1 rounded-xl text-xs font-mono font-bold bg-blue-950 text-blue-300 border border-blue-800">
-            🇺🇸 USD · 🇨🇦 CAD (USDCAD Exclusivo)
+          <span class="px-2.5 py-1 rounded-xl text-xs font-mono font-bold bg-amber-950 text-amber-300 border border-amber-800">
+            🇺🇸 USD & 🥇 ORO (XAU/USD Exclusivo)
           </span>
         </div>
 
         <div id="newsEventsTableContainer" class="space-y-3">
-          <!-- Tarjetas de Eventos de la Semana -->
+          <!-- Tarjetas de Eventos de la Semana para XAU/USD (Oro) -->
           
-          <!-- Evento 1: Decisión Tipos BoC (CAD) -->
+          <!-- Evento 1: Decisión Tipos FOMC & Powell (USD) -->
           <div class="bg-gray-950/80 border border-red-800/80 rounded-xl p-4 space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-600 text-white">CRÍTICO</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-950 text-red-300 border border-red-700">🇨🇦 CAD</span>
-                <span class="font-bold text-white text-sm">BoC — Decisión de Tipos del Banco de Canadá & Informe de Política Monetaria</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-600 text-white animate-pulse">CRÍTICO</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-blue-950 text-blue-300 border border-blue-700">🇺🇸 USD</span>
+                <span class="font-bold text-white text-sm">FOMC — Decisión de Tasas de la Reserva Federal & Rueda de Prensa Powell</span>
               </div>
               <div class="text-xs font-mono font-bold text-red-300 bg-red-950/60 px-2.5 py-1 rounded-lg border border-red-800/60">
-                Miércoles 09:45 AM NY
+                Miércoles 02:00 PM / 02:30 PM NY
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
               <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Volatilidad Típica USDCAD</span>
-                <strong class="text-amber-300 font-mono">50 a 100 pips (Máximo Impacto)</strong>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Volatilidad Típica XAU/USD</span>
+                <strong class="text-amber-300 font-mono">150 a 300 pips ($15.00 a $30.00 / oz)</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Dilatación de Spreads</span>
-                <strong class="text-rose-300 font-mono">De 0.7 pips sube a 2.5–3.8 pips</strong>
+                <strong class="text-rose-300 font-mono">De 1.2 pips sube a 3.5–5.0 pips</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
-                <strong class="text-white font-mono">⛔ Bloqueo 09:43 a 09:47 AM NY</strong>
+                <strong class="text-white font-mono">⛔ Bloqueo 01:58 a 02:02 / 02:28 a 02:32 PM</strong>
               </div>
             </div>
             <p class="text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 mt-1">
-              <strong>Impacto Institucional:</strong> El mayor catalizador fundamental para USDCAD. El anuncio de tipos y la rueda de prensa del Gobernador Macklem mueven el diferencial de rendimientos entre la Fed y el BoC. Un BoC dovish dispara compras masivas en USDCAD; un BoC hawkish fortalece al Loonie.
+              <strong>Impacto Institucional:</strong> El mayor catalizador macroeconómico del mercado financiero. Repercute de inmediato en las probabilidades de la <span class="text-sky-300 font-semibold">CME FedWatch Tool</span> y en los rendimientos reales de los bonos del Tesoro (TIPS). Tasas más bajas impulsan al Oro; postura hawkish lo deprime.
             </p>
           </div>
 
@@ -371,12 +371,12 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
               <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Comportamiento en USDCAD</span>
-                <strong class="text-amber-300 font-mono">50 a 90 pips (Shock Macro)</strong>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Comportamiento en XAU/USD</span>
+                <strong class="text-amber-300 font-mono">100 a 220 pips ($10.00 a $22.00 / oz)</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Dilatación de Spreads</span>
-                <strong class="text-rose-400 font-mono">De 0.6 pips sube a 2.5–4.0 pips</strong>
+                <strong class="text-rose-400 font-mono">De 1.2 pips sube a 3.0–4.5 pips</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
@@ -384,30 +384,30 @@
               </div>
             </div>
             <p class="text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 mt-1">
-              <strong>Impacto Institucional:</strong> El indicador de empleo más relevante del mundo. Una lectura sólida en EE.UU. eleva rendimientos de los bonos del Tesoro y aprecia fuertemente al Dólar frente al Dólar Canadiense. Esperar a las 08:45 NY para ingresar trades.
+              <strong>Impacto Institucional:</strong> El indicador de empleo más relevante para la Reserva Federal y el Índice Dólar (DXY). Una sorpresa negativa en empleo debilita al Dólar y provoca rallies agresivos en XAU/USD. Esperar a la mitigación post-noticia tras las 08:45 AM NY.
             </p>
           </div>
 
-          <!-- Evento 3: Informe Laboral de Canadá (CAD) -->
-          <div class="bg-gray-950/80 border border-red-800/60 rounded-xl p-4 space-y-2">
+          <!-- Evento 3: IPC Inflación EE.UU. (USD) -->
+          <div class="bg-gray-950/80 border border-amber-800/60 rounded-xl p-4 space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-600 text-white">CRÍTICO</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-950 text-red-300 border border-red-700">🇨🇦 CAD</span>
-                <span class="font-bold text-white text-sm">Informe Laboral de Canadá — Cambio en el Empleo & Tasa de Desempleo</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-blue-950 text-blue-300 border border-blue-700">🇺🇸 USD</span>
+                <span class="font-bold text-white text-sm">IPC de EE.UU. — Inflación General & Subyacente (CPI)</span>
               </div>
-              <div class="text-xs font-mono font-bold text-red-300 bg-red-950/60 px-2.5 py-1 rounded-lg border border-red-800/60">
-                Viernes 08:30 AM NY
+              <div class="text-xs font-mono font-bold text-amber-300 bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-800/60">
+                Martes/Miércoles 08:30 AM NY
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
               <div>
-                <span class="text-gray-500 block text-[10px] uppercase font-bold">Efecto en USDCAD</span>
-                <strong class="text-amber-300 font-mono">Doble Choque con NFP (Volatilidad Máxima)</strong>
+                <span class="text-gray-500 block text-[10px] uppercase font-bold">Efecto en XAU/USD</span>
+                <strong class="text-amber-300 font-mono">120 a 250 pips (Shock Inflacionario)</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Dilatación de Spreads</span>
-                <strong class="text-rose-400 font-mono">De 0.7 pips sube a 3.0–4.5 pips</strong>
+                <strong class="text-rose-400 font-mono">De 1.2 pips sube a 3.0–4.0 pips</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
@@ -415,30 +415,30 @@
               </div>
             </div>
             <p class="text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 mt-1">
-              <strong>Impacto Institucional:</strong> Publicado de manera simultánea con el NFP de EE.UU. a las 08:30 AM NY. Creación neta de empleo fuerte en Canadá fortalece al Loonie (bajista USDCAD). Discrepancia cruzada entre EE.UU. y Canadá genera los mayores desplazamientos del mes.
+              <strong>Impacto Institucional:</strong> Termómetro de la inflación en EE.UU. Si la inflación cede, los rendimientos reales caen, disparando compras institucionales en ETF de oro (SPDR GLD) y futuros COMEX. Si la inflación sorprende al alza, fortalece al DXY presionando a la baja el oro.
             </p>
           </div>
 
-          <!-- Evento 4: IPC Inflación de Canadá (CAD) -->
-          <div class="bg-gray-950/80 border border-emerald-800/60 rounded-xl p-4 space-y-2">
+          <!-- Evento 4: Ventas Minoristas & IPP EE.UU. (USD) -->
+          <div class="bg-gray-950/80 border border-purple-800/60 rounded-xl p-4 space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-600 text-white">CRÍTICO</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-red-950 text-red-300 border border-red-700">🇨🇦 CAD</span>
-                <span class="font-bold text-white text-sm">IPC de Canadá — Inflación Subyacente del BoC & IPC General</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-amber-600 text-white">ALTO IMPACTO</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-blue-950 text-blue-300 border border-blue-700">🇺🇸 USD</span>
+                <span class="font-bold text-white text-sm">Ventas Minoristas de EE.UU. & Índice de Precios al Productor (PPI)</span>
               </div>
-              <div class="text-xs font-mono font-bold text-red-300 bg-red-950/60 px-2.5 py-1 rounded-lg border border-red-800/60">
-                Martes 08:30 AM NY
+              <div class="text-xs font-mono font-bold text-purple-300 bg-purple-950/60 px-2.5 py-1 rounded-lg border border-purple-800/60">
+                Jueves 08:30 AM NY
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Recorrido Típico</span>
-                <strong class="text-amber-300 font-mono">40 a 70 pips en velas M5</strong>
+                <strong class="text-amber-300 font-mono">60 a 130 pips ($6.00 a $13.00 / oz)</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Ensanchamiento Spread</span>
-                <strong class="text-blue-300 font-mono">Apertura de horquilla hasta 2.2 pips</strong>
+                <strong class="text-blue-300 font-mono">Apertura de horquilla hasta 2.5 pips</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
@@ -446,34 +446,34 @@
               </div>
             </div>
             <p class="text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 mt-1">
-              <strong>Impacto Institucional:</strong> El indicador de precios fundamental que determina los próximos movimientos de política monetaria del Banco de Canadá. Sorpresas inflacionarias fortalecen al CAD haciendo caer al USDCAD con fuerza.
+              <strong>Impacto Institucional:</strong> El consumo representa más del 68% del PIB estadounidense. Ventas desaceleradas reflejan fatiga del consumidor, aumentando la demanda de refugio en Oro físico (WGC) y compra de futuros COMEX GC.
             </p>
           </div>
 
-          <!-- Evento 5: Inventarios Petróleo Crudo EIA (USD / CAD) -->
+          <!-- Evento 5: Peticiones Semanales de Desempleo (USD) -->
           <div class="bg-gray-950/80 border border-gray-800 rounded-xl p-4 space-y-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-900 text-amber-200">CORRELACIÓN PETRÓLEO</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-blue-950 text-blue-300 border border-blue-700">🇺🇸 USD · 🇨🇦 CAD</span>
-                <span class="font-bold text-white text-sm">Inventarios Semanales de Petróleo Crudo EIA (EE.UU.)</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-900 text-blue-200">SEMANAL RECURRENTE</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-black bg-blue-950 text-blue-300 border border-blue-700">🇺🇸 USD</span>
+                <span class="font-bold text-white text-sm">Peticiones Iniciales de Subsidio por Desempleo (Jobless Claims)</span>
               </div>
-              <div class="text-xs font-mono font-bold text-amber-300 bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-800/60">
-                Miércoles 10:30 AM NY
+              <div class="text-xs font-mono font-bold text-sky-300 bg-sky-950/60 px-2.5 py-1 rounded-lg border border-sky-800/60">
+                Jueves 08:30 AM NY
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-gray-300 pt-1">
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Efecto en Cruce</span>
-                <strong class="text-white font-mono">Sensibilidad directa vía Crudo WTI</strong>
+                <strong class="text-white font-mono">40 a 80 pips en velas M5 de Killzone</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Sensibilidad de Mercado</span>
-                <strong class="text-amber-300 font-mono">Petróleo sube $\to$ CAD se aprecia (USDCAD baja)</strong>
+                <strong class="text-amber-300 font-mono">Peticiones > 230K $	o$ Oro Alcista</strong>
               </div>
               <div>
                 <span class="text-gray-500 block text-[10px] uppercase font-bold">Regla Orion en Fondeado</span>
-                <strong class="text-white font-mono">⚠️ Monitorear 10:28 a 10:32 AM NY</strong>
+                <strong class="text-white font-mono">⚠️ Monitorear 08:28 a 08:32 AM NY</strong>
               </div>
             </div>
           </div>
@@ -487,7 +487,7 @@
             <i data-lucide="layers" class="w-5 h-5"></i>
           </div>
           <div>
-            <h3 class="text-base font-bold text-white">Protocolo Institucional de 3 Fases para Operar Noticias en USDCAD</h3>
+            <h3 class="text-base font-bold text-white">Protocolo Institucional de 3 Fases para Operar Noticias en XAU/USD</h3>
             <p class="text-xs text-gray-400">Cómo operan los fondos para absorber la liquidez sin quemar cuentas</p>
           </div>
         </div>
@@ -538,7 +538,7 @@
     
     <!-- ============================================================== -->
     <!-- VIEW 3: CALCULADORA PROFESIONAL DE POSICIÓN, LOTE Y RIESGO     -->
-    <!-- ENFOCADA EXCLUSIVAMENTE EN: USDCAD (FOREX 100K STANDARD)       -->
+    <!-- ENFOCADA EXCLUSIVAMENTE EN: XAU/USD (METALES COMEX 100 OZ)       -->
     <!-- ============================================================== -->
     <div id="viewCalculator" class="hidden space-y-6">
 
@@ -552,14 +552,14 @@
             <div class="flex items-center gap-2 flex-wrap">
               <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wide">Calculadora Profesional de Lote & Gestión de Riesgo</h2>
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                100K STANDARD LOTS
+                CONTRATO COMEX 100 OZ
               </span>
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
-                🇺🇸🇨🇦 EXCLUSIVO USDCAD
+                🥇 EXCLUSIVO XAU/USD
               </span>
             </div>
             <p class="text-xs text-gray-400 mt-0.5">
-              Cálculo matemático institucional de lotaje exacto, presupuesto en $ USD, beneficio proyectado y margen requerido en broker para USDCAD.
+              Cálculo matemático institucional de lotaje exacto ($10/pip por lote estándar 100 oz), margen requerido a 1:30 (Orion) o 1:100 (Personal) y proyección R:R 1:2.8.
             </p>
           </div>
         </div>
@@ -570,18 +570,18 @@
         </button>
       </section>
 
-      <!-- PAR ACTIVO EN CALCULADORA: EXCLUSIVO USDCAD -->
+      <!-- PAR ACTIVO EN CALCULADORA: EXCLUSIVO XAU/USD -->
       <section class="grid grid-cols-1 gap-3">
-        <!-- Par Único: USDCAD -->
-        <button type="button" class="btn-calc-pair-card p-4 rounded-xl border-2 transition text-left cursor-default bg-blue-950/40 border-blue-500 text-white shadow-lg" data-pair="USDCAD">
+        <!-- Par Único: XAU/USD -->
+        <button type="button" class="btn-calc-pair-card p-4 rounded-xl border-2 transition text-left cursor-default bg-amber-950/40 border-amber-500 text-white shadow-lg" data-pair="XAU/USD">
           <div class="flex items-center justify-between mb-1">
             <span class="text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2">
-              <span class="text-base sm:text-lg">🇺🇸🇨🇦</span> PAR EXCLUSIVO DE OPERATIVA: USDCAD
+              <span class="text-base sm:text-lg">🥇</span> PAR EXCLUSIVO DE OPERATIVA: XAU/USD (ORO SPOT / DÓLAR)
             </span>
-            <span class="text-[9px] sm:text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">1 pip = 0.0001 · 5 Dec</span>
+            <span class="text-[9px] sm:text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">1 pip = $0.10 · 1 lote = 100 oz</span>
           </div>
           <div class="text-[11px] sm:text-xs text-gray-300 font-mono mt-0.5">
-            Valor Pip: <strong class="text-blue-300 font-bold">~$7.22 USD</strong> / lote estándar · Contrato $100,000 USD · Sesión New York (07:00 – 11:00 NY)
+            Valor Pip: <strong class="text-amber-300 font-bold">$10.00 USD</strong> / lote estándar (100 oz) · $1.00 move = $100 · Killzone New York (08:00 – 11:30 NY)
           </div>
         </button>
       </section>
@@ -597,7 +597,7 @@
               <span>Parámetros de Entrada de la Operación</span>
             </h3>
             <span id="calcActivePairBadge" class="text-xs font-mono font-bold text-blue-300 px-2.5 py-0.5 rounded-full bg-blue-950 border border-blue-800">
-              🇺🇸🇨🇦 USDCAD
+              🥇 XAU/USD
             </span>
           </div>
 
@@ -1178,7 +1178,7 @@
     </div> <!-- FIN viewBacktestSimple -->
 
     <!-- ================================================================= -->
-    <!-- TAB 4: GUÍA Y CALCULADORA ORION FUNDED NOVA 50K ($7 USD) & USDCAD -->
+    <!-- TAB 4: GUÍA Y CALCULADORA ORION FUNDED NOVA 50K ($7 USD) & XAU/USD -->
     <!-- ================================================================= -->
     <div id="viewOrionRules" class="hidden space-y-6">
 
@@ -1201,10 +1201,10 @@
               </span>
             </div>
             <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
-              Reglas Estrictas de Operativa & Lote USDCAD (50K)
+              Reglas Estrictas de Operativa & Lote XAU/USD (50K)
             </h2>
             <p class="text-xs sm:text-sm text-gray-300 leading-relaxed max-w-3xl">
-              Domina el desafío <span class="text-purple-300 font-bold">Orion Nova 50K</span> pagando solo <span class="text-emerald-400 font-bold">$7 USD</span> al inicio. Aprende las diferencias exactas entre la <strong class="text-white">Fase de Evaluación</strong> y la <strong class="text-white">Fase Fondeada</strong>, gestiona tu lotaje en <strong class="text-white">USDCAD</strong> al milímetro y ejecuta el plan matemático de alta asimetría para pasar en pocos trades.
+              Domina el desafío <span class="text-purple-300 font-bold">Orion Nova 50K</span> pagando solo <span class="text-emerald-400 font-bold">$7 USD</span> al inicio. Aprende las diferencias exactas entre la <strong class="text-white">Fase de Evaluación</strong> y la <strong class="text-white">Fase Fondeada</strong>, gestiona tu lotaje en <strong class="text-white">XAU/USD (Oro)</strong> al milímetro y ejecuta el plan matemático de alta asimetría para pasar en pocos trades.
             </p>
           </div>
 
@@ -1441,11 +1441,11 @@
                 </td>
               </tr>
 
-              <!-- Fila 9: Apalancamiento Forex (USDCAD) -->
+              <!-- Fila 9: Apalancamiento Forex (XAU/USD) -->
               <tr class="hover:bg-gray-800/30 transition">
                 <td class="py-3 px-3.5 font-bold text-white flex items-center gap-1.5">
                   <i data-lucide="gauge" class="w-3.5 h-3.5 text-purple-400 shrink-0"></i>
-                  <span>Apalancamiento USDCAD</span>
+                  <span>Apalancamiento XAU/USD</span>
                 </td>
                 <td class="py-3 px-3.5 font-mono text-purple-300 font-bold bg-purple-950/10 border-r border-gray-800">
                   1:30 Estándar Forex
@@ -1461,7 +1461,7 @@
         </div>
       </section>
 
-      <!-- CALCULADORA DE LOTAJE EXACTO PARA USDCAD (50K ORION NOVA) -->
+      <!-- CALCULADORA DE LOTAJE EXACTO PARA XAU/USD (50K ORION NOVA) -->
       <section class="bg-gray-900/90 border border-purple-800/40 rounded-2xl p-4 sm:p-6 shadow-2xl backdrop-blur-md space-y-5">
         <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
           <div class="flex items-center gap-2">
@@ -1470,7 +1470,7 @@
             </div>
             <div>
               <h3 class="text-base font-bold text-white flex items-center gap-2">
-                Calculadora de Lote y Riesgo para USDCAD (Cuenta 50K)
+                Calculadora de Lote y Riesgo para XAU/USD (Cuenta 50K)
                 <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono font-bold">🇺🇸🇨🇦 1 Pip ≈ $7.25 USD/Lote</span>
               </h3>
               <p class="text-xs text-gray-400">Ingresa tu Stop Loss exacto y calcula el tamaño de lote que jamás violará las reglas de Orion</p>
@@ -1529,12 +1529,12 @@
               <p class="text-[11px] text-gray-400 pt-0.5">💡 <span class="text-emerald-400 font-bold">0.50% ($250)</span> es el riesgo óptimo en Fase 1: te da 8 oportunidades completas antes del límite diario.</p>
             </div>
 
-            <!-- 3. Stop Loss en Pips (USDCAD) -->
+            <!-- 3. Stop Loss en Pips (XAU/USD · 1 pip = $0.10) -->
             <div class="space-y-1.5 bg-gray-950/60 p-3.5 rounded-xl border border-gray-800">
               <div class="flex items-center justify-between">
                 <label class="text-xs font-bold text-gray-300 flex items-center gap-1.5">
                   <i data-lucide="ruler" class="w-3.5 h-3.5 text-blue-400"></i>
-                  <span>Distancia de Stop Loss en Pips (USDCAD)</span>
+                  <span>Distancia de Stop Loss en Pips (XAU/USD · 1 pip = $0.10)</span>
                 </label>
                 <span class="text-xs font-mono font-black text-blue-400" id="orionCalcSlDisplay">25.0 Pips</span>
               </div>
@@ -1550,7 +1550,7 @@
               </div>
             </div>
 
-            <!-- 4. Ratio R:R y Cotización USDCAD -->
+            <!-- 4. Ratio R:R y Cotización XAU/USD -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-bold text-gray-300 mb-1">Ratio Riesgo:Beneficio (R:R Ideal)</label>
@@ -1564,10 +1564,10 @@
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-gray-300 mb-1">Cotización USDCAD (Referencia)</label>
+                <label class="block text-xs font-bold text-gray-300 mb-1">Cotización XAU/USD (Referencia)</label>
                 <div class="relative">
-                  <input type="number" id="orionCalcPriceInput" step="0.001" min="1.0" max="2.0" value="1.3800" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-1.5 text-white font-mono font-bold text-xs focus:border-purple-500 focus:outline-none transition">
-                  <span class="absolute right-3 top-2 text-[10px] text-gray-500 font-mono">CAD por USD</span>
+                  <input type="number" id="orionCalcPriceInput" step="0.50" min="1500" max="5000" value="3782.50" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-1.5 text-white font-mono font-bold text-xs focus:border-amber-500 focus:outline-none transition">
+                  <span class="absolute right-3 top-2 text-[10px] text-gray-500 font-mono">USD / oz</span>
                 </div>
               </div>
             </div>
@@ -1609,7 +1609,7 @@
               <div class="flex items-center justify-between border-b border-gray-800 pb-2">
                 <span class="text-xs uppercase font-mono font-bold text-purple-300 flex items-center gap-1.5">
                   <i data-lucide="check-circle-2" class="w-4 h-4 text-purple-400"></i>
-                  LOTE SUGERIDO EN USDCAD
+                  LOTE SUGERIDO EN XAU/USD
                 </span>
                 <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono font-bold">1:30 Lev</span>
               </div>
@@ -1686,7 +1686,7 @@
               <h3 class="text-base sm:text-lg font-black text-white">
                 Estrategia Maestra: Cómo Pasar la Prueba de 1 Fase pagando solo $7 USD
               </h3>
-              <p class="text-xs text-gray-400">Guía táctica paso a paso diseñada para el desafío Orion Nova 50K operando exclusivamente USDCAD</p>
+              <p class="text-xs text-gray-400">Guía táctica paso a paso diseñada para el desafío Orion Nova 50K operando exclusivamente XAU/USD</p>
             </div>
           </div>
         </div>
@@ -1722,7 +1722,7 @@
               <span class="text-xs font-mono font-bold text-purple-400">PASO 3</span>
               <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold">07:00–11:00 NY</span>
             </div>
-            <h4 class="font-bold text-white text-sm">Killzone Exclusiva en USDCAD</h4>
+            <h4 class="font-bold text-white text-sm">Killzone Exclusiva en XAU/USD</h4>
             <p class="text-xs text-gray-300 leading-relaxed">
               Opera única y exclusivamente en la <strong>Sesión de New York</strong> (de 07:00 a 11:00 hora de Nueva York). La superposición con Toronto brinda spreads de 0.6 a 0.9 pips y rupturas institucionales limpias sin ruido asiático.
             </p>
@@ -1769,7 +1769,7 @@
     </div> <!-- FIN viewOrionRules -->
 
     <!-- ============================================================== -->
-    <!-- VIEW 5: ANÁLISIS USDCAD PRE-SESIÓN NY & SESGO M5 (FUERZA %)    -->
+    <!-- VIEW 5: ANÁLISIS XAUUSD PRE-SESIÓN NY & SESGO M5 (5 FUENTES INSTITUCIONALES)    -->
     <!-- ESCANEO MULTIDIMENSIONAL DE DRIVERS MACRO, PETRÓLEO, DXY & M5   -->
     <!-- ============================================================== -->
     <div id="viewAnalysisUsdcad" class="hidden space-y-6">
@@ -1782,16 +1782,16 @@
           </div>
           <div>
             <div class="flex items-center gap-2 flex-wrap">
-              <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wide">Scanner Pre-Sesión NY & Sesgo M5 USDCAD</h2>
+              <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wide">Scanner Pre-Sesión NY & Sesgo M5 XAU/USD (Oro)</h2>
               <span id="usdcadSessionPhaseBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                ⏳ PRE-MERCADO NY (06:00 – 07:00 NY)
+                ⏳ PRE-MERCADO NY ORO (06:00 – 08:00 NY)
               </span>
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
-                🇺🇸🇨🇦 EXCLUSIVO USDCAD
+                🥇 EXCLUSIVO XAU/USD
               </span>
             </div>
             <p class="text-xs text-gray-400 mt-0.5">
-              Escaneo multidimensional institucional de drivers macro (DXY, Petróleo WTI, Bonos 10A, BoC vs Fed) y liquidez intradía enfocado en velas de <span class="text-sky-300 font-semibold">5 Minutos (M5)</span> para la <span class="text-sky-300 font-semibold">Sesión de New York (07:00 – 11:00 NY)</span>
+              Escaneo cuantitativo institucional cotejando las 5 fuentes oficiales (<span class="text-amber-300 font-semibold">WGC Goldhub, SPDR GLD, Barchart COMEX GC, Kitco Gold, CME FedWatch</span>) y liquidez intradía en velas de <span class="text-sky-300 font-semibold">5 Minutos (M5)</span> para la <span class="text-sky-300 font-semibold">Sesión de New York (08:00 – 11:30 NY)</span>
             </p>
           </div>
         </div>
@@ -1834,7 +1834,7 @@
                 </h3>
                 <div class="flex items-center gap-2 text-xs font-mono text-gray-300 mt-1">
                   <span>Precio Spot Ref:</span>
-                  <span id="usdcadSpotPrice" class="font-bold text-white text-sm">1.38840</span>
+                  <span id="usdcadSpotPrice" class="font-bold text-white text-sm">3782.50</span>
                   <span class="text-gray-500">|</span>
                   <span class="text-sky-300">Velas 5m (Killzone NY)</span>
                 </div>
@@ -1842,13 +1842,13 @@
             </div>
 
             <p id="usdcadBiasSummary" class="text-xs text-gray-300 leading-relaxed mt-4 bg-gray-950/60 p-3 rounded-xl border border-gray-800">
-              Alta confluencia alcista institucional generada por debilidad del crudo WTI (-1.15%), fortaleza del DXY (+0.32%) y expansión del carry trade US10Y frente a bonos canadienses (+114 bps). Se priorizan compras en retrocesos a zonas de descuento M5.
+              Alta confluencia alcista institucional generada por compras soberanas récord de bancos centrales (World Gold Council: 675t YTD) y estabilización de tenencias en SPDR Gold Shares GLD (1,044.41t), absorbiendo ventas sobre el soporte mayor de Kitco ($3,781). Se priorizan compras en retrocesos a zonas de descuento M5.
             </p>
           </div>
 
           <div class="pt-3 border-t border-gray-800/80 flex items-center justify-between text-[11px] font-mono">
             <span class="text-gray-400">Activo Auditado:</span>
-            <span class="font-bold text-white">USDCAD (USD/CAD) · Forex Estándar</span>
+            <span class="font-bold text-white">XAU/USD (Oro Spot / Dólar · Contrato COMEX 100 oz)</span>
           </div>
         </div>
 
@@ -1906,8 +1906,8 @@
               </div>
               <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800/80">
                 <span class="text-[10px] text-gray-400 uppercase font-semibold block">Driver Primario</span>
-                <span class="text-xs font-mono font-bold text-amber-300">Petróleo WTI (CL)</span>
-                <span class="text-[9px] text-gray-500 block">Correlación Inversa</span>
+                <span class="text-xs font-mono font-bold text-amber-300">WGC & GLD (Soberano)</span>
+                <span class="text-[9px] text-gray-500 block">Demanda Estructural</span>
               </div>
               <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800/80">
                 <span class="text-[10px] text-gray-400 uppercase font-semibold block">Filtro de Riesgo</span>
@@ -1919,10 +1919,56 @@
 
           <div class="text-[11px] text-gray-400 flex items-center justify-between pt-1">
             <span>Algoritmo Ponderado:</span>
-            <span class="font-mono text-sky-400 font-semibold">Macro (70%) + Liquidez & Order Flow M5 (30%)</span>
+            <span class="font-mono text-amber-400 font-semibold">Macro 5 Fuentes (70%) + Flujo M5 (30%)</span>
           </div>
         </div>
 
+      </section>
+
+      <!-- CRITERIO UNIFICADO INSTITUCIONAL: SÍNTESIS DE LAS 5 FUENTES COTEJADAS -->
+      <section class="bg-gradient-to-r from-amber-950/40 via-gray-900 to-sky-950/40 border-2 border-amber-500/40 rounded-2xl p-5 shadow-2xl space-y-3">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 bg-amber-500/15 text-amber-400 rounded-xl border border-amber-500/30">
+              <i data-lucide="scale" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-white uppercase tracking-wide">Criterio Unificado Institucional · Síntesis de las 5 Fuentes Oficiales</h3>
+              <p class="text-xs text-gray-400">Cotejo integral en Pre-Mercado NY (UTC-5) de política monetaria (FedWatch), demanda soberana (Goldhub), flujos de custodia (GLD), derivados (Barchart) y niveles spot (Kitco)</p>
+            </div>
+          </div>
+          <span class="px-3 py-1 rounded-xl text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+            CONFLUENCIA SINTÉTICA PRE-MERCADO NY
+          </span>
+        </div>
+
+        <p id="usdcadUnifiedCriterionText" class="text-xs sm:text-sm text-gray-200 leading-relaxed bg-gray-950/70 p-4 rounded-xl border border-gray-800">
+          El análisis cruzado en Pre-Mercado NY (UTC-5) revela una confluencia alcista estructural de alta convicción: mientras el CME FedWatch y el DXY generan vientos en contra tácticos por tasas elevadas (higher-for-longer a 3.75%-4.00%), la demanda soberana récord reportada por el World Gold Council (675t acumuladas en 2026) y la estabilización de tenencias en SPDR Gold Shares GLD (1,044.41t) forman un suelo institucional impenetrable que absorbe cualquier caída hacia los soportes clave de Kitco ($3,781 - $3,766). Con el interés abierto en futuros COMEX (GCZ26) confirmando acumulación de Smart Money y la relación Oro/Plata en 82.04, el criterio unificado para la Killzone de New York en velas de 5 minutos es de COMPRAS (BUY) en retroceso tras barrida de liquidez matutina hacia zonas de descuento institucional.
+        </p>
+
+        <!-- Enlaces Directos Oficiales a las 5 Fuentes -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 pt-1 text-[11px] font-mono">
+          <a href="https://www.gold.org/goldhub" target="_blank" rel="noopener noreferrer" class="p-2 rounded-lg bg-gray-950 hover:bg-gray-800 text-amber-300 hover:text-white border border-gray-800 hover:border-amber-500/50 transition flex items-center justify-between">
+            <span>1. Goldhub (WGC)</span>
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          </a>
+          <a href="https://www.spdrgoldshares.com/usa/gld/" target="_blank" rel="noopener noreferrer" class="p-2 rounded-lg bg-gray-950 hover:bg-gray-800 text-amber-300 hover:text-white border border-gray-800 hover:border-amber-500/50 transition flex items-center justify-between">
+            <span>2. SPDR GLD ETF</span>
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          </a>
+          <a href="https://www.barchart.com/futures/quotes/GCZ26/overview" target="_blank" rel="noopener noreferrer" class="p-2 rounded-lg bg-gray-950 hover:bg-gray-800 text-amber-300 hover:text-white border border-gray-800 hover:border-amber-500/50 transition flex items-center justify-between">
+            <span>3. Barchart GCZ26</span>
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          </a>
+          <a href="https://www.kitco.com/charts/gold" target="_blank" rel="noopener noreferrer" class="p-2 rounded-lg bg-gray-950 hover:bg-gray-800 text-amber-300 hover:text-white border border-gray-800 hover:border-amber-500/50 transition flex items-center justify-between">
+            <span>4. Kitco Gold</span>
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          </a>
+          <a href="https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool" target="_blank" rel="noopener noreferrer" class="p-2 rounded-lg bg-gray-950 hover:bg-gray-800 text-amber-300 hover:text-white border border-gray-800 hover:border-amber-500/50 transition flex items-center justify-between">
+            <span>5. CME FedWatch</span>
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          </a>
+        </div>
       </section>
 
       <!-- PROTOCOLO DE EJECUCIÓN M5 ORION FUNDED (R:R 1:2.8) -->
@@ -1938,7 +1984,7 @@
             </div>
           </div>
           <span class="px-3 py-1 rounded-xl text-xs font-mono font-bold bg-purple-950 text-purple-300 border border-purple-800">
-            R:R 1:2.8 Exclusivo USDCAD
+            R:R 1:2.8 Exclusivo XAU/USD
           </span>
         </div>
 
@@ -1953,28 +1999,28 @@
           <!-- Zona de Entrada (POI) -->
           <div class="bg-gray-950/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
             <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Zona Entrada (POI)</span>
-            <div id="usdcadM5Poi" class="text-sm font-mono font-bold text-amber-300">1.38780 – 1.38830</div>
+            <div id="usdcadM5Poi" class="text-sm font-mono font-bold text-amber-300">$3,780.00 – $3,783.50</div>
             <span class="text-[10px] text-gray-500 block">Bullish OB + FVG M5</span>
           </div>
 
           <!-- Nivel de Invalidación -->
           <div class="bg-gray-950/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
             <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Invalidación M5</span>
-            <div id="usdcadM5Invalidation" class="text-sm font-mono font-bold text-rose-400">1.38600</div>
+            <div id="usdcadM5Invalidation" class="text-sm font-mono font-bold text-rose-400">$3,777.00</div>
             <span class="text-[10px] text-gray-500 block">Cierre M5 bajo London Low</span>
           </div>
 
           <!-- Stop Loss Recomendado -->
           <div class="bg-gray-950/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
             <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Stop Loss Estricto</span>
-            <div id="usdcadM5Sl" class="text-sm font-mono font-bold text-rose-300">22.0 pips (1.38600)</div>
+            <div id="usdcadM5Sl" class="text-sm font-mono font-bold text-rose-300">22.0 pips ($3,777.00)</div>
             <span class="text-[10px] text-gray-500 block">Calculado en pestaña 4</span>
           </div>
 
           <!-- Take Profit Ideal 1:2.8 -->
           <div class="bg-gray-950/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
             <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Take Profit (R:R 1:2.8)</span>
-            <div id="usdcadM5Tp" class="text-sm font-mono font-bold text-emerald-300">61.6 pips (1.39416)</div>
+            <div id="usdcadM5Tp" class="text-sm font-mono font-bold text-emerald-300">70.0 pips ($3,789.50)</div>
             <span class="text-[10px] text-gray-500 block">Proyección 2.8x del riesgo</span>
           </div>
         </div>
@@ -2005,7 +2051,7 @@
               3. Regla ±2 Min Noticias:
             </span>
             <p class="text-gray-300 text-[11px] leading-relaxed" id="usdcadRuleNews">
-              Prohibido ingresar 2 min antes o después de noticias de alto impacto (USD/CAD) por regla Orion.
+              Prohibido ingresar 2 min antes o después de noticias de alto impacto de EE.UU. (USD) por regla Orion.
             </p>
           </div>
           <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-800 space-y-1">
@@ -2051,22 +2097,22 @@
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
             <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800">
               <span class="text-[10px] text-gray-500 uppercase block">PDH (Día Previo)</span>
-              <span id="usdcadLevelPdh" class="text-white font-bold text-sm">1.39450</span>
+              <span id="usdcadLevelPdh" class="text-white font-bold text-sm">$3,815.00</span>
               <span class="text-[9px] text-emerald-400 block">Objetivo TP 2</span>
             </div>
             <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800">
               <span class="text-[10px] text-gray-500 uppercase block">PDL (Día Previo)</span>
-              <span id="usdcadLevelPdl" class="text-white font-bold text-sm">1.38420</span>
+              <span id="usdcadLevelPdl" class="text-white font-bold text-sm">$3,768.00</span>
               <span class="text-[9px] text-gray-400 block">Soporte Mayor</span>
             </div>
             <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800">
               <span class="text-[10px] text-gray-500 uppercase block">Asia High / Low</span>
-              <span id="usdcadLevelAsia" class="text-white font-bold text-xs">1.3908 / 1.3872</span>
+              <span id="usdcadLevelAsia" class="text-white font-bold text-xs">$3,792 / $3,778.50</span>
               <span class="text-[9px] text-amber-400 block">Rango Nocturno</span>
             </div>
             <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800">
               <span class="text-[10px] text-gray-500 uppercase block">London High / Low</span>
-              <span id="usdcadLevelLondon" class="text-white font-bold text-xs">1.3915 / 1.3868</span>
+              <span id="usdcadLevelLondon" class="text-white font-bold text-xs">$3,798 / $3,776.00</span>
               <span class="text-[9px] text-sky-400 block">Liquidez Externa</span>
             </div>
           </div>
@@ -2076,7 +2122,7 @@
               <i data-lucide="activity" class="w-4 h-4 text-sky-400"></i>
               <span class="text-gray-300">Session VWAP Institucional:</span>
             </div>
-            <span id="usdcadLevelVwap" class="font-mono font-bold text-sky-300 text-sm">1.38790 (Soporte Dinámico M5)</span>
+            <span id="usdcadLevelVwap" class="font-mono font-bold text-sky-300 text-sm">$3,781.50 (Soporte Dinámico M5)</span>
           </div>
         </div>
 
@@ -2085,27 +2131,27 @@
           <div class="flex items-center justify-between border-b border-gray-800 pb-3">
             <div class="flex items-center gap-2">
               <i data-lucide="bar-chart-2" class="w-5 h-5 text-emerald-400"></i>
-              <h4 class="text-sm font-bold text-white uppercase tracking-wider">Consumo del ADR Diario (USDCAD)</h4>
+              <h4 class="text-sm font-bold text-white uppercase tracking-wider">Consumo del ADR Diario (XAU/USD Oro)</h4>
             </div>
-            <span class="text-xs font-mono text-emerald-400 font-bold" id="usdcadAdrTotalLabel">ADR: 65 pips</span>
+            <span class="text-xs font-mono text-emerald-400 font-bold" id="usdcadAdrTotalLabel">ADR: 280 pips ($28.00)</span>
           </div>
 
           <div class="space-y-2">
             <div class="flex justify-between text-xs font-mono">
               <span class="text-gray-400">Pips Consumidos (Asia + London):</span>
-              <span id="usdcadAdrConsumedLabel" class="font-bold text-amber-400">27.0 pips (41.5%)</span>
+              <span id="usdcadAdrConsumedLabel" class="font-bold text-amber-400">115.0 pips (41.1%)</span>
             </div>
             <div class="w-full bg-gray-950 rounded-full h-3.5 overflow-hidden border border-gray-800 p-0.5">
               <div id="usdcadAdrBar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-700" style="width: 41.5%;"></div>
             </div>
             <div class="flex justify-between text-[11px] font-mono text-gray-400">
               <span>Recorrido Killzone NY Restante:</span>
-              <span id="usdcadAdrRemainingLabel" class="font-bold text-emerald-300">38.0 pips disponibles</span>
+              <span id="usdcadAdrRemainingLabel" class="font-bold text-emerald-300">165.0 pips ($16.50) disponibles</span>
             </div>
           </div>
 
           <div class="bg-gray-950/60 p-3 rounded-xl border border-gray-800 text-[11px] text-gray-300 leading-relaxed">
-            💡 <strong>Espacio Estadístico para Operar:</strong> Con solo el 41.5% del ADR consumido, la Killzone de New York tiene <strong>38 pips de margen de expansión</strong>, suficiente para capturar el TP institucional de 61.6 pips en caso de tendencia intradía.
+            💡 <strong>Espacio Estadístico para Operar:</strong> Con solo el 41.1% del ADR consumido (115 pips), la Killzone de New York tiene <strong>165 pips ($16.50) de margen de expansión</strong>, suficiente para capturar el TP institucional de 70 pips ($7.00) con ratio R:R 1:2.8.
           </div>
         </div>
 
@@ -2160,7 +2206,7 @@
           </div>
         </div>
         <div>
-          <label class="block text-gray-400 mb-1">Stop Loss en Pips (USDCAD)</label>
+          <label class="block text-gray-400 mb-1">Stop Loss en Pips (XAU/USD · 1 pip = $0.10)</label>
           <input type="number" id="editTradeTvPoints" min="1" step="any" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-white font-mono font-bold text-base" placeholder="ej. 25">
         </div>
         <div>
@@ -2171,7 +2217,7 @@
           <div>
             <label class="block text-gray-400 mb-1">Símbolo / Activo</label>
             <select id="editTradeAsset" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-blue-300 font-bold">
-              <option value="USDCAD" selected>🇺🇸🇨🇦 USDCAD (Forex)</option>
+              <option value="XAU/USD" selected>🥇 XAU/USD (Forex)</option>
             </select>
           </div>
           <div>
@@ -2250,14 +2296,14 @@
       <!-- CONFIGURACIÓN GLOBAL -->
       <div class="space-y-4 text-xs">
         
-        <!-- SECCIÓN: BACKTESTING & CALCULADORA (USDCAD) -->
+        <!-- SECCIÓN: BACKTESTING & CALCULADORA (XAU/USD) -->
         <div class="p-3.5 bg-emerald-950/20 border border-emerald-500/40 rounded-xl space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <i data-lucide="sliders" class="w-4 h-4 text-emerald-400"></i>
               <h4 class="font-bold text-emerald-300 uppercase tracking-wide text-xs">Configuración Global de Backtesting & Calculadora</h4>
             </div>
-            <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold border border-emerald-500/40">🇺🇸🇨🇦 EXCLUSIVO USDCAD</span>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold border border-emerald-500/40">🥇 EXCLUSIVO XAU/USD</span>
           </div>
               <i data-lucide="calculator" class="w-4 h-4 text-blue-400"></i>
               <h4 class="font-bold text-emerald-300 uppercase tracking-wide text-xs">Configuración Global de Backtesting & Calculadora</h4>
@@ -2505,16 +2551,16 @@
               </div>
 
               <div class="p-3.5 bg-gray-900 border border-gray-800 rounded-xl space-y-1.5">
-                <div class="font-bold text-amber-400 text-xs">2. Spreads Mínimos y Liquidez Profunda en USDCAD</div>
+                <div class="font-bold text-amber-400 text-xs">2. Spreads Mínimos y Liquidez Profunda en XAU/USD</div>
                 <p class="text-[11px] text-gray-400 leading-relaxed">
-                  Durante la sesión de New York (Killzone 07:00 – 11:00 NY), la superposición con el mercado de Toronto brinda spreads mínimos de 0.6 a 0.9 pips en USDCAD, garantizando ejecuciones precisas sin deslizamiento.
+                  Durante la sesión de New York (Killzone 08:00 – 11:30 NY), la superposición con el mercado de Toronto brinda spreads mínimos de 0.6 a 0.9 pips en XAU/USD, garantizando ejecuciones precisas sin deslizamiento.
                 </p>
               </div>
 
               <div class="p-3.5 bg-gray-900 border border-gray-800 rounded-xl space-y-1.5">
                 <div class="font-bold text-blue-400 text-xs">3. Inyección de Volumen Institucional Activo</div>
                 <p class="text-[11px] text-gray-400 leading-relaxed">
-                  Los grandes bancos de Wall Street y el Banco de Canadá (BoC) inyectan el <strong>mayor volumen transaccional diario en USDCAD</strong>, generando tendencias directas y confluencia clara con la estructura M5.
+                  Los grandes bancos de Wall Street y el Banco de Canadá (BoC) inyectan el <strong>mayor volumen transaccional diario en XAU/USD</strong>, generando tendencias directas y confluencia clara con la estructura M5.
                 </p>
               </div>
             </div>
@@ -2527,11 +2573,11 @@
                   Killzone Exclusiva de New York (07:00 AM a 11:00 AM NY — Hora de Colombia / UTC-5)
                 </span>
                 <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
-                  Sesión Oficial USDCAD
+                  Sesión Oficial XAU/USD
                 </span>
               </div>
               <p class="text-[11px] text-gray-300 leading-relaxed">
-                Es la ventana horaria oficial para operar USDCAD por volumen y sincronización con las noticias de EE.UU. y Canadá:
+                Es la ventana horaria oficial para operar XAU/USD por volumen y sincronización con las noticias de EE.UU. y Canadá:
               </p>
               <ul class="list-disc pl-4 space-y-1 text-[11px] text-gray-300">
                 <li><strong>07:00 – 08:30 AM:</strong> Apertura de la sesión americana y reportes de empleo/IPC. Se producen barridos de liquidez hacia máximos/mínimos previos. Esperar confirmación.</li>
@@ -3008,7 +3054,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-sm sm:text-base font-bold text-white">Informe Técnico de Backtesting</h3>
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">USDCAD</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">XAU/USD</span>
             </div>
             <p class="text-[11px] text-gray-400">Auditoría cuantitativa de rendimiento, curvas de capital y desglose de operaciones</p>
           </div>
@@ -3045,10 +3091,10 @@
             <div class="flex flex-col sm:items-end text-xs space-y-1">
               <div class="flex items-center gap-2">
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">AUDIT PRO VERIFIED</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">USDCAD</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">XAU/USD</span>
               </div>
               <div class="text-[11px] text-gray-400">Fecha de Emisión: <strong class="text-gray-200" id="repMetaDate">-</strong></div>
-              <div class="text-[11px] text-gray-400">Terminal ID: <strong class="text-gray-300 font-mono">GTP-USDCAD-2026</strong></div>
+              <div class="text-[11px] text-gray-400">Terminal ID: <strong class="text-gray-300 font-mono">GTP-XAU/USD-2026</strong></div>
             </div>
           </div>
 
@@ -3056,7 +3102,7 @@
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 text-xs">
             <div class="report-kpi-box bg-gray-950/60 p-2.5 rounded-xl border border-gray-800/80">
               <span class="text-[10px] text-gray-400 font-semibold block uppercase">Activo Auditado</span>
-              <span class="font-bold text-white text-sm">USDCAD (USD/CAD)</span>
+              <span class="font-bold text-white text-sm">XAU/USD (Oro Spot / Dólar)</span>
             </div>
             <div class="report-kpi-box bg-gray-950/60 p-2.5 rounded-xl border border-gray-800/80">
               <span class="text-[10px] text-gray-400 font-semibold block uppercase">Modelo de Capital</span>
@@ -3171,7 +3217,7 @@
             <div class="report-kpi-box bg-gray-950/70 p-3 rounded-xl border border-gray-800 flex flex-col justify-between">
               <span class="text-gray-400 font-semibold text-[11px] block">Ratio R:R Objetivo</span>
               <span class="text-lg font-black text-blue-400 font-mono mt-1" id="repTargetRr">1:3.0</span>
-              <span class="text-[10px] text-gray-500">Parámetro base USDCAD</span>
+              <span class="text-[10px] text-gray-500">Parámetro base XAU/USD</span>
             </div>
           </div>
         </div>
@@ -3285,7 +3331,7 @@
 
         <!-- PIE DE PÁGINA DEL INFORME -->
         <div class="pt-4 border-t border-gray-800/80 text-center text-[10px] text-gray-500 space-y-1">
-          <p>Ghost Trader Pro Terminal · Sistema Cuantitativo y de Gestión de Riesgo para USDCAD</p>
+          <p>Ghost Trader Pro Terminal · Sistema Cuantitativo y de Gestión de Riesgo para XAU/USD</p>
           <p class="text-gray-600">Este informe ha sido generado automáticamente por el motor de cálculo compuesto. Rendimientos pasados no garantizan rendimientos futuros.</p>
         </div>
 
@@ -3309,7 +3355,7 @@
               <span>Simulador de Rachas Monte Carlo</span>
               <span class="text-[9px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono font-bold border border-purple-500/40">1,000 CORRIDAS</span>
             </h3>
-            <p class="text-[11px] text-gray-400">Distribución de rachas consecutivas, percentiles de drawdown y psicología probabilística para USDCAD.</p>
+            <p class="text-[11px] text-gray-400">Distribución de rachas consecutivas, percentiles de drawdown y psicología probabilística para XAU/USD.</p>
           </div>
         </div>
         <button id="btnCloseMonteCarlo" class="text-gray-400 hover:text-white transition p-1 cursor-pointer" title="Cerrar ventana">

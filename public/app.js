@@ -1,34 +1,48 @@
 /**
  * Pro Terminal — Backtesting Institucional, Noticias de Alto Impacto & Calculadora Profesional
- * Operativa Exclusiva: USDCAD (5 dec · NY Session 07:00 – 11:00 NY · Orion Funded 50K)
+ * Operativa Exclusiva: XAU/USD (Oro Spot / Dólar · Killzone NY 08:00 – 11:30 NY · Orion Funded 50K)
  */
 
-// Forex Pair Specifications
+// Asset Specifications: XAUUSD (Metales COMEX 100 oz)
 const FOREX_SPECS = {
-  USDCAD: {
-    symbol: 'USDCAD',
-    displayName: 'USDCAD',
-    flag: '🇺🇸🇨🇦',
-    base: 'USD',
-    quote: 'CAD',
-    contractSize: 100000,
-    decimals: 5,
-    pipSize: 0.0001,
-    pipValueUsd: 7.22,
+  XAUUSD: {
+    symbol: 'XAUUSD',
+    displayName: 'XAU/USD',
+    flag: '🥇',
+    base: 'XAU',
+    quote: 'USD',
+    contractSize: 100,
+    decimals: 2,
+    pipSize: 0.10,
+    pipValueUsd: 10.00,
     baseRateUsd: 1.0,
     defaultSlPips: 25.0,
-    color: 'blue',
-    description: 'USD/CAD · Contrato $100k USD · 5 dec · Sesión NY'
+    color: 'amber',
+    description: 'XAU/USD · Oro Spot / Dólar · Contrato 100 oz · Killzone NY (08:00 – 11:30 NY)'
+  },
+  XAUUSD: {
+    symbol: 'XAUUSD',
+    displayName: 'XAU/USD',
+    flag: '🥇',
+    base: 'XAU',
+    quote: 'USD',
+    contractSize: 100,
+    decimals: 2,
+    pipSize: 0.10,
+    pipValueUsd: 10.00,
+    baseRateUsd: 1.0,
+    defaultSlPips: 25.0,
+    color: 'amber',
+    description: 'XAU/USD · Oro Spot / Dólar · Contrato 100 oz · Killzone NY (08:00 – 11:30 NY)'
   }
 };
 
 function normalizeForexAsset(asset) {
-  return 'USDCAD';
+  return 'XAUUSD';
 }
 
 function getForexSpec(asset) {
-  const norm = normalizeForexAsset(asset);
-  return FOREX_SPECS[norm] || FOREX_SPECS.USDCAD;
+  return FOREX_SPECS.XAUUSD;
 }
 
 // Global State
@@ -39,7 +53,7 @@ let appState = {
     risk_pct: 1.0,
     rr_ratio: 3.0,
     leverage: 300,
-    asset: 'USDCAD',
+    asset: 'XAUUSD',
     contract_size: 100000,
     sl_pips: 25.0,
     min_lot: 0.01,
@@ -55,12 +69,12 @@ let appState = {
       risk_pct: 1.0,
       rr_ratio: 3.0,
       leverage: 300,
-      asset: 'USDCAD',
+      asset: 'XAUUSD',
       sl_pips: 25.0
     }
   },
   calculator: {
-    pair: 'USDCAD',
+    pair: 'XAUUSD',
     balance: 1000.0,
     risk_pct: 1.0,
     sl_pips: 25.0,
@@ -76,7 +90,7 @@ let appState = {
       risk_pct: 0.5,
       rr_ratio: 3.0,
       leverage: 30.0,
-      asset: 'USDCAD'
+      asset: 'XAUUSD'
     }
   },
   real: {
@@ -88,7 +102,7 @@ let appState = {
       risk_pct: 1.0,
       leverage: 300.0,
       rr_ratio: 3.0,
-      asset: 'USDCAD'
+      asset: 'XAUUSD'
     }
   }
 };
@@ -102,7 +116,7 @@ let backtestDistributionChart = null;
 let backtestDrawdownChart = null;
 let btSimpleEquityChartInstance = null;
 let btSimpleDrawdownChartInstance = null;
-let selectedBtSimpleAsset = 'USDCAD';
+let selectedBtSimpleAsset = 'XAUUSD';
 
 // Initialize on DOM Loaded
 document.addEventListener('DOMContentLoaded', async () => {
@@ -537,7 +551,7 @@ function renderFondeoDashboard() {
 }
 
 function getAssetBadge(asset) {
-  return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/40 whitespace-nowrap">🇺🇸🇨🇦 USDCAD</span>';
+  return '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/40 whitespace-nowrap">🇺🇸🇨🇦 XAUUSD</span>';
 }
 
 function anyStringIncludes(str, arr) {
@@ -821,7 +835,7 @@ function setupFondeoCalculator() {
     // Interés Simple: cálculo basado en capital inicial fijo ($50,000 USD)
     const baseCapital = Number(appState.fondeo?.config?.initial_balance) || 50000.0;
     const curBalance = summary.current_balance !== undefined ? summary.current_balance : 50000.0;
-    const asset = 'USDCAD';
+    const asset = 'XAUUSD';
 
     const slInputVal = parseFloat(slInput ? slInput.value : 25.0) || 25.0;
     const riskType = riskSelect ? riskSelect.value : '0.5';
@@ -839,17 +853,17 @@ function setupFondeoCalculator() {
       dollarRisk = baseCapital * (riskPct / 100.0);
     }
 
-    // Cálculo exclusivo para USDCAD (Forex 100k Standard):
-    // 1 pip = 0.0001 CAD = ~$7.22 USD por lote estándar (100,000 USD)
-    const slPriceDist = slInputVal * 0.0001;
-    const lossPerLot = slInputVal * 7.22;
+    // Cálculo exclusivo para XAUUSD (Metales COMEX 100 oz):
+    // 1 pip = $0.10 USD/oz = $10.00 USD por lote estándar (100 oz Troy)
+    const slPriceDist = slInputVal * 0.10;
+    const lossPerLot = slInputVal * 10.00;
     let lot = lossPerLot > 0 ? dollarRisk / lossPerLot : 0.01;
     lot = Math.max(0.01, Math.round(lot * 100) / 100);
 
-    // Apalancamiento 1:30 para USDCAD en Orion Nova 50K
-    // Contrato 100,000 USD / 30 = ~$3,333.33 USD por lote
+    // Apalancamiento 1:30 para XAUUSD en Orion Nova 50K
+    // Contrato 100 oz Troy / 30 = ~$3,333.33 USD por lote
     const margin = (100000.0 * lot) / 30.0;
-    const pipVal = 7.22 * lot;
+    const pipVal = 10.00 * lot;
 
     const reward = dollarRisk * selectedFondeoRr;
     const marginPct = curBalance > 0 ? (margin / curBalance) * 100 : 0;
@@ -875,14 +889,14 @@ function setupFondeoCalculator() {
     if (banner && bannerText) {
       if (dollarRisk > dailyHeadroom) {
         banner.className = 'p-3 rounded-xl border flex items-start gap-2 bg-red-950/40 border-red-800/80 text-red-300';
-        bannerText.innerHTML = `⚠️ <b>¡ALERTA DE RIESGO EN USDCAD!</b> Esta operación arriesga <b>$${formatMoney(dollarRisk)}</b>, superando tu colchón diario disponible de <b>$${formatMoney(dailyHeadroom)}</b>. Podrías violar la regla de pérdida diaria del 4% ($2,000)!`;
+        bannerText.innerHTML = `⚠️ <b>¡ALERTA DE RIESGO EN XAUUSD!</b> Esta operación arriesga <b>$${formatMoney(dollarRisk)}</b>, superando tu colchón diario disponible de <b>$${formatMoney(dailyHeadroom)}</b>. Podrías violar la regla de pérdida diaria del 4% ($2,000)!`;
       } else if (margin > curBalance * 0.40) {
         banner.className = 'p-3 rounded-xl border flex items-start gap-2 bg-amber-950/40 border-amber-800/80 text-amber-300';
-        bannerText.innerHTML = `⚠️ <b>PRECAUCIÓN DE MARGEN (1:30):</b> Este lote en USDCAD retiene <b>$${formatMoney(margin)} (${marginPct.toFixed(1)}%)</b>. Mantén suficiente margen libre para soportar fluctuaciones.`;
+        bannerText.innerHTML = `⚠️ <b>PRECAUCIÓN DE MARGEN (1:30):</b> Este lote en XAUUSD retiene <b>$${formatMoney(margin)} (${marginPct.toFixed(1)}%)</b>. Mantén suficiente margen libre para soportar fluctuaciones.`;
       } else {
         const lossesUntilBreach = Math.floor(dailyHeadroom / dollarRisk);
         banner.className = 'p-3 rounded-xl border flex items-start gap-2 bg-emerald-950/40 border-emerald-800/80 text-emerald-300';
-        bannerText.innerHTML = `🛡️ <b>Operación Segura en USDCAD:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b> con SL de <b>${slInputVal} pips</b> ($${slPriceDist.toFixed(4)} CAD). Soportas <b>${lossesUntilBreach} pérdidas seguidas</b> hoy sin violar el 4% diario ($2,000). Margen retenido: <b>$${formatMoney(margin)} (${marginPct.toFixed(1)}%)</b>.`;
+        bannerText.innerHTML = `🛡️ <b>Operación Segura en XAUUSD:</b> Arriesgas <b>${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)})</b> con SL de <b>${slInputVal} pips</b> ($${slPriceDist.toFixed(2)} USD/oz). Soportas <b>${lossesUntilBreach} pérdidas seguidas</b> hoy sin violar el 4% diario ($2,000). Margen retenido: <b>$${formatMoney(margin)} (${marginPct.toFixed(1)}%)</b>.`;
       }
     }
   }
@@ -892,7 +906,7 @@ function setupFondeoCalculator() {
   if (riskSelect) riskSelect.addEventListener('change', calculateFondeoMetrics);
   if (manualRiskInput) manualRiskInput.addEventListener('input', calculateFondeoMetrics);
 
-  // Quick preset buttons for USDCAD SL pips (15, 20, 25, 30, 35, 40)
+  // Quick preset buttons for XAUUSD SL pips (15, 20, 25, 30, 35, 40)
   document.querySelectorAll('.btn-sl-gold-preset').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -919,7 +933,7 @@ function setupFondeoCalculator() {
 
   if (btnApply) {
     btnApply.addEventListener('click', () => {
-      const asset = 'USDCAD';
+      const asset = 'XAUUSD';
       const lot = document.getElementById('fondeoCalcLot') ? document.getElementById('fondeoCalcLot').textContent : '1.38';
       const sl = slInput ? slInput.value : '25';
 
@@ -942,7 +956,7 @@ function setupFondeoCalculator() {
 }
 
 function calculateTradePrices({
-  asset = 'USDCAD',
+  asset = 'XAUUSD',
   direction = 'BUY',
   lot = 1.38,
   entry = null,
@@ -962,10 +976,10 @@ function calculateTradePrices({
     pointMult = 100.0;
     pipMult = 10.0;
   } else {
-    // USDCAD (Default): 1 pip = 0.0001 CAD = ~$7.22 / pip por lote estándar
-    mult = 72200.0;
-    pointMult = 100000.0;
-    pipMult = 10000.0;
+    // XAUUSD (Default): 1 pip = $0.10 USD/oz = $10.00 / pip por lote estándar 100 oz
+    mult = 100.0;
+    pointMult = 100.0;
+    pipMult = 10.0;
   }
 
   let slDist = null;
@@ -1128,22 +1142,22 @@ function setupFondeoTradeForm() {
     const tp = parseFloat(tpEl?.value);
     const exit = parseFloat(exitEl?.value);
     const dir = dirEl?.value || 'BUY';
-    const asset = 'USDCAD';
+    const asset = 'XAUUSD';
     const isGold = false;
 
-    // Adaptar etiquetas y badges para USDCAD
+    // Adaptar etiquetas y badges para XAUUSD
     const levBadge = document.getElementById('fondeoAssetLevBadge');
     const slLabel = document.getElementById('fondeoSlPointsLabel');
     const slSuffix = document.getElementById('fondeoSlPointsSuffix');
     const dynamicFormula = document.getElementById('fondeoDynamicFormulaText');
 
     const fLev = Number(appState.fondeo?.config?.leverage) || 30.0;
-    if (levBadge) levBadge.textContent = `1:${Math.round(fLev)} USDCAD`;
-    if (slLabel) slLabel.textContent = 'Stop Loss en Pips (USDCAD)';
+    if (levBadge) levBadge.textContent = `1:${Math.round(fLev)} XAUUSD`;
+    if (slLabel) slLabel.textContent = 'Stop Loss en Pips (XAUUSD)';
     if (slSuffix) slSuffix.textContent = 'PIPS';
 
-    // USDCAD: 1 pip = 0.0001 CAD = ~$7.22 USD/lote calibrado
-    const pipValUsd = 7.22;
+    // XAUUSD: 1 pip = $0.10 USD/oz = $10.00 USD/lote (100 oz troy)
+    const pipValUsd = 10.00; // XAUUSD: 100 oz * $0.10/pip = $10.00 USD/pip
     const slPointsEl = document.getElementById('fondeoFormSlPoints');
     let slValCustom = parseFloat(slPointsEl?.value) || 25;
 
@@ -1173,7 +1187,7 @@ function setupFondeoTradeForm() {
 
     const rrVal = autoCalculatedRr || parseFloat(rrEl?.value) || 2.8;
 
-    const slDollarDist = slValCustom * 0.0001; // en CAD (ej. 25 pips = 0.00250)
+    const slDollarDist = slValCustom * 0.10; // en USD/oz (ej. 25 pips = $2.50 USD)
     const tpDollarDist = slDollarDist * rrVal;
     const lossPerLot = slValCustom * pipValUsd;
     const slDistEl = document.getElementById('fondeoSlDollarDist');
@@ -1183,7 +1197,7 @@ function setupFondeoTradeForm() {
 
     // Si Entrada fue ingresada pero SL o TP están vacíos, autocompletar sugeridos
     if (!isNaN(entry) && entry > 0) {
-      const dec = 5; // USDCAD usa 5 decimales
+      const dec = 2; // XAUUSD usa 2 decimales
       if (slEl && (!slEl.value || slEl.value.trim() === '')) {
         const autoSl = dir === 'BUY' ? roundNum(entry - slDollarDist, dec) : roundNum(entry + slDollarDist, dec);
         slEl.value = autoSl.toFixed(dec);
@@ -1216,7 +1230,7 @@ function setupFondeoTradeForm() {
     // El lote operado es el ingresado manualmente por el usuario
     const lot = parseFloat(lotEl?.value) || autoLot;
 
-    // Cálculo de Margen con el Lote Manual (USDCAD apalancamiento 1:30 en Orion Nova)
+    // Cálculo de Margen con el Lote Manual (XAUUSD apalancamiento 1:30 en Orion Nova)
     const marginToUse = roundNum((100000.0 * 1.0 * lot) / fLev, 2);
     const marginPct = (marginToUse / curBal) * 100.0;
 
@@ -1238,7 +1252,7 @@ function setupFondeoTradeForm() {
         safetyText.innerHTML = `⚠️ <b>Riesgo Elevado:</b> Arriesgas <b>$${formatMoney(actualTradeDollarRisk)}</b> con ${lot.toFixed(2)} lotes, consumiendo más del 50% de tu colchón diario ($${formatMoney(dailyHeadroom)}). Soportas solo <strong>${lossesAllowed} pérdidas</strong> hoy.`;
         if (safetyBanner) safetyBanner.className = 'text-[11px] p-2 rounded-lg bg-rose-950/40 border border-rose-800/60 text-rose-300 flex items-center gap-1.5';
       } else {
-        const symbolBadgeText = `USDCAD (${slValCustom} pips)`;
+        const symbolBadgeText = `XAUUSD (${slValCustom} pips)`;
         safetyText.innerHTML = `🛡️ <b>Riesgo Óptimo en ${symbolBadgeText}:</b> Arriesgas <b>${actualTradeRiskPct.toFixed(2)}% ($${formatMoney(actualTradeDollarRisk)})</b> con ${lot.toFixed(2)} lotes manuales. Soportas <strong>${lossesAllowed} pérdidas seguidas</strong> hoy sin violar el 4% diario ($${formatMoney(fondeoDailyLimitUsd)}).`;
         if (safetyBanner) safetyBanner.className = 'text-[11px] p-2 rounded-lg bg-emerald-950/40 border border-emerald-800/60 text-emerald-300 flex items-center gap-1.5';
       }
@@ -1388,7 +1402,7 @@ function setupFondeoTradeForm() {
     updateFondeoCalculation();
   }
 
-  // Renderizador dinámico de chips de Stop Loss para USDCAD
+  // Renderizador dinámico de chips de Stop Loss para XAUUSD
   function renderFondeoSlChips() {
     const chipsContainer = document.getElementById('fondeoSlChipsContainer');
     if (!chipsContainer) return;
@@ -1453,9 +1467,9 @@ function setupFondeoTradeForm() {
       
       const entryVal = parseFloat(entryEl?.value);
       const dirVal = dirEl?.value || 'BUY';
-      const dec = 5;
-      const slDelta = targetSlPips * 0.0001; // en CAD (ej. 25 pips = 0.00250)
-      const tpDelta = targetTpPips * 0.0001; // en CAD
+      const dec = 2;
+      const slDelta = targetSlPips * 0.10; // en USD/oz (ej. 25 pips = $2.50)
+      const tpDelta = targetTpPips * 0.10; // en USD/oz (ej. 70 pips = $7.00)
       if (!isNaN(entryVal) && entryVal > 0) {
         const fixedSl = dirVal === 'BUY' ? roundNum(entryVal - slDelta, dec) : roundNum(entryVal + slDelta, dec);
         const fixedTp = dirVal === 'BUY' ? roundNum(entryVal + tpDelta, dec) : roundNum(entryVal - tpDelta, dec);
@@ -1620,7 +1634,7 @@ function setupFondeoTradeForm() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const asset = document.getElementById('fondeoFormAsset')?.value || 'USDCAD';
+    const asset = document.getElementById('fondeoFormAsset')?.value || 'XAUUSD';
     const direction = document.getElementById('fondeoFormDirection')?.value || 'BUY';
     const lot = parseFloat(lotEl?.value) || 1.54;
     const slPips = parseFloat(slPipsEl?.value) || 25.0;
@@ -1839,7 +1853,7 @@ function syncFondeoUI() {
   if (maxLossBadge) maxLossBadge.textContent = `-$${formatMoney(maxDdUsd)} (Trailing-Lock)`;
 
   const levBadge = document.getElementById('badgeFondeoLeverage');
-  if (levBadge) levBadge.textContent = `1:${Math.round(fLev)} USDCAD`;
+  if (levBadge) levBadge.textContent = `1:${Math.round(fLev)} XAUUSD`;
 
   // Card 1: Balance & Meta
   const curBalEl = document.getElementById('fondeoCurrentBalance');
@@ -1898,12 +1912,12 @@ function syncFondeoUI() {
   if (freeMarginEl) freeMarginEl.textContent = `$${formatMoney(curBal)}`;
 
   const cardLev = document.getElementById('badgeFondeoCardLev');
-  if (cardLev) cardLev.textContent = `Apal. 1:${Math.round(fLev)} USDCAD`;
+  if (cardLev) cardLev.textContent = `Apal. 1:${Math.round(fLev)} XAUUSD`;
 
   const margin1Lot = Math.round((100000.0 * 1.0) / fLev);
   const cardMarginExp = document.getElementById('fondeoCardMarginExplanation');
   if (cardMarginExp) {
-    cardMarginExp.innerHTML = `1 lote USDCAD requiere <strong>~$${formatMoney(margin1Lot)} USD</strong> de margen (1:${Math.round(fLev)}). Margen protegido para control estricto.`;
+    cardMarginExp.innerHTML = `1 lote XAUUSD requiere <strong>~$${formatMoney(margin1Lot)} USD</strong> de margen (1:${Math.round(fLev)}). Margen protegido para control estricto.`;
   }
 
   // Formulario de Fondeo: Badges y Select de Riesgo
@@ -1917,7 +1931,7 @@ function syncFondeoUI() {
   if (formLevBadge) formLevBadge.textContent = `1:${Math.round(fLev)}`;
 
   const assetLevBadge = document.getElementById('fondeoAssetLevBadge');
-  if (assetLevBadge) assetLevBadge.textContent = `1:${Math.round(fLev)} USDCAD`;
+  if (assetLevBadge) assetLevBadge.textContent = `1:${Math.round(fLev)} XAUUSD`;
 
   // Selector Dinámico de Riesgo % Fondeo
   const selRisk = document.getElementById('fondeoFormRiskPct');
@@ -2649,9 +2663,9 @@ function recalculateRealJournalPreview() {
 
   const slBadge = document.getElementById('realTradeSlPtsBadge');
   const tpBadge = document.getElementById('realTradeTpPtsBadge');
-  const asset = 'USDCAD';
+  const asset = 'XAUUSD';
   const isGold = false;
-  const pipValUsd = 7.22;
+  const pipValUsd = 10.00; // XAUUSD: 100 oz * $0.10/pip = $10.00 USD/pip
   const leverage = parseFloat(appState.config?.leverage) || 300.0;
 
   let slPips = 25.0;
@@ -3531,7 +3545,7 @@ window.submitQuickBtTrade = async function(status) {
   const now = new Date();
   const pad = (n) => String(n).padStart(2, '0');
   const dateStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-  const asset = (typeof selectedBtSimpleAsset !== 'undefined' && selectedBtSimpleAsset) ? selectedBtSimpleAsset : 'USDCAD';
+  const asset = (typeof selectedBtSimpleAsset !== 'undefined' && selectedBtSimpleAsset) ? selectedBtSimpleAsset : 'XAUUSD';
   const spec = (typeof getForexSpec === 'function') ? getForexSpec(asset) : { defaultSlPips: 25.0 };
   const slUnits = spec.defaultSlPips || 25.0;
 
@@ -3590,12 +3604,12 @@ window.submitQuickBtTrade = async function(status) {
 
 // ====================================================
 // CALCULADORA PROFESIONAL DE LOTE & GESTIÓN DE RIESGO
-// Par Forex Exclusivo: USDCAD (100k Standard Contracts)
+// Par Forex Exclusivo: XAUUSD (Metales COMEX 100 oz)
 // ====================================================
-let activeCalcPair = 'USDCAD';
+let activeCalcPair = 'XAUUSD';
 
 function recalculateStandaloneCalculator() {
-  const spec = getForexSpec('USDCAD');
+  const spec = getForexSpec('XAUUSD');
   const balInput = document.getElementById('calcAccountBalance');
   const riskInput = document.getElementById('calcRiskPercent');
   const slInput = document.getElementById('calcSlPips');
@@ -3681,10 +3695,10 @@ function recalculateStandaloneCalculator() {
 }
 
 function updateCalculatorPairUI() {
-  activeCalcPair = 'USDCAD';
-  const spec = getForexSpec('USDCAD');
+  activeCalcPair = 'XAUUSD';
+  const spec = getForexSpec('XAUUSD');
 
-  // Par Único: USDCAD
+  // Par Único: XAUUSD
   document.querySelectorAll('.btn-calc-pair-card').forEach(btn => {
     btn.className = 'btn-calc-pair-card p-4 rounded-xl border-2 transition text-left cursor-default bg-blue-950/50 border-blue-500 text-white shadow-lg shadow-blue-500/20';
   });
@@ -3716,7 +3730,7 @@ function setupCalculatorView() {
   document.querySelectorAll('.btn-calc-pair-card').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      activeCalcPair = btn.dataset.pair || 'USDCAD';
+      activeCalcPair = btn.dataset.pair || 'XAUUSD';
       try { localStorage.setItem('calc_active_pair', activeCalcPair); } catch (err) {}
       updateCalculatorPairUI();
     });
@@ -3925,7 +3939,7 @@ function setupCalculatorView() {
 }
 
 // ====================================================
-// ORION NOVA 50K RULES & USDCAD LOT CALCULATOR MODULE
+// ORION NOVA 50K RULES & XAUUSD LOT CALCULATOR MODULE
 // ====================================================
 
 let activeOrionPhase = 'eval'; // 'eval' or 'funded'
@@ -4144,8 +4158,8 @@ window.recalculateOrionUsdcad = function() {
   if (isNaN(slPips) || slPips <= 0) slPips = 25.0;
   let rr = parseFloat(document.getElementById('orionCalcRrInput')?.value);
   if (isNaN(rr) || rr <= 0) rr = 2.8;
-  let usdcadPrice = parseFloat(document.getElementById('orionCalcPriceInput')?.value);
-  if (isNaN(usdcadPrice) || usdcadPrice <= 0) usdcadPrice = 1.3800;
+  let goldPrice = parseFloat(document.getElementById('orionCalcPriceInput')?.value);
+  if (isNaN(goldPrice) || goldPrice <= 0) goldPrice = 3782.50;
 
   // Actualizar indicadores numéricos en las etiquetas de entrada
   const elRiskDisp = document.getElementById('orionCalcRiskPctDisplay');
@@ -4156,15 +4170,14 @@ window.recalculateOrionUsdcad = function() {
 
   const elSlDisp = document.getElementById('orionCalcSlDisplay');
   if (elSlDisp) {
-    elSlDisp.textContent = `${slPips.toFixed(1)} pips (${(slPips * 10).toFixed(0)} points)`;
+    elSlDisp.textContent = `${slPips.toFixed(1)} pips ($${(slPips * 0.10).toFixed(2)} distancia)`;
   }
 
-  // FÓRMULA OFICIAL USDCAD:
-  // 1 lote estándar = 100,000 USD de base.
-  // 1 pip = 0.0001 CAD en la contra-divisa CAD.
-  // Pip Value por 1.0 lote en CAD = 100,000 * 0.0001 = 10.00 CAD.
-  // Pip Value en USD = 10.00 CAD / Cotización USDCAD.
-  const pipValPerLot = 10.0 / usdcadPrice;
+  // FÓRMULA OFICIAL XAU/USD (ORO SPOT / CONTRATO COMEX 100 OZ):
+  // 1 lote estándar = 100 onzas troy.
+  // 1 pip = $0.10 USD por onza.
+  // Pip Value por 1.0 lote = 100 oz * $0.10 = $10.00 USD / pip.
+  const pipValPerLot = 10.00;
   const rawLot = dollarRisk / (slPips * pipValPerLot);
   const lotSize = Math.max(0.01, Math.round(rawLot * 100) / 100);
 
@@ -4172,7 +4185,7 @@ window.recalculateOrionUsdcad = function() {
   const effectiveDollarRisk = slPips * effectivePipValue;
   const projectedRewardUsd = effectiveDollarRisk * rr;
   const projectedRewardPct = (projectedRewardUsd / accountSize) * 100;
-  const marginUsed = (lotSize * 100000) / 30; // 1:30 apalancamiento Forex
+  const marginUsed = (lotSize * 100 * goldPrice) / 30; // 1:30 apalancamiento Metales Orion
 
   // Actualizar Panel de Resultados
   const elLot = document.getElementById('orionResultLot');
@@ -4180,7 +4193,7 @@ window.recalculateOrionUsdcad = function() {
 
   const elContract = document.getElementById('orionResultContractDesc');
   if (elContract) {
-    elContract.textContent = `Lotes Estándar (${(lotSize * 100000).toLocaleString('en-US', {maximumFractionDigits:0})} USD Contrato)`;
+    elContract.textContent = `Lotes Estándar (${(lotSize * 100).toFixed(0)} Onzas Troy)`;
   }
 
   const elRiskUsd = document.getElementById('orionResultRiskUsd');
@@ -4200,7 +4213,7 @@ window.recalculateOrionUsdcad = function() {
 
   const elMargin = document.getElementById('orionResultMargin');
   if (elMargin) {
-    elMargin.textContent = `$${formatMoney(marginUsed)} USD (Apalancamiento 1:30)`;
+    elMargin.textContent = `$${formatMoney(marginUsed)} USD (Apalancamiento 1:30 en Metales)`;
   }
 
   // Escudo de Consistencia 20% Orion (Regla de Retiros)
@@ -4294,9 +4307,9 @@ window.applyOrionCalcParams = function() {
   const btSlInp = document.getElementById('btSimpleManualSlPoints');
   if (btSlInp) btSlInp.value = sl;
 
-  // Seleccionar activo USDCAD
+  // Seleccionar activo XAUUSD
   if (typeof window.selectBtAsset === 'function') {
-    window.selectBtAsset('USDCAD');
+    window.selectBtAsset('XAUUSD');
   }
   if (typeof updateBacktestSimplePreviews === 'function') {
     updateBacktestSimplePreviews();
@@ -4308,16 +4321,16 @@ window.applyOrionCalcParams = function() {
   }
 
   if (typeof showToast === 'function') {
-    showToast(`🚀 ¡Parámetros Orion Nova 50K transferidos al Backtesting! (USDCAD · Lote ${lotText} · Riesgo ${risk}% · 1:${rr} · SL ${sl}p)`, 'success', 4000);
+    showToast(`🚀 ¡Parámetros Orion Nova 50K transferidos al Backtesting! (XAUUSD · Lote ${lotText} · Riesgo ${risk}% · 1:${rr} · SL ${sl}p)`, 'success', 4000);
   }
 };
 
 function setupBacktestSimpleView() {
-  selectedBtSimpleAsset = 'USDCAD';
+  selectedBtSimpleAsset = 'XAUUSD';
 
   function updateBtSimpleAssetUI() {
     document.querySelectorAll('.btn-bt-asset').forEach(btn => {
-      const a = btn.dataset.asset || 'USDCAD';
+      const a = btn.dataset.asset || 'XAUUSD';
       const isSel = (a === selectedBtSimpleAsset);
       const spec = getForexSpec(a);
       if (isSel) {
@@ -4359,7 +4372,7 @@ function setupBacktestSimpleView() {
   document.querySelectorAll('.btn-bt-asset').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      selectedBtSimpleAsset = btn.dataset.asset || 'USDCAD';
+      selectedBtSimpleAsset = btn.dataset.asset || 'XAUUSD';
       updateBtSimpleAssetUI();
     });
   });
@@ -4416,7 +4429,7 @@ function setupBacktestSimpleView() {
   const btnAddManual = document.getElementById('btnBtSimpleAddManualTrade');
   if (btnAddManual) {
     btnAddManual.addEventListener('click', async () => {
-      const asset = document.getElementById('btSimpleManualAsset')?.value || selectedBtSimpleAsset || 'USDCAD';
+      const asset = document.getElementById('btSimpleManualAsset')?.value || selectedBtSimpleAsset || 'XAUUSD';
       const dir = document.getElementById('btSimpleManualDirection')?.value || 'BUY';
       const status = document.getElementById('btSimpleManualStatus')?.value || 'win';
       const manualRrInput = document.getElementById('btSimpleManualRR')?.value;
@@ -4564,7 +4577,7 @@ function setupBacktestSimpleView() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             mode: 'backtest',
-            asset: 'USDCAD',
+            asset: 'XAUUSD',
             num_trades: nTrades,
             win_rate: winRate,
             initial_balance: initBal,
@@ -5240,9 +5253,9 @@ function openBacktestReportModal() {
 
   if (verdictText) {
     if (netPnl > 0 && winRate >= beWinrate) {
-      verdictText.innerHTML = `La auditoría sobre la serie de <strong>${total} operaciones</strong> en USDCAD valida una ventaja estadística sólida y consistente. Con un Win Rate del <strong>${winRate.toFixed(1)}%</strong> frente a un breakeven de <strong>${beWinrate.toFixed(1)}%</strong>, la esperanza matemática por operación se establece en <strong>+$${formatMoney(expectancy)} USD</strong>. El control del riesgo arrojó un Drawdown máximo de <strong>${maxDd.toFixed(1)}%</strong> (-$${formatMoney(maxDdUsd)}), demostrando disciplina en el tamaño de posición y viabilidad técnica para evaluación de fondeo o gestión de capital real con apalancamiento 1:${leverage}.`;
+      verdictText.innerHTML = `La auditoría sobre la serie de <strong>${total} operaciones</strong> en XAUUSD valida una ventaja estadística sólida y consistente. Con un Win Rate del <strong>${winRate.toFixed(1)}%</strong> frente a un breakeven de <strong>${beWinrate.toFixed(1)}%</strong>, la esperanza matemática por operación se establece en <strong>+$${formatMoney(expectancy)} USD</strong>. El control del riesgo arrojó un Drawdown máximo de <strong>${maxDd.toFixed(1)}%</strong> (-$${formatMoney(maxDdUsd)}), demostrando disciplina en el tamaño de posición y viabilidad técnica para evaluación de fondeo o gestión de capital real con apalancamiento 1:${leverage}.`;
     } else {
-      verdictText.innerHTML = `La muestra analizada de <strong>${total} operaciones</strong> en USDCAD registra un PnL de <strong>$${formatMoney(netPnl)} USD</strong> y una efectividad del <strong>${winRate.toFixed(1)}%</strong>. Se aconseja revisar los criterios de confirmación o ajustar el ratio beneficio/riesgo antes de desplegar esta serie en pruebas de fondeo o capital real.`;
+      verdictText.innerHTML = `La muestra analizada de <strong>${total} operaciones</strong> en XAUUSD registra un PnL de <strong>$${formatMoney(netPnl)} USD</strong> y una efectividad del <strong>${winRate.toFixed(1)}%</strong>. Se aconseja revisar los criterios de confirmación o ajustar el ratio beneficio/riesgo antes de desplegar esta serie en pruebas de fondeo o capital real.`;
     }
   }
 
@@ -5273,7 +5286,7 @@ function openBacktestReportModal() {
         <tr class="hover:bg-gray-800/30">
           <td class="py-2 px-2.5 text-gray-500">${idx + 1}</td>
           <td class="py-2 px-2.5 text-gray-400 text-[10px] whitespace-nowrap">${t.date || '-'}</td>
-          <td class="py-2 px-2.5 font-bold text-blue-400">USDCAD</td>
+          <td class="py-2 px-2.5 font-bold text-blue-400">XAUUSD</td>
           <td class="py-2 px-2.5">${dirText}</td>
           <td class="py-2 px-2.5 text-blue-300 font-bold">1:${tradeRr.toFixed(1)}</td>
           <td class="py-2 px-2.5 text-amber-300">${riskBudget} <span class="text-gray-400 text-[10px]">(${riskPctVal})</span></td>
@@ -5623,10 +5636,10 @@ function renderRealTradesTable() {
 }
 
 // ====================================================
-// BITÁCORA REAL TICKMILL — CALCULADORA USDCAD & 1-CLICK
+// BITÁCORA REAL TICKMILL — CALCULADORA XAUUSD & 1-CLICK
 // ====================================================
 
-let selectedRealAsset = 'USDCAD';
+let selectedRealAsset = 'XAUUSD';
 
 function recalculateRealQuickLot() {
   const balInp = document.getElementById('realCalcBalance');
@@ -5654,9 +5667,9 @@ function recalculateRealQuickLot() {
 
   const dollarRisk = bal * (riskPct / 100.0);
 
-  // Pérdida por lote para USDCAD (Forex 100k Standard):
-  // 1 pip = 0.0001 CAD = ~$7.22 USD por lote
-  const pipValUsd = 7.22;
+  // Pérdida por lote para XAUUSD (Metales COMEX 100 oz):
+  // 1 pip = $0.10 USD/oz = $10.00 USD por lote (100 oz troy)
+  const pipValUsd = 10.00; // XAUUSD: 100 oz * $0.10/pip = $10.00 USD/pip
   const lossPerLot = slPts * pipValUsd;
   const pointValue = pipValUsd;
   const pointUnit = 'pip';
@@ -5672,7 +5685,7 @@ function recalculateRealQuickLot() {
   const actualRewardPct = bal > 0 ? (actualRewardUsd / bal) * 100.0 : 0.0;
   const tpPts = Math.round(slPts * rr);
 
-  // Margen en USDCAD (Contrato 100,000 USD / Leverage)
+  // Margen en XAUUSD (Contrato 100 oz Troy / Leverage)
   const rLev = Number(appState.real?.config?.leverage) || 300.0;
   const marginRequired = roundNum((100000.0 * recommendedLot) / rLev, 2);
   const currentPtVal = roundNum(recommendedLot * pointValue, 2);
@@ -5716,16 +5729,16 @@ function recalculateRealQuickLot() {
   if (heroPtValEl) heroPtValEl.textContent = `$${currentPtVal.toFixed(2)} / ${pointUnit}`;
 
   const heroPtValTitle = document.getElementById('realHeroPtValTitle');
-  if (heroPtValTitle) heroPtValTitle.textContent = 'VALOR POR PIP USDCAD';
+  if (heroPtValTitle) heroPtValTitle.textContent = 'VALOR POR PIP XAUUSD';
 
   const heroPtValSub = document.getElementById('realHeroPtValSub');
   if (heroPtValSub) {
-    heroPtValSub.textContent = `100k USD · ~$${pipValUsd.toFixed(2)}/pip (Contrato Estándar Forex)`;
+    heroPtValSub.textContent = `100k USD · ~$${pipValUsd.toFixed(2)}/pip (Contrato COMEX 100 oz)`;
   }
 
   const formulaExpEl = document.getElementById('realFormulaExplanation');
   if (formulaExpEl) {
-    formulaExpEl.innerHTML = `Fórmula TradingView USDCAD: <code>${formulaText} = <b>${recommendedLot.toFixed(2)} lotes (${units.toLocaleString()} unidades)</b></code>`;
+    formulaExpEl.innerHTML = `Fórmula TradingView XAUUSD: <code>${formulaText} = <b>${recommendedLot.toFixed(2)} lotes (${units.toLocaleString()} unidades)</b></code>`;
   }
 
   const riskBadge = document.getElementById('realCalcRiskUsdBadge');
@@ -5772,7 +5785,7 @@ function setupRealJournalView() {
     // Etiquetas y sufijos de Stop Loss
     const slLabel = document.getElementById('realCalcSlLabel');
     const slSuffix = document.getElementById('realCalcSlSuffix');
-    if (slLabel) slLabel.textContent = '3. Stop Loss en Pips (USDCAD)';
+    if (slLabel) slLabel.textContent = '3. Stop Loss en Pips (XAUUSD)';
     if (slSuffix) slSuffix.textContent = 'pips';
 
     // Chips dinámicos para SL
@@ -5805,7 +5818,7 @@ function setupRealJournalView() {
 
     // Sincronizar select en formulario manual
     const tradeAssetSelect = document.getElementById('realTradeAsset');
-    if (tradeAssetSelect) tradeAssetSelect.value = 'USDCAD';
+    if (tradeAssetSelect) tradeAssetSelect.value = 'XAUUSD';
 
     recalculateRealQuickLot();
   }
@@ -5814,7 +5827,7 @@ function setupRealJournalView() {
   document.querySelectorAll('.btn-real-asset').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      selectedRealAsset = 'USDCAD';
+      selectedRealAsset = 'XAUUSD';
       const slInp = document.getElementById('realCalcSlPoints');
       if (slInp) {
         slInp.value = Number(appState.real?.config?.sl_pips) || 25;
@@ -5955,7 +5968,7 @@ function setupRealJournalView() {
     });
   }
 
-  // Helper para Registrar Trade Rápido 1-Click en Bitácora Real (USDCAD)
+  // Helper para Registrar Trade Rápido 1-Click en Bitácora Real (XAUUSD)
   async function submitQuickRealTrade(status) {
     const calc = recalculateRealQuickLot();
     const now = new Date();
@@ -5981,7 +5994,7 @@ function setupRealJournalView() {
 
     const payload = {
       mode: 'real',
-      asset: 'USDCAD',
+      asset: 'XAUUSD',
       status: status,
       direction: status === 'loss' ? 'SELL' : 'BUY',
       rr: calc.rr,
@@ -5998,9 +6011,9 @@ function setupRealJournalView() {
       commission: comm,
       date: dateStr,
       session: 'New York',
-      strategy: `Price Action USDCAD (TradingView)`,
+      strategy: `Price Action XAUUSD (TradingView)`,
       emotion: 'Plan Seguido',
-      notes: `TradingView USDCAD (${status.toUpperCase()} ${status === 'win' ? '+' + calc.rr + 'R' : (status === 'loss' ? '-1R' : 'BE')})`
+      notes: `TradingView XAUUSD (${status.toUpperCase()} ${status === 'win' ? '+' + calc.rr + 'R' : (status === 'loss' ? '-1R' : 'BE')})`
     };
 
     try {
@@ -7099,9 +7112,9 @@ async function handleAddRealTrade(e) {
   const date = inputDate || defaultDate;
   const session = document.getElementById('realTradeSession')?.value || 'New York';
   const direction = document.getElementById('realTradeDirection')?.value || 'BUY';
-  const asset = 'USDCAD';
+  const asset = 'XAUUSD';
   const isGold = false;
-  const pipValUsd = 7.22;
+  const pipValUsd = 10.00; // XAUUSD: 100 oz * $0.10/pip = $10.00 USD/pip
   const leverage = parseFloat(appState.config?.leverage) || 300.0;
 
   const entry = parseFloat(document.getElementById('realTradeEntry')?.value);
@@ -7348,7 +7361,7 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
   document.getElementById('editTradeId').value = trade.id;
   document.getElementById('editTradeMode').value = mode;
   const assetSelect = document.getElementById('editTradeAsset');
-  if (assetSelect) assetSelect.value = trade.asset || 'USDCAD';
+  if (assetSelect) assetSelect.value = trade.asset || 'XAUUSD';
 
   const dateEl = document.getElementById('editTradeDate');
   if (dateEl) dateEl.value = trade.date || '';
@@ -7386,10 +7399,10 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
 
   // Setup live dynamic preview calculation on modal inputs
   const recalculateModalPnlPreview = () => {
-    const curAsset = document.getElementById('editTradeAsset')?.value || trade.asset || 'USDCAD';
+    const curAsset = document.getElementById('editTradeAsset')?.value || trade.asset || 'XAUUSD';
     const isGold = anyStringIncludes(curAsset, ['XAU', 'GOLD', 'ORO']);
     let mult = 72200.0;
-    let lossPerLot = 25 * 7.22;
+    let lossPerLot = 25 * 10.00;
 
     const curStatus = document.getElementById('editTradeStatus').value;
     const curRR = parseFloat(String(document.getElementById('editTradeRR').value).replace(',', '.')) || 1.0;
@@ -7405,7 +7418,7 @@ window.handleOpenEditModal = function(id, mode = 'backtest') {
       lossPerLot = curPts * 1.0;
     } else {
       mult = 72200.0;
-      lossPerLot = curPts * 7.22;
+      lossPerLot = curPts * 10.00;
     }
 
     const curEntry = parseFloat(String(document.getElementById('editTradeEntry')?.value || '').replace(',', '.'));
@@ -7503,7 +7516,7 @@ async function handleSaveEditedTrade() {
   const mode = document.getElementById('editTradeMode').value || 'backtest';
   if (!id) return;
 
-  const asset = document.getElementById('editTradeAsset')?.value || 'USDCAD';
+  const asset = document.getElementById('editTradeAsset')?.value || 'XAUUSD';
   const rawInput = document.getElementById('editTradeTvPoints').value;
   const { points, price } = parseTradingViewInput(rawInput);
   const tradeRR = roundNum(parseFloat(String(document.getElementById('editTradeRR').value).replace(',', '.')), 2) || 1.0;
@@ -8214,7 +8227,7 @@ function updateMacroQuantIntelligence(data) {
   if (adrRemaining) adrRemaining.textContent = `${remPts.toLocaleString("en-US")} pts ($${(remPts/100).toFixed(2)})`;
   if (adrBar) adrBar.style.width = `${pctConsumed}%`;
   if (adrDiag) {
-    adrDiag.innerHTML = `🟢 <strong>Margen Óptimo:</strong> El par USDCAD aún tiene ~${remPts.toLocaleString("en-US")} puntos de recorrido libre esperado en Nueva York. Espacio suficiente para buscar Take Profits con ratio 1:2.8 sin riesgo de agotamiento.`;
+    adrDiag.innerHTML = `🟢 <strong>Margen Óptimo:</strong> El par XAUUSD aún tiene ~${remPts.toLocaleString("en-US")} puntos de recorrido libre esperado en Nueva York. Espacio suficiente para buscar Take Profits con ratio 1:2.8 sin riesgo de agotamiento.`;
   }
 
   // Reflejar métricas en Tab 2 (Radar de Precisión)
@@ -8224,7 +8237,7 @@ function updateMacroQuantIntelligence(data) {
   if (precAdrRemaining) precAdrRemaining.textContent = `${remPts.toLocaleString("en-US")} pts ($${(remPts/100).toFixed(2)})`;
   if (precAdrBar) precAdrBar.style.width = `${pctConsumed}%`;
   if (precAdrDiag) {
-    precAdrDiag.innerHTML = `🟢 <strong>Margen Óptimo:</strong> El par USDCAD aún tiene ~${remPts.toLocaleString("en-US")} puntos de recorrido libre esperado en Nueva York. Espacio suficiente para buscar TP 1:2.8 sin agotamiento.`;
+    precAdrDiag.innerHTML = `🟢 <strong>Margen Óptimo:</strong> El par XAUUSD aún tiene ~${remPts.toLocaleString("en-US")} puntos de recorrido libre esperado en Nueva York. Espacio suficiente para buscar TP 1:2.8 sin agotamiento.`;
   }
 
   const precBiasBadge = document.getElementById("precBiasBadge");
@@ -8937,7 +8950,7 @@ function calculateOptimalTradingWindow(weekday, year, month, day, weeklyNews) {
 // -------------------------------------------------------------
 // Cálculo de Sesiones y Cuenta Regresiva de Apertura
 // Horario Oficial Exclusivo Ghost Pro:
-// Sesión New York: 07:00 – 11:00 NY (Killzone USDCAD)
+// Sesión New York: 08:00 – 11:30 NY (Killzone XAUUSD)
 // En horario Local y New York
 // -------------------------------------------------------------
 function getSessionCountdownDetails(now, startH, startM, endH, endM) {
@@ -9054,11 +9067,11 @@ function getNySessionStatus(now) {
   const min = parseInt(getPart("minute"), 10) || 0;
   const sec = parseInt(getPart("second"), 10) || 0;
 
-  // Sesión Exclusiva New York (Killzone USDCAD): 07:00 – 11:00 NY
+  // Sesión Exclusiva New York (Killzone XAUUSD): 08:00 – 11:30 NY
   const nyStatus = getSessionCountdownDetails(now, 7, 0, 11, 0);
 
   const isInSession = nyStatus.isOpen;
-  const activeSessionName = nyStatus.isOpen ? "Sesión New York (07:00 – 11:00 NY)" : null;
+  const activeSessionName = nyStatus.isOpen ? "Sesión New York (08:00 – 11:30 NY)" : null;
 
   let countdownText = "";
   let countdownFormatted = nyStatus.timeFormatted;
@@ -9130,7 +9143,7 @@ function evaluateDynamicNewsShield() {
   const nyDateStr = `${getP("year")}-${getP("month")}-${getP("day")}`;
   const currentTotalMin = parseInt(getP("hour"), 10) * 60 + parseInt(getP("minute"), 10);
 
-  // 1. Obtener eventos de hoy desde weeklyNewsState (exclusivos para USDCAD: USD y CAD)
+  // 1. Obtener eventos de hoy desde weeklyNewsState (exclusivos para XAU/USD: USD)
   let todayEvents = [];
   if (weeklyNewsState && Array.isArray(weeklyNewsState.days)) {
     const dayOfWeek = now.getDay();
@@ -9142,11 +9155,11 @@ function evaluateDynamicNewsShield() {
       });
     }
     if (todayObj && Array.isArray(todayObj.events)) {
-      todayEvents = todayObj.events.filter(e => e.currency === "USD" || e.currency === "CAD");
+      todayEvents = todayObj.events.filter(e => !e.currency || e.currency === "USD");
     }
   }
 
-  // Fallback con eventos de alto impacto para USDCAD (USD & CAD) según día de semana
+  // Fallback con eventos de alto impacto para XAU/USD (EE.UU. / USD) según día de semana
   if (todayEvents.length === 0) {
     const dayOfWeek = now.getDay();
     if (dayOfWeek === 1) { // Lunes
@@ -9156,33 +9169,31 @@ function evaluateDynamicNewsShield() {
       ];
     } else if (dayOfWeek === 2) { // Martes
       todayEvents = [
-        { time: "08:30 AM NY", currency: "CAD", title: "IPC de Canadá (Inflación BoC)", impact: "CRITICAL" },
-        { time: "10:00 AM NY", currency: "USD", title: "Encuesta de Ofertas de Empleo JOLTS", impact: "HIGH" }
+        { time: "08:30 AM NY", currency: "USD", title: "Ventas Minoristas Subyacentes de EE.UU.", impact: "HIGH" },
+        { time: "10:00 AM NY", currency: "USD", title: "Encuesta de Ofertas de Empleo JOLTS (EE.UU.)", impact: "HIGH" }
       ];
     } else if (dayOfWeek === 3) { // Miércoles
       todayEvents = [
-        { time: "08:15 AM NY", currency: "USD", title: "Informe de Empleo No Agrícola ADP", impact: "HIGH" },
-        { time: "09:45 AM NY", currency: "CAD", title: "Decisión de Tipos BoC (Banco de Canadá)", impact: "CRITICAL" },
-        { time: "10:00 AM NY", currency: "USD", title: "ISM PMI del Sector Servicios", impact: "HIGH" },
-        { time: "10:30 AM NY", currency: "USD", title: "Inventarios de Petróleo Crudo EIA", impact: "HIGH" }
+        { time: "08:15 AM NY", currency: "USD", title: "Informe de Empleo No Agrícola ADP (EE.UU.)", impact: "HIGH" },
+        { time: "02:00 PM NY", currency: "USD", title: "Decisión de Tasas de Interés FOMC (EE.UU.)", impact: "CRITICAL" },
+        { time: "02:30 PM NY", currency: "USD", title: "Rueda de Prensa de Jerome Powell (Fed)", impact: "CRITICAL" }
       ];
     } else if (dayOfWeek === 4) { // Jueves
       todayEvents = [
-        { time: "08:30 AM NY", currency: "USD", title: "Jobless Claims (Peticiones Desempleo EE.UU.)", impact: "HIGH" },
-        { time: "08:30 AM NY", currency: "CAD", title: "Balanza Comercial de Canadá", impact: "MEDIUM" },
-        { time: "10:00 AM NY", currency: "CAD", title: "Ivey PMI de Canadá", impact: "HIGH" }
+        { time: "08:30 AM NY", currency: "USD", title: "Peticiones Semanales de Desempleo (Jobless Claims)", impact: "HIGH" },
+        { time: "08:30 AM NY", currency: "USD", title: "Índice de Precios al Productor (PPI de EE.UU.)", impact: "HIGH" }
       ];
     } else if (dayOfWeek === 5) { // Viernes
       todayEvents = [
         { time: "08:30 AM NY", currency: "USD", title: "NFP (Nóminas No Agrícolas de EE.UU.)", impact: "CRITICAL" },
-        { time: "08:30 AM NY", currency: "CAD", title: "Informe Laboral de Canadá (Empleo & Desempleo)", impact: "CRITICAL" },
-        { time: "10:00 AM NY", currency: "USD", title: "Confianza del Consumidor Univ. Michigan", impact: "HIGH" }
+        { time: "08:30 AM NY", currency: "USD", title: "Tasa de Desempleo de EE.UU.", impact: "CRITICAL" },
+        { time: "10:00 AM NY", currency: "USD", title: "Sentimiento del Consumidor Universidad de Michigan", impact: "HIGH" }
       ];
     }
   }
 
-  // Filtrar estrictamente noticias que afecten a USDCAD (USD y CAD)
-  todayEvents = todayEvents.filter(e => !e.currency || e.currency === "USD" || e.currency === "CAD");
+  // Filtrar estrictamente noticias que afecten a XAU/USD (USD exclusivo)
+  todayEvents = todayEvents.filter(e => !e.currency || e.currency === "USD");
 
   let activeBlock = null;
   let activeWarning = null;
@@ -9628,7 +9639,7 @@ function startMarketClock() {
       barLocalClock.textContent = `${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })} Local (${tzName})`;
     }
 
-    // Barra Universal - Sesión Exclusiva New York (07:00 – 11:00 NY · Killzone USDCAD)
+    // Barra Universal - Sesión Exclusiva New York (08:00 – 11:30 NY · Killzone XAUUSD)
     if (session.nyStatus) {
       const barNyBadge = document.getElementById("barNyBadge");
       const barNyCountdown = document.getElementById("barNyCountdown");
@@ -9655,7 +9666,7 @@ function startMarketClock() {
       }
     }
 
-    // 3. Tarjeta New York en Pestaña 2: Noticias (Killzone USDCAD)
+    // 3. Tarjeta New York en Pestaña 2: Noticias (Killzone XAUUSD)
     if (session.nyStatus) {
       const newsNyBadge = document.getElementById("newsNyBadge");
       const newsNyCountdown = document.getElementById("newsNyCountdown");
@@ -9727,7 +9738,7 @@ function startMarketClock() {
         guardCountdown.textContent = session.countdownText;
       }
       if (guardHeadline) {
-        guardHeadline.innerHTML = `Ventana institucional activa: <strong>${session.activeSessionName || 'Sesión New York'}</strong>. Spreads mínimos (0.6 - 0.9p) y volumen bancario óptimo en USDCAD. Ejecuta únicamente confluencia con el sesgo diario y gatillo M5.`;
+        guardHeadline.innerHTML = `Ventana institucional activa: <strong>${session.activeSessionName || 'Sesión New York'}</strong>. Spreads mínimos (0.6 - 0.9p) y volumen bancario óptimo en XAUUSD. Ejecuta únicamente confluencia con el sesgo diario y gatillo M5.`;
       }
     } else {
       if (guardBanner) {
@@ -9745,7 +9756,7 @@ function startMarketClock() {
         guardCountdown.textContent = session.countdownText;
       }
       if (guardHeadline) {
-        guardHeadline.innerHTML = `El mercado se encuentra fuera de la sesión operativa autorizada: <strong>New York (07:00 – 11:00 NY)</strong>. Fuera de este horario el volumen en USDCAD desciende y los spreads se ensanchan. <strong>Disciplina: No regales tu dinero operando fuera de sesión.</strong>`;
+        guardHeadline.innerHTML = `El mercado se encuentra fuera de la sesión operativa autorizada: <strong>New York (08:00 – 11:30 NY)</strong>. Fuera de este horario el volumen en XAUUSD desciende y los spreads se ensanchan. <strong>Disciplina: No regales tu dinero operando fuera de sesión.</strong>`;
       }
     }
 
@@ -9774,7 +9785,7 @@ function startMarketClock() {
           precCountdown.className = "text-xs font-mono font-bold text-emerald-300";
         }
         if (precHeadline) {
-          precHeadline.innerHTML = `Ventana operativa activa: <strong>${session.activeSessionName || 'Sesión New York'}</strong>. Spreads mínimos y volumen bancario óptimo en USDCAD. <strong>Operativa autorizada con confluencia del Gatillo M5.</strong>`;
+          precHeadline.innerHTML = `Ventana operativa activa: <strong>${session.activeSessionName || 'Sesión New York'}</strong>. Spreads mínimos y volumen bancario óptimo en XAUUSD. <strong>Operativa autorizada con confluencia del Gatillo M5.</strong>`;
         }
       } else {
         if (precBanner) {
@@ -9793,7 +9804,7 @@ function startMarketClock() {
           precCountdown.className = "text-xs font-mono font-bold text-rose-300";
         }
         if (precHeadline) {
-          precHeadline.innerHTML = `Mercado fuera de la ventana operativa autorizada: <strong>New York (07:00 – 11:00 NY)</strong>. Spreads ensanchados y bajo volumen institucional en USDCAD.`;
+          precHeadline.innerHTML = `Mercado fuera de la ventana operativa autorizada: <strong>New York (08:00 – 11:30 NY)</strong>. Spreads ensanchados y bajo volumen institucional en XAUUSD.`;
         }
       }
     }
@@ -10596,226 +10607,175 @@ async function loadWeeklyNews() {
   // Fallback si no hay conexión al backend
   if (!weeklyNewsState || !weeklyNewsState.days) {
     weeklyNewsState = {
-      week_label: "Semana Operativa USDCAD · Macro EE.UU. & Canadá (Killzone New York)",
-      week_start: "2026-11-16",
-      week_end: "2026-11-20",
-      timezone: "America/New_York (UTC-5)",
-      days: [
+  "week_label": "Semana Operativa XAU/USD · Macro EE.UU. & Dólar (Killzone New York Oro 08:00 – 11:30 ET)",
+  "week_start": "2026-11-16",
+  "week_end": "2026-11-20",
+  "timezone": "America/New_York (UTC-5)",
+  "days": [
+    {
+      "date": "2026-11-16",
+      "day_name": "Lunes",
+      "day_short": "LUN",
+      "impact_level": "HIGH",
+      "badge_text": "🔴 ISM MANUFACTURERO DE EE.UU.",
+      "events": [
         {
-          date: "2026-11-16",
-          day_name: "Lunes",
-          day_short: "LUN",
-          impact_level: "HIGH",
-          badge_text: "🔴 ISM MANUFACTURERO (EE.UU.)",
-          events: [
-            {
-              id: "news_usdcad_mon_01",
-              time: "09:45 AM NY",
-              currency: "USD",
-              title: "PMI Manufacturero de S&P Global (EE.UU.)",
-              impact: "MEDIUM",
-              forecast: "50.5",
-              previous: "49.8",
-              actual: "50.8",
-              impact_usdcad: "Lectura preliminar de la actividad fabril estadounidense. Cifras por encima de 50 indican expansión del sector manufacturero, fortaleciendo al Dólar frente al Dólar Canadiense.",
-              rule_action: "Monitorear spreads en la apertura de New York. Spreads normales en USDCAD (0.6 - 0.9 pips)."
-            },
-            {
-              id: "news_usdcad_mon_02",
-              time: "10:00 AM NY",
-              currency: "USD",
-              title: "ISM PMI Manufacturero de EE.UU.",
-              impact: "HIGH",
-              forecast: "49.5",
-              previous: "48.6",
-              actual: "--",
-              impact_usdcad: "Indicador líder de salud industrial en EE.UU. Lecturas superiores al consenso fortalecen al USD impulsando compras en USDCAD (+25 a +45 pips).",
-              rule_action: "⚠️ Pausa Táctica Orion Funded: Cero órdenes de 09:58 a 10:02 AM NY en cuenta fondeada. Esperar vela M5 cerrada."
-            }
-          ]
+          "id": "news_xau_mon_01",
+          "time": "09:45 AM NY",
+          "currency": "USD",
+          "title": "PMI Manufacturero de S&P Global (EE.UU.)",
+          "impact": "MEDIUM",
+          "forecast": "50.5",
+          "previous": "49.8",
+          "actual": "50.8",
+          "impact_usd": "Lectura preliminar de la actividad fabril estadounidense. Cifras superiores a 50 indican expansión, fortaleciendo al Dólar.",
+          "impact_gold": "Presión bajista moderada sobre XAU/USD por demanda en billete verde en la primera hora de Wall Street.",
+          "rule_action": "Monitorear spreads en apertura de COMEX. Spreads normales en XAU/USD: 1.0 - 1.8 pips ($0.10 - $0.18)."
         },
         {
-          date: "2026-11-17",
-          day_name: "Martes",
-          day_short: "MAR",
-          impact_level: "CRITICAL",
-          badge_text: "💥 IPC DE CANADÁ & JOLTS EE.UU.",
-          events: [
-            {
-              id: "news_usdcad_tue_01",
-              time: "08:30 AM NY",
-              currency: "CAD",
-              title: "IPC de Canadá (Índice de Precios al Consumidor / Inflación BoC)",
-              impact: "CRITICAL",
-              forecast: "+2.4% a/a",
-              previous: "+2.5% a/a",
-              actual: "--",
-              impact_usdcad: "El dato de inflación rector para el Banco de Canadá (BoC). Un IPC canadiense caliente reduce expectativas de recortes de tipos del BoC, fortaleciendo agresivamente al CAD y desplomando a USDCAD (-40 a -70 pips).",
-              rule_action: "⛔ Bloqueo Estricto Orion Funded: Prohibido abrir, cerrar o modificar órdenes de 08:28 a 08:32 AM NY."
-            },
-            {
-              id: "news_usdcad_tue_02",
-              time: "10:00 AM NY",
-              currency: "USD",
-              title: "Encuesta de Ofertas de Empleo JOLTS de EE.UU.",
-              impact: "HIGH",
-              forecast: "7.90M",
-              previous: "8.04M",
-              actual: "--",
-              impact_usdcad: "Medición clave de vacantes laborales de la Fed. Si las vacantes superan los 8M, ratifica la resiliencia económica de EE.UU. e impulsa al USD frente al CAD (+20 a +35 pips).",
-              rule_action: "⚠️ Pausa Táctica 09:58 a 10:02 AM NY. Respetar regla estricta de noticias de cuenta fondeada."
-            }
-          ]
-        },
-        {
-          date: "2026-11-18",
-          day_name: "Miércoles",
-          day_short: "MIÉ",
-          impact_level: "CRITICAL",
-          badge_text: "🔥 DECISIÓN TIPOS BOC & INVENTARIOS PETRÓLEO",
-          events: [
-            {
-              id: "news_usdcad_wed_01",
-              time: "08:15 AM NY",
-              currency: "USD",
-              title: "Informe de Empleo No Agrícola ADP de EE.UU.",
-              impact: "HIGH",
-              forecast: "145K",
-              previous: "143K",
-              actual: "--",
-              impact_usdcad: "Anticipo de empleo privado antes del NFP. Un número sólido fortalece la demanda del USD en la apertura previa a la Killzone.",
-              rule_action: "⚠️ Pausa Táctica: Cero entradas de 08:13 a 08:17 AM NY."
-            },
-            {
-              id: "news_usdcad_wed_02",
-              time: "09:45 AM NY",
-              currency: "CAD",
-              title: "Decisión de Tipos de Interés del Banco de Canadá (BoC) & Declaración de Política Monetaria",
-              impact: "CRITICAL",
-              forecast: "3.75%",
-              previous: "4.25%",
-              actual: "--",
-              impact_usdcad: "El catalizador institucional de mayor impacto para USDCAD. Anuncio de tipos y rueda de prensa del Gobernador Macklem mueven entre 50 y 100 pips. Tono dovish dispara compras en USDCAD; tono hawkish fortalece al CAD.",
-              rule_action: "⛔ BLOQUEO TOTAL ORION FUNDED: Prohibido operar de 09:43 a 09:47 AM NY. Esperar 15 minutos tras el comunicado."
-            },
-            {
-              id: "news_usdcad_wed_03",
-              time: "10:00 AM NY",
-              currency: "USD",
-              title: "ISM PMI del Sector Servicios de EE.UU.",
-              impact: "HIGH",
-              forecast: "53.8",
-              previous: "54.9",
-              actual: "--",
-              impact_usdcad: "El sector servicios representa más del 70% del PIB de EE.UU. Expansión (>53) apoya la fortaleza del Dólar frente al Loonie.",
-              rule_action: "⚠️ Pausa Táctica: No tener órdenes pendientes abiertas a las 09:59 NY."
-            },
-            {
-              id: "news_usdcad_wed_04",
-              time: "10:30 AM NY",
-              currency: "USD",
-              title: "Inventarios Semanales de Petróleo Crudo de la EIA",
-              impact: "HIGH",
-              forecast: "-1.8M",
-              previous: "+2.1M",
-              actual: "--",
-              impact_usdcad: "Alta correlación con el CAD (Canadá principal exportador de crudo a EE.UU.). Caídas de inventarios disparan el WTI y aprecian al CAD (USDCAD cae).",
-              rule_action: "⚠️ Monitorear ventana 10:28 a 10:32 AM NY. Posible desplazamiento rápido de 20 a 35 pips en USDCAD."
-            }
-          ]
-        },
-        {
-          date: "2026-11-19",
-          day_name: "Jueves",
-          day_short: "JUE",
-          impact_level: "HIGH",
-          badge_text: "🔴 JOBLESS CLAIMS EE.UU. & IVEY PMI CANADÁ",
-          events: [
-            {
-              id: "news_usdcad_thu_01",
-              time: "08:30 AM NY",
-              currency: "USD",
-              title: "Nuevas Peticiones de Subsidio por Desempleo (Jobless Claims EE.UU.)",
-              impact: "HIGH",
-              forecast: "220K",
-              previous: "218K",
-              actual: "--",
-              impact_usdcad: "Termómetro semanal laboral en EE.UU. Peticiones bajas (<220K) impulsan al Dólar frente al Dólar Canadiense (+15 a +30 pips).",
-              rule_action: "⛔ Bloqueo en Fondeado Orion: 08:28 a 08:32 AM NY."
-            },
-            {
-              id: "news_usdcad_thu_02",
-              time: "08:30 AM NY",
-              currency: "CAD",
-              title: "Balanza Comercial de Mercancías de Canadá",
-              impact: "MEDIUM",
-              forecast: "-0.9B",
-              previous: "-1.1B",
-              actual: "--",
-              impact_usdcad: "Flujo comercial exterior de Canadá. Coincide a las 08:30 AM con Jobless Claims generando volatilidad bilateral.",
-              rule_action: "Coincide a las 08:30 AM con Jobless Claims. Precaución por choque simultáneo de datos."
-            },
-            {
-              id: "news_usdcad_thu_03",
-              time: "10:00 AM NY",
-              currency: "CAD",
-              title: "Índice de Gerentes de Compras Ivey PMI de Canadá",
-              impact: "HIGH",
-              forecast: "53.5",
-              previous: "52.0",
-              actual: "--",
-              impact_usdcad: "Barómetro líder de la economía canadiense. Lecturas superiores a 54 fortalecen al CAD y presionan a USDCAD a la baja.",
-              rule_action: "⚠️ Pausa Táctica Orion: 09:58 a 10:02 AM NY."
-            }
-          ]
-        },
-        {
-          date: "2026-11-20",
-          day_name: "Viernes",
-          day_short: "VIE",
-          impact_level: "CRITICAL",
-          badge_text: "💥 SUPER VIERNES LABORAL: NFP EE.UU. + EMPLEO CANADÁ",
-          events: [
-            {
-              id: "news_usdcad_fri_01",
-              time: "08:30 AM NY",
-              currency: "USD",
-              title: "NFP (Nóminas No Agrícolas de EE.UU.) & Tasa de Desempleo",
-              impact: "CRITICAL",
-              forecast: "175K / 4.1%",
-              previous: "254K / 4.1%",
-              actual: "--",
-              impact_usdcad: "El catalizador macroeconómico más influyente. Publicado simultáneamente con el empleo de Canadá generando el mayor choque de volatilidad del mes en USDCAD (+60 a +110 pips).",
-              rule_action: "⛔ BLOQUEO ESTRICTO ORION FUNDED: 08:28 a 08:32 AM NY. Prohibido ejecutar; esperar a las 08:45 NY para estabilización de spreads."
-            },
-            {
-              id: "news_usdcad_fri_02",
-              time: "08:30 AM NY",
-              currency: "CAD",
-              title: "Informe Laboral de Canadá (Cambio en el Empleo & Desempleo)",
-              impact: "CRITICAL",
-              forecast: "+25.0K / 6.5%",
-              previous: "+46.7K / 6.5%",
-              actual: "--",
-              impact_usdcad: "Doble choque de nóminas a las 08:30 AM NY. Empleo canadiense superior al consenso fortalece al CAD reduciendo el avance de USDCAD.",
-              rule_action: "⛔ BLOQUEO ESTRICTO: Doble choque laboral de 08:28 a 08:32 AM NY. Esperar vela M5 cerrada antes de operar."
-            },
-            {
-              id: "news_usdcad_fri_03",
-              time: "10:00 AM NY",
-              currency: "USD",
-              title: "Índice de Confianza del Consumidor de la Universidad de Michigan",
-              impact: "HIGH",
-              forecast: "71.0",
-              previous: "70.5",
-              actual: "--",
-              impact_usdcad: "Sentimiento y expectativas de inflación en EE.UU. Cierre de semana con volatilidad final en la Killzone de New York.",
-              rule_action: "⚠️ Pausa Táctica 09:58 a 10:02 AM NY."
-            }
-          ]
+          "id": "news_xau_mon_02",
+          "time": "10:00 AM NY",
+          "currency": "USD",
+          "title": "ISM PMI Manufacturero de EE.UU.",
+          "impact": "HIGH",
+          "forecast": "49.5",
+          "previous": "48.6",
+          "actual": "49.2",
+          "impact_usd": "Indicador líder de salud industrial en EE.UU. Si supera el consenso, fortalece al USD elevando rendimientos de bonos del Tesoro.",
+          "impact_gold": "Genera desplazamientos de $8 a $15 por onza en plena Killzone de NY. Lecturas contractivas (<49) disparan compras en XAU/USD.",
+          "rule_action": "⚠️ Pausa Táctica Orion Funded: Cero órdenes de 09:58 a 10:02 AM NY en cuenta fondeada. Esperar vela M5 cerrada."
         }
       ]
-    };
+    },
+    {
+      "date": "2026-11-17",
+      "day_name": "Martes",
+      "day_short": "MAR",
+      "impact_level": "HIGH",
+      "badge_text": "🔴 VENTAS MINORISTAS DE EE.UU. (RETAIL SALES)",
+      "events": [
+        {
+          "id": "news_xau_tue_01",
+          "time": "08:30 AM NY",
+          "currency": "USD",
+          "title": "Ventas Minoristas Subyacentes m/m (EE.UU.)",
+          "impact": "HIGH",
+          "forecast": "+0.3%",
+          "previous": "+0.5%",
+          "actual": "+0.4%",
+          "impact_usd": "Mide el 70% de la economía de EE.UU. impulsada por el consumo. Ventas fuertes alejan recortes de tasas de la Fed en el CME FedWatch.",
+          "impact_gold": "Reacción violenta en XAU/USD coincidiendo con el Pre-Mercado / apertura de COMEX a las 08:30 AM NY (movimientos de $12 a $20).",
+          "rule_action": "⚠️ Ventana Crítica Orion: Prohibido abrir o modificar trades de 08:28 a 08:32 AM NY. Esperar mitigación en velas de 5 minutos."
+        }
+      ]
+    },
+    {
+      "date": "2026-11-18",
+      "day_name": "Miércoles",
+      "day_short": "MIÉ",
+      "impact_level": "EXTREME",
+      "badge_text": "🔴 DECISIÓN DE TIPOS DE INTERÉS FOMC / FED & POWELL",
+      "events": [
+        {
+          "id": "news_xau_wed_01",
+          "time": "02:00 PM NY",
+          "currency": "USD",
+          "title": "Decisión de Tasas de Interés de la Reserva Federal (FOMC)",
+          "impact": "HIGH",
+          "forecast": "3.75% – 4.00%",
+          "previous": "3.75%",
+          "actual": "--",
+          "impact_usd": "El catalizador macroeconómico rey para el Dólar. Las probabilidades de la CME FedWatch Tool se ajustan inmediatamente.",
+          "impact_gold": "Desplazamientos de $25 a $50 por onza en XAU/USD. Dilatación severa de spreads en brokers.",
+          "rule_action": "🚨 ALERTA MÁXIMA ORION FUNDED: Bloqueo de 01:58 a 02:02 PM NY. No operar la noticia en cuenta fondeada."
+        },
+        {
+          "id": "news_xau_wed_02",
+          "time": "02:30 PM NY",
+          "currency": "USD",
+          "title": "Rueda de Prensa del Presidente de la Fed Jerome Powell",
+          "impact": "HIGH",
+          "forecast": "--",
+          "previous": "--",
+          "actual": "--",
+          "impact_usd": "Cada declaración sobre inflación y mercado laboral sacude la curva de rendimientos de los bonos soberanos de EE.UU.",
+          "impact_gold": "Movimientos de doble barrida de liquidez (whipsaws) en máximos y mínimos diarios de XAU/USD.",
+          "rule_action": "Recomendación institucional: Esperar cierre de sesión o estabilidad tras las 03:00 PM NY."
+        }
+      ]
+    },
+    {
+      "date": "2026-11-19",
+      "day_name": "Jueves",
+      "day_short": "JUE",
+      "impact_level": "HIGH",
+      "badge_text": "🔴 PETICIONES SEMANALES DE SUBSIDIO POR DESEMPLEO & PPI",
+      "events": [
+        {
+          "id": "news_xau_thu_01",
+          "time": "08:30 AM NY",
+          "currency": "USD",
+          "title": "Nuevas Peticiones de Subsidio por Desempleo (EE.UU.)",
+          "impact": "HIGH",
+          "forecast": "218K",
+          "previous": "221K",
+          "actual": "--",
+          "impact_usd": "Termómetro semanal del empleo en EE.UU. Un aumento de peticiones debilita al Dólar.",
+          "impact_gold": "Peticiones por encima de 230K provocan impulsos alcistas directos en el Oro por caída de rendimientos.",
+          "rule_action": "⚠️ Regla de 2 Minutos: Sin órdenes de 08:28 a 08:32 AM NY."
+        },
+        {
+          "id": "news_xau_thu_02",
+          "time": "08:30 AM NY",
+          "currency": "USD",
+          "title": "Índice de Precios al Productor (PPI) de EE.UU.",
+          "impact": "HIGH",
+          "forecast": "+0.2%",
+          "previous": "+0.1%",
+          "actual": "--",
+          "impact_usd": "Presión inflacionaria mayorista que anticipa el IPC futuro.",
+          "impact_gold": "Inflación al productor moderada alivia el DXY y permite expansión alcista en XAU/USD.",
+          "rule_action": "Filtrar entrada en M5 esperando confirmación post-publicación."
+        }
+      ]
+    },
+    {
+      "date": "2026-11-20",
+      "day_name": "Viernes",
+      "day_short": "VIE",
+      "impact_level": "HIGH",
+      "badge_text": "🔴 NÓMINAS NO AGRÍCOLAS (NFP) & TASA DE DESEMPLEO",
+      "events": [
+        {
+          "id": "news_xau_fri_01",
+          "time": "08:30 AM NY",
+          "currency": "USD",
+          "title": "Nóminas No Agrícolas (NFP) de EE.UU.",
+          "impact": "HIGH",
+          "forecast": "175K",
+          "previous": "165K",
+          "actual": "--",
+          "impact_usd": "El dato de empleo más influyente del mundo para la Reserva Federal y el Índice Dólar (DXY).",
+          "impact_gold": "El Oro es el activo más reactivo al NFP: expansiones de $30 a $60 por onza en minutos. Volatilidad extrema.",
+          "rule_action": "🚨 PROHIBIDO OPERAR: Bloqueo estricto Orion Funded de 08:28 a 08:32 AM NY. Operar solo tras mitigación a las 09:00 AM NY."
+        },
+        {
+          "id": "news_xau_fri_02",
+          "time": "08:30 AM NY",
+          "currency": "USD",
+          "title": "Tasa de Desempleo de EE.UU.",
+          "impact": "HIGH",
+          "forecast": "4.1%",
+          "previous": "4.1%",
+          "actual": "--",
+          "impact_usd": "Un repunte al 4.2%+ incrementa las apuestas de recortes en el CME FedWatch y tira abajo al Dólar.",
+          "impact_gold": "Desencadena rallies alcistas inmediatos en el oro físico y futuros COMEX.",
+          "rule_action": "Confirmar absorción en POI M5 tras calmar el spread inicial."
+        }
+      ]
+    }
+  ]
+};
   }
 
   renderWeeklyNews();
@@ -10848,7 +10808,7 @@ function renderWeeklyNews() {
   let html = "";
 
   filteredDays.forEach(day => {
-    let events = (day.events || []).filter(e => !e.currency || e.currency === "USD" || e.currency === "CAD");
+    let events = (day.events || []).filter(e => !e.currency || e.currency === "USD");
     if (filterHighImpactOnly) {
       events = events.filter(e => e.impact === "HIGH" || e.impact === "CRITICAL");
     }
@@ -10874,7 +10834,7 @@ function renderWeeklyNews() {
                 <span>${day.day_name}, ${day.date}</span>
                 <span class="text-[10px] text-gray-400 font-mono font-normal">· New York (UTC-5)</span>
               </div>
-              <div class="text-[11px] text-gray-400">Eventos Macro EE.UU. & Canadá con impacto directo en USDCAD (Killzone NY)</div>
+              <div class="text-[11px] text-gray-400">Eventos Macro EE.UU. (USD) con impacto directo en XAU/USD (Killzone NY)</div>
             </div>
           </div>
           <span class="text-[10px] font-mono font-bold px-3 py-1 rounded-lg border ${dayHeaderClass} flex items-center gap-1.5 shadow-sm">
@@ -10894,11 +10854,9 @@ function renderWeeklyNews() {
                   ? `<span class="px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 font-mono text-[10px] font-bold">🔴 ALTO IMPACTO</span>`
                   : `<span class="px-2 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-800 font-mono text-[10px] font-bold">🟡 MEDIO IMPACTO</span>`);
 
-            const currBadge = ev.currency === 'CAD'
-              ? '<span class="px-2 py-1 rounded-lg bg-red-950/80 border border-red-700 font-mono text-[10px] text-red-300 font-bold">🇨🇦 CAD</span>'
-              : (ev.currency === 'USD'
-                  ? '<span class="px-2 py-1 rounded-lg bg-blue-950/80 border border-blue-700 font-mono text-[10px] text-blue-300 font-bold">🇺🇸 USD</span>'
-                  : `<span class="px-2 py-1 rounded-lg bg-gray-900 border border-gray-700 font-mono text-[10px] text-gray-300 font-bold">${ev.currency}</span>`);
+            const currBadge = ev.currency === 'USD'
+              ? '<span class="px-2 py-1 rounded-lg bg-blue-950/80 border border-blue-700 font-mono text-[10px] text-blue-300 font-bold">🇺🇸 USD</span>'
+              : '<span class="px-2 py-1 rounded-lg bg-amber-950/80 border border-amber-700 font-mono text-[10px] text-amber-300 font-bold">🥇 XAU/USD</span>';
 
             return `
               <div class="p-4 rounded-xl bg-gray-900/80 border ${isCritical ? 'border-red-500/40 shadow-lg shadow-red-950/20' : 'border-gray-800/90 hover:border-gray-700'} space-y-3 transition">
@@ -10915,7 +10873,7 @@ function renderWeeklyNews() {
 
                 <div>
                   <h4 class="text-xs sm:text-sm font-bold text-white leading-snug">${ev.title}</h4>
-                  <p class="text-[11px] text-gray-300 mt-1.5 leading-relaxed">${ev.impact_usdcad || ev.impact_desc || ev.impact_gold || ''}</p>
+                  <p class="text-[11px] text-gray-300 mt-1.5 leading-relaxed">${ev.impact_xauusd || ev.impact_desc || ev.impact_gold || ''}</p>
                 </div>
 
                 <!-- Consensus Metrics: Forecast / Prev / Actual -->
@@ -10937,7 +10895,7 @@ function renderWeeklyNews() {
                 <!-- Protective Action / Protocol -->
                 <div class="p-2.5 rounded-lg ${isCritical ? 'bg-red-950/40 border border-red-500/40 text-red-300' : 'bg-yellow-950/30 border border-yellow-500/30 text-yellow-300'} text-[11px] font-medium leading-relaxed flex items-start gap-2">
                   <i data-lucide="shield-alert" class="w-4 h-4 mt-0.5 shrink-0 ${isCritical ? 'text-red-400' : 'text-yellow-400'}"></i>
-                  <span><strong class="text-white">Regla Operativa USDCAD (Orion):</strong> ${ev.rule_action || 'Esperar vela M5 cerrada tras el dato.'}</span>
+                  <span><strong class="text-white">Regla Operativa XAUUSD (Orion):</strong> ${ev.rule_action || 'Esperar vela M5 cerrada tras el dato.'}</span>
                 </div>
               </div>
             `;
@@ -11674,7 +11632,7 @@ function renderDualSignals(data) {
 }
 
 // ==============================================================
-// 6 MEJORAS INTEGRALES USDCAD (v3.5)
+// 6 MEJORAS INTEGRALES XAUUSD (v3.5)
 // ==============================================================
 
 // -------------------------------------------------------------
@@ -11712,7 +11670,7 @@ function fallbackCopyText(text, label) {
 }
 
 // -------------------------------------------------------------
-// 2. Calibrador Institucional de Tasa y Pip USDCAD ($7.22/pip)
+// 2. Calibrador Institucional de Tasa y Pip XAUUSD ($10.00/pip)
 // -------------------------------------------------------------
 function getActiveUsdJpyRate() {
   const saved = parseFloat(localStorage.getItem('calibrator_usdjpy_rate'));
@@ -11733,12 +11691,12 @@ function setActiveUsdJpyRate(rate) {
 }
 
 function getUsdcadPipValueUsd() {
-  return 7.22; // 1 pip USDCAD = 10 CAD / 1.3850 ~= $7.22 USD
+  return 10.00; // 1 pip XAUUSD (100 oz troy) = $10.00 USD exacto
 }
-const getAudJpyPipValueUsd = getUsdcadPipValueUsd;
+const getGoldPipValueUsd = getUsdcadPipValueUsd;
 
 function syncUsdJpyRateUI() {
-  const pipVal = 7.22;
+  const pipVal = 10.00;
 
   const rateInp = document.getElementById('realUsdJpyRateInput');
   if (rateInp && document.activeElement !== rateInp) {
@@ -11854,7 +11812,7 @@ function updateAllNewsShieldBanners(status) {
             <span class="text-xs text-amber-300 font-mono font-bold">${curr} · ${ev.time || ''}</span>
           </div>
           <p class="text-xs text-gray-200 mt-0.5 leading-snug">
-            <strong>${ev.title || 'Evento Macro'}:</strong> Alto impacto en USDCAD. Finaliza o protege operaciones antes de entrar en la ventana de restricción de ±2 minutos.
+            <strong>${ev.title || 'Evento Macro'}:</strong> Alto impacto en XAUUSD. Finaliza o protege operaciones antes de entrar en la ventana de restricción de ±2 minutos.
           </p>
         </div>
       </div>
@@ -11884,7 +11842,7 @@ function updateAllNewsShieldBanners(status) {
             <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase">
               🛡️ MERCADO OPERABLE (SIN RESTRICCIONES)
             </span>
-            <span class="text-[11px] text-gray-400 font-mono">Regla Prop Firm: Cero órdenes ±2 min en noticias críticas (USD, CAD)</span>
+            <span class="text-[11px] text-gray-400 font-mono">Regla Prop Firm: Cero órdenes ±2 min en noticias críticas (USD / Oro)</span>
           </div>
           <p class="text-[11px] text-gray-400 mt-0.5 truncate">
             No hay noticias de alto impacto en ventana inmediata. Tu operativa cumple plenamente el reglamento de Orion Nova y brokers.
@@ -12521,7 +12479,7 @@ function collectAllLiveDashboardData() {
   appState.fondeo.config.rr_ratio = fondeoRr;
   appState.fondeo.config.sl_pips = fondeoSl;
   appState.fondeo.config.sl_default = fondeoSl;
-  appState.fondeo.config.asset = 'USDCAD';
+  appState.fondeo.config.asset = 'XAUUSD';
 
   if (!appState.fondeo.trades || appState.fondeo.trades.length === 0) {
     if (!appState.fondeo.summary) appState.fondeo.summary = {};
@@ -12557,7 +12515,7 @@ function collectAllLiveDashboardData() {
   appState.backtest.config.rr_ratio = btRr;
   appState.backtest.config.sl_pips = btSl;
   appState.backtest.config.sl_default = btSl;
-  const activeBtAsset = document.getElementById('btSimpleManualAsset')?.value || 'USDCAD';
+  const activeBtAsset = document.getElementById('btSimpleManualAsset')?.value || 'XAUUSD';
   appState.backtest.config.asset = activeBtAsset;
 
   appState.config = Object.assign({}, appState.config, appState.backtest.config);
@@ -12691,7 +12649,7 @@ function setupSaveAllButton() {
 }
 
 // ====================================================
-// VISTA 5: ANÁLISIS USDCAD PRE-SESIÓN NY & SESGO M5 (FUERZA %)
+// VISTA 5: ANÁLISIS XAUUSD PRE-SESIÓN NY & SESGO M5 (FUERZA %)
 // ====================================================
 let cachedUsdcadAnalysisData = null;
 
@@ -12712,7 +12670,7 @@ async function loadAndRenderUsdcadAnalysis(forceFetch = false) {
   }
 
   try {
-    const res = await fetch('/api/usdcad-analysis');
+    const res = await fetch('/api/xauusd-analysis');
     if (res.ok) {
       const data = await res.json();
       if (data && data.drivers) {
@@ -12739,7 +12697,7 @@ async function triggerUsdcadScan() {
   if (text) text.textContent = 'Escaneando Mercados en Vivo...';
 
   try {
-    const res = await fetch('/api/usdcad-analysis/scan', {
+    const res = await fetch('/api/xauusd-analysis/scan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -12749,13 +12707,13 @@ async function triggerUsdcadScan() {
       cachedUsdcadAnalysisData = data;
       renderUsdcadAnalysis(data);
       if (typeof showToast === 'function') {
-        showToast('🚀 Escaneo Pre-Sesión NY de USDCAD completado con éxito.', 'success');
+        showToast('🚀 Escaneo Pre-Sesión NY de XAU/USD completado con éxito.', 'success');
       }
     } else {
       throw new Error(`Status ${res.status}`);
     }
   } catch (err) {
-    console.error('Error al ejecutar scanner USDCAD:', err);
+    console.error('Error al ejecutar scanner XAU/USD:', err);
     if (typeof showToast === 'function') {
       showToast('⚠️ No se pudo conectar al scanner en vivo, mostrando datos almacenados.', 'warning');
     }
@@ -12773,7 +12731,7 @@ function renderUsdcadAnalysis(data) {
   // 1. Fase de la sesión
   const phaseBadge = document.getElementById('usdcadSessionPhaseBadge');
   if (phaseBadge) {
-    phaseBadge.textContent = data.session_phase || 'KILLZONE NY (07:00 – 11:00 NY)';
+    phaseBadge.textContent = data.session_phase || 'KILLZONE NY (08:00 – 11:30 NY)';
     const color = data.phase_color || 'emerald';
     phaseBadge.className = `px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
       color === 'emerald' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' :
@@ -12865,11 +12823,17 @@ function renderUsdcadAnalysis(data) {
     countBadge.textContent = `${bullishCount} / ${drivers.length}`;
   }
 
+  // Criterio Unificado Institucional (5 Fuentes)
+  const elUnified = document.getElementById('usdcadUnifiedCriterionText');
+  if (elUnified && data.unified_criterion) {
+    elUnified.textContent = data.unified_criterion.summary;
+  }
+
   // 5. Protocolo de Ejecución M5
   const m5 = data.m5_plan || {};
   const elM5Action = document.getElementById('usdcadM5Action');
   if (elM5Action) {
-    elM5Action.textContent = m5.action || 'BUSCAR COMPRAS (BUY) EN RETESTEO M5';
+    elM5Action.textContent = m5.action || 'BUSCAR COMPRAS (BUY) EN RETESTEO A POI M5';
     elM5Action.className = `text-sm font-bold ${isBullish ? 'text-emerald-400' : isBearish ? 'text-rose-400' : 'text-amber-400'}`;
   }
 
@@ -12880,10 +12844,10 @@ function renderUsdcadAnalysis(data) {
   if (elM5Inv && m5.invalidation) elM5Inv.textContent = m5.invalidation;
 
   const elM5Sl = document.getElementById('usdcadM5Sl');
-  if (elM5Sl) elM5Sl.textContent = `${m5.sl_pips || 22.0} pips (${m5.sl_price || '1.38600'})`;
+  if (elM5Sl) elM5Sl.textContent = `${m5.sl_pips || 25.0} pips ($${m5.sl_dollar_dist || 2.50} dist / $${m5.sl_price || 3777})`;
 
   const elM5Tp = document.getElementById('usdcadM5Tp');
-  if (elM5Tp) elM5Tp.textContent = `${m5.tp_pips || 61.6} pips (${m5.tp_price || '1.39416'})`;
+  if (elM5Tp) elM5Tp.textContent = `${m5.tp_pips || 70.0} pips ($${m5.tp_dollar_dist || 7.00} target / $${m5.tp_price || 3789.5})`;
 
   const elRuleConf = document.getElementById('usdcadRuleConfirmation');
   if (elRuleConf && m5.confirmation_rule) elRuleConf.textContent = m5.confirmation_rule;
@@ -12894,13 +12858,14 @@ function renderUsdcadAnalysis(data) {
   const elRuleNews = document.getElementById('usdcadRuleNews');
   if (elRuleNews && m5.news_rule) elRuleNews.textContent = m5.news_rule;
 
-  // 6. Matriz de los 6 Drivers
+  // 6. Matriz de las 5 Fuentes Oficiales Requeridas + Flujo M5
   const driversGrid = document.getElementById('usdcadDriversGrid');
-  if (driversGrid && drivers.length > 0) {
-    driversGrid.innerHTML = drivers.map(d => {
+  const items = data.sources || data.drivers || [];
+  if (driversGrid && items.length > 0) {
+    driversGrid.innerHTML = items.map(d => {
       const isDrvBullish = d.bias_direction === 'BULLISH';
-      const isDrvBearish = d.bias_direction === 'BEARISH';
-      const drvColor = isDrvBullish ? 'emerald' : isDrvBearish ? 'rose' : 'amber';
+      const isDrvBearish = d.bias_direction === 'BEARISH' || d.bias_direction === 'BEARISH_COUNTERWEIGHT';
+      const drvColor = isDrvBullish ? 'emerald' : (d.bias_direction === 'BEARISH_COUNTERWEIGHT' ? 'amber' : 'rose');
 
       return `
         <div class="bg-cardBg border border-cardBorder rounded-2xl p-4 shadow-xl flex flex-col justify-between space-y-3">
@@ -12912,17 +12877,17 @@ function renderUsdcadAnalysis(data) {
                 </div>
                 <div>
                   <h4 class="text-xs font-bold text-white leading-tight">${d.name}</h4>
-                  <span class="text-[10px] text-gray-500 font-mono">Peso: ${d.weight_pct}% del algoritmo</span>
+                  <span class="text-[10px] text-gray-500 font-mono">${d.institution ? d.institution + ' · ' : ''}Peso: ${d.weight_pct}%</span>
                 </div>
               </div>
               <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-${drvColor}-500/10 text-${drvColor}-400 border border-${drvColor}-500/30 shrink-0">
-                ${isDrvBullish ? 'ALCISTA' : isDrvBearish ? 'BAJISTA' : 'NEUTRAL'}
+                ${d.bias_label || (isDrvBullish ? 'ALCISTA' : isDrvBearish ? 'BAJISTA' : 'NEUTRAL')}
               </span>
             </div>
 
             <div class="mt-3 flex items-baseline justify-between">
-              <span class="text-base font-mono font-black text-white">${d.value}</span>
-              <span class="text-xs font-mono font-bold ${d.change && d.change.startsWith('+') ? 'text-emerald-400' : 'text-rose-400'}">${d.change || ''}</span>
+              <span class="text-sm font-mono font-black text-white">${d.value}</span>
+              <span class="text-xs font-mono font-bold ${d.change && d.change.startsWith('+') ? 'text-emerald-400' : 'text-amber-400'}">${d.change || ''}</span>
             </div>
 
             <!-- Score Bar -->
@@ -12941,9 +12906,17 @@ function renderUsdcadAnalysis(data) {
             </p>
           </div>
 
-          <div class="pt-2 border-t border-gray-800/80 text-[10px] text-sky-300 font-mono flex items-start gap-1.5">
-            <span class="font-bold shrink-0">Impacto USDCAD:</span>
-            <span class="text-gray-300">${d.impact_usdcad}</span>
+          <div class="pt-2 border-t border-gray-800/80 text-[10px] font-mono flex items-center justify-between gap-2 flex-wrap">
+            <div class="text-amber-300">
+              <span class="font-bold shrink-0">Impacto XAU/USD:</span>
+              <span class="text-gray-300">${d.impact_xauusd || d.impact_xauusd || ''}</span>
+            </div>
+            ${d.url && d.url.startsWith('http') ? `
+              <a href="${d.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 hover:text-white border border-amber-500/30 text-[10px] font-mono font-bold transition shrink-0">
+                <span>Fuente Oficial</span>
+                <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+            ` : ''}
           </div>
         </div>
       `;

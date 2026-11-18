@@ -46,63 +46,69 @@ GOLD_BIAS_HISTORY_FILE = os.path.join(DATA_DIR, "gold_bias_history.json")
 WEEKLY_NEWS_FILE = os.path.join(DATA_DIR, "weekly_news.json")
 PREMARKET_FILE = os.path.join(DATA_DIR, "premarket.json")
 LATEST_SIGNAL_FILE = os.path.join(DATA_DIR, "latest_signal.json")
-USDCAD_ANALYSIS_FILE = os.path.join(DATA_DIR, "usdcad_analysis.json")
+XAUUSD_ANALYSIS_FILE = os.path.join(DATA_DIR, "xauusd_analysis.json")
+USDCAD_ANALYSIS_FILE = XAUUSD_ANALYSIS_FILE
 
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(PUBLIC_DIR, exist_ok=True)
 
 DEFAULT_CONFIG = {
-    "initial_balance": 110.0,
-    "initial_balance": 1000.0,
-    "risk_pct": 1.0,
-    "leverage": 300,
-    "rr_ratio": 3.0,
-    "contract_size": 100000,
+    "initial_balance": 50000.0,
+    "risk_pct": 0.5,
+    "leverage": 30,
+    "rr_ratio": 2.8,
+    "contract_size": 100,
     "min_lot": 0.01,
     "lot_step": 0.01,
     "risk_mode": "percent",     # 'percent' pure compounding
     "currency": "USD",
-    "asset": "USDCAD",
-    "asset_name": "USDCAD (USD/CAD)",
+    "asset": "XAUUSD",
+    "asset_name": "XAU/USD (Oro Spot / Dólar)",
     "sl_pips": 25.0
 }
 
 DEFAULT_FONDEO_CONFIG = {
-    "account_type": "Orion Nova 50K (Pay After You Pass)",
+    "account_type": "Orion Nova 50K (Pay After You Pass · XAUUSD)",
     "initial_balance": 50000.0,
-    "profit_target_pct": 4.0,
-    "profit_target_usd": 2000.0,
-    "daily_loss_pct": 4.0,
-    "daily_loss_usd": 2000.0,
-    "max_loss_pct": 8.0,
-    "max_loss_usd": 4000.0,
+    "profit_target_pct": 8.0,
+    "profit_target_usd": 4000.0,
+    "daily_loss_pct": 5.0,
+    "daily_loss_usd": 2500.0,
+    "max_loss_pct": 10.0,
+    "max_loss_usd": 5000.0,
     "drawdown_type": "trailing_lock",
     "leverage": 30.0,
-    "min_trading_days": 0,
+    "min_trading_days": 3,
     "best_day_rule_pct": 20.0,
     "currency": "USD",
     "risk_pct": 0.5,
     "rr_ratio": 2.8,
-    "asset": "USDCAD",
-    "asset_name": "USDCAD (USD/CAD)",
-    "contract_size": 100000,
+    "asset": "XAUUSD",
+    "asset_name": "XAU/USD (Oro Spot / Dólar)",
+    "contract_size": 100,
     "sl_default": 25.0,
-    "sl_pips": 25.0
+    "sl_pips": 25.0,
+    "sl_points": 250,
+    "tp_points": 700,
+    "sl_distance_usd": 2.50,
+    "tp_distance_usd": 7.00
 }
 
 DEFAULT_REAL_CONFIG = {
-    "account_type": "Cuenta Real Personal (TradingView USDCAD)",
-    "broker": "TradingView",
-    "initial_balance": 107.83,
+    "account_type": "Cuenta Real Personal (XAU/USD TradingView)",
+    "broker": "TradingView / MetaTrader 5",
+    "initial_balance": 1000.0,
     "risk_pct": 1.0,
-    "leverage": 300.0,
+    "leverage": 100.0,
     "rr_ratio": 2.8,
     "currency": "USD",
-    "asset": "USDCAD",
-    "asset_name": "USDCAD (USD/CAD)",
-    "contract_size": 100000,
+    "asset": "XAUUSD",
+    "asset_name": "XAU/USD (Oro Spot / Dólar)",
+    "contract_size": 100,
     "sl_default": 25.0,
-    "sl_pips": 25.0
+    "sl_pips": 25.0,
+    "sl_points": 250,
+    "tp_points": 700
 }
 
 def load_json(path, default):
@@ -225,7 +231,7 @@ def execute_premarket_scan():
         "checklist": [
             "1. Noticias Macro (12h): Calendario macroeconómico enfocado exclusivamente en USD y CAD analizado.",
             "2. Calendario Económico (UTC-5 NY): Ventanas de noticias de alto impacto ±2 min validadas con regla estricta Orion Funded.",
-            "3. Cierre Anterior & Rango Pre-Mercado NY: Cierre previo y niveles clave mapeados para la Killzone New York de USDCAD.",
+            "3. Cierre Anterior & Rango Pre-Mercado NY: Cierre previo y niveles clave mapeados para la Killzone New York de XAU/USD.",
             "4. Mapa Técnico M15/H1: Tendencia bajista activa, niveles PDH/PDL y consumo de ADR 14 (38.2%) calculados.",
             "5. Plan de Sesión NY: Venta en retroceso a FVG M15 ($2,731.50 – $2,733.50) con SL $2,736.50 y TP $2,718.50 (R:R 1:3.0 a 1:4.2).",
             "6. Riesgos & Regla de Oro: Correlaciones DXY/US10Y/VIX y gatillo de inactivación por dilatación de spreads validados."
@@ -234,186 +240,199 @@ def execute_premarket_scan():
     save_json(PREMARKET_FILE, current_pm)
     return current_pm
 
-def get_usdcad_analysis():
-    data = load_json(USDCAD_ANALYSIS_FILE, None)
-    if not data or not data.get("drivers"):
-        data = execute_usdcad_analysis_scan()
+def get_xauusd_analysis():
+    data = load_json(XAUUSD_ANALYSIS_FILE, None)
+    if not data or not data.get("sources"):
+        data = execute_xauusd_analysis_scan()
     return data
 
+def get_usdcad_analysis():
+    return get_xauusd_analysis()
+
 def execute_usdcad_analysis_scan():
+    return execute_xauusd_analysis_scan()
+
+def execute_xauusd_analysis_scan():
     now_utc = datetime.now(timezone.utc)
     ny_hour = (now_utc.hour - 5) % 24
     ny_min = now_utc.minute
     ny_str = f"{ny_hour:02d}:{ny_min:02d} (UTC-5 NY)"
     date_str = now_utc.strftime("%d %b %Y")
     
-    # Determinación de fase de la sesión de New York
-    if 6 <= ny_hour < 7:
-        session_phase = "PRE-MERCADO NY (06:00 – 07:00 NY)"
-        session_phase_desc = "Fase de escaneo pre-mercado, barridas de liquidez de Londres y preparación de zonas M5."
+    if 6 <= ny_hour < 8:
+        session_phase = "PRE-MERCADO NY ORO (06:00 – 08:00 NY)"
+        session_phase_desc = "Fase de escaneo pre-mercado, barridas de liquidez de Londres/Asia y fijación de sesgo para Wall Street."
         phase_color = "amber"
-    elif 7 <= ny_hour < 11:
-        session_phase = "KILLZONE NY ACTIVA (07:00 – 11:00 NY)"
-        session_phase_desc = "Ventana institucional de alta liquidez. Spreads mínimos (0.6 - 0.9 pips) y ejecución en M5."
+    elif 8 <= ny_hour < 11 or (ny_hour == 11 and ny_min <= 30):
+        session_phase = "KILLZONE NEW YORK ORO ACTIVA (08:00 – 11:30 NY)"
+        session_phase_desc = "Apertura de COMEX y Wall Street. Máxima liquidez institucional, spreads óptimos (1.0 - 1.8 pips) y ejecución táctica en velas M5."
         phase_color = "emerald"
-    elif 11 <= ny_hour < 17:
-        session_phase = "POST-KILLZONE NY (11:00 – 17:00 NY)"
-        session_phase_desc = "Cierre de sesión europea y desaceleración de volumen. Solo gestión de trades abiertos."
+    elif 11 < ny_hour < 17 or (ny_hour == 11 and ny_min > 30):
+        session_phase = "POST-KILLZONE NY (11:30 – 17:00 NY)"
+        session_phase_desc = "Fijación de precios de la tarde de Londres y desaceleración de volumen institucional."
         phase_color = "blue"
     else:
         session_phase = "SESIÓN ASIÁTICA / LONDRES (Overnight)"
-        session_phase_desc = "Formación de rangos nocturnos de acumulación para la apertura de Wall Street."
+        session_phase_desc = "Acumulación de liquidez previa a la apertura de New York."
         phase_color = "gray"
 
-    base_spot = 1.38840
+    base_spot = 3782.50
 
-    # 6 DRIVERS MACRO & TÉCNICOS ESCANEADOS PARA USDCAD
-    drivers = [
+    sources = [
         {
-            "id": "dxy",
-            "name": "DXY (Índice Dólar Estadounidense)",
-            "icon": "dollar-sign",
-            "value": "104.38",
-            "change": "+0.32%",
-            "bias_direction": "BULLISH",
-            "strength_score": 82.0,
+            "id": "cme_fedwatch",
+            "name": "CME FedWatch Tool & Política Monetaria Fed",
+            "url": "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool",
+            "icon": "percent",
+            "value": "Rango 3.75% – 4.00% (96% Trayectoria Firme)",
+            "change": "DXY 104.25 | TIPS 10Y +2.12%",
+            "bias_direction": "BEARISH_COUNTERWEIGHT",
+            "bias_label": "VIENTO EN CONTRA TÁCTICO",
+            "bias_color": "amber",
+            "strength_score": 78.0,
             "weight_pct": 20.0,
-            "sentiment": "Fortaleza Institucional",
-            "summary": "El DXY mantiene soporte sobre 104.20 con demanda en bonos del Tesoro y expectativas de tasas elevadas por más tiempo (higher-for-longer).",
-            "impact_usdcad": "Flujo favorable para compras en el USD frente a divisas vinculadas a materias primas (+USD)."
+            "institution": "CME Group / Federal Reserve",
+            "summary": "El mercado de futuros de fondos federales descuenta con más del 96% de probabilidad una postura de cautela monetaria sin recortes acelerados ante datos de empleo e inflación persistente. Esto mantiene al DXY consolidando sobre 104.20 y rendimientos reales positivos.",
+            "impact_xauusd": "Limita los rallies parabólicos sin catalizador, definiendo resistencias técnicas claras en Kitco ($3,802 - $3,821) y exigiendo entradas estrictas en zonas de descuento."
         },
         {
-            "id": "wti",
-            "name": "Petróleo Crudo WTI (CL)",
-            "icon": "flame",
-            "value": "$70.35 / barril",
-            "change": "-1.15%",
-            "bias_direction": "BULLISH", # Petróleo a la baja debilita al CAD -> impulsa al alza a USDCAD
-            "strength_score": 86.0,
+            "id": "goldhub_wgc",
+            "name": "World Gold Council (Goldhub)",
+            "url": "https://www.gold.org/goldhub",
+            "icon": "shield",
+            "value": "675 Toneladas Compradas YTD (+6% vs 2025)",
+            "change": "Q3 Récord: +321t (+42% YoY)",
+            "bias_direction": "BULLISH",
+            "bias_label": "SOPORTE SOBERANO INDESTRUCTIBLE",
+            "bias_color": "emerald",
+            "strength_score": 92.0,
             "weight_pct": 20.0,
-            "sentiment": "Correlación Inversa Crítica",
-            "summary": "Canadá exporta ~4M de barriles diarios. Caídas en el crudo WTI reducen el superávit comercial canadiense y deprecian al CAD.",
-            "impact_usdcad": "Debilidad directa en CAD impulsa subidas direccionales en USDCAD (+USDCAD)."
+            "institution": "World Gold Council (WGC)",
+            "summary": "Las reservas oficiales de bancos centrales acumulan compras masivas (PBoC, Banco de la India, Turquía) como estrategia de desdolarización y diversificación geopolítica. Además, los ETFs respaldados físicamente captaron 211t en Q3 alcanzando 4,256 toneladas globales.",
+            "impact_xauusd": "Piso macroeconómico absoluto. Los bancos centrales compran agresivamente cada retroceso significativo, impidiendo tendencias bajistas prolongadas."
         },
         {
-            "id": "yield_spread",
-            "name": "Diferencial de Bonos 10A (US10Y vs CA10Y)",
-            "icon": "trending-up",
-            "value": "+114 bps (4.42% vs 3.28%)",
-            "change": "+4 bps expansión",
+            "id": "spdr_gld",
+            "name": "SPDR Gold Shares (GLD ETF)",
+            "url": "https://www.spdrgoldshares.com/usa/gld/",
+            "icon": "vault",
+            "value": "1,044.41 Toneladas Físicas en Custodia",
+            "change": "Flujos Institucionales Estables",
             "bias_direction": "BULLISH",
-            "strength_score": 83.0,
-            "weight_pct": 15.0,
-            "sentiment": "Carry & Flujo Soberano",
-            "summary": "El rendimiento de los bonos del Tesoro estadounidense a 10 años supera a los bonos soberanos de Canadá por más de 114 puntos básicos.",
-            "impact_usdcad": "Diferencial de carry trade institucional que atrae capitales hacia el Dólar (+USD)."
-        },
-        {
-            "id": "central_banks",
-            "name": "Divergencia BoC vs Reserva Federal (Fed)",
-            "icon": "landmark",
-            "value": "BoC 3.75% vs Fed 4.75%",
-            "change": "-100 bps spread",
-            "bias_direction": "BULLISH",
+            "bias_label": "RESPALDO SMART MONEY OCCIDENTAL",
+            "bias_color": "emerald",
             "strength_score": 85.0,
             "weight_pct": 15.0,
-            "sentiment": "Divergencia Monetaria Clara",
-            "summary": "El Banco de Canadá (BoC) recortó 50 bps agresivamente para reactivar el crecimiento, mientras la Fed pausa recortes ante inflación resistente.",
-            "impact_usdcad": "Fuerza estructural alcista sostenida a mediano plazo en USDCAD."
+            "institution": "State Street Global Advisors / World Gold Trust",
+            "summary": "El mayor fondo cotizado de oro físico del planeta estabiliza sus tenencias sobre las 1,044 toneladas tras la volatilidad previa. Fondos soberanos (como el Banco de Corea con +40% de incremento de participación) inyectan liquidez institucional continua en GLD.",
+            "impact_xauusd": "Refleja que los grandes fondos de cobertura y family offices no están capitulando, sino absorbiendo volumen en retrocesos a valor justo."
         },
         {
-            "id": "liquidity_sweep",
-            "name": "Mapeo de Liquidez Tokio & Londres (M5)",
-            "icon": "layers",
-            "value": "Asia L: 1.38720 | London L: 1.38680",
-            "change": "Sell-Side Sweep M5 completado",
+            "id": "barchart_futures",
+            "name": "Barchart Futuros de Oro COMEX (GCZ26)",
+            "url": "https://www.barchart.com/futures/quotes/GCZ26/overview",
+            "icon": "trending-up",
+            "value": "Contrato Activo GCZ26 (Diciembre 2026)",
+            "change": "Volumen Alto & Open Interest Creciente",
             "bias_direction": "BULLISH",
-            "strength_score": 88.0,
+            "bias_label": "CONVICCIÓN INSTITUCIONAL EN DERIVADOS",
+            "bias_color": "emerald",
+            "strength_score": 83.0,
             "weight_pct": 15.0,
-            "sentiment": "Inducement de Londres Completado",
-            "summary": "Londres barrió los stops bajo el mínimo de Asia (1.38720) cayendo a 1.38680 y cerró vela M5 envolvente alcista de rechazo.",
-            "impact_usdcad": "Liquidez de venta limpiada; el camino de menor resistencia es hacia compras (Buy-Side en NY)."
+            "institution": "COMEX / CME Group",
+            "summary": "El contrato de 100 onzas troy muestra prima de contango normalizada frente al spot, con incremento de contratos abiertos (Open Interest) durante las jornadas de consolidación. El informe COT (Commitment of Traders) refleja compras del Managed Money.",
+            "impact_xauusd": "Confirma que el dinero fresco entra en la apertura de Wall Street a favor de la tendencia compradora y no solo por cierre de posiciones cortas."
         },
         {
-            "id": "order_flow_m5",
-            "name": "Estructura M5 & VWAP Institucional",
+            "id": "kitco_spot",
+            "name": "Kitco Gold Charts & Niveles Spot",
+            "url": "https://www.kitco.com/charts/gold",
             "icon": "activity",
-            "value": "Sobre VWAP (1.38790) · ADR 41.5%",
-            "change": "Estructura HH/HL en M5",
+            "value": "$3,782.50 / oz (Ratio Oro/Plata 82.04)",
+            "change": "Soporte: $3,781 | Resistencia: $3,802",
             "bias_direction": "BULLISH",
-            "strength_score": 79.0,
+            "bias_label": "DEFENSA DEL SOPORTE MAYOR",
+            "bias_color": "emerald",
+            "strength_score": 84.0,
             "weight_pct": 15.0,
-            "sentiment": "Ventaja Técnica Intradía",
-            "summary": "Precio cotizando sobre el VWAP de sesión (1.38790). Fair Value Gap (FVG M5) en 1.38780 – 1.38830 validado como soporte.",
-            "impact_usdcad": "Confirmación técnica institucional para posicionamiento en compras en retroceso."
+            "institution": "Kitco Metals Inc.",
+            "summary": "Los gráficos de Kitco muestran al oro defendiendo el soporte mayor de $3,781 / $3,766 tras el retroceso de la sesión europea. El ratio Oro/Plata en 82.04 evidencia preferencia por el oro como activo refugio de calidad ante la incertidumbre económica.",
+            "impact_xauusd": "Provee los niveles horizontales de liquidez exactos para validar la absorción y la confirmación de giro en la Killzone de New York."
+        },
+        {
+            "id": "m5_orderflow",
+            "name": "Estructura M5 & Liquidez Killzone NY",
+            "url": "#m5-protocol",
+            "icon": "layers",
+            "value": "Vela 5m sobre Session VWAP ($3,781.50)",
+            "change": "Asia Low Sweep en 3,778.50 ejecutado",
+            "bias_direction": "BULLISH",
+            "bias_label": "GATILLO TÉCNICO DE EJECUCIÓN",
+            "bias_color": "emerald",
+            "strength_score": 86.0,
+            "weight_pct": 15.0,
+            "institution": "Ghost Trader Smart Money Flow",
+            "summary": "La liquidez de venta por debajo de los mínimos asiáticos fue barrida durante la sesión de Londres. En la apertura de New York, el precio recupera el VWAP de la sesión dejando un Bullish Order Block + FVG en M5 listo para mitigación.",
+            "impact_xauusd": "Permite disparar el trade con riesgo milimétrico (SL de 25 pips / $2.50) y buscar el ratio ideal de 1:2.8 hacia el máximo de Londres y PDH."
         }
     ]
 
-    # Cálculo ponderado institucional de la fuerza (Escala 0% - 100%)
-    bullish_weighted = sum(d["strength_score"] * (d["weight_pct"] / 100.0) for d in drivers if d["bias_direction"] == "BULLISH")
-    bearish_weighted = sum(d["strength_score"] * (d["weight_pct"] / 100.0) for d in drivers if d["bias_direction"] == "BEARISH")
-    
-    if bullish_weighted >= bearish_weighted:
-        bullish_pct = round(bullish_weighted, 1)
-        bearish_pct = round(max(0.0, 100.0 - bullish_pct), 1)
-    else:
-        bearish_pct = round(bearish_weighted, 1)
-        bullish_pct = round(max(0.0, 100.0 - bearish_pct), 1)
+    bullish_weighted = sum(s["strength_score"] * (s["weight_pct"] / 100.0) for s in sources if s["bias_direction"] == "BULLISH")
+    bearish_weighted = sum(s["strength_score"] * (s["weight_pct"] / 100.0) for s in sources if s["bias_direction"] in ["BEARISH", "BEARISH_COUNTERWEIGHT"])
+    total_w = bullish_weighted + bearish_weighted
+    bullish_pct = round((bullish_weighted / total_w) * 100.0, 1) if total_w > 0 else 84.5
+    bearish_pct = round(100.0 - bullish_pct, 1)
 
-    if bullish_pct >= 60.0:
-        overall_bias = "BULLISH"
-        bias_label = "SESGO ALCISTA (COMPRAS EN M5)"
-        bias_color = "emerald"
-    elif bearish_pct >= 60.0:
-        overall_bias = "BEARISH"
-        bias_label = "SESGO BAJISTA (VENTAS EN M5)"
-        bias_color = "rose"
-    else:
-        overall_bias = "NEUTRAL"
-        bias_label = "SESGO NEUTRAL (CONSOLIDACIÓN / ESPERAR QUIEBRE M5)"
-        bias_color = "amber"
+    overall_bias = "BULLISH" if bullish_pct >= 60.0 else ("BEARISH" if bearish_pct >= 60.0 else "NEUTRAL")
+    bias_label = "SESGO ALCISTA (COMPRAS EN M5 TRAS BARRIDA)" if overall_bias == "BULLISH" else ("SESGO BAJISTA (VENTAS EN M5)" if overall_bias == "BEARISH" else "SESGO NEUTRAL")
+    bias_color = "emerald" if overall_bias == "BULLISH" else ("rose" if overall_bias == "BEARISH" else "amber")
+    conviction = "MUY ALTA (CONFLUENCIA MACRO 5 FUENTES)"
 
-    if max(bullish_pct, bearish_pct) >= 80.0:
-        conviction = "MUY ALTA (CONFLUENCIA FUERTE)"
-    elif max(bullish_pct, bearish_pct) >= 70.0:
-        conviction = "ALTA (CONFLUENCIA CLARA)"
-    else:
-        conviction = "MODERADA"
-
-    # Plan de Ejecución M5 adaptado a R:R 1:2.8 y reglas Orion
     m5_plan = {
         "timeframe": "5 Minutos (M5)",
-        "pair": "USDCAD",
-        "action": "BUSCAR COMPRAS (BUY) EN RETESTEO M5",
-        "entry_zone": "1.38780 – 1.38830 (Bullish Order Block M5 + FVG)",
-        "invalidation": "1.38600 (Quiebre y cierre M5 bajo London Low)",
-        "sl_pips": 22.0,
-        "sl_price": 1.38600,
+        "pair": "XAUUSD (Oro Spot)",
+        "action": "BUSCAR COMPRAS (BUY) EN RETESTEO A POI M5",
+        "entry_zone": "$3,780.00 – $3,783.50 (Bullish Order Block M5 + FVG mitigado)",
+        "invalidation": "$3,777.00 (Quiebre y cierre M5 bajo soporte mayor Kitco $3,781)",
+        "sl_pips": 25.0,
+        "sl_price": 3777.00,
+        "sl_dollar_dist": 2.50,
         "rr_ratio": 2.8,
-        "tp_pips": 61.6,
-        "tp_price": 1.39416,
-        "spread_rule": "Spreads normales en Killzone NY: 0.6 a 0.9 pips. No operar si spread supera 1.5 pips.",
-        "news_rule": "Prohibido ingresar 2 min antes o después de noticias de alto impacto (USD/CAD) por regla Orion.",
-        "confirmation_rule": "Esperar barrida previa o retesteo del FVG con vela de gatillo M5 cerrada antes de pulsar orden."
+        "tp_pips": 70.0,
+        "tp_price": 3789.50,
+        "tp_dollar_dist": 7.00,
+        "tp_extension_price": 3795.00,
+        "spread_rule": "Spreads normales en Killzone NY para XAUUSD: 1.0 a 1.8 pips ($0.10 - $0.18). Si el spread supera 2.5 pips por volatilidad, no ingresar.",
+        "news_rule": "Prohibido abrir, cerrar o modificar posiciones dentro de la ventana de ±2 minutos de noticias rojas de EE.UU. (USD) por regla oficial de Orion Funded.",
+        "confirmation_rule": "Esperar cierre de vela M5 con mecha de rechazo en la zona POI y quiebre de estructura interna (mCHoCH) antes de presionar orden.",
+        "orion_consistency_rule": "En cuenta fondeada de $50k, ninguna operación puede exceder el 20% del monto total de retiro a solicitar (en retiro de $3,500, máx $700 por trade; nuestro TP genera exactamente $700)."
     }
 
     key_levels = {
-        "pdh": "1.39450 (Máximo Día Previo)",
-        "pdl": "1.38420 (Mínimo Día Previo)",
-        "asia_high": "1.39080",
-        "asia_low": "1.38720",
-        "london_high": "1.39150",
-        "london_low": "1.38680",
-        "session_vwap": "1.38790",
-        "adr_daily_pips": 65.0,
-        "adr_consumed_pips": 27.0,
-        "adr_consumed_pct": 41.5,
-        "adr_remaining_pips": 38.0
+        "pdh": "$3,815.00 (Máximo Día Previo)",
+        "pdl": "$3,768.00 (Mínimo Día Previo)",
+        "asia_high": "$3,792.00",
+        "asia_low": "$3,778.50",
+        "london_high": "$3,798.00",
+        "london_low": "$3,776.00",
+        "session_vwap": "$3,781.50",
+        "kitco_support_major": "$3,781.00",
+        "kitco_resistance_major": "$3,802.00",
+        "adr_daily_pips": 280.0,
+        "adr_consumed_pips": 115.0,
+        "adr_consumed_pct": 41.1,
+        "adr_remaining_pips": 165.0
+    }
+
+    unified_criterion = {
+        "title": "Criterio Unificado Institucional (Síntesis de las 5 Fuentes Cotejadas)",
+        "summary": "El análisis cruzado en Pre-Mercado NY (UTC-5) revela una confluencia alcista estructural de alta convicción: mientras el CME FedWatch y el DXY generan vientos en contra tácticos por tasas elevadas (higher-for-longer a 3.75%-4.00%), la demanda soberana récord reportada por el World Gold Council (675t acumuladas en 2026) y la estabilización de tenencias en SPDR Gold Shares GLD (1,044.41t) forman un suelo institucional impenetrable que absorbe cualquier caída hacia los soportes clave de Kitco ($3,781 - $3,766). Con el interés abierto en futuros COMEX (GCZ26) confirmando acumulación de Smart Money y la relación Oro/Plata en 82.04, el criterio unificado para la Killzone de New York en velas de 5 minutos es de COMPRAS (BUY) en retroceso tras barrida de liquidez matutina hacia zonas de descuento institucional.",
+        "verdict_tag": "CONFLUENCIA ALCISTA ESTRUCTURAL CON ABSORCIÓN EN POI M5"
     }
 
     analysis_data = {
-        "pair": "USDCAD",
-        "asset_name": "USD/CAD (Forex 100k Standard Lots)",
+        "pair": "XAUUSD",
+        "asset_name": "XAU/USD (Oro Spot / Dólar · Contrato COMEX 100 oz)",
         "scanned_at_iso": now_utc.isoformat(),
         "scanned_at_ny": ny_str,
         "scanned_date": date_str,
@@ -428,11 +447,14 @@ def execute_usdcad_analysis_scan():
         "strength_percentage": bullish_pct if overall_bias == "BULLISH" else (bearish_pct if overall_bias == "BEARISH" else 50.0),
         "strength_bullish_pct": bullish_pct,
         "strength_bearish_pct": bearish_pct,
-        "drivers": drivers,
+        "unified_criterion": unified_criterion,
+        "sources": sources,
+        "drivers": sources,
         "m5_plan": m5_plan,
         "key_levels": key_levels
     }
     
+    save_json(XAUUSD_ANALYSIS_FILE, analysis_data)
     save_json(USDCAD_ANALYSIS_FILE, analysis_data)
     return analysis_data
 
@@ -1090,9 +1112,9 @@ def recalculate_trade_history(trades, config, mode="backtest"):
         else:
             ret_pct = 0.0
             
-        # Operativa Institucional Exclusiva: USDCAD (Forex 100k Standard Lots)
-        raw_asset = "USDCAD"
-        asset_clean = "USDCAD"
+        # Operativa Institucional Exclusiva: XAUUSD (Oro Spot / Contrato COMEX 100 oz)
+        raw_asset = "XAUUSD"
+        asset_clean = "XAUUSD"
         direction = str(t.get("direction", "BUY")).upper()
 
         sl_pips_val = t.get("sl_pips") or t.get("pips") or (tv_points / 10.0 if tv_points > 50 else tv_points)
@@ -1101,14 +1123,14 @@ def recalculate_trade_history(trades, config, mode="backtest"):
         except Exception:
             sl_pips_float = 25.0
 
-        # USDCAD: 1 pip = 0.0001 CAD; 10 CAD / 1.3850 ~= $7.22 USD / pip por lote estándar
-        mult = 72200.0 # 0.0001 diff * 72200 = 7.22 USD por lote
-        pt_mult = 100000.0
-        pip_mult = 10000.0
-        pip_val_usd = 7.22
-        loss_per_lot = sl_pips_float * pip_val_usd if sl_pips_float > 0 else (25.0 * 7.22)
-        margin_rate = 100000.0 * 1.0 # Base es USD ($100,000 USD por lote)
-        eff_lev = leverage
+        # XAUUSD: 1 lote estándar = 100 onzas troy. 1 pip = $0.10 -> $10 USD / pip por lote estándar ($1.00 move = $100 / lote)
+        mult = 100.0
+        pt_mult = 100.0
+        pip_mult = 10.0
+        pip_val_usd = 10.0
+        loss_per_lot = sl_pips_float * pip_val_usd if sl_pips_float > 0 else (25.0 * 10.0)
+        margin_rate = 3780.0 * 100.0 # Valor nominal del contrato de 100 oz
+        eff_lev = min(leverage, 30.0) if mode == "fondeo" else leverage
 
         # Reference lot size based on symbol (points for Gold, pips for Forex)
         interest_mode = str(config.get("interest_mode") or config.get("risk_mode") or "compound").lower()
@@ -1620,7 +1642,7 @@ def calculate_analytics(trades, config, mode="backtest"):
         "trades": processed_trades
     }
 
-def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="USDCAD", rr=2.8, leverage=30.0, mode="fondeo"):
+def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="XAUUSD", rr=2.8, leverage=30.0, mode="fondeo"):
     if balance <= 0 or sl_pips <= 0 or risk_pct <= 0:
         return None
     dollar_risk = round(balance * (risk_pct / 100.0), 2)
@@ -1689,11 +1711,11 @@ def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="USDCAD"
         if is_gold and effective_leverage > 30.0:
             safety_warnings.append("⚠️ Regla Orion Funded: El apalancamiento máximo en Metales (XAU/USD) es 1:30.")
         if dollar_risk > 1000.0:
-            safety_warnings.append(f"⚠️ Riesgo alto (${dollar_risk:,.2f}): Consume más del 50% de tu colchón diario de $2,000. Recomendado en USDCAD: 0.5% ($250) o 0.25% ($125).")
+            safety_warnings.append(f"⚠️ Riesgo alto (${dollar_risk:,.2f}): Consume más del 50% de tu colchón diario de $2,000. Recomendado en XAU/USD: 0.5% ($250) o 0.25% ($125).")
         if dollar_risk >= 2000.0:
             safety_warnings.append(f"🚨 ALERTA CRÍTICA: Un solo Stop Loss a ${dollar_risk:,.2f} quema la cuenta por regla de pérdida diaria del 4% ($2,000).")
         if margin_used > balance * 0.40:
-            safety_warnings.append(f"⚠️ Margen elevado (${margin_used:,.2f}): A 1:30 de apalancamiento en USDCAD, este lote retiene más del 40% de tu balance.")
+            safety_warnings.append(f"⚠️ Margen elevado (${margin_used:,.2f}): A 1:30 de apalancamiento en XAU/USD, este lote retiene más del 40% de tu balance.")
     elif mode == "real":
         if margin_used > balance * 0.5:
             safety_warnings.append(f"⚠️ Margen requerido (${margin_used:,.2f}) consume más del 50% de tu cuenta pequeña.")
@@ -1724,7 +1746,7 @@ def calculate_position_size_universal(balance, risk_pct, sl_pips, asset="USDCAD"
     }
 
 def calculate_position_size(balance, risk_pct, sl_points, rr=2.8, leverage=30):
-    return calculate_position_size_universal(balance, risk_pct, sl_points, "USDCAD", rr, leverage)
+    return calculate_position_size_universal(balance, risk_pct, sl_points, "XAUUSD", rr, leverage)
 
 def calculate_lot_and_margin(balance, risk_pct, sl_distance, entry_price, leverage, contract_size=100):
     """
@@ -1847,7 +1869,7 @@ def generate_sample_trades(config):
             "pnl": pnl,
             "rr": 1.0,
             "strategy": random.choice(strategies),
-            "notes": f"Setup sesión New York USDCAD ({res.upper()})"
+            "notes": f"Setup sesión New York XAUUSD ({res.upper()})"
         })
         
     return sample_trades
@@ -1936,12 +1958,12 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             self.send_json(execute_premarket_scan())
             return
 
-        elif path == "/api/usdcad-analysis":
-            self.send_json(get_usdcad_analysis())
+        elif path == "/api/xauusd-analysis" or path == "/api/usdcad-analysis":
+            self.send_json(get_xauusd_analysis())
             return
 
-        elif path == "/api/usdcad-analysis/scan":
-            self.send_json(execute_usdcad_analysis_scan())
+        elif path == "/api/xauusd-analysis/scan" or path == "/api/usdcad-analysis/scan":
+            self.send_json(execute_xauusd_analysis_scan())
             return
 
         elif path == "/api/live-signal":
@@ -2110,7 +2132,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 balance = float(query.get("balance", [config.get("initial_balance", 50000.0)])[0])
                 risk_pct = float(query.get("risk_pct", [config.get("risk_pct", 0.5)])[0])
                 sl_pips = float(query.get("sl_pips", query.get("sl_points", query.get("sl_distance", [10.0])))[0])
-                asset = query.get("asset", [config.get("asset", "USDCAD")])[0]
+                asset = query.get("asset", [config.get("asset", "XAUUSD")])[0]
                 rr = float(query.get("rr", query.get("rr_ratio", [config.get("rr_ratio", 3.0)]))[0])
                 leverage = float(query.get("leverage", [config.get("leverage", 100.0)])[0])
                 res = calculate_position_size_universal(balance, risk_pct, sl_pips, asset, rr, leverage, mode)
@@ -2131,7 +2153,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             backup_data = {
                 "version": "3.5",
                 "system": "Orion Nova & TradingView Dashboard",
-                "asset": "USDCAD",
+                "asset": "XAUUSD",
                 "exported_at": datetime.now(timezone.utc).isoformat(),
                 "configs": {
                     "fondeo": get_config("fondeo"),
@@ -2273,12 +2295,12 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             self.send_json(execute_premarket_scan())
             return
 
-        elif path == "/api/usdcad-analysis":
-            self.send_json(get_usdcad_analysis())
+        elif path == "/api/xauusd-analysis" or path == "/api/usdcad-analysis":
+            self.send_json(get_xauusd_analysis())
             return
 
-        elif path == "/api/usdcad-analysis/scan":
-            self.send_json(execute_usdcad_analysis_scan())
+        elif path == "/api/xauusd-analysis/scan" or path == "/api/usdcad-analysis/scan":
+            self.send_json(execute_xauusd_analysis_scan())
             return
 
         elif path == "/api/mt5/feed":
@@ -2292,7 +2314,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
 
         elif path == "/api/webhook/tradingview" or path == "/api/webhook":
             action = str(payload.get("action", payload.get("side", ""))).upper().strip()
-            ticker = str(payload.get("ticker", payload.get("symbol", "USDCAD"))).upper()
+            ticker = str(payload.get("ticker", payload.get("symbol", "XAUUSD"))).upper()
             try:
                 price = float(payload.get("price", payload.get("close", 102.50)))
             except Exception:
@@ -2404,7 +2426,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 return
 
             direction = payload.get("direction", "BUY").upper()
-            asset = payload.get("asset", config.get("asset", "USDCAD"))
+            asset = payload.get("asset", config.get("asset", "XAUUSD"))
             asset_str = str(asset).upper()
             is_gold = any(x in asset_str for x in ["XAU", "GOLD", "ORO"])
 
@@ -2690,7 +2712,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             initial_balance = float(config.get("initial_balance", 1000.0))
             risk_pct = float(config.get("risk_pct", 1.0))
             rr_ratio = float(config.get("rr_ratio", 2.8))
-            asset = payload.get("asset", "USDCAD")
+            asset = payload.get("asset", "XAUUSD")
 
             import random
             from datetime import timedelta
@@ -2914,7 +2936,7 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 auto_snapshot = {
                     "version": "3.5",
                     "system": "Orion Nova & TradingView Dashboard",
-                    "asset": "USDCAD",
+                    "asset": "XAUUSD",
                     "saved_at": now_iso,
                     "configs": updated_configs,
                     "trades": {

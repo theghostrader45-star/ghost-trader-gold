@@ -6,7 +6,7 @@
 #property copyright   "Ghost Trader - Ghost Pro Framework"
 #property link        "https://www.tradingview.com"
 #property version     "3.10"
-#property description "Expert Advisor de Scalping Institucional Exclusivo USDCAD (Sesión New York)"
+#property description "Expert Advisor de Scalping Institucional Exclusivo XAUUSD (Sesión New York)"
 #property description "Detección Automática de Setup, Sincronización de Sesiones y Cálculo Universal de Lotaje"
 #property description "Dashboard Tabla Cuadrícula 100% Idéntico a TradingView (Sin Desfases Mac/Win)"
 
@@ -34,7 +34,7 @@ enum ENUM_PRELOAD_MODE
 
 enum ENUM_SESSION_SELECT
   {
-   SESS_ONLY_NY       = 0, // Solo Nueva York (USDCAD Exclusivo 07:00 - 11:00 NY)
+   SESS_ONLY_NY       = 0, // Solo Nueva York (XAUUSD Exclusivo 08:00 - 11:30 NY)
    SESS_LONDON_AND_NY = 1  // Completa
   };
 
@@ -947,7 +947,7 @@ double GetAverageSLPips(double defaultPips)
 
 double CalculatePreloadedLot(double curAtr, double &targetPipsOut)
 {
-   double pipSize = 0.0001; // USDCAD 1 pip = 0.0001 CAD
+   double pipSize = 0.0001; // XAUUSD 1 pip = 0.0001 CAD
    double defaultSLDist = curAtr * (0.65 + InpSLAtrMult);
    double defaultSLPips = MathMax(InpMinSLPips, defaultSLDist / pipSize);
 
@@ -1037,7 +1037,7 @@ bool RunHistoricalScanAndRender()
 
    ArrayResize(g_slHistory, 0);
 
-   double pipSize = 0.0001; // USDCAD 1 pip = 0.0001 CAD
+   double pipSize = 0.0001; // XAUUSD 1 pip = 0.0001 CAD
    long lastSessionKey = -1;
 
    ENUM_SESSION_SELECT effSess = GetEffectiveSession();
@@ -1227,7 +1227,7 @@ void DrawTradeBoxes(bool isBuy, datetime tStart, datetime tEnd, double entry, do
    if(tEnd <= tStart)
       tEnd = tStart + PeriodSeconds(_Period);
 
-   double pipSize = 0.0001; // USDCAD 1 pip = 0.0001 CAD
+   double pipSize = 0.0001; // XAUUSD 1 pip = 0.0001 CAD
    double arrowOffset = pips * 0.25 * pipSize;
    if(arrowOffset <= 0) arrowOffset = pipSize * 2;
 
@@ -1424,7 +1424,7 @@ void ExecuteBuyTrade(const HA_Candle &bar, double atr, double ehmaCur, double eh
    double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    double spread = ask - bid;
-   double pipSize = 0.0001; // USDCAD 1 pip = 0.0001 CAD
+   double pipSize = 0.0001; // XAUUSD 1 pip = 0.0001 CAD
 
    if(InpMaxSpreadPips > 0 && (spread / pipSize) > InpMaxSpreadPips)
    {
@@ -1481,7 +1481,7 @@ void ExecuteSellTrade(const HA_Candle &bar, double atr, double ehmaCur, double e
    double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
    double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
    double spread = ask - bid;
-   double pipSize = 0.0001; // USDCAD 1 pip = 0.0001 CAD
+   double pipSize = 0.0001; // XAUUSD 1 pip = 0.0001 CAD
 
    if(InpMaxSpreadPips > 0 && (spread / pipSize) > InpMaxSpreadPips)
    {
@@ -1640,7 +1640,7 @@ void RenderDashboard()
    MqlRates currentRate[2];
    if(CopyRates(_Symbol, _Period, 0, 2, currentRate) >= 2)
    {
-      double pipSize = 0.0001; // USDCAD 1 pip = 0.0001 CAD
+      double pipSize = 0.0001; // XAUUSD 1 pip = 0.0001 CAD
       double bar0Range = MathAbs(currentRate[0].close - currentRate[0].open);
       if(bar0Range > (currentAtr * 0.4) && !HasOpenPosition() && IsTradeSessionActiveTime(TimeCurrent()))
       {
@@ -1670,20 +1670,20 @@ void RenderDashboard()
    CreateRect("GP_D_HLINE_0", startX, topY + headerH, tableW, 1, gridLine, gridLine);
    CreateRect("GP_D_VLINE", startX + col1W, topY + headerH, 1, numRows * rowH, gridLine, gridLine);
 
-   // Validación de Setup exclusivo para USDCAD en Sesión New York
-   bool isUsdCad = (StringFind(_Symbol, "USDCAD") >= 0);
+   // Validación de Setup exclusivo para XAUUSD en Sesión New York
+   bool isXauUsd = (StringFind(_Symbol, "XAUUSD") >= 0);
    ENUM_SESSION_SELECT effSess = GetEffectiveSession();
 
    string setupStatusText = "Personalizado";
    color  setupStatusColor = colCyan;
 
-   if(isUsdCad)
+   if(isXauUsd)
    {
       bool tfOk   = (curTfMin == 3 || curTfMin == 5);
       bool sessOk = (effSess == SESS_ONLY_NY);
       if(tfOk && sessOk)
       {
-         setupStatusText  = InpUseIcons ? "✅ ÓPTIMO (NY SESSION · USDCAD)" : "OPTIMO (NY SESSION · USDCAD)";
+         setupStatusText  = InpUseIcons ? "✅ ÓPTIMO (NY SESSION · XAUUSD)" : "OPTIMO (NY SESSION · XAUUSD)";
          setupStatusColor = colTeal;
       }
       else if(!tfOk)
