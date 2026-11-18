@@ -1,8 +1,8 @@
 {
   "pair": "XAUUSD",
   "asset_name": "XAU/USD (Oro Spot / Dólar · Contrato COMEX 100 oz)",
-  "scanned_at_iso": "2026-11-18T18:08:36.950344+00:00",
-  "scanned_at_ny": "13:08 (UTC-5 NY)",
+  "scanned_at_iso": "2026-11-18T19:09:24.353942+00:00",
+  "scanned_at_ny": "14:09 (UTC-5 NY)",
   "scanned_date": "18 Nov 2026",
   "session_phase": "POST-KILLZONE NY (11:30 – 17:00 NY)",
   "session_phase_desc": "Fijación de precios de la tarde de Londres y desaceleración de volumen institucional.",
