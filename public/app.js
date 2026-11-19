@@ -12694,12 +12694,20 @@ async function triggerUsdcadScan() {
 
   if (btn) btn.disabled = true;
   if (icon) icon.classList.add('animate-spin');
-  if (text) text.textContent = 'Escaneando Mercados en Vivo...';
+  if (text) text.textContent = 'Sincronizando Precios & Velas M5...';
+
+  const spotInp = document.getElementById('usdcadLiveSpotInput');
+  const payload = {};
+  if (spotInp && spotInp.value) {
+    const val = parseFloat(spotInp.value);
+    if (!isNaN(val) && val > 0) payload.spot_price = val;
+  }
 
   try {
     const res = await fetch('/api/xauusd-analysis/scan', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
 
     if (res.ok) {
@@ -12720,7 +12728,7 @@ async function triggerUsdcadScan() {
   } finally {
     if (btn) btn.disabled = false;
     if (icon) icon.classList.remove('animate-spin');
-    if (text) text.textContent = 'Escanear Pre-Sesión NY (En Vivo)';
+    if (text) text.textContent = 'Sincronizar Precio & Escanear (En Vivo)';
     initIcons();
   }
 }
@@ -12776,7 +12784,17 @@ function renderUsdcadAnalysis(data) {
 
   const spotPrice = document.getElementById('usdcadSpotPrice');
   if (spotPrice && data.spot_reference) {
-    spotPrice.textContent = Number(data.spot_reference).toFixed(4);
+    spotPrice.textContent = Number(data.spot_reference).toFixed(2);
+  }
+
+  const liveSpotInp = document.getElementById('usdcadLiveSpotInput');
+  if (liveSpotInp && data.spot_reference && !liveSpotInp.matches(':focus')) {
+    liveSpotInp.value = Number(data.spot_reference).toFixed(2);
+  }
+
+  const elSummary = document.getElementById('usdcadBiasSummary');
+  if (elSummary && (data.bias_summary || data.summary)) {
+    elSummary.textContent = data.bias_summary || data.summary;
   }
 
   // 4. Medidor Cuantitativo de Fuerza %
@@ -12815,12 +12833,20 @@ function renderUsdcadAnalysis(data) {
     barBearish.innerHTML = `<span class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-black text-white">${bearishPct}%</span>`;
   }
 
-  // Conteo de drivers alcistas
+  // Conteo de drivers y dominancia técnica
   const drivers = data.drivers || [];
   const bullishCount = drivers.filter(d => d.bias_direction === 'BULLISH').length;
   const countBadge = document.getElementById('usdcadBullishDriversCount');
   if (countBadge) {
-    countBadge.textContent = `${bullishCount} / ${drivers.length}`;
+    if (isBearish) {
+      countBadge.textContent = `Bajista ${bearishPct}%`;
+      countBadge.className = 'text-base font-mono font-black text-rose-400';
+    } else if (isBullish) {
+      countBadge.textContent = `Alcista ${bullishPct}%`;
+      countBadge.className = 'text-base font-mono font-black text-emerald-400';
+    } else {
+      countBadge.textContent = `${bullishCount} / ${drivers.length}`;
+    }
   }
 
   // Criterio Unificado Institucional (5 Fuentes)
