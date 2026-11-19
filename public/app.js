@@ -335,7 +335,14 @@ function setupTabNavigation() {
       }
       if (viewAnalysisUsdcad) viewAnalysisUsdcad.classList.remove('hidden');
       if (typeof loadAndRenderUsdcadAnalysis === 'function') {
-        loadAndRenderUsdcadAnalysis();
+        loadAndRenderUsdcadAnalysis(true);
+      }
+      if (typeof startLivePriceAutoSync === 'function') {
+        startLivePriceAutoSync();
+      }
+    } else {
+      if (typeof stopLivePriceAutoSync === 'function') {
+        stopLivePriceAutoSync();
       }
     }
 
@@ -12687,14 +12694,67 @@ async function loadAndRenderUsdcadAnalysis(forceFetch = false) {
   await triggerUsdcadScan();
 }
 
-async function triggerUsdcadScan() {
+let livePriceAutoSyncInterval = null;
+
+function startLivePriceAutoSync() {
+  if (livePriceAutoSyncInterval) clearInterval(livePriceAutoSyncInterval);
+  
+  // Sincronización en segundo plano periódica cada 15 segundos
+  livePriceAutoSyncInterval = setInterval(async () => {
+    const viewAnalysis = document.getElementById('view-analysis');
+    if (!viewAnalysis || viewAnalysis.classList.contains('hidden')) return;
+    const spotInp = document.getElementById('usdcadLiveSpotInput');
+    if (spotInp && spotInp.matches(':focus')) return;
+
+    try {
+      const res = await fetch('/api/xauusd-analysis/live-price');
+      if (res.ok) {
+        const mkt = await res.json();
+        if (mkt && mkt.success && mkt.spot_price) {
+          const currentPrice = parseFloat(document.getElementById('usdcadSpotPrice')?.textContent);
+          const diff = Math.abs(mkt.spot_price - (currentPrice || 0));
+          
+          // Actualizar visualmente la cotización
+          const spotPriceEl = document.getElementById('usdcadSpotPrice');
+          if (spotPriceEl) spotPriceEl.textContent = Number(mkt.spot_price).toFixed(2);
+          if (spotInp) spotInp.value = Number(mkt.spot_price).toFixed(2);
+          
+          const timeBadge = document.getElementById('usdcadScanTimeBadge');
+          if (timeBadge) {
+            const now = new Date();
+            const nyTimeStr = now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            timeBadge.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping mr-1"></span>En Vivo NY: ${nyTimeStr} (COMEX $${Number(mkt.spot_price).toFixed(2)})`;
+          }
+
+          // Si el precio se movió más de $2.00 o cambió la tendencia, recalcular niveles silenciosamente
+          if (diff >= 2.0) {
+            await triggerUsdcadScan(true);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Auto-sync tick error:', e);
+    }
+  }, 15000);
+}
+
+function stopLivePriceAutoSync() {
+  if (livePriceAutoSyncInterval) {
+    clearInterval(livePriceAutoSyncInterval);
+    livePriceAutoSyncInterval = null;
+  }
+}
+
+async function triggerUsdcadScan(silent = false) {
   const btn = document.getElementById('btnRunUsdcadScan');
   const icon = document.getElementById('usdcadScanBtnIcon');
   const text = document.getElementById('usdcadScanBtnText');
 
-  if (btn) btn.disabled = true;
-  if (icon) icon.classList.add('animate-spin');
-  if (text) text.textContent = 'Sincronizando Precios & Velas M5...';
+  if (!silent) {
+    if (btn) btn.disabled = true;
+    if (icon) icon.classList.add('animate-spin');
+    if (text) text.textContent = 'Sincronizando Precios & Velas M5...';
+  }
 
   const spotInp = document.getElementById('usdcadLiveSpotInput');
   const payload = {};
@@ -12714,7 +12774,7 @@ async function triggerUsdcadScan() {
       const data = await res.json();
       cachedUsdcadAnalysisData = data;
       renderUsdcadAnalysis(data);
-      if (typeof showToast === 'function') {
+      if (!silent && typeof showToast === 'function') {
         showToast('🚀 Escaneo Pre-Sesión NY de XAU/USD completado con éxito.', 'success');
       }
     } else {
@@ -12722,14 +12782,16 @@ async function triggerUsdcadScan() {
     }
   } catch (err) {
     console.error('Error al ejecutar scanner XAU/USD:', err);
-    if (typeof showToast === 'function') {
+    if (!silent && typeof showToast === 'function') {
       showToast('⚠️ No se pudo conectar al scanner en vivo, mostrando datos almacenados.', 'warning');
     }
   } finally {
-    if (btn) btn.disabled = false;
-    if (icon) icon.classList.remove('animate-spin');
-    if (text) text.textContent = 'Sincronizar Precio & Escanear (En Vivo)';
-    initIcons();
+    if (!silent) {
+      if (btn) btn.disabled = false;
+      if (icon) icon.classList.remove('animate-spin');
+      if (text) text.textContent = 'Sincronizar Precio & Escanear (En Vivo)';
+      initIcons();
+    }
   }
 }
 
