@@ -15,34 +15,42 @@ const FOREX_SPECS = {
     decimals: 2,
     pipSize: 0.10,
     pipValueUsd: 10.00,
+    pointValueUsd: 10.00,
     baseRateUsd: 1.0,
     defaultSlPips: 25.0,
     color: 'amber',
-    description: 'XAU/USD · Oro Spot / Dólar · Contrato 100 oz · Killzone NY (08:00 – 11:30 NY)'
+    description: 'XAU/USD · Oro Spot / Dólar · Contrato COMEX 100 oz · Killzone NY (08:00 – 11:30 NY)'
   },
-  XAUUSD: {
-    symbol: 'XAUUSD',
-    displayName: 'XAU/USD',
-    flag: '🥇',
-    base: 'XAU',
+  NAS100: {
+    symbol: 'NAS100',
+    displayName: 'NAS100',
+    altSymbols: ['US100', 'USTEC', 'NQ', 'NDX'],
+    flag: '⚡',
+    base: 'NAS',
     quote: 'USD',
-    contractSize: 100,
+    contractSize: 1,
     decimals: 2,
-    pipSize: 0.10,
-    pipValueUsd: 10.00,
+    pipSize: 1.00,
+    pipValueUsd: 1.00,
+    pointValueUsd: 1.00,
     baseRateUsd: 1.0,
-    defaultSlPips: 25.0,
-    color: 'amber',
-    description: 'XAU/USD · Oro Spot / Dólar · Contrato 100 oz · Killzone NY (08:00 – 11:30 NY)'
+    defaultSlPips: 40.0,
+    color: 'sky',
+    description: 'NAS100 / US100 · Nasdaq 100 Futuros E-mini NQ / CFD · Killzone Wall Street (09:30 – 12:00 NY)'
   }
 };
 
 function normalizeForexAsset(asset) {
+  const a = String(asset || '').toUpperCase().trim();
+  if (a.includes('NAS') || a.includes('NQ') || a.includes('USTEC') || a.includes('US100') || a.includes('NDX')) {
+    return 'NAS100';
+  }
   return 'XAUUSD';
 }
 
 function getForexSpec(asset) {
-  return FOREX_SPECS.XAUUSD;
+  const norm = normalizeForexAsset(asset);
+  return FOREX_SPECS[norm] || FOREX_SPECS.XAUUSD;
 }
 
 // Global State
@@ -3527,6 +3535,25 @@ window.setBacktestTableFilter = function(filter) {
   renderBacktestSimpleTradesTable();
 };
 
+
+selectedBtSimpleAsset = 'XAUUSD';
+
+window.setBacktestSimpleAsset = function(asset) {
+  selectedBtSimpleAsset = normalizeForexAsset(asset);
+  try { localStorage.setItem('cached_bt_simple_asset', selectedBtSimpleAsset); } catch (e) {}
+  
+  const btnXau = document.getElementById('btnBtAssetXau');
+  const btnNas = document.getElementById('btnBtAssetNas');
+  if (selectedBtSimpleAsset === 'NAS100') {
+    if (btnNas) btnNas.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-sky-500 text-black shadow-md';
+    if (btnXau) btnXau.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-white';
+  } else {
+    if (btnXau) btnXau.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-amber-500 text-black shadow-md';
+    if (btnNas) btnNas.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-white';
+  }
+  if (typeof renderBacktestSimpleTradesTable === 'function') renderBacktestSimpleTradesTable();
+};
+
 // Helper global para registrar trade rápido en Backtesting (1-Click WIN / LOSS / BE)
 let isSubmittingBtTrade = false;
 window.submitQuickBtTrade = async function(status) {
@@ -3615,8 +3642,17 @@ window.submitQuickBtTrade = async function(status) {
 // ====================================================
 let activeCalcPair = 'XAUUSD';
 
+window.selectCalcPair = function(pair) {
+  activeCalcPair = normalizeForexAsset(pair);
+  try { localStorage.setItem('calc_active_pair', activeCalcPair); } catch (e) {}
+  updateCalculatorPairUI();
+};
+
 function recalculateStandaloneCalculator() {
-  const spec = getForexSpec('XAUUSD');
+  const norm = normalizeForexAsset(activeCalcPair);
+  const spec = getForexSpec(norm);
+  const isNas = (norm === 'NAS100');
+
   const balInput = document.getElementById('calcAccountBalance');
   const riskInput = document.getElementById('calcRiskPercent');
   const slInput = document.getElementById('calcSlPips');
@@ -3625,13 +3661,14 @@ function recalculateStandaloneCalculator() {
 
   const balance = Math.max(1.0, parseFloat(balInput?.value) || 1000.0);
   const riskPct = Math.max(0.01, parseFloat(riskInput?.value) || 1.0);
-  const slPips = Math.max(0.1, parseFloat(slInput?.value) || spec.defaultSlPips);
-  const rrRatio = Math.max(0.1, parseFloat(rrInput?.value) || 3.0);
-  const leverage = Math.max(1, parseFloat(levSelect?.value) || 300);
+  const slUnits = Math.max(0.1, parseFloat(slInput?.value) || (isNas ? 40.0 : 25.0));
+  const rrRatio = Math.max(0.1, parseFloat(rrInput?.value) || 2.8);
+  const leverage = Math.max(1, parseFloat(levSelect?.value) || (isNas ? 50 : 300));
 
-  // Fórmulas matemáticas institucionales Forex
+  // Fórmulas matemáticas institucionales (Forex / CFD Índices)
   const targetRiskUsd = balance * (riskPct / 100.0);
-  const lossPerLot = slPips * spec.pipValueUsd;
+  const pointOrPipVal = isNas ? spec.pointValueUsd : spec.pipValueUsd;
+  const lossPerLot = slUnits * pointOrPipVal;
   const rawLot = lossPerLot > 0 ? (targetRiskUsd / lossPerLot) : 0.01;
   const heroLot = Math.max(0.01, roundNum(rawLot, 2));
 
@@ -3640,10 +3677,11 @@ function recalculateStandaloneCalculator() {
   const actualRewardUsd = actualRiskUsd * rrRatio;
   const actualRewardPct = actualRiskPct * rrRatio;
 
-  const positionBaseUsd = heroLot * spec.contractSize * spec.baseRateUsd;
+  const nominalPrice = isNas ? 26200.0 : 3588.0;
+  const positionBaseUsd = heroLot * spec.contractSize * nominalPrice;
   const marginUsd = positionBaseUsd / leverage;
   const marginPct = (marginUsd / balance) * 100.0;
-  const tradePipVal = heroLot * spec.pipValueUsd;
+  const tradePipVal = heroLot * pointOrPipVal;
 
   // Actualizar UI Hero & Desglose
   const elHeroLot = document.getElementById('calcHeroLot');
@@ -3653,7 +3691,7 @@ function recalculateStandaloneCalculator() {
   if (elRawLot) elRawLot.textContent = `Exacto: ${rawLot.toFixed(4)} L`;
 
   const elPipValUsd = document.getElementById('calcPipValUsdText');
-  if (elPipValUsd) elPipValUsd.textContent = `$${spec.pipValueUsd.toFixed(2)}/pip`;
+  if (elPipValUsd) elPipValUsd.textContent = isNas ? '$1.00/punto' : '$10.00/pip';
 
   const elPreviewBal = document.getElementById('calcPreviewBalDisplay');
   if (elPreviewBal) elPreviewBal.textContent = `$${formatMoney(balance)}`;
@@ -3662,7 +3700,7 @@ function recalculateStandaloneCalculator() {
   if (elPreviewRisk) elPreviewRisk.textContent = `$${targetRiskUsd.toFixed(2)} USD`;
 
   const elSlBadge = document.getElementById('calcSlDistanceBadge');
-  if (elSlBadge) elSlBadge.textContent = `${slPips.toFixed(1)} pips`;
+  if (elSlBadge) elSlBadge.textContent = isNas ? `${slUnits.toFixed(1)} pts` : `${slUnits.toFixed(1)} pips`;
 
   const elRrBadge = document.getElementById('calcPreviewRrBadge');
   if (elRrBadge) elRrBadge.textContent = `1:${rrRatio.toFixed(1)}`;
@@ -3689,7 +3727,7 @@ function recalculateStandaloneCalculator() {
   if (elHeroTradePipVal) elHeroTradePipVal.textContent = `$${formatMoney(tradePipVal)} USD`;
 
   const elHeroTradePipSub = document.getElementById('calcHeroTradePipSub');
-  if (elHeroTradePipSub) elHeroTradePipSub.textContent = `por cada pip operado (${heroLot.toFixed(2)} L)`;
+  if (elHeroTradePipSub) elHeroTradePipSub.textContent = isNas ? `por cada punto operado (${heroLot.toFixed(2)} L)` : `por cada pip operado (${heroLot.toFixed(2)} L)`;
 
   // Sincronizar label del botón con balance de Backtesting
   const curBtBal = (appState.backtest.summary && appState.backtest.summary.current_balance !== undefined)
@@ -3702,28 +3740,45 @@ function recalculateStandaloneCalculator() {
 }
 
 function updateCalculatorPairUI() {
-  activeCalcPair = 'XAUUSD';
-  const spec = getForexSpec('XAUUSD');
+  const norm = normalizeForexAsset(activeCalcPair);
+  const spec = getForexSpec(norm);
+  const isNas = (norm === 'NAS100');
 
-  // Par Único: XAUUSD
-  document.querySelectorAll('.btn-calc-pair-card').forEach(btn => {
-    btn.className = 'btn-calc-pair-card p-4 rounded-xl border-2 transition text-left cursor-default bg-blue-950/50 border-blue-500 text-white shadow-lg shadow-blue-500/20';
-  });
+  const btnXau = document.getElementById('btnCalcPairXAUUSD');
+  const btnNas = document.getElementById('btnCalcPairNAS100');
 
-  // Badge en el formulario
+  if (isNas) {
+    if (btnNas) btnNas.className = 'btn-calc-pair-card p-3.5 sm:p-4 rounded-xl border-2 transition text-left cursor-pointer bg-sky-950/50 border-sky-500 text-white shadow-lg shadow-sky-500/20';
+    if (btnXau) btnXau.className = 'btn-calc-pair-card p-3.5 sm:p-4 rounded-xl border-2 transition text-left cursor-pointer bg-gray-950/60 border-gray-800 hover:border-amber-500/60 text-gray-400 hover:text-white';
+    
+    const slLabel = document.getElementById('calcSlLabel');
+    if (slLabel) slLabel.textContent = '3. Stop Loss en Puntos';
+    const slInp = document.getElementById('calcSlPips');
+    if (slInp && (!slInp.dataset.userModified || slInp.value === '25' || slInp.value === '25.0')) {
+      slInp.value = '40.0';
+    }
+  } else {
+    if (btnXau) btnXau.className = 'btn-calc-pair-card p-3.5 sm:p-4 rounded-xl border-2 transition text-left cursor-pointer bg-amber-950/50 border-amber-500 text-white shadow-lg shadow-amber-500/20';
+    if (btnNas) btnNas.className = 'btn-calc-pair-card p-3.5 sm:p-4 rounded-xl border-2 transition text-left cursor-pointer bg-gray-950/60 border-gray-800 hover:border-sky-500/60 text-gray-400 hover:text-white';
+
+    const slLabel = document.getElementById('calcSlLabel');
+    if (slLabel) slLabel.textContent = '3. Stop Loss en Pips';
+    const slInp = document.getElementById('calcSlPips');
+    if (slInp && (!slInp.dataset.userModified || slInp.value === '40' || slInp.value === '40.0')) {
+      slInp.value = '25.0';
+    }
+  }
+
   const activeBadge = document.getElementById('calcActivePairBadge');
   if (activeBadge) {
-    if (spec.color === 'blue') {
-      activeBadge.className = 'text-xs font-mono font-bold text-blue-300 px-2.5 py-0.5 rounded-full bg-blue-950 border border-blue-800';
-    } else if (spec.color === 'emerald') {
-      activeBadge.className = 'text-xs font-mono font-bold text-emerald-300 px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-800';
+    if (isNas) {
+      activeBadge.className = 'text-xs font-mono font-bold text-sky-300 px-2.5 py-0.5 rounded-full bg-sky-950 border border-sky-800';
     } else {
       activeBadge.className = 'text-xs font-mono font-bold text-amber-300 px-2.5 py-0.5 rounded-full bg-amber-950 border border-amber-800';
     }
     activeBadge.textContent = `${spec.flag} ${spec.displayName}`;
   }
 
-  // Info del contrato
   const contractInfo = document.getElementById('calcContractSizeInfo');
   if (contractInfo) {
     contractInfo.textContent = spec.description;
@@ -4156,35 +4211,64 @@ window.setOrionCalcRr = function(val) {
   recalculateOrionUsdcad();
 };
 
+let activeOrionAsset = 'XAUUSD';
+
+window.setOrionActiveAsset = function(asset) {
+  activeOrionAsset = normalizeForexAsset(asset);
+  try { localStorage.setItem('cached_orion_asset', activeOrionAsset); } catch (e) {}
+
+  const btnXau = document.getElementById('btnOrionAssetXau');
+  const btnNas = document.getElementById('btnOrionAssetNas');
+  if (activeOrionAsset === 'NAS100') {
+    if (btnNas) btnNas.className = 'flex-1 px-2.5 py-1.5 rounded text-xs font-black transition flex items-center justify-center gap-1 cursor-pointer bg-sky-500 text-black shadow-md';
+    if (btnXau) btnXau.className = 'flex-1 px-2.5 py-1.5 rounded text-xs font-semibold transition flex items-center justify-center gap-1 cursor-pointer text-gray-400 hover:text-white';
+    
+    const slInp = document.getElementById('orionCalcSlInput');
+    if (slInp) slInp.value = '40.0';
+    const priceInp = document.getElementById('orionCalcPriceInput');
+    if (priceInp) priceInp.value = '26200.00';
+  } else {
+    if (btnXau) btnXau.className = 'flex-1 px-2.5 py-1.5 rounded text-xs font-black transition flex items-center justify-center gap-1 cursor-pointer bg-amber-500 text-black shadow-md';
+    if (btnNas) btnNas.className = 'flex-1 px-2.5 py-1.5 rounded text-xs font-semibold transition flex items-center justify-center gap-1 cursor-pointer text-gray-400 hover:text-white';
+    
+    const slInp = document.getElementById('orionCalcSlInput');
+    if (slInp) slInp.value = '25.0';
+    const priceInp = document.getElementById('orionCalcPriceInput');
+    if (priceInp) priceInp.value = '3588.30';
+  }
+
+  recalculateOrionUsdcad();
+};
+
 window.recalculateOrionUsdcad = function() {
   const accountSize = parseFloat(document.getElementById('orionCalcAccountSize')?.value) || 50000;
   const phase = document.getElementById('orionCalcPhaseSelect')?.value || activeOrionPhase || 'eval';
+  const isNas = (activeOrionAsset === 'NAS100');
   let riskPct = parseFloat(document.getElementById('orionCalcRiskInput')?.value);
   if (isNaN(riskPct) || riskPct <= 0) riskPct = 0.50;
   let slPips = parseFloat(document.getElementById('orionCalcSlInput')?.value);
-  if (isNaN(slPips) || slPips <= 0) slPips = 25.0;
+  if (isNaN(slPips) || slPips <= 0) slPips = (isNas ? 40.0 : 25.0);
   let rr = parseFloat(document.getElementById('orionCalcRrInput')?.value);
   if (isNaN(rr) || rr <= 0) rr = 2.8;
   let goldPrice = parseFloat(document.getElementById('orionCalcPriceInput')?.value);
-  if (isNaN(goldPrice) || goldPrice <= 0) goldPrice = 3782.50;
+  if (isNaN(goldPrice) || goldPrice <= 0) goldPrice = (isNas ? 26200.00 : 3588.30);
 
-  // Actualizar indicadores numéricos en las etiquetas de entrada
-  const elRiskDisp = document.getElementById('orionCalcRiskPctDisplay');
   const dollarRisk = accountSize * (riskPct / 100);
+
+  const elRiskDisp = document.getElementById('orionCalcRiskPctDisplay');
   if (elRiskDisp) {
     elRiskDisp.textContent = `${riskPct.toFixed(2)}% ($${formatMoney(dollarRisk)} USD)`;
   }
 
   const elSlDisp = document.getElementById('orionCalcSlDisplay');
   if (elSlDisp) {
-    elSlDisp.textContent = `${slPips.toFixed(1)} pips ($${(slPips * 0.10).toFixed(2)} distancia)`;
+    elSlDisp.textContent = isNas
+      ? `${slPips.toFixed(1)} puntos (${slPips.toFixed(0)} pts distancia)`
+      : `${slPips.toFixed(1)} pips ($${(slPips * 0.10).toFixed(2)} distancia)`;
   }
 
-  // FÓRMULA OFICIAL XAU/USD (ORO SPOT / CONTRATO COMEX 100 OZ):
-  // 1 lote estándar = 100 onzas troy.
-  // 1 pip = $0.10 USD por onza.
-  // Pip Value por 1.0 lote = 100 oz * $0.10 = $10.00 USD / pip.
-  const pipValPerLot = 10.00;
+  // Especificaciones por activo en Orion
+  const pipValPerLot = isNas ? 1.00 : 10.00;
   const rawLot = dollarRisk / (slPips * pipValPerLot);
   const lotSize = Math.max(0.01, Math.round(rawLot * 100) / 100);
 
@@ -4192,7 +4276,8 @@ window.recalculateOrionUsdcad = function() {
   const effectiveDollarRisk = slPips * effectivePipValue;
   const projectedRewardUsd = effectiveDollarRisk * rr;
   const projectedRewardPct = (projectedRewardUsd / accountSize) * 100;
-  const marginUsed = (lotSize * 100 * goldPrice) / 30; // 1:30 apalancamiento Metales Orion
+  const leverage = isNas ? 20 : 30; // 1:20 Índices / 1:30 Metales
+  const marginUsed = isNas ? (lotSize * 1 * goldPrice) / leverage : (lotSize * 100 * goldPrice) / leverage;
 
   // Actualizar Panel de Resultados
   const elLot = document.getElementById('orionResultLot');
@@ -4200,7 +4285,7 @@ window.recalculateOrionUsdcad = function() {
 
   const elContract = document.getElementById('orionResultContractDesc');
   if (elContract) {
-    elContract.textContent = `Lotes Estándar (${(lotSize * 100).toFixed(0)} Onzas Troy)`;
+    elContract.textContent = isNas ? `Lotes Estándar NAS100 ($1.00 USD / punto)` : `Lotes Estándar COMEX (${(lotSize * 100).toFixed(0)} Onzas Troy)`;
   }
 
   const elRiskUsd = document.getElementById('orionResultRiskUsd');
@@ -4220,7 +4305,7 @@ window.recalculateOrionUsdcad = function() {
 
   const elMargin = document.getElementById('orionResultMargin');
   if (elMargin) {
-    elMargin.textContent = `$${formatMoney(marginUsed)} USD (Apalancamiento 1:30 en Metales)`;
+    elMargin.textContent = isNas ? `$${formatMoney(marginUsed)} USD (Apalancamiento 1:20 en Índices)` : `$${formatMoney(marginUsed)} USD (Apalancamiento 1:30 en Metales)`;
   }
 
   // Escudo de Consistencia 20% Orion (Regla de Retiros)
@@ -4947,6 +5032,10 @@ function renderBacktestSimpleTradesTable() {
     filtered = filtered.filter(t => t.status === 'win');
   } else if (filter === 'loss') {
     filtered = filtered.filter(t => t.status === 'loss');
+  } else if (filter === 'xauusd') {
+    filtered = filtered.filter(t => normalizeForexAsset(t.asset) === 'XAUUSD');
+  } else if (filter === 'nas100') {
+    filtered = filtered.filter(t => normalizeForexAsset(t.asset) === 'NAS100');
   }
 
   if (filtered.length === 0) {
@@ -4986,7 +5075,14 @@ function renderBacktestSimpleTradesTable() {
     return `
       <tr class="transition hover:bg-gray-800/40">
         <td class="py-2.5 px-3 text-gray-500">${filtered.length - idx}</td>
-        <td class="py-2.5 px-3">${badgeOutcome}</td>
+        <td class="py-2.5 px-3">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            ${badgeOutcome}
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${normalizeForexAsset(t.asset) === 'NAS100' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}">
+              ${normalizeForexAsset(t.asset) === 'NAS100' ? '⚡ NAS100' : '🥇 XAUUSD'}
+            </span>
+          </div>
+        </td>
         <td class="py-2.5 px-3 text-blue-300 font-bold font-mono">1:${tradeRr.toFixed(1)}</td>
         <td class="py-2.5 px-3 text-amber-300 font-mono">${riskBudgetUsd} <span class="text-[10px] text-amber-400/90 font-bold">(${riskPctStr})</span></td>
         <td class="py-2.5 px-3 ${pnlColor}">${pnlSign}$${formatMoney(pnlNum)}</td>
@@ -10792,6 +10888,30 @@ async function loadWeeklyNews() {
   }
 }
 
+
+let activeNewsAssetFilter = 'all';
+
+window.filterNewsByAsset = function(filter) {
+  activeNewsAssetFilter = filter;
+  const btnAll = document.getElementById('btnNewsFilterAll');
+  const btnXau = document.getElementById('btnNewsFilterXau');
+  const btnNas = document.getElementById('btnNewsFilterNas');
+  
+  [btnAll, btnXau, btnNas].forEach(b => {
+    if (b) b.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer text-gray-400 hover:text-white';
+  });
+
+  if (filter === 'nas100') {
+    if (btnNas) btnNas.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer bg-sky-600 text-white shadow-sm';
+  } else if (filter === 'xauusd') {
+    if (btnXau) btnXau.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer bg-amber-600 text-white shadow-sm';
+  } else {
+    if (btnAll) btnAll.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer bg-purple-600 text-white shadow-sm';
+  }
+
+  renderWeeklyNews();
+};
+
 function renderWeeklyNews() {
   const container = document.getElementById("newsEventsTableContainer") || document.getElementById("weeklyNewsContainer");
   if (!container || !weeklyNewsState || !Array.isArray(weeklyNewsState.days)) return;
@@ -10816,6 +10936,11 @@ function renderWeeklyNews() {
 
   filteredDays.forEach(day => {
     let events = (day.events || []).filter(e => !e.currency || e.currency === "USD");
+    if (activeNewsAssetFilter === 'xauusd') {
+      events = events.filter(e => !e.affected_assets || e.affected_assets.includes('XAUUSD'));
+    } else if (activeNewsAssetFilter === 'nas100') {
+      events = events.filter(e => !e.affected_assets || e.affected_assets.includes('NAS100'));
+    }
     if (filterHighImpactOnly) {
       events = events.filter(e => e.impact === "HIGH" || e.impact === "CRITICAL");
     }
@@ -10841,7 +10966,7 @@ function renderWeeklyNews() {
                 <span>${day.day_name}, ${day.date}</span>
                 <span class="text-[10px] text-gray-400 font-mono font-normal">· New York (UTC-5)</span>
               </div>
-              <div class="text-[11px] text-gray-400">Eventos Macro EE.UU. (USD) con impacto directo en XAU/USD (Killzone NY)</div>
+              <div class="text-[11px] text-gray-400">Eventos Macro EE.UU. (USD) con impacto directo en XAU/USD y NAS100 (Killzones NY)</div>
             </div>
           </div>
           <span class="text-[10px] font-mono font-bold px-3 py-1 rounded-lg border ${dayHeaderClass} flex items-center gap-1.5 shadow-sm">
@@ -10880,7 +11005,10 @@ function renderWeeklyNews() {
 
                 <div>
                   <h4 class="text-xs sm:text-sm font-bold text-white leading-snug">${ev.title}</h4>
-                  <p class="text-[11px] text-gray-300 mt-1.5 leading-relaxed">${ev.impact_xauusd || ev.impact_desc || ev.impact_gold || ''}</p>
+                  <div class="mt-2 space-y-1.5 text-[11px] text-gray-300">
+                    ${ev.impact_gold ? `<div class="p-2 rounded-lg bg-amber-950/20 border border-amber-900/40 leading-relaxed"><strong class="text-amber-300 font-mono">🥇 Oro (XAU/USD):</strong> ${ev.impact_gold}</div>` : ''}
+                    ${ev.impact_nasdaq ? `<div class="p-2 rounded-lg bg-sky-950/20 border border-sky-900/40 leading-relaxed"><strong class="text-sky-300 font-mono">⚡ Nasdaq (NAS100):</strong> ${ev.impact_nasdaq}</div>` : ''}
+                  </div>
                 </div>
 
                 <!-- Consensus Metrics: Forecast / Prev / Actual -->
@@ -10902,7 +11030,7 @@ function renderWeeklyNews() {
                 <!-- Protective Action / Protocol -->
                 <div class="p-2.5 rounded-lg ${isCritical ? 'bg-red-950/40 border border-red-500/40 text-red-300' : 'bg-yellow-950/30 border border-yellow-500/30 text-yellow-300'} text-[11px] font-medium leading-relaxed flex items-start gap-2">
                   <i data-lucide="shield-alert" class="w-4 h-4 mt-0.5 shrink-0 ${isCritical ? 'text-red-400' : 'text-yellow-400'}"></i>
-                  <span><strong class="text-white">Regla Operativa XAUUSD (Orion):</strong> ${ev.rule_action || 'Esperar vela M5 cerrada tras el dato.'}</span>
+                  <span><strong class="text-white">Regla Oficial Orion Funded (±2 min Oro & Nasdaq):</strong> ${ev.rule_action || 'Esperar vela M5 cerrada tras el dato.'}</span>
                 </div>
               </div>
             `;
@@ -12670,27 +12798,61 @@ function setupUsdcadAnalysisView() {
   }
 }
 
+let activeAnalysisAsset = 'XAUUSD';
+let cachedNasdaqAnalysisData = null;
+
+window.switchAnalysisAsset = async function(asset) {
+  activeAnalysisAsset = normalizeForexAsset(asset);
+  try { localStorage.setItem('cached_analysis_active_asset', activeAnalysisAsset); } catch (e) {}
+
+  const btnXau = document.getElementById('btnAnalysisAssetXau');
+  const btnNas = document.getElementById('btnAnalysisAssetNas');
+  if (activeAnalysisAsset === 'NAS100') {
+    if (btnNas) btnNas.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-sky-500 text-black shadow-md shadow-sky-950/40';
+    if (btnXau) btnXau.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-white';
+  } else {
+    if (btnXau) btnXau.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-amber-500 text-black shadow-md shadow-amber-950/40';
+    if (btnNas) btnNas.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-white';
+  }
+
+  const titleEl = document.getElementById('analysisAssetHeaderTitle');
+  if (titleEl) {
+    titleEl.textContent = activeAnalysisAsset === 'NAS100'
+      ? 'Scanner Pre-Sesión NY & Sesgo M5 NAS100 (Nasdaq 100)'
+      : 'Scanner Pre-Sesión NY & Sesgo M5 XAU/USD (Oro)';
+  }
+  const feedLabel = document.getElementById('analysisFeedLabel');
+  if (feedLabel) {
+    feedLabel.textContent = activeAnalysisAsset === 'NAS100' ? 'Feed CME NQ:' : 'Feed COMEX:';
+  }
+
+  await loadAndRenderUsdcadAnalysis(true);
+};
+
 async function loadAndRenderUsdcadAnalysis(forceFetch = false) {
-  if (cachedUsdcadAnalysisData && !forceFetch) {
-    renderUsdcadAnalysis(cachedUsdcadAnalysisData);
+  const isNas = (activeAnalysisAsset === 'NAS100');
+  const cached = isNas ? cachedNasdaqAnalysisData : cachedUsdcadAnalysisData;
+  if (cached && !forceFetch) {
+    renderUsdcadAnalysis(cached);
     return;
   }
 
+  const endpoint = isNas ? '/api/nasdaq-analysis' : '/api/xauusd-analysis';
   try {
-    const res = await fetch('/api/xauusd-analysis');
+    const res = await fetch(endpoint);
     if (res.ok) {
       const data = await res.json();
       if (data && data.drivers) {
-        cachedUsdcadAnalysisData = data;
+        if (isNas) cachedNasdaqAnalysisData = data;
+        else cachedUsdcadAnalysisData = data;
         renderUsdcadAnalysis(data);
         return;
       }
     }
   } catch (err) {
-    console.warn('Error al cargar /api/usdcad-analysis, usando escaneo de respaldo:', err);
+    console.warn(`Error al cargar ${endpoint}:`, err);
   }
 
-  // Si no hay datos, disparar escaneo inicial
   await triggerUsdcadScan();
 }
 
@@ -12701,20 +12863,23 @@ function startLivePriceAutoSync() {
   
   // Sincronización en segundo plano periódica cada 15 segundos
   livePriceAutoSyncInterval = setInterval(async () => {
-    const viewAnalysis = document.getElementById('view-analysis');
+    const viewAnalysis = document.getElementById('viewAnalysisUsdcad') || document.getElementById('view-analysis');
     if (!viewAnalysis || viewAnalysis.classList.contains('hidden')) return;
     const spotInp = document.getElementById('usdcadLiveSpotInput');
     if (spotInp && spotInp.matches(':focus')) return;
 
+    const isNas = (activeAnalysisAsset === 'NAS100');
+    const endpoint = isNas ? '/api/nasdaq-analysis/live-price' : '/api/xauusd-analysis/live-price';
+    const driftThreshold = isNas ? 25.0 : 2.0;
+
     try {
-      const res = await fetch('/api/xauusd-analysis/live-price');
+      const res = await fetch(endpoint);
       if (res.ok) {
         const mkt = await res.json();
         if (mkt && mkt.success && mkt.spot_price) {
           const currentPrice = parseFloat(document.getElementById('usdcadSpotPrice')?.textContent);
           const diff = Math.abs(mkt.spot_price - (currentPrice || 0));
           
-          // Actualizar visualmente la cotización
           const spotPriceEl = document.getElementById('usdcadSpotPrice');
           if (spotPriceEl) spotPriceEl.textContent = Number(mkt.spot_price).toFixed(2);
           if (spotInp) spotInp.value = Number(mkt.spot_price).toFixed(2);
@@ -12723,11 +12888,11 @@ function startLivePriceAutoSync() {
           if (timeBadge) {
             const now = new Date();
             const nyTimeStr = now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            timeBadge.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping mr-1"></span>En Vivo NY: ${nyTimeStr} (COMEX $${Number(mkt.spot_price).toFixed(2)})`;
+            const prefix = isNas ? 'CME NQ' : 'COMEX';
+            timeBadge.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping mr-1"></span>En Vivo NY: ${nyTimeStr} (${prefix} $${Number(mkt.spot_price).toFixed(2)})`;
           }
 
-          // Si el precio se movió más de $2.00 o cambió la tendencia, recalcular niveles silenciosamente
-          if (diff >= 2.0) {
+          if (diff >= driftThreshold) {
             await triggerUsdcadScan(true);
           }
         }
@@ -12764,7 +12929,8 @@ async function triggerUsdcadScan(silent = false) {
   }
 
   try {
-    const res = await fetch('/api/xauusd-analysis/scan', {
+    const endpoint = (activeAnalysisAsset === 'NAS100') ? '/api/nasdaq-analysis/scan' : '/api/xauusd-analysis/scan';
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

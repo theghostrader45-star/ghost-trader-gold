@@ -48,6 +48,7 @@ PREMARKET_FILE = os.path.join(DATA_DIR, "premarket.json")
 LATEST_SIGNAL_FILE = os.path.join(DATA_DIR, "latest_signal.json")
 XAUUSD_ANALYSIS_FILE = os.path.join(DATA_DIR, "xauusd_analysis.json")
 USDCAD_ANALYSIS_FILE = XAUUSD_ANALYSIS_FILE
+NASDAQ_ANALYSIS_FILE = os.path.join(DATA_DIR, "nasdaq_analysis.json")
 
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(PUBLIC_DIR, exist_ok=True)
@@ -541,6 +542,313 @@ def execute_xauusd_analysis_scan(payload=None):
     save_json(XAUUSD_ANALYSIS_FILE, analysis_data)
     save_json(USDCAD_ANALYSIS_FILE, analysis_data)
     return analysis_data
+
+def get_nasdaq_analysis():
+    data = load_json(NASDAQ_ANALYSIS_FILE, None)
+    if not data or not data.get("sources"):
+        data = execute_nasdaq_analysis_scan()
+    return data
+
+def fetch_live_nasdaq_market():
+    """Obtiene cotización y velas M5 en tiempo real de Futuros E-mini Nasdaq 100 (NQ=F) y Bono a 10 Años (^TNX)."""
+    try:
+        url = "https://query1.finance.yahoo.com/v8/finance/chart/NQ=F?interval=5m&range=1d"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=4) as resp:
+            data = json.loads(resp.read().decode())
+            res = data["chart"]["result"][0]
+            meta = res["meta"]
+            spot_price = round(float(meta.get("regularMarketPrice", 26188.50)), 2)
+            high_day = round(float(meta.get("regularMarketDayHigh", 26603.50)), 2)
+            low_day = round(float(meta.get("regularMarketDayLow", 26139.00)), 2)
+            prev_close = round(float(meta.get("chartPreviousClose", 26600.25)), 2)
+            
+            quotes = res["indicators"]["quote"][0]
+            closes = [c for c in quotes.get("close", []) if c is not None]
+            
+            m5_trend = "BEARISH"
+            if len(closes) >= 12:
+                recent_change = closes[-1] - closes[-12]
+                if recent_change < -15.0 or closes[-1] < (high_day + low_day) / 2:
+                    m5_trend = "BEARISH"
+                elif recent_change > 15.0 and closes[-1] > (high_day + low_day) / 2:
+                    m5_trend = "BULLISH"
+                else:
+                    m5_trend = "RANGING"
+            
+            tnx_yield = 5.052
+            try:
+                url_tnx = "https://query1.finance.yahoo.com/v8/finance/chart/^TNX?interval=5m&range=1d"
+                req_tnx = urllib.request.Request(url_tnx, headers={"User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(req_tnx, timeout=2) as r_tnx:
+                    d_tnx = json.loads(r_tnx.read().decode())
+                    tnx_yield = round(float(d_tnx["chart"]["result"][0]["meta"].get("regularMarketPrice", 5.052)), 3)
+            except Exception:
+                pass
+
+            return {
+                "success": True,
+                "spot_price": spot_price,
+                "high_day": high_day,
+                "low_day": low_day,
+                "prev_close": prev_close,
+                "m5_trend": m5_trend,
+                "tnx_yield": tnx_yield,
+                "source": "CME Globex E-mini Nasdaq-100 (NQ=F) & US10Y Live Feed"
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "spot_price": 26188.50,
+            "high_day": 26603.50,
+            "low_day": 26139.00,
+            "prev_close": 26600.25,
+            "m5_trend": "BEARISH",
+            "tnx_yield": 5.052,
+            "source": "CME Globex Futures Fallback Reference"
+        }
+
+def execute_nasdaq_analysis_scan(payload=None):
+    if payload is None:
+        payload = {}
+        
+    live_data = fetch_live_nasdaq_market()
+    
+    if payload.get("spot_price"):
+        try:
+            base_spot = round(float(payload.get("spot_price")), 2)
+        except Exception:
+            base_spot = live_data.get("spot_price", 26188.50)
+    else:
+        base_spot = live_data.get("spot_price", 26188.50)
+
+    if payload.get("m5_trend"):
+        m5_trend = str(payload.get("m5_trend")).upper().strip()
+    else:
+        m5_trend = live_data.get("m5_trend", "BEARISH")
+
+    high_day = live_data.get("high_day", round(base_spot + 350.0, 2))
+    low_day = live_data.get("low_day", round(base_spot - 120.0, 2))
+    tnx_val = live_data.get("tnx_yield", 5.052)
+    source_feed = live_data.get("source", "CME Globex E-mini Nasdaq-100 (NQ=F) & US10Y Live Feed")
+
+    now_utc = datetime.now(timezone.utc)
+    ny_hour = (now_utc.hour - 5) % 24
+    ny_min = now_utc.minute
+    ny_str = f"{ny_hour:02d}:{ny_min:02d} (UTC-5 NY)"
+    date_str = now_utc.strftime("%d %b %Y")
+    
+    if 7 <= ny_hour < 9 or (ny_hour == 9 and ny_min < 30):
+        session_phase = "PRE-MERCADO WALL STREET (07:00 – 09:30 NY)"
+        session_phase_desc = "Flujos pre-mercado en futuros E-mini NQ, earnings de empresas previas a la campana y posicionamiento institucional."
+        phase_color = "amber"
+    elif 9 <= ny_hour < 12 and (ny_hour > 9 or ny_min >= 30):
+        session_phase = "KILLZONE WALL STREET CASH OPEN (09:30 – 12:00 NY)"
+        session_phase_desc = "Apertura del mercado regular de acciones (NYSE / Nasdaq). Máximo volumen del día, rotaciones agresivas y expansión en M5."
+        phase_color = "emerald"
+    elif 12 <= ny_hour < 15 or (ny_hour == 15 and ny_min < 30):
+        session_phase = "MEDIODÍA WALL STREET (12:00 – 15:30 NY)"
+        session_phase_desc = "Consolidación institucional y equilibrio de liquidez antes del cierre."
+        phase_color = "blue"
+    elif ny_hour == 15 and ny_min >= 30:
+        session_phase = "POWER HOUR & CIERRE NY (15:30 – 16:00 NY)"
+        session_phase_desc = "Ejecución de órdenes institucionales Market-On-Close (MOC)."
+        phase_color = "purple"
+    else:
+        session_phase = "SESIÓN ASIÁTICA / LONDRES GLOBEX (Overnight)"
+        session_phase_desc = "Construcción del rango nocturno en CME Globex previo a New York."
+        phase_color = "gray"
+
+    session_vwap = round(base_spot + 110.0 if m5_trend == "BEARISH" else base_spot - 85.0, 2)
+    resistance_m5_min = round(base_spot + 60.0, 2)
+    resistance_m5_max = round(base_spot + 130.0, 2)
+    support_m5_min = round(min(low_day, base_spot - 80.0), 2)
+    support_m5_major = round(min(low_day - 120.0, 25950.0), 2)
+
+    is_bearish = (m5_trend == "BEARISH")
+    
+    sources = [
+        {
+            "id": "m5_orderflow_nq",
+            "name": "Estructura M5 & Acción del Precio E-mini NQ",
+            "url": "#m5-protocol",
+            "icon": "layers",
+            "value": f"Futuros ${base_spot:.2f} · {'Secuencia Lower Highs & Lows' if is_bearish else 'Secuencia Higher Highs & Lows'}",
+            "change": f"Sesión Min ${low_day:.2f} | Max ${high_day:.2f} | VWAP ${session_vwap:.2f}",
+            "bias_direction": "BEARISH" if is_bearish else "BULLISH",
+            "bias_label": "TENDENCIA BAJISTA M5 DOMINANTE" if is_bearish else "TENDENCIA ALCISTA M5 DOMINANTE",
+            "bias_color": "rose" if is_bearish else "emerald",
+            "strength_score": 92.0 if is_bearish else 86.0,
+            "weight_pct": 50.0,
+            "institution": "CME Globex NQ Order Flow (M5)",
+            "summary": "En velas de 5 minutos, los futuros E-mini Nasdaq 100 cotizan en clara estructura de quiebre bajista por debajo del Session VWAP. En day trading M5, la acción del precio prima sobre cualquier especulación.",
+            "impact_nasdaq": "⛔ Prohibido comprar sin un quiebre de estructura (CHoCH) alcista confirmado en M5 por encima del VWAP. Se priorizan ventas en retrocesos a resistencias." if is_bearish else "Se priorizan compras en zonas de descuento."
+        },
+        {
+            "id": "session_liquidity_nq",
+            "name": "Liquidez Pre-Market & Rango Londres Wall Street",
+            "url": "#m5-protocol",
+            "icon": "activity",
+            "value": f"Rango Sesión: {low_day:.2f} – {high_day:.2f}",
+            "change": "Presión Vendedora Institucional en Pre-Apertura",
+            "bias_direction": "BEARISH" if is_bearish else "BULLISH",
+            "bias_label": "OFERTA INSTITUCIONAL ACTIVA" if is_bearish else "DEMANDA INSTITUCIONAL ACTIVA",
+            "bias_color": "rose" if is_bearish else "emerald",
+            "strength_score": 88.0 if is_bearish else 82.0,
+            "weight_pct": 25.0,
+            "institution": "NYSE / Nasdaq Liquidity Engine",
+            "summary": "Ventas institucionales en la apertura europea rompieron el soporte de 26,400 puntos. Los algoritmos buscan liquidez profunda en torno a 26,100 - 26,150.",
+            "impact_nasdaq": "Vender únicamente en retrocesos hacia el Fair Value Gap (FVG) de 5 minutos."
+        },
+        {
+            "id": "us10y_yield",
+            "name": "Rendimiento Bono 10Y EE.UU. (US10Y / TNX)",
+            "url": "https://www.cnbc.com/quotes/US10Y",
+            "icon": "trending-up",
+            "value": f"{tnx_val:.3f}% (+0.04 bps)",
+            "change": "Yields > 5.00% comprimen múltiplos PER",
+            "bias_direction": "BEARISH",
+            "bias_label": "PRESIÓN MACRO SOBRE VALORACIONES TECH",
+            "bias_color": "rose",
+            "strength_score": 85.0,
+            "weight_pct": 10.0,
+            "institution": "U.S. Treasury Bond Market",
+            "summary": "El bono del Tesoro estadounidense a 10 años se mantiene firme por encima del 5.00%. Tasas de descuento más altas comprimen el valor presente de los flujos de caja futuros de las empresas de hipercrecimiento de Silicon Valley.",
+            "impact_nasdaq": "Lastre directo para el Nasdaq 100; desincentiva la toma de posiciones alcistas apalancadas."
+        },
+        {
+            "id": "cme_fedwatch_nq",
+            "name": "CME FedWatch Tool & Política de la Fed",
+            "url": "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html",
+            "icon": "percent",
+            "value": "Rango 3.75% – 4.00% (88.2% Pausa Prolongada)",
+            "change": "Tasas restrictivas encarecen el coste de capital",
+            "bias_direction": "BEARISH_COUNTERWEIGHT",
+            "bias_label": "CONDICIONES FINANCIERAS AJUSTADAS",
+            "bias_color": "rose",
+            "strength_score": 80.0,
+            "weight_pct": 5.0,
+            "institution": "CME Group Chicago",
+            "summary": "La Reserva Federal mantiene su mensaje de 'higher-for-longer' sin urgencia de recortes agresivos. Menor liquidez global disponible para múltiplos extremos de PER.",
+            "impact_nasdaq": "Favorece ventas en retroceso ante la falta de catalizadores dovish inmediatos."
+        },
+        {
+            "id": "mag7_earnings",
+            "name": "Consenso & Guías Magnificent 7 (Big Tech)",
+            "url": "https://www.investing.com/earnings-calendar/",
+            "icon": "cpu",
+            "value": "Ponderación ~45% (NVDA, MSFT, AAPL, AMZN, GOOGL, META, TSLA)",
+            "change": "Toma de beneficios en semiconductores",
+            "bias_direction": "BEARISH",
+            "bias_label": "ROTACIÓN SECTORIAL DEFENSIVA",
+            "bias_color": "rose",
+            "strength_score": 83.0,
+            "weight_pct": 5.0,
+            "institution": "Wall Street Consensus / SEC EDGAR",
+            "summary": "Tras fuertes subidas previas, las megacapitalizaciones sufren tomas de ganancias selectivas ante dudas sobre el retorno de inversión del capex en infraestructura de IA.",
+            "impact_nasdaq": "La debilidad en NVIDIA o Apple bloquea cualquier rally sostenible del índice general."
+        },
+        {
+            "id": "etf_qqq_flows",
+            "name": "Flujos Institucionales Invesco QQQ ETF",
+            "url": "https://www.bloomberg.com/technology",
+            "icon": "vault",
+            "value": "-$640M Salidas Netas Semanales",
+            "change": "Rebalanceo pasivo hacia bonos y activos defensivos",
+            "bias_direction": "BEARISH",
+            "bias_label": "SALIDA DE FONDOS PASIVOS",
+            "bias_color": "rose",
+            "strength_score": 78.0,
+            "weight_pct": 5.0,
+            "institution": "Depository Trust Clearing Corp",
+            "summary": "Desinversión neta de grandes patrimonios e inversores institucionales redirigiéndose hacia activos con rendimientos monetarios seguros al 5%.",
+            "impact_nasdaq": "Presión adicional vendedora absorbida por los libros de órdenes de los creadores de mercado."
+        }
+    ]
+
+    bullish_weighted = sum(s["strength_score"] * (s["weight_pct"] / 100.0) for s in sources if s["bias_direction"] == "BULLISH")
+    bearish_weighted = sum(s["strength_score"] * (s["weight_pct"] / 100.0) for s in sources if s["bias_direction"] in ["BEARISH", "BEARISH_COUNTERWEIGHT", "BEARISH_BREAKDOWN"])
+    total_w = bullish_weighted + bearish_weighted
+    bearish_pct = round((bearish_weighted / total_w) * 100.0, 1) if total_w > 0 else 88.5
+    bullish_pct = round(100.0 - bearish_pct, 1)
+
+    overall_bias = "BEARISH" if bearish_pct >= 55.0 else ("BULLISH" if bullish_pct >= 55.0 else "NEUTRAL")
+    bias_label = "SESGO BAJISTA (VENTAS EN RETROCESO A RESISTENCIA M5)" if overall_bias == "BEARISH" else ("SESGO ALCISTA (COMPRAS EN M5 TRAS BARRIDA)" if overall_bias == "BULLISH" else "SESGO NEUTRAL / CONSOLIDACIÓN")
+    bias_color = "rose" if overall_bias == "BEARISH" else ("emerald" if overall_bias == "BULLISH" else "amber")
+    conviction = "ALTA (ESTRUCTURA M5 DOMINANTE · 75% ACCIÓN DEL PRECIO)"
+
+    m5_plan = {
+        "timeframe": "5 Minutos (M5)",
+        "pair": "NAS100 (Nasdaq 100)",
+        "action": "BUSCAR VENTAS (SHORT) EN RETESTEO A RESISTENCIA O ESPERAR GIRO CONFIRMADO",
+        "entry_zone": f"{resistance_m5_min:.2f} – {resistance_m5_max:.2f} (Bearish Order Block M5 / FVG mitigado)",
+        "invalidation": f"{resistance_m5_max + 25.0:.2f} (Quiebre y cierre M5 por encima del Session VWAP)",
+        "sl_pips": 40.0,
+        "sl_price": round(base_spot + 40.0, 2) if is_bearish else round(base_spot - 40.0, 2),
+        "sl_dollar_dist": 40.0,
+        "rr_ratio": 2.8,
+        "tp_pips": 112.0,
+        "tp_price": round(base_spot - 112.0, 2) if is_bearish else round(base_spot + 112.0, 2),
+        "tp_dollar_dist": 112.0,
+        "spread_rule": "Spreads típicos en Killzone Wall Street para NAS100: 0.8 a 1.5 puntos. Si el spread supera 2.5 puntos durante la apertura de las 09:30 NY, no entrar.",
+        "news_rule": "Prohibido abrir, cerrar o modificar posiciones dentro de la ventana de ±2 minutos de noticias rojas de EE.UU. (USD) por regla oficial de Orion Funded.",
+        "confirmation_rule": "⛔ REGLA DE ORO M5 NASDAQ: No operar en los primeros 5 minutos del Cash Open (09:30 a 09:35 NY). Esperar que el mercado absorba las órdenes de apertura y deje un Fair Value Gap (FVG) claro en 5m.",
+        "orion_consistency_rule": "En cuenta fondeada de $50k, arriesgando $250 (0.5%) con SL de 40 puntos, el lotaje sugerido es de 6.25 lotes ($1/pt). Con TP a 1:2.8 generas exactamente $700.00 USD (20.0% del retiro objetivo de $3,500)."
+    }
+
+    key_levels = {
+        "pdh": f"{high_day:.2f} (Máximo Sesión)",
+        "pdl": f"{low_day:.2f} (Mínimo Sesión)",
+        "resistance_immediate": f"{resistance_m5_min:.2f} – {resistance_m5_max:.2f}",
+        "resistance_major": "26,500.00 (Soporte Previo Roto)",
+        "support_immediate": f"{low_day:.2f} / 26,100.00",
+        "support_major": f"{support_m5_major:.2f}",
+        "session_vwap": f"{session_vwap:.2f}",
+        "kitco_support_major": "26,000.00",
+        "kitco_resistance_major": "26,550.00",
+        "adr_daily_pips": 350.0,
+        "adr_consumed_pips": round(abs(high_day - low_day), 1),
+        "adr_consumed_pct": round((abs(high_day - low_day) / 350.0) * 100, 1),
+        "adr_remaining_pips": max(0.0, round(350.0 - abs(high_day - low_day), 1))
+    }
+
+    unified_criterion = {
+        "title": "Criterio Unificado Calibrado a M5 Nasdaq 100 (75% Acción del Precio / 25% Macro Tech)",
+        "summary": f"La sincronización en tiempo real ({source_feed}) confirma la presión vendedora en futuros E-mini NQ con cotizaciones en {base_spot:.2f} (mínimos en {low_day:.2f}) cotizando netamente por debajo del Session VWAP ({session_vwap:.2f}). A nivel macro, los rendimientos del bono del Tesoro estadounidense a 10 años (^TNX) se mantienen por encima de {tnx_val:.3f}%, encareciendo el coste del capital y comprimiendo las valoraciones del sector tecnológico, mientras que el CME FedWatch descuenta una pausa prolongada de la Fed. El criterio cuantitativo unificado para la Killzone de Wall Street (09:30 – 12:00 NY) asigna el 75% del peso a la estructura técnica: se descartan compras contra la tendencia y se priorizan VENTAS (SHORT) en retroceso al bloque de órdenes / FVG M5 ({resistance_m5_min:.2f} – {resistance_m5_max:.2f}) con Stop Loss de 40 puntos y objetivo 1:2.8 (112 puntos).",
+        "verdict_tag": "ESTRUCTURA BAJISTA M5 DOMINANTE EN NASDAQ (VENDER RETROCESOS A VWAP)"
+    }
+
+    bias_summary = f"Estructura bajista dominante en M5 ({bearish_pct}% fuerza bajista). Mínimos en {low_day:.2f} bajo Session VWAP ({session_vwap:.2f}) y bono 10Y en {tnx_val:.3f}%. Se descartan compras apresuradas y se priorizan ventas en retroceso a resistencia ({resistance_m5_min:.2f} – {resistance_m5_max:.2f}) con SL de 40 pts y TP de 112 pts."
+
+    analysis_data = {
+        "pair": "NAS100",
+        "asset_name": "NAS100 (Nasdaq 100 · E-mini NQ Futures · Cash USTEC)",
+        "scanned_at_iso": now_utc.isoformat(),
+        "scanned_at_ny": ny_str,
+        "scanned_date": date_str,
+        "session_phase": session_phase,
+        "session_phase_desc": session_phase_desc,
+        "phase_color": phase_color,
+        "spot_reference": base_spot,
+        "overall_bias": overall_bias,
+        "bias_label": bias_label,
+        "bias_color": bias_color,
+        "conviction": conviction,
+        "strength_percentage": bearish_pct if overall_bias == "BEARISH" else (bullish_pct if overall_bias == "BULLISH" else 50.0),
+        "strength_bullish_pct": bullish_pct,
+        "strength_bearish_pct": bearish_pct,
+        "bias_summary": bias_summary,
+        "unified_criterion": unified_criterion,
+        "sources": sources,
+        "drivers": sources,
+        "m5_plan": m5_plan,
+        "key_levels": key_levels
+    }
+    
+    save_json(NASDAQ_ANALYSIS_FILE, analysis_data)
+    return analysis_data
+
 
 def save_weekly_news(data):
     save_json(WEEKLY_NEWS_FILE, data)
@@ -1196,25 +1504,36 @@ def recalculate_trade_history(trades, config, mode="backtest"):
         else:
             ret_pct = 0.0
             
-        # Operativa Institucional Exclusiva: XAUUSD (Oro Spot / Contrato COMEX 100 oz)
-        raw_asset = "XAUUSD"
-        asset_clean = "XAUUSD"
+        # Operativa Dual: XAUUSD (Oro Spot) & NAS100 (Nasdaq 100)
+        raw_asset = str(t.get("asset") or config.get("asset") or "XAUUSD").upper()
         direction = str(t.get("direction", "BUY")).upper()
+        is_nasdaq = any(x in raw_asset for x in ["NAS", "NQ", "USTEC", "US100", "NDX"])
+        is_gold = any(x in raw_asset for x in ["XAU", "GOLD", "ORO"]) or not is_nasdaq
 
         sl_pips_val = t.get("sl_pips") or t.get("pips") or (tv_points / 10.0 if tv_points > 50 else tv_points)
         try:
             sl_pips_float = float(sl_pips_val)
         except Exception:
-            sl_pips_float = 25.0
+            sl_pips_float = 40.0 if is_nasdaq else 25.0
 
-        # XAUUSD: 1 lote estándar = 100 onzas troy. 1 pip = $0.10 -> $10 USD / pip por lote estándar ($1.00 move = $100 / lote)
-        mult = 100.0
-        pt_mult = 100.0
-        pip_mult = 10.0
-        pip_val_usd = 10.0
-        loss_per_lot = sl_pips_float * pip_val_usd if sl_pips_float > 0 else (25.0 * 10.0)
-        margin_rate = 3780.0 * 100.0 # Valor nominal del contrato de 100 oz
-        eff_lev = min(leverage, 30.0) if mode == "fondeo" else leverage
+        if is_nasdaq:
+            asset_clean = "NAS100"
+            mult = 1.0
+            pt_mult = 1.0
+            pip_mult = 1.0
+            pip_val_usd = 1.0
+            loss_per_lot = sl_pips_float * 1.0 if sl_pips_float > 0 else (40.0 * 1.0)
+            margin_rate = 26200.0 * 1.0
+            eff_lev = min(leverage, 20.0) if mode == "fondeo" else leverage
+        else:
+            asset_clean = "XAUUSD"
+            mult = 100.0
+            pt_mult = 100.0
+            pip_mult = 10.0
+            pip_val_usd = 10.0
+            loss_per_lot = sl_pips_float * pip_val_usd if sl_pips_float > 0 else (25.0 * 10.0)
+            margin_rate = 3780.0 * 100.0
+            eff_lev = min(leverage, 30.0) if mode == "fondeo" else leverage
 
         # Reference lot size based on symbol (points for Gold, pips for Forex)
         interest_mode = str(config.get("interest_mode") or config.get("risk_mode") or "compound").lower()
@@ -2049,6 +2368,18 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             self.send_json(execute_premarket_scan())
             return
 
+        elif path == "/api/nasdaq-analysis/live-price":
+            self.send_json(fetch_live_nasdaq_market())
+            return
+
+        elif path == "/api/nasdaq-analysis":
+            self.send_json(get_nasdaq_analysis())
+            return
+
+        elif path == "/api/nasdaq-analysis/scan":
+            self.send_json(execute_nasdaq_analysis_scan(payload if 'payload' in locals() else None))
+            return
+
         elif path == "/api/xauusd-analysis/live-price":
             self.send_json(fetch_live_gold_market())
             return
@@ -2390,6 +2721,18 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             self.send_json(execute_premarket_scan())
             return
 
+        elif path == "/api/nasdaq-analysis/live-price":
+            self.send_json(fetch_live_nasdaq_market())
+            return
+
+        elif path == "/api/nasdaq-analysis":
+            self.send_json(get_nasdaq_analysis())
+            return
+
+        elif path == "/api/nasdaq-analysis/scan":
+            self.send_json(execute_nasdaq_analysis_scan(payload))
+            return
+
         elif path == "/api/xauusd-analysis/live-price":
             self.send_json(fetch_live_gold_market())
             return
@@ -2527,14 +2870,16 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             direction = payload.get("direction", "BUY").upper()
             asset = payload.get("asset", config.get("asset", "XAUUSD"))
             asset_str = str(asset).upper()
-            is_gold = any(x in asset_str for x in ["XAU", "GOLD", "ORO"])
+            is_nasdaq = any(x in asset_str for x in ["NAS", "NQ", "USTEC", "US100", "NDX"])
+            is_gold = any(x in asset_str for x in ["XAU", "GOLD", "ORO"]) or not is_nasdaq
 
-            raw_sl_input = payload.get("sl_pips") or payload.get("tv_points") or payload.get("sl_points") or payload.get("sl_distance") or 25.0
+            default_sl = 40.0 if is_nasdaq else 25.0
+            raw_sl_input = payload.get("sl_pips") or payload.get("tv_points") or payload.get("sl_points") or payload.get("sl_distance") or default_sl
             try:
                 raw_sl = float(str(raw_sl_input).replace(",", "."))
             except Exception:
-                raw_sl = 25.0
-            if raw_sl <= 0: raw_sl = 25.0
+                raw_sl = default_sl
+            if raw_sl <= 0: raw_sl = default_sl
             sl_pips = raw_sl
 
             raw_risk = payload.get("risk_pct") or payload.get("risk_pct_custom") or config.get("risk_pct", 0.5 if mode == "fondeo" else 1.0)
@@ -2558,7 +2903,16 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 dollar_risk = round(cur_bal * (trade_risk_pct / 100.0), 2)
             leverage = float(config.get("leverage", 30.0 if mode == "fondeo" else 300.0))
             
-            if is_gold:
+            if is_nasdaq:
+                sl_pips = raw_sl
+                sl_points = raw_sl
+                sl_price_dist = raw_sl
+                loss_per_lot = sl_points * 1.0
+                raw_lot = dollar_risk / loss_per_lot if loss_per_lot > 0 else 0.10
+                suggested_lot = max(0.01, round(raw_lot, 2))
+                eff_lev = min(leverage, 20.0) if mode == "fondeo" else leverage
+                calc_margin = round((26200.0 * 1.0 * suggested_lot) / eff_lev, 2)
+            elif is_gold:
                 if raw_sl <= 15.0:
                     sl_price_dist = raw_sl
                     sl_pips = round(raw_sl * 10.0, 1)
@@ -2576,9 +2930,8 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
                 raw_lot = dollar_risk / loss_per_lot if loss_per_lot > 0 else 0.01
                 suggested_lot = max(0.01, round(raw_lot, 2))
                 gold_lev = min(leverage, 30.0) if mode == "fondeo" else leverage
-                calc_margin = round((2720.0 * 100.0 * suggested_lot) / gold_lev, 2)
+                calc_margin = round((3780.0 * 100.0 * suggested_lot) / gold_lev, 2)
             else:
-                # USDCAD (Default)
                 sl_pips = raw_sl
                 sl_points = round(raw_sl * 10.0, 1)
                 sl_price_dist = round(raw_sl * 0.0001, 5)
@@ -2611,7 +2964,11 @@ class BacktestAPIHandler(BaseHTTPRequestHandler):
             user_points = parse_float_safe(payload.get("points"))
             user_pips = parse_float_safe(payload.get("pips"))
 
-            if is_gold:
+            if is_nasdaq:
+                mult = 1.0
+                pt_mult = 1.0
+                pip_mult = 1.0
+            elif is_gold:
                 mult = 100.0
                 pt_mult = 100.0
                 pip_mult = 10.0

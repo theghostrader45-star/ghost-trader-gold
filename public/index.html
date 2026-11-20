@@ -37,7 +37,7 @@
   <script src="vendor/lucide.min.js"></script>
   <!-- Chart.js Local Bundle -->
   <script src="vendor/chart.min.js"></script>
-  <link rel="stylesheet" href="styles.css?v=20261116_v52_xauusd_exclusive">
+  <link rel="stylesheet" href="styles.css?v=20261120_v63_dual_xauusd_nasdaq100_full">
   <script>
     if (localStorage.getItem('streamer_privacy_mode') === 'true') {
       document.documentElement.classList.add('streamer-mode-active');
@@ -62,7 +62,7 @@
           <h1 class="text-base sm:text-lg font-black tracking-wider text-white uppercase flex items-center gap-2">
             <span class="bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 bg-clip-text text-transparent">Ghost Trader Pro Terminal</span>
           </h1>
-          <p class="text-[11px] text-gray-400 hidden sm:block">Terminal Cuantitativa XAU/USD (Oro Spot & Futuros COMEX)</p>
+          <p class="text-[11px] text-gray-400 hidden sm:block">Terminal Cuantitativa Dual: XAU/USD (Oro Spot) & NAS100 (Nasdaq 100)</p>
         </div>
       </div>
 
@@ -120,14 +120,14 @@
       <button id="tabBtnOrionRules" class="tab-button flex-1 min-w-[105px] sm:min-w-[135px] px-2.5 sm:px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
         <i data-lucide="shield-check" class="w-4 h-4 text-purple-400 shrink-0"></i>
         <span class="truncate">4. Orion 50K</span>
-        <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-purple-950 text-purple-300 border border-purple-800 font-bold rounded-full">$7 Nova · XAU/USD</span>
+        <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-purple-950 text-purple-300 border border-purple-800 font-bold rounded-full">$7 Nova · Oro & Nasdaq</span>
       </button>
 
       <!-- Tab 5: Análisis XAUUSD & Pre-Sesión NY -->
       <button id="tabBtnAnalysisUsdcad" class="tab-button flex-1 min-w-[105px] sm:min-w-[145px] px-2.5 sm:px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition text-gray-400 hover:text-white hover:bg-gray-800/60 whitespace-nowrap cursor-pointer">
-        <i data-lucide="compass" class="w-4 h-4 text-amber-400 shrink-0"></i>
-        <span class="truncate">5. Análisis XAUUSD</span>
-        <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-amber-950 text-amber-300 border border-amber-800 font-bold rounded-full">Sesgo M5 & 5 Fuentes</span>
+        <i data-lucide="compass" class="w-4 h-4 text-sky-400 shrink-0"></i>
+        <span class="truncate">5. Sesgo & Análisis</span>
+        <span class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-sky-950 text-sky-300 border border-sky-800 font-bold rounded-full">Oro & Nasdaq M5</span>
       </button>
     </nav>
 
@@ -149,30 +149,52 @@
           </div>
         </div>
 
-        <!-- Tarjeta Única: Sesión New York (XAU/USD Killzone) -->
-        <div class="bg-cardBg/90 border border-cardBorder rounded-xl p-3 flex items-center justify-between gap-3 shadow-md flex-1" id="barNyBox">
-          <div class="space-y-0.5 min-w-0">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="font-black text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
-                <span>🥇</span> Killzone Exclusiva New York · XAU/USD (Oro)
-              </span>
-              <span id="barNyBadge" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border bg-amber-500/20 text-amber-300 border-amber-500/40">
-                ⏳ Pendiente
-              </span>
-              <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                Apertura COMEX / Wall Street
-              </span>
+        <!-- Tarjetas Duales: Sesiones New York (Oro & Nasdaq) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1" id="barNyBox">
+          <!-- Killzone 1: XAU/USD (Oro) -->
+          <div class="bg-cardBg/90 border border-cardBorder rounded-xl p-2.5 sm:p-3 flex items-center justify-between gap-2 shadow-md">
+            <div class="space-y-0.5 min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="font-black text-xs text-amber-300 uppercase tracking-wider flex items-center gap-1">
+                  <span>🥇</span> Killzone Oro (COMEX)
+                </span>
+                <span id="barNyBadge" class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full border bg-amber-500/20 text-amber-300 border-amber-500/40">
+                  ⏳ Pendiente
+                </span>
+              </div>
+              <div class="text-[11px] text-gray-300 font-mono">
+                <span class="text-amber-400 font-bold">08:00 – 11:30 NY</span>
+                <span class="text-gray-500">·</span>
+                <span id="barNyLocalWindow" class="text-gray-300">--:-- Local</span>
+              </div>
             </div>
-            <div class="text-[11px] text-gray-300 font-mono">
-              <span class="text-sky-300 font-bold">08:00 – 11:30 NY</span>
-              <span class="text-gray-500">·</span>
-              <span id="barNyLocalWindow" class="text-gray-300 font-semibold">--:-- Local</span>
-              <span class="text-gray-500 hidden sm:inline">· Spreads mínimos (1.0 - 1.8 pips ($0.10 - $0.18))</span>
+            <div class="text-right shrink-0">
+              <span class="text-[9px] uppercase tracking-wider text-gray-500 block font-bold" id="barNyCountdownLabel">Falta apertura</span>
+              <span class="text-xs sm:text-sm font-mono font-black text-amber-300" id="barNyCountdown">--h --m --s</span>
             </div>
           </div>
-          <div class="text-right shrink-0">
-            <span class="text-[9px] uppercase tracking-wider text-gray-400 block font-bold" id="barNyCountdownLabel">Falta apertura</span>
-            <span class="text-sm sm:text-base font-mono font-black text-sky-300" id="barNyCountdown">--h --m --s</span>
+
+          <!-- Killzone 2: NAS100 (Nasdaq 100) -->
+          <div class="bg-cardBg/90 border border-cardBorder rounded-xl p-2.5 sm:p-3 flex items-center justify-between gap-2 shadow-md">
+            <div class="space-y-0.5 min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="font-black text-xs text-sky-300 uppercase tracking-wider flex items-center gap-1">
+                  <span>⚡</span> Wall Street Nasdaq (Cash Open)
+                </span>
+                <span id="barNasBadge" class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full border bg-sky-500/20 text-sky-300 border-sky-500/40">
+                  ⏳ Pendiente
+                </span>
+              </div>
+              <div class="text-[11px] text-gray-300 font-mono">
+                <span class="text-sky-300 font-bold">09:30 – 12:00 NY</span>
+                <span class="text-gray-500">·</span>
+                <span id="barNasLocalWindow" class="text-gray-300">--:-- Local</span>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-[9px] uppercase tracking-wider text-gray-500 block font-bold" id="barNasCountdownLabel">Cash Open en</span>
+              <span class="text-xs sm:text-sm font-mono font-black text-sky-300" id="barNasCountdown">--h --m --s</span>
+            </div>
           </div>
         </div>
 
@@ -202,11 +224,11 @@
                 VENTANA CRÍTICA ±2 MIN (FONDEADO)
               </span>
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
-                🥇 EXCLUSIVO XAU/USD (USD & ORO)
+                🥇 XAU/USD & ⚡ NAS100 DUAL
               </span>
             </div>
             <p class="text-xs text-gray-400 mt-0.5">
-              Control riguroso de eventos macroeconómicos enfocado exclusivamente en la <span class="text-sky-300 font-semibold">Sesión de New York (08:00 – 11:30 NY)</span> para la operativa en XAU/USD (Oro Spot) con filtro de riesgo Orion ±2 min y dilatación de spreads en COMEX
+              Control macroeconómico institucional para la <span class="text-amber-300 font-semibold">Killzone de Oro (08:00 – 11:30 NY)</span> y la <span class="text-sky-300 font-semibold">Apertura de Wall Street Nasdaq (09:30 – 12:00 NY)</span> con regla oficial de riesgo Orion Funded ±2 min y dilatación de spreads.
             </p>
           </div>
         </div>
@@ -306,7 +328,118 @@
         </div>
       </section>
 
-      <!-- CALENDARIO DE NOTICIAS DE ALTO IMPACTO (XAU/USD · USD EXCLUSIVO) -->
+      <!-- SECCIÓN DESTACADA: FUENTES INSTITUCIONALES MÁS FIABLES Y ACTUALIZADAS (ORO & NASDAQ) -->
+      <section class="bg-cardBg border border-cardBorder rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 bg-gradient-to-tr from-sky-500 to-indigo-600 text-white rounded-xl shadow-md">
+              <i data-lucide="shield-check" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-white">Fuentes de Información Más Fiables y Actualizadas (Grado Institucional)</h3>
+              <p class="text-xs text-gray-400">Canales oficiales de datos macro, futuros regulados y fundamentales para XAU/USD y NAS100</p>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 rounded-xl text-xs font-mono font-bold bg-sky-950 text-sky-300 border border-sky-800">
+            ✓ 11 Fuentes Oficiales Auditadas
+          </span>
+        </div>
+
+        <!-- Grid de Fuentes Fiables: 6 Nasdaq + 5 Oro -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+          <!-- Fuente 1: CME FedWatch -->
+          <div class="p-3.5 bg-gray-950/80 rounded-xl border border-gray-800 hover:border-sky-500/40 transition flex flex-col justify-between space-y-2">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white flex items-center gap-1.5"><i data-lucide="percent" class="w-4 h-4 text-sky-400"></i> CME FedWatch Tool</span>
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">100% Oficial</span>
+              </div>
+              <p class="text-[11px] text-gray-300 mt-1 leading-relaxed">Probabilidades de tasas de la Fed en tiempo real. Driver rey del coste de capital en tecnológicas y del rendimiento de bonos TIPS.</p>
+            </div>
+            <div class="pt-2 border-t border-gray-800/80 flex items-center justify-between text-[10px] font-mono">
+              <span class="text-amber-400 font-bold">Afecta: XAUUSD & NAS100</span>
+              <a href="https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html" target="_blank" rel="noopener" class="text-sky-400 hover:underline flex items-center gap-0.5">Visitar <i data-lucide="external-link" class="w-3 h-3"></i></a>
+            </div>
+          </div>
+
+          <!-- Fuente 2: CME E-mini NQ Futures -->
+          <div class="p-3.5 bg-gray-950/80 rounded-xl border border-gray-800 hover:border-sky-500/40 transition flex flex-col justify-between space-y-2">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white flex items-center gap-1.5"><i data-lucide="activity" class="w-4 h-4 text-sky-400"></i> CME E-mini NQ=F</span>
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-bold">Futuros CME Globex</span>
+              </div>
+              <p class="text-[11px] text-gray-300 mt-1 leading-relaxed">Libro de órdenes y volumen de futuros NQ las 24 horas. Marca los niveles de Session VWAP y la liquidez pre-mercado de Wall Street.</p>
+            </div>
+            <div class="pt-2 border-t border-gray-800/80 flex items-center justify-between text-[10px] font-mono">
+              <span class="text-sky-300 font-bold">Afecta: Exclusivo NAS100</span>
+              <a href="https://www.cmegroup.com/markets/equities/nasdaq/e-mini-nasdaq-100.html" target="_blank" rel="noopener" class="text-sky-400 hover:underline flex items-center gap-0.5">Visitar <i data-lucide="external-link" class="w-3 h-3"></i></a>
+            </div>
+          </div>
+
+          <!-- Fuente 3: US 10-Year Treasury Yield (TNX) -->
+          <div class="p-3.5 bg-gray-950/80 rounded-xl border border-gray-800 hover:border-sky-500/40 transition flex flex-col justify-between space-y-2">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white flex items-center gap-1.5"><i data-lucide="trending-up" class="w-4 h-4 text-rose-400"></i> Bono 10 Años EE.UU. (TNX)</span>
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold">Mercado de Deuda</span>
+              </div>
+              <p class="text-[11px] text-gray-300 mt-1 leading-relaxed">Rendimiento de referencia mundial. Correlación inversa estricta con el Nasdaq: yields sobre 5% deprimen los múltiplos PER de las acciones de crecimiento.</p>
+            </div>
+            <div class="pt-2 border-t border-gray-800/80 flex items-center justify-between text-[10px] font-mono">
+              <span class="text-sky-300 font-bold">Afecta: Exclusivo NAS100</span>
+              <a href="https://www.cnbc.com/quotes/US10Y" target="_blank" rel="noopener" class="text-sky-400 hover:underline flex items-center gap-0.5">Visitar <i data-lucide="external-link" class="w-3 h-3"></i></a>
+            </div>
+          </div>
+
+          <!-- Fuente 4: SEC EDGAR & Big Tech Earnings (Mag 7) -->
+          <div class="p-3.5 bg-gray-950/80 rounded-xl border border-gray-800 hover:border-sky-500/40 transition flex flex-col justify-between space-y-2">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white flex items-center gap-1.5"><i data-lucide="cpu" class="w-4 h-4 text-purple-400"></i> Magnificent 7 Earnings</span>
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">SEC 10-Q Oficial</span>
+              </div>
+              <p class="text-[11px] text-gray-300 mt-1 leading-relaxed">Resultados y guías de NVDA, MSFT, AAPL, AMZN, GOOGL, META y TSLA (~45% del índice). Sus reportes trimestrales mueven cientos de puntos.</p>
+            </div>
+            <div class="pt-2 border-t border-gray-800/80 flex items-center justify-between text-[10px] font-mono">
+              <span class="text-sky-300 font-bold">Afecta: Exclusivo NAS100</span>
+              <a href="https://www.investing.com/earnings-calendar/" target="_blank" rel="noopener" class="text-sky-400 hover:underline flex items-center gap-0.5">Visitar <i data-lucide="external-link" class="w-3 h-3"></i></a>
+            </div>
+          </div>
+
+          <!-- Fuente 5: World Gold Council (Goldhub) -->
+          <div class="p-3.5 bg-gray-950/80 rounded-xl border border-gray-800 hover:border-amber-500/40 transition flex flex-col justify-between space-y-2">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white flex items-center gap-1.5"><i data-lucide="shield" class="w-4 h-4 text-amber-400"></i> WGC Goldhub</span>
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">Demanda Soberana</span>
+              </div>
+              <p class="text-[11px] text-gray-300 mt-1 leading-relaxed">Compras masivas de bancos centrales (675t YTD) y demanda física de lingotes. Constituye el suelo macro estructural de meses para el Oro.</p>
+            </div>
+            <div class="pt-2 border-t border-gray-800/80 flex items-center justify-between text-[10px] font-mono">
+              <span class="text-amber-300 font-bold">Afecta: Exclusivo XAUUSD</span>
+              <a href="https://www.gold.org/goldhub" target="_blank" rel="noopener" class="text-sky-400 hover:underline flex items-center gap-0.5">Visitar <i data-lucide="external-link" class="w-3 h-3"></i></a>
+            </div>
+          </div>
+
+          <!-- Fuente 6: SPDR Gold Shares (GLD ETF) -->
+          <div class="p-3.5 bg-gray-950/80 rounded-xl border border-gray-800 hover:border-amber-500/40 transition flex flex-col justify-between space-y-2">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white flex items-center gap-1.5"><i data-lucide="vault" class="w-4 h-4 text-amber-400"></i> SPDR Gold Shares (GLD)</span>
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">Custodia Física</span>
+              </div>
+              <p class="text-[11px] text-gray-300 mt-1 leading-relaxed">Tenencias diarias oficiales de 1,044 toneladas en bóvedas de Londres. Refleja las entradas y salidas de los mayores fondos pasivos de Wall Street.</p>
+            </div>
+            <div class="pt-2 border-t border-gray-800/80 flex items-center justify-between text-[10px] font-mono">
+              <span class="text-amber-300 font-bold">Afecta: Exclusivo XAUUSD</span>
+              <a href="https://www.spdrgoldshares.com/usa/gld/" target="_blank" rel="noopener" class="text-sky-400 hover:underline flex items-center gap-0.5">Visitar <i data-lucide="external-link" class="w-3 h-3"></i></a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CALENDARIO DE NOTICIAS DE ALTO IMPACTO (DUAL XAU/USD & NAS100) -->
       <section class="bg-cardBg border border-cardBorder rounded-2xl p-5 shadow-xl space-y-4">
         <div class="flex items-center justify-between border-b border-gray-800 pb-3 flex-wrap gap-2">
           <div class="flex items-center gap-2.5">
@@ -314,13 +447,23 @@
               <i data-lucide="calendar" class="w-5 h-5"></i>
             </div>
             <div>
-              <h3 class="text-base font-bold text-white">Calendario Económico Semanal de Alto Impacto para XAU/USD</h3>
-              <p class="text-xs text-gray-400">Eventos macroeconómicos de EE.UU. (USD) que mueven la liquidez y el precio de XAU/USD y activan la regla ±2 min de Orion Funded</p>
+              <h3 class="text-base font-bold text-white">Calendario Económico Semanal de Alto Impacto para XAU/USD & NAS100</h3>
+              <p class="text-xs text-gray-400">Eventos macroeconómicos de EE.UU. que mueven la liquidez y activan la regla ±2 min de Orion Funded</p>
             </div>
           </div>
-          <span class="px-2.5 py-1 rounded-xl text-xs font-mono font-bold bg-amber-950 text-amber-300 border border-amber-800">
-            🇺🇸 USD & 🥇 ORO (XAU/USD Exclusivo)
-          </span>
+          
+          <!-- Filtros de Activo -->
+          <div class="flex items-center gap-1.5 bg-gray-950 p-1 rounded-xl border border-gray-800 shadow-inner">
+            <button type="button" id="btnNewsFilterAll" onclick="window.filterNewsByAsset('all')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer bg-purple-600 text-white shadow-sm">
+              <span>🌐 Todos</span>
+            </button>
+            <button type="button" id="btnNewsFilterXau" onclick="window.filterNewsByAsset('xauusd')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer text-gray-400 hover:text-white">
+              <span>🥇 Solo XAU/USD</span>
+            </button>
+            <button type="button" id="btnNewsFilterNas" onclick="window.filterNewsByAsset('nas100')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer text-gray-400 hover:text-white">
+              <span>⚡ Solo NAS100</span>
+            </button>
+          </div>
         </div>
 
         <div id="newsEventsTableContainer" class="space-y-3">
@@ -574,18 +717,31 @@
         </button>
       </section>
 
-      <!-- PAR ACTIVO EN CALCULADORA: EXCLUSIVO XAU/USD -->
-      <section class="grid grid-cols-1 gap-3">
-        <!-- Par Único: XAU/USD -->
-        <button type="button" class="btn-calc-pair-card p-4 rounded-xl border-2 transition text-left cursor-default bg-amber-950/40 border-amber-500 text-white shadow-lg" data-pair="XAU/USD">
+      <!-- SELECTOR DE PAR ACTIVO EN CALCULADORA: DUAL XAU/USD & NAS100 -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- Par 1: XAU/USD -->
+        <button type="button" id="btnCalcPairXAUUSD" onclick="window.selectCalcPair('XAUUSD')" class="btn-calc-pair-card p-3.5 sm:p-4 rounded-xl border-2 transition text-left cursor-pointer bg-amber-950/40 border-amber-500 text-white shadow-lg shadow-amber-500/20" data-pair="XAUUSD">
           <div class="flex items-center justify-between mb-1">
-            <span class="text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2">
-              <span class="text-base sm:text-lg">🥇</span> PAR EXCLUSIVO DE OPERATIVA: XAU/USD (ORO SPOT / DÓLAR)
+            <span class="text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-1.5">
+              <span>🥇</span> XAU/USD (Oro Spot / Dólar)
             </span>
-            <span class="text-[9px] sm:text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">1 pip = $0.10 · 1 lote = 100 oz</span>
+            <span class="text-[9px] px-2 py-0.5 rounded font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">1 pip = $0.10 · 100 oz</span>
           </div>
-          <div class="text-[11px] sm:text-xs text-gray-300 font-mono mt-0.5">
-            Valor Pip: <strong class="text-amber-300 font-bold">$10.00 USD</strong> / lote estándar (100 oz) · $1.00 move = $100 · Killzone New York (08:00 – 11:30 NY)
+          <div class="text-[11px] text-gray-300 font-mono mt-0.5">
+            Valor Pip: <strong class="text-amber-300 font-bold">$10.00 USD</strong> / lote estándar · Killzone NY (08:00 – 11:30 NY)
+          </div>
+        </button>
+
+        <!-- Par 2: NAS100 -->
+        <button type="button" id="btnCalcPairNAS100" onclick="window.selectCalcPair('NAS100')" class="btn-calc-pair-card p-3.5 sm:p-4 rounded-xl border-2 transition text-left cursor-pointer bg-gray-950/60 border-gray-800 hover:border-sky-500/60 text-gray-400 hover:text-white" data-pair="NAS100">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-1.5">
+              <span>⚡</span> NAS100 (Nasdaq 100 / NQ)
+            </span>
+            <span class="text-[9px] px-2 py-0.5 rounded font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">1 punto = 1.00 pt · CFD</span>
+          </div>
+          <div class="text-[11px] text-gray-300 font-mono mt-0.5">
+            Valor Punto: <strong class="text-sky-300 font-bold">$1.00 USD</strong> / punto / lote · Killzone NY (09:30 – 12:00 NY)
           </div>
         </button>
       </section>
@@ -865,6 +1021,16 @@
 
           <!-- Selector de Modo de Interés (Toggle Segmentado) + Botón Limpiar -->
           <div class="flex items-center gap-2.5 flex-wrap">
+            <!-- Selector de Activo Backtest (XAU/USD vs NAS100) -->
+            <div class="inline-flex bg-gray-950 p-1 rounded-xl border border-gray-800 shadow-inner">
+              <button type="button" id="btnBtAssetXau" onclick="window.setBacktestSimpleAsset('XAUUSD')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-amber-500 text-black shadow-md">
+                <span>🥇 XAU/USD</span>
+              </button>
+              <button type="button" id="btnBtAssetNas" onclick="window.setBacktestSimpleAsset('NAS100')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-white">
+                <span>⚡ NAS100</span>
+              </button>
+            </div>
+
             <!-- Segmented Control: Compuesto vs Simple -->
             <div class="inline-flex bg-gray-950 p-1 rounded-xl border border-gray-800 shadow-inner" id="btInterestModeToggle">
               <button type="button" id="btnBtModeCompound" onclick="window.setBacktestInterestMode('compound')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-emerald-600 text-white shadow-md shadow-emerald-950/40" data-mode="compound">
@@ -1149,8 +1315,10 @@
           </div>
 
           <div class="flex items-center gap-2">
-            <div class="flex bg-gray-950 p-1 rounded-xl border border-gray-800 text-xs">
+            <div class="flex flex-wrap bg-gray-950 p-1 rounded-xl border border-gray-800 text-xs gap-1">
               <button type="button" onclick="window.setBacktestTableFilter('all')" class="btn-bt-filter px-2.5 py-1 rounded-lg font-semibold transition bg-emerald-600 text-white cursor-pointer" data-filter="all">Todos (<span id="btFilterCountAll">0</span>)</button>
+              <button type="button" onclick="window.setBacktestTableFilter('xauusd')" class="btn-bt-filter px-2.5 py-1 rounded-lg font-semibold transition text-gray-400 hover:text-white cursor-pointer" data-filter="xauusd">🥇 Oro</button>
+              <button type="button" onclick="window.setBacktestTableFilter('nas100')" class="btn-bt-filter px-2.5 py-1 rounded-lg font-semibold transition text-gray-400 hover:text-white cursor-pointer" data-filter="nas100">⚡ Nasdaq</button>
               <button type="button" onclick="window.setBacktestTableFilter('win')" class="btn-bt-filter px-2.5 py-1 rounded-lg font-semibold transition text-gray-400 hover:text-white cursor-pointer" data-filter="win">Wins (<span id="btFilterCountWins">0</span>)</button>
               <button type="button" onclick="window.setBacktestTableFilter('loss')" class="btn-bt-filter px-2.5 py-1 rounded-lg font-semibold transition text-gray-400 hover:text-white cursor-pointer" data-filter="loss">Losses (<span id="btFilterCountLosses">0</span>)</button>
             </div>
@@ -1212,18 +1380,34 @@
             </p>
           </div>
 
-          <!-- Selector Rápido de Fase Activa para Visualización -->
-          <div class="flex flex-col sm:flex-row lg:flex-col gap-2 shrink-0 bg-gray-950/80 p-2 rounded-xl border border-gray-800">
-            <span class="text-[10px] text-gray-400 font-mono uppercase tracking-wider font-bold block text-center lg:text-left px-1">Fase Activa:</span>
-            <div class="inline-flex bg-gray-900 p-1 rounded-lg border border-gray-800" id="orionPhaseToggleGroup">
-              <button type="button" id="btnOrionPhaseEval" onclick="window.setOrionActivePhase('eval')" class="px-3 py-1.5 rounded text-xs font-black transition flex items-center gap-1 cursor-pointer bg-purple-600 text-white shadow-md shadow-purple-950/40">
-                <i data-lucide="target" class="w-3.5 h-3.5"></i>
-                <span>1. Evaluación ($7)</span>
-              </button>
-              <button type="button" id="btnOrionPhaseFunded" onclick="window.setOrionActivePhase('funded')" class="px-3 py-1.5 rounded text-xs font-semibold transition flex items-center gap-1 cursor-pointer text-gray-400 hover:text-white">
-                <i data-lucide="award" class="w-3.5 h-3.5"></i>
-                <span>2. Fondeada (Real)</span>
-              </button>
+          <!-- Selectores Duales de Activo y Fase para Orion -->
+          <div class="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0 bg-gray-950/80 p-2.5 rounded-xl border border-gray-800">
+            <!-- Selector de Activo -->
+            <div>
+              <span class="text-[10px] text-gray-400 font-mono uppercase tracking-wider font-bold block px-1 mb-1">Activo Fondeo:</span>
+              <div class="inline-flex bg-gray-900 p-1 rounded-lg border border-gray-800 w-full" id="orionAssetToggleGroup">
+                <button type="button" id="btnOrionAssetXau" onclick="window.setOrionActiveAsset('XAUUSD')" class="flex-1 px-2.5 py-1.5 rounded text-xs font-black transition flex items-center justify-center gap-1 cursor-pointer bg-amber-500 text-black shadow-md">
+                  <span>🥇 XAU/USD</span>
+                </button>
+                <button type="button" id="btnOrionAssetNas" onclick="window.setOrionActiveAsset('NAS100')" class="flex-1 px-2.5 py-1.5 rounded text-xs font-semibold transition flex items-center justify-center gap-1 cursor-pointer text-gray-400 hover:text-white">
+                  <span>⚡ NAS100</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Selector de Fase -->
+            <div>
+              <span class="text-[10px] text-gray-400 font-mono uppercase tracking-wider font-bold block px-1 mb-1">Fase Activa:</span>
+              <div class="inline-flex bg-gray-900 p-1 rounded-lg border border-gray-800 w-full" id="orionPhaseToggleGroup">
+                <button type="button" id="btnOrionPhaseEval" onclick="window.setOrionActivePhase('eval')" class="flex-1 px-2.5 py-1.5 rounded text-xs font-black transition flex items-center justify-center gap-1 cursor-pointer bg-purple-600 text-white shadow-md shadow-purple-950/40">
+                  <i data-lucide="target" class="w-3.5 h-3.5"></i>
+                  <span>1. Eval ($7)</span>
+                </button>
+                <button type="button" id="btnOrionPhaseFunded" onclick="window.setOrionActivePhase('funded')" class="flex-1 px-2.5 py-1.5 rounded text-xs font-semibold transition flex items-center justify-center gap-1 cursor-pointer text-gray-400 hover:text-white">
+                  <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                  <span>2. Fondeada</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1778,6 +1962,28 @@
     <!-- ============================================================== -->
     <div id="viewAnalysisUsdcad" class="hidden space-y-6">
 
+      <!-- BARRA DE SELECCIÓN DE ACTIVO PARA ANÁLISIS: ORO VS NASDAQ -->
+      <section class="flex flex-wrap items-center justify-between gap-3 bg-gray-900/90 border border-gray-800 p-2 sm:p-2.5 rounded-2xl shadow-xl">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-mono font-bold text-gray-400 uppercase tracking-wider px-2">Activo en Análisis:</span>
+          <div class="inline-flex bg-gray-950 p-1 rounded-xl border border-gray-800 shadow-inner">
+            <button type="button" id="btnAnalysisAssetXau" onclick="window.switchAnalysisAsset('XAUUSD')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-amber-500 text-black shadow-md shadow-amber-950/40">
+              <span>🥇</span>
+              <span>XAU/USD (Oro Spot · COMEX)</span>
+            </button>
+            <button type="button" id="btnAnalysisAssetNas" onclick="window.switchAnalysisAsset('NAS100')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer text-gray-400 hover:text-white">
+              <span>⚡</span>
+              <span>NAS100 (Nasdaq 100 · NQ)</span>
+            </button>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-mono">
+          <span id="analysisAlgoBadge" class="px-2.5 py-1 rounded-lg bg-sky-950 text-sky-300 border border-sky-800 font-bold">
+            Algoritmo: 75% Estructura Técnica M5 + 25% Macro Fondo
+          </span>
+        </div>
+      </section>
+
       <!-- BANNER SUPERIOR: SCANNER PRE-SESIÓN NY EN VIVO -->
       <section class="bg-gradient-to-r from-sky-950/60 via-gray-900 to-blue-950/40 border-2 border-sky-500/40 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
@@ -1786,7 +1992,7 @@
           </div>
           <div>
             <div class="flex items-center gap-2 flex-wrap">
-              <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wide">Scanner Pre-Sesión NY & Sesgo M5 XAU/USD (Oro)</h2>
+              <h2 id="analysisAssetHeaderTitle" class="text-base sm:text-lg font-black text-white uppercase tracking-wide">Scanner Pre-Sesión NY & Sesgo M5 XAU/USD (Oro)</h2>
               <span id="usdcadSessionPhaseBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
                 ⏳ PRE-MERCADO NY ORO (06:00 – 08:00 NY)
               </span>
@@ -1807,7 +2013,7 @@
         <div class="flex items-center gap-2.5 flex-wrap">
           <div class="flex items-center gap-1.5 bg-gray-950/90 border border-gray-800 px-3 py-1.5 rounded-xl shadow-inner">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="text-[10px] text-gray-400 uppercase font-semibold">Feed COMEX:</span>
+            <span id="analysisFeedLabel" class="text-[10px] text-gray-400 uppercase font-semibold">Feed Mercado:</span>
             <input type="number" id="usdcadLiveSpotInput" step="0.10" value="3714.26" title="Cotización spot real para sincronizar niveles M5" class="w-24 bg-gray-900 border border-gray-700 rounded px-2 py-0.5 text-xs font-mono font-bold text-amber-300 focus:outline-none focus:border-amber-500 text-center">
             <span class="text-[10px] text-gray-500 font-mono">USD</span>
           </div>
@@ -1878,11 +2084,11 @@
               <div class="flex items-center gap-3 text-xs font-mono font-bold">
                 <span class="text-emerald-400 flex items-center gap-1">
                   <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>
-                  <span id="usdcadBullishPctLabel">Alcista: 82.5%</span>
+                  <span id="usdcadBullishPctLabel">Alcista: 9.3%</span>
                 </span>
                 <span class="text-rose-400 flex items-center gap-1">
                   <span class="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block"></span>
-                  <span id="usdcadBearishPctLabel">Bajista: 17.5%</span>
+                  <span id="usdcadBearishPctLabel">Bajista: 90.7%</span>
                 </span>
               </div>
             </div>
@@ -1891,18 +2097,18 @@
             <div class="mt-4 space-y-2">
               <div class="flex items-baseline justify-between">
                 <span class="text-xs text-gray-400">Intensidad del Flujo Institucional:</span>
-                <span id="usdcadStrengthPercentText" class="text-lg font-mono font-black text-emerald-400">
-                  82.5% Fuerza Alcista
+                <span id="usdcadStrengthPercentText" class="text-lg font-mono font-black text-rose-400">
+                  90.7% Fuerza Bajista Institucional
                 </span>
               </div>
 
               <!-- Barra dual con gradiente y transiciones suaves -->
               <div class="w-full h-5 bg-gray-950 rounded-full overflow-hidden flex border border-gray-800 p-0.5">
-                <div id="usdcadStrengthBarBullish" class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-l-full transition-all duration-700 relative group" style="width: 82.5%;">
-                  <span class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-black text-black">82.5%</span>
+                <div id="usdcadStrengthBarBullish" class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-l-full transition-all duration-700 relative group" style="width: 9.3%;">
+                  <span class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-black text-black">9.3%</span>
                 </div>
-                <div id="usdcadStrengthBarBearish" class="h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-r-full transition-all duration-700 relative group" style="width: 17.5%;">
-                  <span class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-black text-white">17.5%</span>
+                <div id="usdcadStrengthBarBearish" class="h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-r-full transition-all duration-700 relative group" style="width: 90.7%;">
+                  <span class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-black text-white">90.7%</span>
                 </div>
               </div>
               <div class="flex justify-between text-[10px] font-mono text-gray-500 px-1">
@@ -2007,36 +2213,36 @@
           <!-- Acción M5 -->
           <div class="bg-gray-950/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
             <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Acción en M5</span>
-            <div id="usdcadM5Action" class="text-sm font-bold text-emerald-400">BUSCAR COMPRAS (BUY)</div>
-            <span class="text-[10px] text-gray-500 block">En retroceso a descuento</span>
+            <div id="usdcadM5Action" class="text-sm font-bold text-rose-400">BUSCAR VENTAS (SELL)</div>
+            <span class="text-[10px] text-gray-500 block">En retroceso a resistencia</span>
           </div>
 
           <!-- Zona de Entrada (POI) -->
           <div class="bg-gray-950/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
             <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Zona Entrada (POI)</span>
-            <div id="usdcadM5Poi" class="text-sm font-mono font-bold text-amber-300">$3,780.00 – $3,783.50</div>
-            <span class="text-[10px] text-gray-500 block">Bullish OB + FVG M5</span>
+            <div id="usdcadM5Poi" class="text-sm font-mono font-bold text-amber-300">$3,724.00 – $3,732.00</div>
+            <span class="text-[10px] text-gray-500 block">Bearish Retest VWAP / FVG M5</span>
           </div>
 
           <!-- Nivel de Invalidación -->
           <div class="bg-gray-950/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
             <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Invalidación M5</span>
-            <div id="usdcadM5Invalidation" class="text-sm font-mono font-bold text-rose-400">$3,777.00</div>
-            <span class="text-[10px] text-gray-500 block">Cierre M5 bajo London Low</span>
+            <div id="usdcadM5Invalidation" class="text-sm font-mono font-bold text-rose-400">$3,736.50</div>
+            <span class="text-[10px] text-gray-500 block">Cierre M5 sobre resistencia</span>
           </div>
 
           <!-- Stop Loss Recomendado -->
           <div class="bg-gray-950/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
             <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Stop Loss Estricto</span>
-            <div id="usdcadM5Sl" class="text-sm font-mono font-bold text-rose-300">22.0 pips ($3,777.00)</div>
-            <span class="text-[10px] text-gray-500 block">Calculado en pestaña 4</span>
+            <div id="usdcadM5Sl" class="text-sm font-mono font-bold text-rose-300">25.0 pips ($3,736.50)</div>
+            <span class="text-[10px] text-gray-500 block">Calculado en pestaña 4 ($250 riesgo)</span>
           </div>
 
           <!-- Take Profit Ideal 1:2.8 -->
           <div class="bg-gray-950/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
             <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Take Profit (R:R 1:2.8)</span>
-            <div id="usdcadM5Tp" class="text-sm font-mono font-bold text-emerald-300">70.0 pips ($3,789.50)</div>
-            <span class="text-[10px] text-gray-500 block">Proyección 2.8x del riesgo</span>
+            <div id="usdcadM5Tp" class="text-sm font-mono font-bold text-emerald-300">70.0 pips ($3,654.00)</div>
+            <span class="text-[10px] text-gray-500 block">Proyección 2.8x ($700 ganancia)</span>
           </div>
         </div>
 
@@ -2137,7 +2343,7 @@
               <i data-lucide="activity" class="w-4 h-4 text-sky-400"></i>
               <span class="text-gray-300">Session VWAP Institucional:</span>
             </div>
-            <span id="usdcadLevelVwap" class="font-mono font-bold text-sky-300 text-sm">$3,781.50 (Soporte Dinámico M5)</span>
+            <span id="usdcadLevelVwap" class="font-mono font-bold text-sky-300 text-sm">$3,726.80 (Resistencia Dinámica M5)</span>
           </div>
         </div>
 
@@ -3488,6 +3694,6 @@
     </div>
   </div>
 
-<script src="app.js?v=20261119_v62_autosync_15s_live"></script>
+<script src="app.js?v=20261120_v63_dual_xauusd_nasdaq100_full"></script>
 </body>
 </html>
